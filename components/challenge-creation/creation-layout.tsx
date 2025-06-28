@@ -1,0 +1,130 @@
+"use client"
+
+import type { ReactNode } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { ArrowLeft, ArrowRight } from "lucide-react"
+import Link from "next/link"
+
+interface CreationLayoutProps {
+  children: ReactNode
+  currentStep: number
+  totalSteps: number
+  onNext: () => void
+  onPrevious: () => void
+  canProceed: boolean
+  isLoading?: boolean
+}
+
+const stepTitles = [
+  "Choose Privacy Type",
+  "Select Challenge Category",
+  "Basic Challenge Details",
+  "Features & Participants",
+  "Rules & Requirements",
+  "Proof Settings",
+  "Stakes & Rewards",
+  "Preview & Publish",
+]
+
+export function CreationLayout({
+  children,
+  currentStep,
+  totalSteps,
+  onNext,
+  onPrevious,
+  canProceed,
+  isLoading = false,
+}: CreationLayoutProps) {
+  const progress = (currentStep / totalSteps) * 100
+
+  return (
+    <div className="min-h-screen bg-muted/30">
+      {/* Header */}
+      <div className="bg-background border-b border-gray-200 sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+              <div className="h-6 w-px bg-gray-300" />
+              <div>
+                <h1 className="text-xl font-bold text-foreground">Create Challenge</h1>
+                <p className="text-sm text-muted-foreground">
+                  Step {currentStep} of {totalSteps}: {stepTitles[currentStep - 1]}
+                </p>
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">{Math.round(progress)}% Complete</div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mt-4">
+            <Progress value={progress} className="h-2" />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <Card className="shadow-lg">
+          <CardHeader className="pb-6">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-bold text-primary">{stepTitles[currentStep - 1]}</CardTitle>
+              <div className="flex items-center gap-2">
+                {Array.from({ length: totalSteps }, (_, i) => (
+                  <div
+                    key={i}
+                    className={`w-3 h-3 rounded-full ${
+                      i + 1 === currentStep ? "bg-primary" : i + 1 < currentStep ? "bg-secondary" : "bg-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="pb-8">{children}</CardContent>
+        </Card>
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between mt-8">
+          <Button
+            variant="outline"
+            onClick={onPrevious}
+            disabled={currentStep === 1 || isLoading}
+            className="flex items-center gap-2 bg-transparent"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Previous
+          </Button>
+
+          {currentStep < totalSteps ? (
+            <Button
+              onClick={onNext}
+              disabled={!canProceed || isLoading}
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold"
+            >
+              Next Step
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={onNext}
+              disabled={!canProceed || isLoading}
+              className="flex items-center gap-2 bg-secondary hover:bg-secondary/90 text-white font-bold"
+            >
+              {isLoading ? "Publishing..." : "Publish Challenge"}
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
