@@ -3,11 +3,13 @@
 import { useState } from "react"
 import { VerificationTrigger } from "@/components/verification-trigger"
 import { DevTestingPanel } from "@/components/dev-testing-panel"
+import { useDevMode } from "@/components/dev-mode-toggle"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import type { ProofRequirement } from "@/lib/types"
 
 export default function VerificationDemo() {
+  const { isDevModeEnabled } = useDevMode()
   const [currentProofType, setCurrentProofType] = useState<ProofRequirement>({
     type: "photo",
     required: true,
@@ -54,11 +56,13 @@ export default function VerificationDemo() {
         </Badge>
       </div>
 
-      <DevTestingPanel
-        onProofTypeChange={setCurrentProofType}
-        onResponseModeChange={setResponseMode}
-        onReset={() => console.log("Reset triggered")}
-        submissions={submissions}
+      {/* Dev Testing Panel - Only show when dev mode is enabled */}
+      {isDevModeEnabled && (
+        <DevTestingPanel
+          onProofTypeChange={setCurrentProofType}
+          onResponseModeChange={setResponseMode}
+          onReset={() => console.log("Reset triggered")}
+          submissions={submissions}
         onClearSubmissions={() => setSubmissions([])}
       />
 
@@ -94,6 +98,7 @@ export default function VerificationDemo() {
           </div>
         </CardContent>
       </Card>
+      )}
     </div>
   )
 }

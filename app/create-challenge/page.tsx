@@ -206,7 +206,7 @@ export default function CreateChallengePage() {
         router.push("/challenge/invite/ABC123")
       } else {
         // For public challenges or solo challenges, redirect to dashboard
-        router.push("/dashboard?created=true")
+        router.push("/?created=true")
       }
     } catch (error) {
       console.error("Failed to publish challenge:", error)

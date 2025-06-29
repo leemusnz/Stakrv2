@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { OnboardingLayout } from "@/components/onboarding/onboarding-layout"
 import { WelcomeStep } from "@/components/onboarding/welcome-step"
-import { AuthStep } from "@/components/onboarding/auth-step"
 import { HabitScienceStep } from "@/components/onboarding/habit-science-step"
 import { HowItWorksStep } from "@/components/onboarding/how-it-works-step"
 import { GoalSelectionStep } from "@/components/onboarding/goal-selection-step"
@@ -22,6 +21,7 @@ export interface OnboardingData {
   avatar?: string
   preferredStakeRange: string
   recommendedChallenge?: any
+  profileSaved?: boolean
 }
 
 export default function OnboardingPage() {
@@ -37,7 +37,6 @@ export default function OnboardingPage() {
 
   const steps = [
     { id: "welcome", component: WelcomeStep },
-    { id: "auth", component: AuthStep },
     { id: "habit-science", component: HabitScienceStep },
     { id: "how-it-works", component: HowItWorksStep },
     { id: "goals", component: GoalSelectionStep },
@@ -64,7 +63,7 @@ export default function OnboardingPage() {
 
   const handleSkip = () => {
     // Skip to profile setup
-    setCurrentStep(6)
+    setCurrentStep(5)
   }
 
   // Dev tools handlers

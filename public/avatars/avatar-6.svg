@@ -1,0 +1,28 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="40" cy="40" r="40" fill="#059669"/>
+  <!-- Face -->
+  <circle cx="40" cy="35" r="22" fill="#FED7AA"/>
+  <!-- Hair - nature inspired -->
+  <path d="M18 35C18 23.4 27.4 14 39 14C50.6 14 60 23.4 60 35V23C60 18 55 14 50 14H30C25 14 20 18 20 23V35Z" fill="#166534"/>
+  <!-- Flower in hair -->
+  <circle cx="50" cy="22" r="4" fill="#F59E0B"/>
+  <circle cx="50" cy="22" r="2" fill="#FEF3C7"/>
+  <!-- Leaves -->
+  <ellipse cx="45" cy="18" rx="3" ry="6" fill="#22C55E" transform="rotate(30 45 18)"/>
+  <ellipse cx="55" cy="18" rx="3" ry="6" fill="#22C55E" transform="rotate(-30 55 18)"/>
+  <!-- Eyes -->
+  <circle cx="33" cy="32" r="3" fill="#166534"/>
+  <circle cx="47" cy="32" r="3" fill="#166534"/>
+  <circle cx="33.5" cy="31" r="1" fill="white"/>
+  <circle cx="47.5" cy="31" r="1" fill="white"/>
+  <!-- Freckles -->
+  <circle cx="30" cy="35" r="0.5" fill="#92400E"/>
+  <circle cx="50" cy="35" r="0.5" fill="#92400E"/>
+  <circle cx="35" cy="37" r="0.5" fill="#92400E"/>
+  <!-- Nose -->
+  <ellipse cx="40" cy="38" rx="1.5" ry="2" fill="#F59E0B"/>
+  <!-- Mouth -->
+  <path d="M35 42C37 45 43 45 45 42" stroke="#166534" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Natural collar -->
+  <path d="M25 58C32 50 48 50 55 58" stroke="#22C55E" stroke-width="3" fill="none"/>
+</svg> 

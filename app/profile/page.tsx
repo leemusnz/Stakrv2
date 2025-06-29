@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -11,165 +12,62 @@ import { UserPosts } from "@/components/user-posts"
 import { PostCreationModal } from "@/components/post-creation-modal"
 import { MapPin, Calendar, ExternalLink, Trophy, Users, TrendingUp, Settings, Share2, Edit, Flame } from "lucide-react"
 
-// Mock user data
-const mockUser = {
-  id: "user-1",
-  name: "Alex Chen",
-  username: "@alexchen",
-  avatar: "/placeholder.svg?height=120&width=120",
-  bio: "Fitness enthusiast and productivity nerd. Always looking for new challenges to push my limits! 💪📈",
-  location: "New York, NY",
-  joinDate: "2023-06-15",
-  website: "https://alexchen.com",
-  isVerified: false,
-  stats: {
-    followers: 1247,
-    following: 389,
-    challengesCompleted: 23,
-    challengesActive: 3,
-    successRate: 87,
-    totalEarned: 1250,
-    currentStreak: 15,
-    longestStreak: 45,
-  },
-  categories: ["Fitness", "Productivity", "Mindfulness"],
-  activeChallenges: [
-    {
-      id: "1",
-      title: "30-Day Morning Workout",
-      description: "Start your day with energy! A progressive 30-day workout routine.",
-      category: "Fitness",
-      duration: "30 days",
-      participants: 1247,
-      minStake: 25,
-      maxStake: 100,
-      difficulty: "Medium",
-      isJoined: true,
-      isActive: true,
-      progress: 67,
-      creator: {
-        name: "Sarah Mitchell",
-        avatar: "/placeholder.svg?height=40&width=40",
-        isVerified: true,
-      },
-    },
-    {
-      id: "2",
-      title: "Daily Reading Challenge",
-      description: "Read for 30 minutes every day to build a consistent reading habit.",
-      category: "Learning",
-      duration: "21 days",
-      participants: 892,
-      minStake: 15,
-      maxStake: 75,
-      difficulty: "Easy",
-      isJoined: true,
-      isActive: true,
-      progress: 45,
-      creator: {
-        name: "BookClub Pro",
-        avatar: "/placeholder.svg?height=40&width=40",
-        isVerified: false,
-      },
-    },
-    {
-      id: "3",
-      title: "Meditation Mastery",
-      description: "Build a daily meditation practice with guided sessions.",
-      category: "Mindfulness",
-      duration: "14 days",
-      participants: 634,
-      minStake: 20,
-      maxStake: 80,
-      difficulty: "Easy",
-      isJoined: true,
-      isActive: true,
-      progress: 85,
-      creator: {
-        name: "Zen Master",
-        avatar: "/placeholder.svg?height=40&width=40",
-        isVerified: true,
-      },
-    },
-  ],
-  posts: [
-    {
-      id: "1",
-      type: "progress" as const,
-      content:
-        "Day 20 of my morning workout challenge! 💪 Finally feeling like this is becoming a real habit. The key was starting with just 10 minutes and gradually building up. Who else is working on building consistent habits?",
-      challenge: {
-        id: "1",
-        title: "30-Day Morning Workout",
-        category: "Fitness",
-      },
-      likes: 89,
-      comments: 23,
-      timestamp: "2024-01-15T07:30:00Z",
-      isLiked: false,
-    },
-    {
-      id: "2",
-      type: "motivation" as const,
-      content:
-        "Reminder: You don't have to be perfect, you just have to be consistent. Every small step counts toward your bigger goals! 🎯",
-      likes: 156,
-      comments: 34,
-      timestamp: "2024-01-14T19:15:00Z",
-      isLiked: true,
-    },
-    {
-      id: "3",
-      type: "achievement" as const,
-      content:
-        "Just completed my first challenge on Stakr! 🎉 The 7-day water challenge was harder than I thought, but I did it. Already signed up for the next one. The accountability really works!",
-      likes: 203,
-      comments: 45,
-      timestamp: "2024-01-12T16:45:00Z",
-      isLiked: false,
-    },
-    {
-      id: "4",
-      type: "tip" as const,
-      content:
-        "Pro tip for anyone starting meditation: Don't aim for perfect silence in your mind. Just notice when your thoughts wander and gently bring attention back to your breath. That's literally the practice! 🧘‍♂️",
-      likes: 127,
-      comments: 28,
-      timestamp: "2024-01-11T08:20:00Z",
-      isLiked: true,
-    },
-  ],
-  achievements: [
-    {
-      id: 1,
-      title: "First Steps",
-      description: "Completed your first challenge",
-      icon: "🎯",
-      rarity: "common",
-      unlockedDate: "2024-01-10",
-    },
-    {
-      id: 2,
-      title: "Streak Master",
-      description: "Maintained a 30-day streak",
-      icon: "🔥",
-      rarity: "rare",
-      unlockedDate: "2024-01-08",
-    },
-    {
-      id: 3,
-      title: "Community Builder",
-      description: "Helped 100+ people with your posts",
-      icon: "🤝",
-      rarity: "epic",
-      unlockedDate: "2024-01-05",
-    },
-  ],
-}
-
 export default function ProfilePage() {
+  const { data: session, status } = useSession()
   const [selectedTab, setSelectedTab] = useState("posts")
-  const [user, setUser] = useState(mockUser)
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState({
+    id: "",
+    name: "",
+    username: "",
+    avatar: "",
+    bio: "",
+    location: "",
+    joinDate: "",
+    website: "",
+    isVerified: false,
+    stats: {
+      followers: 0,
+      following: 0,
+      challengesCompleted: 0,
+      challengesActive: 0,
+      successRate: 0,
+      totalEarned: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+    },
+    categories: [] as string[],
+    activeChallenges: [] as any[],
+    posts: [] as any[],
+    achievements: [] as any[],
+  })
+
+  // Load real user data
+  useEffect(() => {
+    if (session?.user) {
+      setUser(prev => ({
+        ...prev,
+        id: session.user.id,
+        name: session.user.name || "",
+        username: `@${session.user.email?.split('@')[0] || 'user'}`,
+        avatar: session.user.image || "",
+        bio: "Welcome to Stakr! Complete challenges to build your profile.",
+        joinDate: new Date().toISOString().split('T')[0], // Today as join date for demo
+        isVerified: false,
+        stats: {
+          followers: 0,
+          following: 0,
+          challengesCompleted: session.user.challengesCompleted || 0,
+          challengesActive: 0,
+          successRate: 100,
+          totalEarned: 0,
+          currentStreak: session.user.currentStreak || 0,
+          longestStreak: session.user.longestStreak || 0,
+        }
+      }))
+      setLoading(false)
+    }
+  }, [session])
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
@@ -184,6 +82,28 @@ export default function ProfilePage() {
       default:
         return "bg-gray-100 text-gray-800 border-gray-300"
     }
+  }
+
+  if (status === "loading" || loading) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading your profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!session?.user) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold">Please Sign In</h1>
+          <p className="text-muted-foreground">You need to be logged in to view your profile</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -304,7 +224,19 @@ export default function ProfilePage() {
               <h2 className="text-2xl font-bold">Recent Posts</h2>
               <Badge variant="secondary">{user.posts.length} posts</Badge>
             </div>
-            <UserPosts posts={user.posts} user={user} isOwnProfile={true} />
+            {user.posts.length === 0 ? (
+              <Card className="p-8 text-center">
+                <div className="space-y-4">
+                  <Users className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+                  <h3 className="text-lg font-medium">No Posts Yet</h3>
+                  <p className="text-muted-foreground">
+                    Share your challenge progress and motivate others!
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              <UserPosts posts={user.posts} user={user} isOwnProfile={true} />
+            )}
           </TabsContent>
 
           {/* Challenges Tab */}
@@ -313,26 +245,24 @@ export default function ProfilePage() {
               <h2 className="text-2xl font-bold">Active Challenges</h2>
               <Badge variant="secondary">{user.activeChallenges.length} active</Badge>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {user.activeChallenges.map((challenge) => (
-                <ChallengeCard
-                  key={challenge.id}
-                  id={challenge.id}
-                  title={challenge.title}
-                  description={challenge.description}
-                  category={challenge.category}
-                  duration={challenge.duration}
-                  participants={challenge.participants}
-                  minStake={challenge.minStake}
-                  maxStake={challenge.maxStake}
-                  difficulty={challenge.difficulty}
-                  isJoined={challenge.isJoined}
-                  isActive={challenge.isActive}
-                  creator={challenge.creator}
-                  progress={challenge.progress}
-                />
-              ))}
-            </div>
+            {user.activeChallenges.length === 0 ? (
+              <Card className="p-8 text-center">
+                <div className="space-y-4">
+                  <Trophy className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+                  <h3 className="text-lg font-medium">No Active Challenges</h3>
+                  <p className="text-muted-foreground">
+                    Join your first challenge to start building better habits!
+                  </p>
+                  <Button onClick={() => window.location.href = '/discover'}>
+                    Browse Challenges
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Real challenge data will be loaded here when available */}
+              </div>
+            )}
           </TabsContent>
 
           {/* Achievements Tab */}
@@ -341,27 +271,42 @@ export default function ProfilePage() {
               <h2 className="text-2xl font-bold">Achievements</h2>
               <Badge variant="secondary">{user.achievements.length} unlocked</Badge>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {user.achievements.map((achievement) => (
-                <Card key={achievement.id}>
-                  <CardContent className="pt-6">
-                    <div className="text-center">
-                      <div className="text-4xl mb-3">{achievement.icon}</div>
-                      <h3 className="font-semibold mb-2">{achievement.title}</h3>
-                      <p className="text-sm text-muted-foreground mb-3">{achievement.description}</p>
-                      <div className="flex items-center justify-center gap-2">
-                        <Badge className={getRarityColor(achievement.rarity)} variant="outline">
-                          {achievement.rarity}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(achievement.unlockedDate).toLocaleDateString()}
-                        </span>
+            {user.achievements.length === 0 ? (
+              <Card className="p-8 text-center">
+                <div className="space-y-4">
+                  <Trophy className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+                  <h3 className="text-lg font-medium">No Achievements Yet</h3>
+                  <p className="text-muted-foreground">
+                    Complete challenges to unlock achievements and show off your progress!
+                  </p>
+                  <Button onClick={() => window.location.href = '/discover'}>
+                    Start Your First Challenge
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {user.achievements.map((achievement) => (
+                  <Card key={achievement.id}>
+                    <CardContent className="pt-6">
+                      <div className="text-center">
+                        <div className="text-4xl mb-3">{achievement.icon}</div>
+                        <h3 className="font-semibold mb-2">{achievement.title}</h3>
+                        <p className="text-sm text-muted-foreground mb-3">{achievement.description}</p>
+                        <div className="flex items-center justify-center gap-2">
+                          <Badge className={getRarityColor(achievement.rarity)} variant="outline">
+                            {achievement.rarity}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(achievement.unlockedDate).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* Stats Tab */}

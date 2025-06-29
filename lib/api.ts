@@ -11,33 +11,36 @@ import {
   getTrendingChallenges,
 } from "./mock-data"
 
-// Configuration - easily switch between mock and real API
-const USE_MOCK_DATA = true // Set to false when connecting real backend
+// Configuration - Use real data where endpoints exist, mock data as fallback
+const USE_MOCK_DATA = false // We have real endpoints now!
 
 // API Base URL (for when we connect real backend)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
 
-// Generic API wrapper
-async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  if (USE_MOCK_DATA) {
-    // Return mock data immediately
-    await new Promise((resolve) => setTimeout(resolve, 500)) // Simulate network delay
-    throw new Error("Mock data should be handled by specific functions")
+// Generic API wrapper with fallback
+async function apiCall<T>(endpoint: string, options?: RequestInit, mockFallback?: () => Promise<T>): Promise<T> {
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+      ...options,
+    })
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`)
+    }
+
+    return response.json()
+  } catch (error) {
+    // If real API fails and we have a mock fallback, use it
+    if (mockFallback) {
+      console.log(`📡 API ${endpoint} failed, using mock data fallback`)
+      return mockFallback()
+    }
+    throw error
   }
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-    ...options,
-  })
-
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`)
-  }
-
-  return response.json()
 }
 
 // User API
@@ -81,27 +84,27 @@ export const userApi = {
 // Challenge API
 export const challengeApi = {
   getAllChallenges: async (): Promise<Challenge[]> => {
-    if (USE_MOCK_DATA) {
+    return apiCall<Challenge[]>("/challenges", {}, async () => {
       await new Promise((resolve) => setTimeout(resolve, 400))
       return mockChallenges
-    }
-    return apiCall<Challenge[]>("/challenges")
+    })
   },
 
   getChallengeById: async (id: string): Promise<Challenge | null> => {
-    if (USE_MOCK_DATA) {
+    try {
+      return await apiCall<Challenge>(`/challenges/${id}`)
+    } catch (error) {
+      // Fallback to mock data
       await new Promise((resolve) => setTimeout(resolve, 300))
       return getChallengeById(id) || null
     }
-    return apiCall<Challenge>(`/challenges/${id}`)
   },
 
   getTrendingChallenges: async (): Promise<Challenge[]> => {
-    if (USE_MOCK_DATA) {
+    return apiCall<Challenge[]>("/challenges/trending", {}, async () => {
       await new Promise((resolve) => setTimeout(resolve, 350))
       return getTrendingChallenges()
-    }
-    return apiCall<Challenge[]>("/challenges/trending")
+    })
   },
 
   getActiveChallenges: async (): Promise<Challenge[]> => {

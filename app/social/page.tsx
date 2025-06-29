@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useSession } from "next-auth/react"
 import { SocialFeed } from "@/components/social/social-feed"
 import { Leaderboard } from "@/components/social/leaderboard"
 import { FriendActivity } from "@/components/social/friend-activity"
@@ -10,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, TrendingUp, Trophy, UserPlus } from "lucide-react"
 
 export default function SocialPage() {
+  const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState<"feed" | "leaderboard" | "friends">("feed")
 
   return (
@@ -23,7 +25,7 @@ export default function SocialPage() {
               Social Hub
             </h1>
             <p className="text-muted-foreground">
-              Connect with the community, celebrate wins, and stay motivated together
+              {session?.user?.name ? `Welcome ${session.user.name}! ` : ''}Connect with the community, celebrate wins, and stay motivated together
             </p>
           </div>
 

@@ -60,23 +60,24 @@ interface SocialFeedProps {
   showFilters?: boolean
 }
 
+// Note: This will be replaced with real API call to /api/social/feed
 const mockFeedData: FeedItem[] = [
   {
     id: "1",
     type: "achievement",
     user: {
-      id: "sarah-chen",
-      name: "Sarah Chen",
+      id: "real-user-1",
+      name: "Challenge Completers",
       avatar: "/placeholder.svg?height=40&width=40",
       verified: true,
       isFollowing: false,
     },
     timestamp: "2 hours ago",
     content: {
-      title: "Meditation Master",
-      description: "Completed 30 consecutive days of morning meditation",
-      streak: 30,
-      amount: 150,
+      title: "🧘 Real users are completing challenges!",
+      description: "Join our community and start your journey. Data will be personalized once you participate.",
+      streak: 0,
+      amount: 0,
     },
     engagement: {
       likes: 24,
@@ -183,6 +184,7 @@ const mockFeedData: FeedItem[] = [
 export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedProps) {
   const [activeFilter, setActiveFilter] = useState(filter)
   const [feedItems, setFeedItems] = useState(mockFeedData)
+  const [isLoading, setIsLoading] = useState(false)
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -325,7 +327,20 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
 
       {/* Feed Items */}
       <div className="space-y-4">
-        {filteredItems.map((item) => (
+        {filteredItems.length === 0 ? (
+          <Card className="p-8 text-center">
+            <div className="space-y-4">
+              <div className="text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-medium">Community Feed Coming Soon</h3>
+                <p className="text-sm">
+                  Start participating in challenges to see real community activity here!
+                </p>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          filteredItems.map((item) => (
           <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               {/* Header */}
@@ -459,7 +474,8 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
               </div>
             </CardContent>
           </Card>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Load More */}

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Loader2, Mail, Lock, Chrome, ArrowRight, Shield } from 'lucide-react'
+import { Loader2, Mail, Lock, Chrome, ArrowRight, Shield, CheckCircle } from 'lucide-react'
 
 interface AuthStepProps {
   onNext: (data?: any) => void
@@ -18,6 +18,7 @@ interface AuthStepProps {
 export function AuthStep({ onNext, onBack }: AuthStepProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [activeTab, setActiveTab] = useState('signin')
   const [formData, setFormData] = useState({
     email: '',
@@ -29,6 +30,7 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     setError('') // Clear error when user types
+    setSuccess('') // Clear success when user types
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -63,6 +65,7 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
     e.preventDefault()
     setIsLoading(true)
     setError('')
+    setSuccess('')
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
@@ -77,12 +80,66 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
       return
     }
 
+    if (formData.name.length < 2) {
+      setError('Name must be at least 2 characters')
+      setIsLoading(false)
+      return
+    }
+
     try {
-      // For demo purposes, try to sign in with demo credentials
-      // In real app, this would create an account first
-      setError('Account creation is coming soon! Please use the demo accounts for now.')
+      // Call the registration API
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          confirmPassword: formData.confirmPassword
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.message || data.error || 'Registration failed')
+        return
+      }
+
+      // Success! Show success message and automatically sign in
+      setSuccess('Account created successfully! Signing you in...')
+      
+      // Wait a moment to show success message
+      setTimeout(async () => {
+        try {
+          const signInResult = await signIn('credentials', {
+            email: formData.email,
+            password: formData.password,
+            redirect: false,
+          })
+
+          if (signInResult?.error) {
+            setError('Account created but login failed. Please try signing in manually.')
+          } else if (signInResult?.ok) {
+            // Continue to next step
+            onNext({ 
+              authenticated: true, 
+              newUser: true,
+              user: { 
+                email: formData.email,
+                name: formData.name 
+              } 
+            })
+          }
+        } catch (signInError) {
+          setError('Account created but login failed. Please try signing in manually.')
+        }
+      }, 1500)
+
     } catch (error) {
-      setError('Failed to create account')
+      setError('Failed to create account. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -92,7 +149,7 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
     setIsLoading(true)
     try {
       await signIn('google', { 
-        callbackUrl: '/dashboard' // Continue to dashboard after Google auth
+        callbackUrl: '/' // Continue to dashboard after Google auth
       })
     } catch (error) {
       setError('Google authentication failed')
@@ -134,13 +191,21 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
             <AlertDescription>
               <strong>Try Demo Accounts:</strong><br />
               📧 alex@stakr.app / password123<br />
-              📧 demo@stakr.app / demo123
+              📧 demo@stakr.app / demo123<br />
+              <em>Or create your own account!</em>
             </AlertDescription>
           </Alert>
 
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {success && (
+            <Alert className="border-green-200 bg-green-50 text-green-800">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">{success}</AlertDescription>
             </Alert>
           )}
 
@@ -238,12 +303,13 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
                     <Input
                       id="signup-password"
                       type="password"
-                      placeholder="Create a password"
+                      placeholder="Create a password (min 6 characters)"
                       value={formData.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
                       className="pl-10"
                       required
                       disabled={isLoading}
+                      minLength={6}
                     />
                   </div>
                 </div>

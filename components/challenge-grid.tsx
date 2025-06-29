@@ -1,119 +1,52 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChallengeCard } from "@/components/challenge-card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { RotateCcw } from "lucide-react"
 
 export function ChallengeGrid() {
-  const [showFiltered, setShowFiltered] = useState(false)
+  const [challenges, setChallenges] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Mock challenge data - unique challenges not in trending
-  const allChallenges = [
-    {
-      id: "read-20-pages-daily",
-      title: "Read 20 Pages Daily",
-      description: "Read at least 20 pages of a book every day. Expand your mind and build a consistent reading habit.",
-      category: "Learning",
-      duration: "21 days",
-      participants: 345,
-      minStake: 15,
-      maxStake: 150,
-      difficulty: "Easy" as const,
-    },
-    {
-      id: "cold-shower-challenge",
-      title: "Cold Shower Challenge",
-      description: "Take a cold shower every morning for 14 days. Build mental toughness and boost your energy levels.",
-      category: "Wellness",
-      duration: "14 days",
-      participants: 156,
-      minStake: 20,
-      maxStake: 100,
-      difficulty: "Medium" as const,
-    },
-    {
-      id: "side-project-launch",
-      title: "Launch Your Side Project",
-      description: "Ship a complete side project in 30 days. No more excuses - it's time to build something real.",
-      category: "Productivity",
-      duration: "30 days",
-      participants: 67,
-      minStake: 100,
-      maxStake: 1000,
-      difficulty: "Hard" as const,
-    },
-    {
-      id: "no-junk-food",
-      title: "No Junk Food Challenge",
-      description:
-        "Eliminate all processed junk food from your diet for 21 days. Feel the difference in your energy and health.",
-      category: "Wellness",
-      duration: "21 days",
-      participants: 298,
-      minStake: 30,
-      maxStake: 150,
-      difficulty: "Medium" as const,
-    },
-    {
-      id: "learn-new-skill",
-      title: "Learn a New Skill",
-      description: "Dedicate 1 hour daily to learning a completely new skill. 30 days to transform your capabilities.",
-      category: "Learning",
-      duration: "30 days",
-      participants: 124,
-      minStake: 40,
-      maxStake: 200,
-      difficulty: "Medium" as const,
-    },
-    {
-      id: "water-intake-challenge",
-      title: "Daily Water Goal",
-      description: "Drink 8 glasses of water every single day for 14 days. Hydrate your way to better health.",
-      category: "Wellness",
-      duration: "14 days",
-      participants: 412,
-      minStake: 10,
-      maxStake: 50,
-      difficulty: "Easy" as const,
-    },
-    {
-      id: "phone-free-evenings",
-      title: "Phone-Free Evenings",
-      description: "Put your phone away after 8 PM every night for 21 days. Reclaim your evening peace.",
-      category: "Digital Wellness",
-      duration: "21 days",
-      participants: 178,
-      minStake: 25,
-      maxStake: 100,
-      difficulty: "Medium" as const,
-    },
-    {
-      id: "daily-pushups",
-      title: "100 Push-ups Daily",
-      description: "Complete 100 push-ups every day for 30 days. Build strength and discipline simultaneously.",
-      category: "Fitness",
-      duration: "30 days",
-      participants: 289,
-      minStake: 20,
-      maxStake: 150,
-      difficulty: "Hard" as const,
-    },
-    {
-      id: "creative-writing",
-      title: "Daily Creative Writing",
-      description: "Write 500 words of creative content every day for 21 days. Unlock your creative potential.",
-      category: "Learning",
-      duration: "21 days",
-      participants: 156,
-      minStake: 25,
-      maxStake: 100,
-      difficulty: "Medium" as const,
-    },
-  ]
+  // Load real challenges from API
+  useEffect(() => {
+    loadChallenges()
+  }, [])
 
-  const displayedChallenges = showFiltered ? allChallenges.slice(0, 6) : allChallenges
+  const loadChallenges = async () => {
+    try {
+      // TODO: Replace with real API call
+      // const response = await fetch('/api/challenges')
+      // const data = await response.json()
+      // setChallenges(data.challenges)
+      
+      // For now, show empty state
+      setChallenges([])
+    } catch (error) {
+      console.error('Failed to load challenges:', error)
+      setChallenges([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold">All Challenges</h2>
+          <p className="text-sm text-muted-foreground">Loading challenges...</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-48 bg-muted animate-pulse rounded-lg"></div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -122,42 +55,34 @@ export function ChallengeGrid() {
         <div className="space-y-1">
           <h2 className="text-2xl font-bold">All Challenges</h2>
           <p className="text-sm text-muted-foreground">
-            Showing {displayedChallenges.length} challenges • Sorted by popularity
+            Community challenges will appear here as they're created
           </p>
         </div>
+      </div>
 
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="text-xs">
-            {displayedChallenges.length} results
-          </Badge>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-muted-foreground hover:text-foreground bg-transparent"
-            onClick={() => setShowFiltered(!showFiltered)}
-          >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            {showFiltered ? "Show All" : "Reset View"}
-          </Button>
+      {/* Challenge Grid or Empty State */}
+      {challenges.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="space-y-4">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+              <RotateCcw className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-medium">No Challenges Available Yet</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Be the first to create a challenge for the community! Challenge creation is coming soon.
+            </p>
+            <Button size="lg" className="mt-4">
+              Create First Challenge
+            </Button>
+          </div>
         </div>
-      </div>
-
-      {/* Challenge Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {displayedChallenges.map((challenge) => (
-          <ChallengeCard key={challenge.id} {...challenge} />
-        ))}
-      </div>
-
-      {/* Load More */}
-      <div className="text-center pt-8">
-        <Button variant="outline" size="lg" className="bg-transparent hover:bg-muted">
-          Load More Challenges
-        </Button>
-        <p className="text-xs text-muted-foreground mt-2">
-          Showing {displayedChallenges.length} of {allChallenges.length + 5} challenges
-        </p>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {challenges.map((challenge) => (
+            <ChallengeCard key={challenge.id} {...challenge} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

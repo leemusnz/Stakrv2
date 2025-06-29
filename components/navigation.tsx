@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Home, Search, Trophy, Wallet, Settings, LogOut, Plus, Menu, X, Shield, DollarSign } from "lucide-react"
+import { Home, Search, Trophy, Wallet, Settings, LogOut, Plus, Menu, X, Shield, DollarSign, Users, Bug } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { NotificationDropdown } from "@/components/notifications/notification-dropdown"
 import { cn } from "@/lib/utils"
@@ -24,6 +24,7 @@ interface NavigationUser {
   credits: number
   activeStakes: number
   isAdmin?: boolean
+  isDev?: boolean
 }
 
 interface NavigationProps {
@@ -37,15 +38,15 @@ export function Navigation({ user, onLogout }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navItems = [
-    { id: "home", label: "Home", icon: Home, href: "/" },
+    { id: "dashboard", label: "Dashboard", icon: Trophy, href: "/" },
     { id: "discover", label: "Discover", icon: Search, href: "/discover" },
-    { id: "dashboard", label: "Dashboard", icon: Trophy, href: "/dashboard" },
+    { id: "social", label: "Social", icon: Users, href: "/social" },
   ]
 
   const getActiveTab = () => {
     if (pathname.startsWith("/discover")) return "discover"
-    if (pathname.startsWith("/dashboard")) return "dashboard"
-    if (pathname === "/") return "home"
+    if (pathname.startsWith("/social")) return "social"
+    if (pathname === "/") return "dashboard"
     return ""
   }
 
@@ -178,6 +179,14 @@ export function Navigation({ user, onLogout }: NavigationProps) {
                       </Link>
                     </DropdownMenuItem>
                   </>
+                )}
+                {user.isDev && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/dev-tools" className="cursor-pointer">
+                      <Bug className="mr-2 h-4 w-4" />
+                      <span>🛠️ Dev Tools</span>
+                    </Link>
+                  </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">

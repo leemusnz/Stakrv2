@@ -37,32 +37,14 @@ export function useNotifications() {
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([
     {
-      id: "1",
-      type: "challenge",
-      title: "Challenge Deadline Approaching",
-      message: "Your 10K Steps Daily challenge verification is due in 2 hours",
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-      read: false,
-      actionUrl: "/verification-demo",
-    },
-    {
-      id: "2",
-      type: "social",
-      title: "New Achievement Unlocked",
-      message: "You've completed your first week streak! 🔥",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-      read: false,
-      actionUrl: "/dashboard?tab=achievements",
-    },
-    {
-      id: "3",
+      id: "welcome",
       type: "system",
-      title: "Welcome to Stakr!",
-      message: "Complete your profile to get personalized challenge recommendations",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-      read: true,
-      actionUrl: "/profile",
-    },
+      title: "Welcome to Stakr! 🎉",
+      message: "Start your first challenge to begin your journey",
+      timestamp: new Date(),
+      read: false,
+      actionUrl: "/discover",
+    }
   ])
 
   const unreadCount = notifications.filter((n) => !n.read).length
@@ -101,32 +83,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     setNotifications((prev) => prev.filter((n) => n.id !== id))
   }
 
-  // Simulate real-time notifications
+  // Load real notifications from API
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Randomly add notifications for demo purposes
-      if (Math.random() < 0.1) {
-        // 10% chance every 30 seconds
-        const demoNotifications = [
-          {
-            type: "social" as const,
-            title: "Friend Activity",
-            message: "Sarah just completed the Morning Meditation challenge!",
-          },
-          {
-            type: "challenge" as const,
-            title: "New Challenge Available",
-            message: "30-Day Reading Challenge is now live with a $500 prize pool",
-            actionUrl: "/discover",
-          },
-        ]
-
-        const randomNotification = demoNotifications[Math.floor(Math.random() * demoNotifications.length)]
-        addNotification(randomNotification)
-      }
-    }, 30000) // Check every 30 seconds
-
-    return () => clearInterval(interval)
+    // TODO: Load real notifications from /api/user/notifications
+    // For now, just show the welcome notification for new users
   }, [])
 
   return (

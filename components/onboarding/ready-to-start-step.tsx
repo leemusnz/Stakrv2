@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession, signIn } from 'next-auth/react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { ArrowRight, Sparkles, Gift, Mail, Lock, CheckCircle, SnowflakeIcon as Confetti } from "lucide-react"
+import { ArrowRight, Sparkles, Gift, CheckCircle, Snowflake, Mail, Lock, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { OnboardingData } from "@/app/onboarding/page"
 
@@ -20,11 +21,14 @@ interface ReadyToStartStepProps {
 }
 
 export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
+  const { data: session } = useSession()
+  const [showConfetti, setShowConfetti] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isCreatingAccount, setIsCreatingAccount] = useState(false)
-  const [showConfetti, setShowConfetti] = useState(false)
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     // Trigger confetti animation when component mounts
@@ -33,50 +37,247 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
     return () => clearTimeout(timer)
   }, [])
 
-  const handleCreateAccount = async () => {
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault()
     setIsCreatingAccount(true)
+    setError(null)
 
-    // Simulate account creation
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      // First create the account
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name: data.name || 'New User',
+          confirmPassword: password
+        }),
+      })
 
-    // In a real app, this would:
-    // 1. Create user account with email/password
-    // 2. Save onboarding data to user profile
-    // 3. Set up user preferences
-    // 4. Redirect to dashboard or first challenge
+      const result = await response.json()
 
-    console.log("Creating account with data:", {
-      email,
-      password: "[REDACTED]",
-      onboardingData: data,
-    })
+      if (!response.ok) {
+        setError(result.message || result.error || 'Failed to create account')
+        return
+      }
 
-    // Redirect to dashboard
-    router.push("/dashboard")
+      // Account created, now sign in
+      const signInResult = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (signInResult?.error) {
+        setError('Account created but login failed. Please try signing in.')
+        return
+      }
+
+      // Success! Now complete the onboarding profile
+      await handleCompleteOnboarding()
+
+    } catch (error) {
+      console.error('❌ Error creating account:', error)
+      setError('Failed to create account. Please try again.')
+    } finally {
+      setIsCreatingAccount(false)
+    }
   }
 
-  const handleSocialSignIn = async (provider: "google" | "facebook" | "apple") => {
+  const handleSocialSignIn = async (provider: "google" | "apple" | "facebook") => {
     setIsCreatingAccount(true)
-
-    // Simulate social sign-in
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    // In a real app, this would:
-    // 1. Redirect to OAuth provider
-    // 2. Handle OAuth callback
-    // 3. Create/link user account
-    // 4. Save onboarding data to user profile
-    // 5. Redirect to dashboard
-
-    console.log(`Signing in with ${provider}:`, {
-      provider,
-      onboardingData: data,
-    })
-
-    // Redirect to dashboard
-    router.push("/dashboard")
+    try {
+      await signIn(provider, { 
+        callbackUrl: '/' // Will complete onboarding after social auth
+      })
+    } catch (error) {
+      setError(`${provider} authentication failed`)
+      setIsCreatingAccount(false)
+    }
   }
 
+  const handleCompleteOnboarding = async () => {
+    setIsLoading(true)
+    
+    try {
+      const response = await fetch('/api/onboarding/complete-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          avatar: data.avatar,
+          goals: data.goals,
+          interests: data.interests,
+          experience: data.experience,
+          motivation: data.motivation,
+          preferredStakeRange: data.preferredStakeRange
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        console.log('✅ Onboarding completed successfully!')
+        window.location.href = '/'
+      } else {
+        console.error('❌ Failed to complete onboarding:', result.error)
+        setError(result.message || 'Failed to complete onboarding')
+      }
+    } catch (error) {
+      console.error('❌ Error completing onboarding:', error)
+      setError('An error occurred while completing onboarding')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // If user is already authenticated, show completion flow
+  if (session?.user) {
+    return (
+      <div className="space-y-8 max-w-2xl mx-auto relative">
+        {/* Confetti Animation */}
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-50">
+            <div className="absolute top-1/4 left-1/4 animate-bounce">
+              <Snowflake className="w-8 h-8 text-primary" />
+            </div>
+            <div className="absolute top-1/3 right-1/4 animate-bounce delay-100">
+              <Sparkles className="w-6 h-6 text-secondary" />
+            </div>
+            <div className="absolute top-1/2 left-1/3 animate-bounce delay-200">
+              <Snowflake className="w-7 h-7 text-success" />
+            </div>
+            <div className="absolute top-2/3 right-1/3 animate-bounce delay-300">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+          </div>
+        )}
+
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+            Final Step - You're Almost There! 🎉
+          </Badge>
+          <h1 className="text-4xl font-bold">
+            You're <span className="text-primary">Ready</span> to Start!
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Complete your profile setup and start your journey to building lasting habits.
+          </p>
+        </div>
+
+        {/* Profile Summary */}
+        <Card className="bg-gradient-to-br from-primary/5 to-secondary/5">
+          <CardContent className="p-8">
+            <div className="text-center space-y-6">
+              <div className="flex items-center justify-center gap-4">
+                <Avatar className="w-20 h-20 border-4 border-primary">
+                  <AvatarImage src={data.avatar || "/placeholder.svg"} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
+                    {data.name?.charAt(0).toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-left">
+                  <h3 className="text-2xl font-bold">{data.name || "New Challenger"}</h3>
+                  <p className="text-muted-foreground">Ready to build lasting habits</p>
+                  <Badge variant="outline" className="bg-success/10 text-success border-success/20 mt-2">
+                    <Gift className="w-4 h-4 mr-1" />
+                    $25 Welcome Credits
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
+                  <h4 className="font-bold">Your Goals:</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {data.goals?.slice(0, 3).map((goal, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {goal}
+                      </Badge>
+                    ))}
+                    {(data.goals?.length || 0) > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{(data.goals?.length || 0) - 3} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-bold">Interests:</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {data.interests?.slice(0, 2).map((interest, index) => (
+                      <Badge key={index} variant="outline" className="text-xs bg-secondary/10 text-secondary">
+                        {interest}
+                      </Badge>
+                    ))}
+                    {(data.interests?.length || 0) > 2 && (
+                      <Badge variant="outline" className="text-xs bg-secondary/10 text-secondary">
+                        +{(data.interests?.length || 0) - 2} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {data.recommendedChallenge && (
+                <div className="bg-white/50 rounded-lg p-4">
+                  <h4 className="font-bold mb-2">Your Perfect Match Challenge:</h4>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <span className="text-2xl">{data.recommendedChallenge.icon}</span>
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">{data.recommendedChallenge.title}</div>
+                      <div className="text-sm text-muted-foreground">{data.recommendedChallenge.duration}</div>
+                    </div>
+                    <Badge className="bg-primary/10 text-primary border-primary/20 ml-auto">
+                      Perfect Match
+                    </Badge>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Final CTA for authenticated users */}
+        <div className="text-center space-y-4">
+          <Button
+            onClick={handleCompleteOnboarding}
+            disabled={isLoading}
+            size="lg"
+            className="text-lg font-bold px-12 py-6 w-full md:w-auto"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Completing Setup...
+              </>
+            ) : (
+              <>
+                Complete Setup & Start Your Journey
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </>
+            )}
+          </Button>
+
+          {error && (
+            <p className="text-sm text-red-500">
+              {error}
+            </p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // If not authenticated, show account creation
   const canCreateAccount = email.trim() && password.length >= 6
 
   return (
@@ -85,13 +286,13 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
           <div className="absolute top-1/4 left-1/4 animate-bounce">
-            <Confetti className="w-8 h-8 text-primary" />
+            <Snowflake className="w-8 h-8 text-primary" />
           </div>
           <div className="absolute top-1/3 right-1/4 animate-bounce delay-100">
             <Sparkles className="w-6 h-6 text-secondary" />
           </div>
           <div className="absolute top-1/2 left-1/3 animate-bounce delay-200">
-            <Confetti className="w-7 h-7 text-success" />
+            <Snowflake className="w-7 h-7 text-success" />
           </div>
           <div className="absolute top-2/3 right-1/3 animate-bounce delay-300">
             <Sparkles className="w-5 h-5 text-primary" />
@@ -165,25 +366,6 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
                 </div>
               </div>
             </div>
-
-            {data.recommendedChallenge && (
-              <div className="bg-white/50 rounded-lg p-4">
-                <h4 className="font-bold mb-2">Your Perfect Match Challenge:</h4>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <span className="text-2xl">{data.recommendedChallenge.icon}</span>
-                  </div>
-                  <div className="text-left">
-                    <div className="font-medium">{data.recommendedChallenge.title}</div>
-                    <div className="text-sm text-muted-foreground">{data.recommendedChallenge.duration}</div>
-                  </div>
-                  <Badge className="bg-primary/10 text-primary border-primary/20 ml-auto">
-                    <Lock className="w-3 h-3 mr-1" />
-                    Perfect Match
-                  </Badge>
-                </div>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -265,7 +447,7 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
           </div>
 
           {/* Email/Password Form */}
-          <div className="space-y-4">
+          <form onSubmit={handleCreateAccount} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-lg font-bold flex items-center gap-2">
                 <Mail className="w-5 h-5" />
@@ -279,6 +461,7 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
                 onChange={(e) => setEmail(e.target.value)}
                 className="text-lg p-4 h-14"
                 required
+                disabled={isCreatingAccount}
               />
             </div>
 
@@ -296,10 +479,30 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
                 className="text-lg p-4 h-14"
                 minLength={6}
                 required
+                disabled={isCreatingAccount}
               />
               <p className="text-sm text-muted-foreground">Must be at least 6 characters long</p>
             </div>
-          </div>
+
+            <Button
+              type="submit"
+              disabled={!canCreateAccount || isCreatingAccount}
+              size="lg"
+              className="text-lg font-bold px-12 py-6 w-full"
+            >
+              {isCreatingAccount ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  Create Account & Start Your Journey
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </>
+              )}
+            </Button>
+          </form>
 
           {/* Security & Privacy */}
           <div className="bg-muted/30 rounded-lg p-4 space-y-3">
@@ -314,74 +517,18 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
               <div>• Cancel anytime</div>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* What Happens Next */}
-      <Card className="bg-secondary/5 border-secondary/20">
-        <CardContent className="p-6">
-          <h3 className="font-bold mb-4 text-center">What happens next?</h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                1
-              </div>
-              <span>Your account is created instantly</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                2
-              </div>
-              <span>$25 welcome credits are added to your account</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                3
-              </div>
-              <span>You can browse challenges or start with your perfect match</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                4
-              </div>
-              <span>Join your first challenge and start building habits!</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* CTA */}
-      <div className="text-center space-y-4">
-        <Button
-          onClick={handleCreateAccount}
-          disabled={!canCreateAccount || isCreatingAccount}
-          size="lg"
-          className="text-lg font-bold px-12 py-6 w-full md:w-auto"
-        >
-          {isCreatingAccount ? (
-            <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-              Creating Your Account...
-            </>
-          ) : (
-            <>
-              Create Account & Start Winning
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </>
+          {error && (
+            <p className="text-sm text-red-500 text-center">
+              {error}
+            </p>
           )}
-        </Button>
 
-        {!canCreateAccount && (
-          <p className="text-sm text-muted-foreground">
-            Please enter your email and a password (6+ characters) to continue
+          <p className="text-xs text-muted-foreground max-w-md mx-auto text-center">
+            By creating an account, you agree to our Terms of Service and Privacy Policy. You can cancel anytime with no fees.
           </p>
-        )}
-
-        <p className="text-xs text-muted-foreground max-w-md mx-auto">
-          By creating an account, you agree to our Terms of Service and Privacy Policy. You can cancel anytime with no
-          fees.
-        </p>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

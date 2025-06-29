@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,57 +11,83 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { DevModeToggle } from "@/components/dev-mode-toggle"
 import { User, Bell, Shield, SettingsIcon, Camera, Save, Trash2, Eye, EyeOff } from "lucide-react"
 
-// Mock user settings data
-const mockUserSettings = {
-  profile: {
-    name: "Alex Chen",
-    username: "alexchen",
-    email: "alex.chen@example.com",
-    bio: "Fitness enthusiast and productivity nerd. Always looking for new challenges to push my limits! 💪📈",
-    avatar: "/placeholder.svg?height=120&width=120",
-    location: "New York, NY",
-    website: "https://alexchen.com",
-    categories: ["Fitness", "Productivity", "Mindfulness"],
-  },
-  notifications: {
-    emailNotifications: true,
-    pushNotifications: true,
-    challengeReminders: true,
-    socialUpdates: false,
-    marketingEmails: false,
-    weeklyDigest: true,
-    achievementAlerts: true,
-    friendActivity: true,
-  },
-  privacy: {
-    profileVisibility: "public",
-    showStats: true,
-    showChallenges: true,
-    showFollowers: true,
-    allowMessages: true,
-    showOnLeaderboards: true,
-  },
-  account: {
-    twoFactorEnabled: false,
-    loginAlerts: true,
-    dataDownload: false,
-  },
-}
-
 export default function SettingsPage() {
+  const { data: session, status } = useSession()
   const [selectedTab, setSelectedTab] = useState("profile")
-  const [settings, setSettings] = useState(mockUserSettings)
+  const [settings, setSettings] = useState({
+    profile: {
+      name: "",
+      username: "",
+      email: "",
+      bio: "",
+      avatar: "",
+      location: "",
+      website: "",
+      categories: [] as string[],
+    },
+    notifications: {
+      emailNotifications: true,
+      pushNotifications: true,
+      challengeReminders: true,
+      socialUpdates: false,
+      marketingEmails: false,
+      weeklyDigest: true,
+      achievementAlerts: true,
+      friendActivity: true,
+    },
+    privacy: {
+      profileVisibility: "public",
+      showStats: true,
+      showChallenges: true,
+      showFollowers: true,
+      allowMessages: true,
+      showOnLeaderboards: true,
+    },
+    account: {
+      twoFactorEnabled: false,
+      loginAlerts: true,
+      dataDownload: false,
+    },
+  })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [dataLoaded, setDataLoaded] = useState(false)
+
+  // Load user data from session
+  useEffect(() => {
+    if (session?.user && !dataLoaded) {
+      setSettings(prev => ({
+        ...prev,
+        profile: {
+          name: session.user.name || "",
+          username: session.user.email?.split('@')[0] || "",
+          email: session.user.email || "",
+          bio: "Welcome to Stakr! Add your bio here.",
+          avatar: session.user.image || "",
+          location: "",
+          website: "",
+          categories: [],
+        }
+      }))
+      setDataLoaded(true)
+    }
+  }, [session, dataLoaded])
 
   const handleSave = async (section: string) => {
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsLoading(false)
-    console.log(`Saved ${section} settings`)
+    try {
+      // TODO: Implement real API call to save settings
+      console.log(`Saving ${section} settings:`, settings[section as keyof typeof settings])
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // For now, just simulate success
+    } catch (error) {
+      console.error('Failed to save settings:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleProfileUpdate = (field: string, value: string) => {
@@ -101,6 +128,28 @@ export default function SettingsPage() {
         [field]: !prev.account[field as keyof typeof prev.account],
       },
     }))
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading your settings...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!session?.user) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold">Please Sign In</h1>
+          <p className="text-muted-foreground">You need to be logged in to access settings</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -574,6 +623,9 @@ export default function SettingsPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Developer Mode Toggle (only shows if user has dev access) */}
+        <DevModeToggle className="mt-6" />
       </div>
     </div>
   )

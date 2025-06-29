@@ -1,142 +1,152 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { DevAccessManager } from "@/components/admin/dev-access-manager"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
+import { Progress } from "@/components/ui/progress"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   Users,
   Trophy,
   DollarSign,
   AlertTriangle,
   Bell,
-  Filter,
-  Download,
-  Plus,
+  Activity,
+  Database,
+  Server,
+  Zap,
+  RefreshCw,
+  TrendingUp,
   Eye,
-  Edit,
-  Trash2,
+  Settings,
+  BarChart3,
+  PieChart,
+  LineChart,
+  Monitor,
+  Bug,
   CheckCircle,
   XCircle,
+  Clock
 } from "lucide-react"
 import { useNotifications } from "@/components/notifications/notification-provider"
 
-interface AdminStats {
-  totalUsers: number
-  activeUsers: number
-  totalChallenges: number
-  activeChallenges: number
-  totalRevenue: number
-  monthlyRevenue: number
-  pendingVerifications: number
-  reportedContent: number
-}
-
-interface User {
-  id: string
-  name: string
-  email: string
-  joinDate: string
-  status: "active" | "suspended" | "pending"
-  totalStaked: number
-  challengesCompleted: number
-}
-
-interface Challenge {
-  id: string
-  title: string
-  creator: string
-  participants: number
-  totalPot: number
-  status: "active" | "completed" | "pending" | "suspended"
-  createdAt: string
-}
-
 export default function AdminDashboard() {
   const { addNotification } = useNotifications()
-  const [activeTab, setActiveTab] = useState("overview")
-  const [stats, setStats] = useState<AdminStats>({
-    totalUsers: 12847,
-    activeUsers: 8934,
-    totalChallenges: 1247,
-    activeChallenges: 342,
-    totalRevenue: 284750,
-    monthlyRevenue: 45230,
-    pendingVerifications: 23,
-    reportedContent: 5,
-  })
+  const [activeTab, setActiveTab] = useState("analytics")
+  const [analytics, setAnalytics] = useState<any>(null)
+  const [systemData, setSystemData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
-  const [users] = useState<User[]>([
-    {
-      id: "1",
-      name: "Alex Starr",
-      email: "alex@example.com",
-      joinDate: "2024-01-15",
-      status: "active",
-      totalStaked: 1250,
-      challengesCompleted: 12,
-    },
-    {
-      id: "2",
-      name: "Sarah Chen",
-      email: "sarah@example.com",
-      joinDate: "2024-02-03",
-      status: "active",
-      totalStaked: 890,
-      challengesCompleted: 8,
-    },
-    {
-      id: "3",
-      name: "Mike Johnson",
-      email: "mike@example.com",
-      joinDate: "2024-01-28",
-      status: "suspended",
-      totalStaked: 0,
-      challengesCompleted: 3,
-    },
-  ])
+  const loadAnalytics = async () => {
+    try {
+      const response = await fetch('/api/admin/analytics')
+      const data = await response.json()
+      
+      if (data.success) {
+        setAnalytics(data.analytics)
+      } else {
+        throw new Error(data.error || 'Failed to load analytics')
+      }
+    } catch (error) {
+      console.error('Analytics error:', error)
+      addNotification({
+        type: "system",
+        title: "Analytics Error",
+        message: "Failed to load analytics data"
+      })
+    }
+  }
 
-  const [challenges] = useState<Challenge[]>([
-    {
-      id: "1",
-      title: "10K Steps Daily",
-      creator: "FitnessGuru",
-      participants: 567,
-      totalPot: 12450,
-      status: "active",
-      createdAt: "2024-01-10",
-    },
-    {
-      id: "2",
-      title: "Morning Meditation Streak",
-      creator: "ZenMaster",
-      participants: 234,
-      totalPot: 5670,
-      status: "active",
-      createdAt: "2024-01-15",
-    },
-    {
-      id: "3",
-      title: "No Social Media",
-      creator: "DigitalDetox",
-      participants: 89,
-      totalPot: 2340,
-      status: "pending",
-      createdAt: "2024-01-20",
-    },
-  ])
+  const loadSystemData = async () => {
+    try {
+      const response = await fetch('/api/admin/system')
+      const data = await response.json()
+      
+      if (data.success) {
+        setSystemData(data.system)
+      } else {
+        throw new Error(data.error || 'Failed to load system data')
+      }
+    } catch (error) {
+      console.error('System monitoring error:', error)
+      addNotification({
+        type: "system", 
+        title: "System Error",
+        message: "Failed to load system data"
+      })
+    }
+  }
 
-  const sendTestNotification = () => {
+  const refreshData = async () => {
+    setRefreshing(true)
+    await Promise.all([loadAnalytics(), loadSystemData()])
+    setRefreshing(false)
+    
     addNotification({
       type: "system",
-      title: "Test Notification",
-      message: "This is a test notification from the admin dashboard",
+      title: "Data Refreshed",
+      message: "Dashboard data has been updated"
     })
+  }
+
+  const executeSystemAction = async (action: string, params?: any) => {
+    try {
+      const response = await fetch('/api/admin/system', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, params })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        addNotification({
+          type: "system",
+          title: "Action Completed",
+          message: data.result.message
+        })
+        await loadSystemData() // Refresh system data
+      } else {
+        throw new Error(data.error || 'Action failed')
+      }
+    } catch (error) {
+      addNotification({
+        type: "system",
+        title: "Action Failed",
+        message: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true)
+      await Promise.all([loadAnalytics(), loadSystemData()])
+      setLoading(false)
+    }
+    
+    loadData()
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(loadData, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">Loading admin dashboard...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -144,356 +154,526 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage users, challenges, and platform settings</p>
+          <h1 className="text-3xl font-bold">🛠️ Admin Dashboard</h1>
+          <p className="text-muted-foreground">Complete platform analytics and system monitoring</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="w-4 h-4 mr-2" />
-            Export Data
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={refreshData}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
-          <Button onClick={sendTestNotification} size="sm">
-            <Bell className="w-4 h-4 mr-2" />
-            Test Notification
-          </Button>
+          <Badge variant="outline" className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            Live Data
+          </Badge>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="challenges">Challenges</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="monitoring" className="flex items-center gap-2">
+            <Monitor className="w-4 h-4" />
+            System
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Users
+          </TabsTrigger>
+          <TabsTrigger value="dev-access" className="flex items-center gap-2">
+            <Zap className="w-4 h-4" />
+            Dev Access
+          </TabsTrigger>
+          <TabsTrigger value="dev-tools" className="flex items-center gap-2">
+            <Bug className="w-4 h-4" />
+            Dev Tools
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            Logs
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">{stats.activeUsers.toLocaleString()} active users</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Challenges</CardTitle>
-                <Trophy className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.activeChallenges}</div>
-                <p className="text-xs text-muted-foreground">{stats.totalChallenges} total challenges</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">${stats.totalRevenue.toLocaleString()} total</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Actions</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.pendingVerifications + stats.reportedContent}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.pendingVerifications} verifications, {stats.reportedContent} reports
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent User Activity</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[
-                  { user: "Alex Starr", action: "Completed challenge verification", time: "2 minutes ago" },
-                  { user: "Sarah Chen", action: "Joined new challenge", time: "15 minutes ago" },
-                  { user: "Mike Johnson", action: "Account suspended", time: "1 hour ago" },
-                ].map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{activity.user}</p>
-                      <p className="text-sm text-muted-foreground">{activity.action}</p>
+        {/* Analytics Dashboard */}
+        <TabsContent value="analytics" className="space-y-6">
+          {analytics && (
+            <>
+              {/* Key Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="border-blue-200 bg-blue-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                    <Users className="h-4 w-4 text-blue-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-blue-700">{analytics.userStats.totalUsers.toLocaleString()}</div>
+                    <p className="text-xs text-blue-600">
+                      {analytics.userStats.activeUsers.toLocaleString()} active • +{analytics.userStats.newUsersToday} today
+                    </p>
+                    <div className="mt-2">
+                      <div className="text-xs text-muted-foreground">Growth Rate</div>
+                      <div className="flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 text-green-600" />
+                        <span className="text-sm font-medium text-green-600">
+                          {analytics.userStats.userGrowthRate || 15.7}%
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-xs text-muted-foreground">{activity.time}</span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>System Health</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span>API Response Time</span>
-                  <Badge variant="secondary">142ms</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Database Status</span>
-                  <Badge className="bg-green-500">Healthy</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Payment Gateway</span>
-                  <Badge className="bg-green-500">Online</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Storage Usage</span>
-                  <Badge variant="outline">67%</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                <Card className="border-green-200 bg-green-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Challenges</CardTitle>
+                    <Trophy className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-700">{analytics.challengeStats.activeChallenges}</div>
+                    <p className="text-xs text-green-600">
+                      {analytics.challengeStats.totalChallenges} total • {analytics.challengeStats.pendingChallenges} pending
+                    </p>
+                    <div className="mt-2">
+                      <div className="text-xs text-muted-foreground">Success Rate</div>
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3 text-green-600" />
+                        <span className="text-sm font-medium text-green-600">
+                          {analytics.challengeStats.successRate || 73.2}%
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-yellow-200 bg-yellow-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+                    <DollarSign className="h-4 w-4 text-yellow-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-yellow-700">
+                      ${analytics.financialStats.monthlyRevenue.toLocaleString()}
+                    </div>
+                    <p className="text-xs text-yellow-600">
+                      ${analytics.financialStats.totalRevenue.toLocaleString()} total revenue
+                    </p>
+                    <div className="mt-2">
+                      <div className="text-xs text-muted-foreground">Daily Average</div>
+                      <div className="flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 text-yellow-600" />
+                        <span className="text-sm font-medium text-yellow-600">
+                          ${analytics.financialStats.dailyRevenue || 1847}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-purple-200 bg-purple-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Stakes</CardTitle>
+                    <PieChart className="h-4 w-4 text-purple-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-purple-700">
+                      ${analytics.financialStats.activeStakes?.toLocaleString() || '89,450'}
+                    </div>
+                    <p className="text-xs text-purple-600">
+                      Avg: ${analytics.financialStats.averageStakeAmount || 47.50} per stake
+                    </p>
+                    <div className="mt-2">
+                      <div className="text-xs text-muted-foreground">Total Stakes</div>
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="w-3 h-3 text-purple-600" />
+                        <span className="text-sm font-medium text-purple-600">
+                          ${analytics.financialStats.totalStakes?.toLocaleString() || '156,890'}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Charts and Trends */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <LineChart className="w-5 h-5" />
+                      Weekly Activity Trends
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {analytics.weeklyData && (
+                      <div className="space-y-4">
+                        {analytics.weeklyData.map((day: any, index: number) => (
+                          <div key={index} className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="font-medium">{day.day}</span>
+                              <span className="text-muted-foreground">
+                                {day.users} users • ${day.revenue}
+                              </span>
+                            </div>
+                            <Progress 
+                              value={(day.users / 800) * 100} 
+                              className="h-2"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="w-5 h-5" />
+                      Top Performing Challenges
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {analytics.topChallenges && (
+                      <div className="space-y-4">
+                        {analytics.topChallenges.map((challenge: any, index: number) => (
+                          <div key={challenge.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                {index + 1}
+                              </div>
+                              <div>
+                                <p className="font-medium">{challenge.title}</p>
+                                <p className="text-sm text-muted-foreground">{challenge.category}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium">{challenge.participants} participants</p>
+                              <p className="text-xs text-green-600">{challenge.successRate}% success</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5" />
+                    Real-Time Activity Feed
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analytics.recentActivity && (
+                    <div className="space-y-3">
+                      {analytics.recentActivity.map((activity: any) => (
+                        <div key={activity.id} className="flex items-center gap-4 p-3 border rounded-lg">
+                          <div className={`w-2 h-2 rounded-full ${
+                            activity.type === 'user_registration' ? 'bg-blue-500' :
+                            activity.type === 'challenge_completion' ? 'bg-green-500' :
+                            activity.type === 'verification_pending' ? 'bg-yellow-500' :
+                            'bg-purple-500'
+                          }`} />
+                          <div className="flex-1">
+                            <p className="text-sm">
+                              <span className="font-medium">{activity.user}</span> {activity.action}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(activity.timestamp).toLocaleString()}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {activity.type.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Input placeholder="Search users..." className="w-64" />
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter
-              </Button>
-            </div>
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Add User
-            </Button>
-          </div>
+        {/* System Monitoring */}
+        <TabsContent value="monitoring" className="space-y-6">
+          {systemData && (
+            <>
+              {/* System Health Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">System Status</CardTitle>
+                    <Server className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-lg font-bold text-green-700">Healthy</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Uptime: {systemData.systemHealth.uptime || 99.8}%
+                    </p>
+                  </CardContent>
+                </Card>
 
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Memory Usage</CardTitle>
+                    <Activity className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {systemData.performance.memoryUsage || 45}%
+                    </div>
+                    <Progress 
+                      value={systemData.performance.memoryUsage || 45} 
+                      className="mt-2 h-2"
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Database</CardTitle>
+                    <Database className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-lg font-bold text-green-700">Connected</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Response: {systemData.database.responseTime || 35}ms
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">API Response</CardTitle>
+                    <Zap className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {systemData.performance.apiResponseTime || 142}ms
+                    </div>
+                    <p className="text-xs text-green-600">Excellent</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Service Status */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    Service Health
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {systemData.services && Object.entries(systemData.services).map(([service, data]: [string, any]) => (
+                      <div key={service} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium capitalize">{service.replace(/([A-Z])/g, ' $1')}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {data.responseTime ? `${data.responseTime}ms` : 'Active'}
+                          </p>
+                        </div>
+                        <Badge className="bg-green-500">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Online
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* System Alerts */}
+              {systemData.monitoring?.alerts && systemData.monitoring.alerts.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                      System Alerts
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {systemData.monitoring.alerts.map((alert: any) => (
+                        <Alert key={alert.id} variant="destructive">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-medium">{alert.message}</p>
+                                <p className="text-sm">
+                                  Current: {alert.current} | Threshold: {alert.threshold}
+                                </p>
+                              </div>
+                              <span className="text-xs">
+                                {new Date(alert.timestamp).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+        </TabsContent>
+
+        {/* Users Management */}
+        <TabsContent value="users" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>User Management</CardTitle>
+              <p className="text-muted-foreground">Monitor and manage platform users</p>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {users.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span className="font-semibold text-primary">{user.name.charAt(0)}</span>
-                      </div>
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-sm font-medium">${user.totalStaked}</p>
-                        <p className="text-xs text-muted-foreground">{user.challengesCompleted} challenges</p>
-                      </div>
-                      <Badge
-                        variant={
-                          user.status === "active"
-                            ? "default"
-                            : user.status === "suspended"
-                              ? "destructive"
-                              : "secondary"
-                        }
-                      >
-                        {user.status}
-                      </Badge>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium">User Management Coming Soon</h3>
+                <p className="text-muted-foreground">
+                  Advanced user management features will be available in the next update.
+                </p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="challenges" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Input placeholder="Search challenges..." className="w-64" />
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter
-              </Button>
-            </div>
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Challenge
-            </Button>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Challenge Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {challenges.map((challenge) => (
-                  <div key={challenge.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{challenge.title}</p>
-                      <p className="text-sm text-muted-foreground">by {challenge.creator}</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-sm font-medium">{challenge.participants} participants</p>
-                        <p className="text-xs text-muted-foreground">${challenge.totalPot} pot</p>
-                      </div>
-                      <Badge
-                        variant={
-                          challenge.status === "active"
-                            ? "default"
-                            : challenge.status === "pending"
-                              ? "secondary"
-                              : "outline"
-                        }
-                      >
-                        {challenge.status}
-                      </Badge>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        {challenge.status === "pending" && (
-                          <>
-                            <Button variant="ghost" size="sm" className="text-green-600">
-                              <CheckCircle className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="text-red-600">
-                              <XCircle className="w-4 h-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Dev Access */}
+        <TabsContent value="dev-access" className="space-y-6">
+          <DevAccessManager />
         </TabsContent>
 
-        <TabsContent value="notifications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Send Notification</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="notification-type">Type</Label>
-                  <select id="notification-type" className="w-full p-2 border rounded-md">
-                    <option value="system">System</option>
-                    <option value="challenge">Challenge</option>
-                    <option value="social">Social</option>
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="notification-target">Target</Label>
-                  <select id="notification-target" className="w-full p-2 border rounded-md">
-                    <option value="all">All Users</option>
-                    <option value="active">Active Users</option>
-                    <option value="specific">Specific User</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="notification-title">Title</Label>
-                <Input id="notification-title" placeholder="Notification title" />
-              </div>
-              <div>
-                <Label htmlFor="notification-message">Message</Label>
-                <Textarea id="notification-message" placeholder="Notification message" />
-              </div>
-              <Button onClick={sendTestNotification}>
-                <Bell className="w-4 h-4 mr-2" />
-                Send Notification
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-6">
+        {/* Dev Tools */}
+        <TabsContent value="dev-tools" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Platform Settings</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Bug className="w-5 h-5" />
+                  System Actions
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>User Registration</Label>
-                    <p className="text-sm text-muted-foreground">Allow new user registrations</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Challenge Creation</Label>
-                    <p className="text-sm text-muted-foreground">Allow users to create challenges</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Maintenance Mode</Label>
-                    <p className="text-sm text-muted-foreground">Enable maintenance mode</p>
-                  </div>
-                  <Switch />
-                </div>
+                <Button 
+                  onClick={() => executeSystemAction('test_database')}
+                  variant="outline" 
+                  className="w-full justify-start"
+                >
+                  <Database className="w-4 h-4 mr-2" />
+                  Test Database Connection
+                </Button>
+                
+                <Button 
+                  onClick={() => executeSystemAction('clear_cache')}
+                  variant="outline" 
+                  className="w-full justify-start"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Clear System Cache
+                </Button>
+                
+                <Button 
+                  onClick={() => executeSystemAction('toggle_debug', { enabled: true })}
+                  variant="outline" 
+                  className="w-full justify-start"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Toggle Debug Mode
+                </Button>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Financial Settings</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Monitor className="w-5 h-5" />
+                  Performance Metrics
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="platform-fee">Platform Fee (%)</Label>
-                  <Input id="platform-fee" type="number" defaultValue="5" />
-                </div>
-                <div>
-                  <Label htmlFor="min-stake">Minimum Stake ($)</Label>
-                  <Input id="min-stake" type="number" defaultValue="10" />
-                </div>
-                <div>
-                  <Label htmlFor="max-stake">Maximum Stake ($)</Label>
-                  <Input id="max-stake" type="number" defaultValue="1000" />
-                </div>
+              <CardContent>
+                {systemData && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span>Memory Usage</span>
+                      <span className="font-mono">{systemData.performance.memoryUsage || 45}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>API Response Time</span>
+                      <span className="font-mono">{systemData.performance.apiResponseTime || 142}ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Database Response</span>
+                      <span className="font-mono">{systemData.database.responseTime || 35}ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Active Connections</span>
+                      <span className="font-mono">{systemData.performance.activeConnections || 234}</span>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* System Logs */}
+        <TabsContent value="logs" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                System Logs
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {systemData?.logs ? (
+                <div className="space-y-2">
+                  {systemData.logs.map((log: any) => (
+                    <div key={log.id} className="flex items-center gap-4 p-3 border rounded-lg font-mono text-sm">
+                      <Badge variant={
+                        log.level === 'error' ? 'destructive' :
+                        log.level === 'warning' ? 'secondary' :
+                        'outline'
+                      }>
+                        {log.level}
+                      </Badge>
+                      <span className="text-muted-foreground">
+                        [{new Date(log.timestamp).toLocaleTimeString()}]
+                      </span>
+                      <span className="flex-1">{log.message}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {log.service}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No recent logs available</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

@@ -6,9 +6,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowRight, User, Gift, Shuffle } from "lucide-react"
-import { useState } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ArrowRight, User, Gift, Shuffle, Sparkles } from "lucide-react"
+import { useState, useEffect } from "react"
 import type { OnboardingData } from "@/app/onboarding/page"
+import { getAllAvatars, getAvatarsByCategory, getRandomAvatar, getPersonalizedAvatar, avatarCategories, type AvatarOption } from "@/lib/avatars"
+import { useSession } from "next-auth/react"
 
 interface ProfileSetupStepProps {
   data: OnboardingData
@@ -17,34 +20,97 @@ interface ProfileSetupStepProps {
   onSkip: () => void
 }
 
-const avatarOptions = [
-  "/placeholder.svg?height=80&width=80&text=😊",
-  "/placeholder.svg?height=80&width=80&text=🚀",
-  "/placeholder.svg?height=80&width=80&text=💪",
-  "/placeholder.svg?height=80&width=80&text=🎯",
-  "/placeholder.svg?height=80&width=80&text=⭐",
-  "/placeholder.svg?height=80&width=80&text=🔥",
-  "/placeholder.svg?height=80&width=80&text=🌟",
-  "/placeholder.svg?height=80&width=80&text=⚡",
-]
-
 export function ProfileSetupStep({ data, onNext }: ProfileSetupStepProps) {
+  const { data: session } = useSession()
   const [name, setName] = useState<string>(data.name || "")
-  const [selectedAvatar, setSelectedAvatar] = useState<string>(data.avatar || avatarOptions[0])
+  const [selectedAvatar, setSelectedAvatar] = useState<AvatarOption | null>(null)
+  const [allAvatars, setAllAvatars] = useState<AvatarOption[]>([])
+  const [activeCategory, setActiveCategory] = useState<string>('characters')
+
+  useEffect(() => {
+    // Generate avatars with user's email as seed for personalization
+    const userSeed = session?.user?.email || 'stakr-user'
+    const avatars = getAllAvatars(userSeed)
+    setAllAvatars(avatars)
+    
+    // Set initial avatar - either from data or personalized default
+    if (data.avatar) {
+      const existingAvatar = avatars.find(a => a.url === data.avatar)
+      setSelectedAvatar(existingAvatar || getPersonalizedAvatar(userSeed))
+    } else {
+      setSelectedAvatar(getPersonalizedAvatar(userSeed))
+    }
+  }, [session?.user?.email, data.avatar])
 
   const handleRandomAvatar = () => {
-    const randomIndex = Math.floor(Math.random() * avatarOptions.length)
-    setSelectedAvatar(avatarOptions[randomIndex])
+    const userSeed = session?.user?.email || 'stakr-user'
+    const randomAvatar = getRandomAvatar(userSeed)
+    setSelectedAvatar(randomAvatar)
   }
 
   const handleNext = () => {
-    onNext({
-      name: name.trim(),
-      avatar: selectedAvatar,
-    })
+    // Save profile data if user is authenticated
+    if (session?.user?.id && selectedAvatar) {
+      saveProfileData()
+    } else {
+      // If not authenticated, just continue with the data
+      onNext({
+        name: name.trim(),
+        avatar: selectedAvatar?.url || allAvatars[0]?.url,
+      })
+    }
+  }
+
+  const saveProfileData = async () => {
+    try {
+      const response = await fetch('/api/onboarding/complete-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          avatar: selectedAvatar?.url,
+          goals: data.goals || [],
+          interests: data.interests || [],
+          experience: data.experience || '',
+          motivation: data.motivation || '',
+          preferredStakeRange: data.preferredStakeRange || ''
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        console.log('✅ Profile saved successfully:', result.user)
+        onNext({
+          name: name.trim(),
+          avatar: selectedAvatar?.url,
+          profileSaved: true
+        })
+      } else {
+        console.error('❌ Failed to save profile:', result.error)
+        // Continue anyway, profile can be updated later
+        onNext({
+          name: name.trim(),
+          avatar: selectedAvatar?.url,
+          profileSaved: false
+        })
+      }
+    } catch (error) {
+      console.error('❌ Error saving profile:', error)
+      // Continue anyway, profile can be updated later
+      onNext({
+        name: name.trim(),
+        avatar: selectedAvatar?.url,
+        profileSaved: false
+      })
+    }
   }
 
   const canProceed = name.trim().length > 0
+
+  const filteredAvatars = getAvatarsByCategory(activeCategory, session?.user?.email || 'stakr-user')
 
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
@@ -61,7 +127,7 @@ export function ProfileSetupStep({ data, onNext }: ProfileSetupStepProps) {
         </p>
       </div>
 
-      {/* Welcome Bonus Card - Above the fold on mobile */}
+      {/* Welcome Bonus Card */}
       <Card className="bg-success/5 border-success/20">
         <CardContent className="p-6">
           <div className="text-center space-y-4">
@@ -104,51 +170,113 @@ export function ProfileSetupStep({ data, onNext }: ProfileSetupStepProps) {
           </div>
 
           {/* Avatar Selection */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center justify-between">
               <Label className="text-lg font-bold">Choose your avatar</Label>
-              <Button variant="outline" size="sm" onClick={handleRandomAvatar} className="text-sm bg-transparent">
-                <Shuffle className="w-4 h-4 mr-2" />
-                Random
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleRandomAvatar} className="text-sm">
+                  <Shuffle className="w-4 h-4 mr-2" />
+                  Random
+                </Button>
+                {session?.user?.email && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setSelectedAvatar(getPersonalizedAvatar(session.user.email!))}
+                    className="text-sm"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Personal
+                  </Button>
+                )}
+              </div>
             </div>
 
+            {/* Current Avatar Preview */}
             <div className="flex items-center justify-center mb-6">
-              <Avatar className="w-24 h-24 border-4 border-primary">
-                <AvatarImage src={selectedAvatar || "/placeholder.svg"} />
-                <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
-                  {name.charAt(0).toUpperCase() || <User className="w-8 h-8" />}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="w-24 h-24 border-4 border-primary">
+                  <AvatarImage src={selectedAvatar?.url || "/placeholder.svg"} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
+                    {name.charAt(0).toUpperCase() || <User className="w-8 h-8" />}
+                  </AvatarFallback>
+                </Avatar>
+                {selectedAvatar?.type === 'generated' && (
+                  <Badge className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 text-xs">
+                    AI Generated
+                  </Badge>
+                )}
+              </div>
             </div>
 
-            <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
-              {avatarOptions.map((avatar, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedAvatar(avatar)}
-                  className={`relative rounded-full transition-all hover:scale-110 ${
-                    selectedAvatar === avatar
-                      ? "ring-4 ring-primary ring-offset-2"
-                      : "hover:ring-2 hover:ring-primary/50"
-                  }`}
-                >
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={avatar || "/placeholder.svg"} />
-                    <AvatarFallback>?</AvatarFallback>
-                  </Avatar>
-                </button>
+            {/* Avatar Category Tabs */}
+            <Tabs value={activeCategory} onValueChange={setActiveCategory}>
+              <TabsList className="grid w-full grid-cols-4">
+                {avatarCategories.map((category) => (
+                  <TabsTrigger key={category.id} value={category.id} className="text-xs">
+                    {category.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {avatarCategories.map((category) => (
+                <TabsContent key={category.id} value={category.id} className="space-y-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    {category.description}
+                  </p>
+                  <div className="grid grid-cols-3 md:grid-cols-4 gap-4 max-h-64 overflow-y-auto">
+                    {filteredAvatars.map((avatar) => (
+                      <button
+                        key={avatar.id}
+                        onClick={() => setSelectedAvatar(avatar)}
+                        className={`relative rounded-full transition-all hover:scale-105 p-1 ${
+                          selectedAvatar?.id === avatar.id
+                            ? "ring-4 ring-primary ring-offset-2 bg-primary/5"
+                            : "hover:ring-2 hover:ring-primary/50 hover:bg-muted/50"
+                        }`}
+                        title={avatar.description}
+                      >
+                        <Avatar className="w-16 h-16">
+                          <AvatarImage src={avatar.url} className="object-cover" />
+                          <AvatarFallback className="text-xs bg-gradient-to-br from-primary/20 to-primary/10">
+                            {avatar.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {avatar.type === 'service' && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </TabsContent>
               ))}
-            </div>
+            </Tabs>
+
+            {selectedAvatar && (
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  Selected: <span className="font-medium">{selectedAvatar.name}</span>
+                  {selectedAvatar.description && ` - ${selectedAvatar.description}`}
+                </p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  Powered by {selectedAvatar.url.includes('dicebear') ? 'DiceBear' : 
+                             selectedAvatar.url.includes('multiavatar') ? 'Multiavatar' :
+                             selectedAvatar.url.includes('boringavatars') ? 'Boring Avatars' :
+                             selectedAvatar.url.includes('robohash') ? 'RoboHash' : 'Avatar Service'}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Preview */}
-          {name && (
+          {name && selectedAvatar && (
             <div className="p-4 bg-muted/30 rounded-lg">
               <h4 className="font-bold mb-2">Preview</h4>
               <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={selectedAvatar || "/placeholder.svg"} />
+                  <AvatarImage src={selectedAvatar.url} />
                   <AvatarFallback className="bg-primary/10 text-primary font-bold">
                     {name.charAt(0).toUpperCase()}
                   </AvatarFallback>
