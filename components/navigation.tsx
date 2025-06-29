@@ -13,8 +13,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Bell, Home, Search, Trophy, Wallet, Settings, LogOut, Plus, Menu, X } from "lucide-react"
+import { Home, Search, Trophy, Wallet, Settings, LogOut, Plus, Menu, X, Shield } from "lucide-react"
 import { Logo } from "@/components/logo"
+import { NotificationDropdown } from "@/components/notifications/notification-dropdown"
 import { cn } from "@/lib/utils"
 
 interface NavigationUser {
@@ -22,6 +23,7 @@ interface NavigationUser {
   avatar: string
   credits: number
   activeStakes: number
+  isAdmin?: boolean
 }
 
 interface NavigationProps {
@@ -108,12 +110,7 @@ export function Navigation({ user }: NavigationProps) {
             </div>
 
             {/* Notifications */}
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {user.activeStakes}
-              </span>
-            </Button>
+            <NotificationDropdown />
 
             {/* User Menu */}
             <DropdownMenu>
@@ -161,6 +158,17 @@ export function Navigation({ user }: NavigationProps) {
                     <span>Settings</span>
                   </Link>
                 </DropdownMenuItem>
+                {user.isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="cursor-pointer">
+                        <Shield className="mr-2 h-4 w-4" />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
