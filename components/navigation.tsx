@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Home, Search, Trophy, Wallet, Settings, LogOut, Plus, Menu, X, Shield } from "lucide-react"
+import { Home, Search, Trophy, Wallet, Settings, LogOut, Plus, Menu, X, Shield, DollarSign } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { NotificationDropdown } from "@/components/notifications/notification-dropdown"
 import { cn } from "@/lib/utils"
@@ -156,6 +156,12 @@ export function Navigation({ user }: NavigationProps) {
                   <Link href="/settings" className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/pricing" className="cursor-pointer">
+                    <DollarSign className="mr-2 h-4 w-4" />
+                    <span>Pricing & Fees</span>
                   </Link>
                 </DropdownMenuItem>
                 {user.isAdmin && (

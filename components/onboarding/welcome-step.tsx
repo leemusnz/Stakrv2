@@ -49,6 +49,42 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
           </div>
         </div>
 
+        {/* TRANSPARENT PRICING DISCLOSURE */}
+        <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl space-y-4">
+          <div className="flex items-center gap-2 text-center justify-center">
+            <Zap className="w-5 h-5 text-blue-600" />
+            <h3 className="font-bold text-blue-900">100% Transparent Pricing</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="space-y-2">
+              <h4 className="font-semibold text-blue-900">When You Join a Challenge:</h4>
+              <ul className="space-y-1 text-blue-700">
+                <li>• Your stake amount (you choose: $10-$1000)</li>
+                <li>• <strong>+5% platform fee</strong> (e.g., $5 on $100 stake)</li>
+                <li>• <strong>+$1 insurance</strong> (optional, recommended)</li>
+              </ul>
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="font-semibold text-blue-900">How We Make Money:</h4>
+              <ul className="space-y-1 text-blue-700">
+                <li>• <strong>5%</strong> entry fee from all participants</li>
+                <li>• <strong>20%</strong> of stakes from people who don't finish</li>
+                <li>• <strong>$9.99/month</strong> premium (optional extras)</li>
+                <li>• <strong>3%</strong> fee when you cash out (encourages reinvesting)</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-blue-600 font-medium">
+              <strong>Example:</strong> You stake $100, pay $5 platform fee + $1 insurance = $106 total. 
+              Complete the challenge? You get your $100 back + share of others' failed stakes!
+            </p>
+          </div>
+        </div>
+
         {/* Value Props */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
           <div className="space-y-3 p-6 rounded-xl bg-primary/5 border border-primary/20">

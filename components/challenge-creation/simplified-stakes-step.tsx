@@ -289,7 +289,9 @@ export function SimplifiedStakesStep({
                   <li>• Participants choose their stake amount within this range</li>
                   <li>• Higher stakes = higher potential rewards</li>
                   <li>• Total pot = all participant stakes + your contribution (${hostContribution})</li>
-                  <li>• Stakr takes a small platform fee from the pot</li>
+                  <li>• <strong>Platform fees: 5% entry fee + 20% of failed stakes</strong></li>
+                  <li>• <strong>Winners get:</strong> Their stake back + 80% of failed stakes shared equally</li>
+                  <li>• <strong>Example:</strong> 100 people stake $50, 60 complete → Winners get $66.67 each</li>
                 </ul>
               </div>
             </div>
