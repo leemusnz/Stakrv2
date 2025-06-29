@@ -1,21 +1,21 @@
 // Database connection and configuration for Stakr
-import { neon } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-serverless'
-import * as schema from './schema'
+// Simple connection without complex imports
 
 // Validate required environment variables
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required')
 }
 
-// Create the Neon SQL connection
-const sql = neon(process.env.DATABASE_URL)
-
-// Create Drizzle database instance with schema
-export const db = drizzle(sql, { schema })
-
-// Re-export all schema tables and types for convenience
-export * from './schema'
+// Simple database client using dynamic imports
+export async function createDbConnection() {
+  try {
+    const { neon } = await import('@neondatabase/serverless')
+    return neon(process.env.DATABASE_URL!)
+  } catch (error) {
+    console.error('Failed to create database connection:', error)
+    throw error
+  }
+}
 
 // Database utilities
 export const dbConfig = {
@@ -45,6 +45,7 @@ export async function testDatabaseConnection(): Promise<{ success: boolean; erro
     
     // Test actual database query
     try {
+      const sql = await createDbConnection()
       await sql`SELECT 1 as test`
       return { 
         success: true,

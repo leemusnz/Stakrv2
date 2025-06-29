@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { OnboardingLayout } from "@/components/onboarding/onboarding-layout"
 import { WelcomeStep } from "@/components/onboarding/welcome-step"
+import { AuthStep } from "@/components/onboarding/auth-step"
 import { HabitScienceStep } from "@/components/onboarding/habit-science-step"
 import { HowItWorksStep } from "@/components/onboarding/how-it-works-step"
 import { GoalSelectionStep } from "@/components/onboarding/goal-selection-step"
@@ -36,6 +37,7 @@ export default function OnboardingPage() {
 
   const steps = [
     { id: "welcome", component: WelcomeStep },
+    { id: "auth", component: AuthStep },
     { id: "habit-science", component: HabitScienceStep },
     { id: "how-it-works", component: HowItWorksStep },
     { id: "goals", component: GoalSelectionStep },

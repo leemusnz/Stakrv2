@@ -28,9 +28,10 @@ interface NavigationUser {
 
 interface NavigationProps {
   user: NavigationUser
+  onLogout?: () => void | Promise<void>
 }
 
-export function Navigation({ user }: NavigationProps) {
+export function Navigation({ user, onLogout }: NavigationProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -51,10 +52,13 @@ export function Navigation({ user }: NavigationProps) {
   const activeTab = getActiveTab()
 
   const handleLogout = () => {
-    // Add logout logic here
-    console.log("Logging out...")
-    // For now, just redirect to home
-    router.push("/")
+    if (onLogout) {
+      onLogout()
+    } else {
+      // Fallback for when no logout handler is provided
+      console.log("Logging out...")
+      router.push("/")
+    }
   }
 
   return (

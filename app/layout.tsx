@@ -3,9 +3,9 @@ import type { Metadata } from "next"
 import { Montserrat } from "next/font/google"
 import { cn } from "@/lib/utils"
 import "./globals.css"
-import { Navigation } from "@/components/navigation"
-import { NotificationProvider } from "@/components/notifications/notification-provider"
+import { NavigationWrapper } from "@/components/navigation-wrapper"
 import { Toaster } from "@/components/ui/sonner"
+import { Providers } from "@/components/providers"
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] })
 
@@ -16,15 +16,6 @@ export const metadata: Metadata = {
   generator: "v0.dev",
 }
 
-// Mock user data for demonstration purposes.
-const mockUser = {
-  name: "Alex Starr",
-  avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-  credits: 1250,
-  activeStakes: 3,
-  isAdmin: true, // Enable admin access for demo
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,11 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("bg-background font-sans antialiased", montserrat.className)}>
-        <NotificationProvider>
-          <Navigation user={mockUser} />
+        <Providers>
+          <NavigationWrapper />
           <main>{children}</main>
           <Toaster />
-        </NotificationProvider>
+        </Providers>
       </body>
     </html>
   )
