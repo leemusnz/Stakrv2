@@ -63,8 +63,9 @@ export default function VerificationDemo() {
           onResponseModeChange={setResponseMode}
           onReset={() => console.log("Reset triggered")}
           submissions={submissions}
-        onClearSubmissions={() => setSubmissions([])}
-      />
+          onClearSubmissions={() => setSubmissions([])}
+        />
+      )}
 
       <Card className="border-green-200 bg-green-50/50">
         <CardHeader>
@@ -87,18 +88,17 @@ export default function VerificationDemo() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <VerificationTrigger
-                challenge={testChallenge}
+                challenge={testChallenge as any}
                 variant="button"
                 className="w-full"
                 onSubmit={handleProofSubmit}
               />
-              <VerificationTrigger challenge={testChallenge} variant="card" onSubmit={handleProofSubmit} />
-              <VerificationTrigger challenge={testChallenge} variant="reminder" onSubmit={handleProofSubmit} />
+              <VerificationTrigger challenge={testChallenge as any} variant="card" onSubmit={handleProofSubmit} />
+              <VerificationTrigger challenge={testChallenge as any} variant="reminder" onSubmit={handleProofSubmit} />
             </div>
           </div>
         </CardContent>
       </Card>
-      )}
     </div>
   )
 }
