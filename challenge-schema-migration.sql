@@ -91,4 +91,4 @@ COMMENT ON COLUMN challenges.proof_instructions IS 'Specific instructions for pr
 COMMENT ON COLUMN challenges.privacy_type IS 'public or private challenge';
 COMMENT ON COLUMN challenges.allow_points_only IS 'Challenge uses points instead of money stakes';
 COMMENT ON COLUMN challenges.require_timer IS 'Challenge requires timed activity sessions';
-COMMENT ON COLUMN challenges.random_checkin_enabled IS 'Enable random verification check-ins during timed sessions'; 
+COMMENT ON COLUMN challenges.random_checkin_enabled IS 'Enable random verification check-ins during timed sessions';

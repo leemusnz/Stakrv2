@@ -392,4 +392,4 @@ function handleDemoGetPosts(userId?: string | null, challengeId?: string | null,
       hasMore: offset + limit < demoPosts.length
     }
   })
-} 
+}

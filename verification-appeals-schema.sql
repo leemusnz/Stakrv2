@@ -81,4 +81,4 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified TIMESTAMP;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
 
 -- Create index for dev access
-CREATE INDEX IF NOT EXISTS users_dev_access_idx ON users(has_dev_access); 
+CREATE INDEX IF NOT EXISTS users_dev_access_idx ON users(has_dev_access);

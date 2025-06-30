@@ -16,7 +16,7 @@ Stakr's verification system uses secure cloud storage for proof files (images/vi
 1. Go to IAM Console: https://console.aws.amazon.com/iam
 2. Create new user: `stakr-s3-user`
 3. Attach policy with these permissions:
-```json
+\`\`\`json
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -38,7 +38,7 @@ Stakr's verification system uses secure cloud storage for proof files (images/vi
         }
     ]
 }
-```
+\`\`\`
 
 ### Step 3: Get Access Keys
 1. In IAM, go to your user
@@ -48,13 +48,13 @@ Stakr's verification system uses secure cloud storage for proof files (images/vi
 
 ### Step 4: Environment Variables
 Add to your `.env.local`:
-```env
+\`\`\`env
 # AWS S3 Configuration
 AWS_REGION="us-east-1"
 AWS_BUCKET_NAME="stakr-verification-files"
 AWS_ACCESS_KEY_ID="your-access-key-here"
 AWS_SECRET_ACCESS_KEY="your-secret-key-here"
-```
+\`\`\`
 
 ## Option 2: Cloudinary Setup (Alternative)
 
@@ -70,12 +70,12 @@ AWS_SECRET_ACCESS_KEY="your-secret-key-here"
 
 ### Step 3: Environment Variables
 Add to your `.env.local`:
-```env
+\`\`\`env
 # Cloudinary Configuration
 CLOUDINARY_CLOUD_NAME="your-cloud-name"
 CLOUDINARY_API_KEY="your-api-key"
 CLOUDINARY_API_SECRET="your-api-secret"
-```
+\`\`\`
 
 ## Testing Your Setup
 
@@ -105,7 +105,7 @@ Visit: `http://localhost:3000/api/admin/storage-health`
 
 **❌ Error: "CORS error" in browser**
 - S3 bucket needs CORS policy:
-```json
+\`\`\`json
 [
     {
         "AllowedHeaders": ["*"],
@@ -114,7 +114,7 @@ Visit: `http://localhost:3000/api/admin/storage-health`
         "ExposeHeaders": ["ETag"]
     }
 ]
-```
+\`\`\`
 
 ## Security Features
 
@@ -126,7 +126,7 @@ Visit: `http://localhost:3000/api/admin/storage-health`
 
 ## File Structure in Storage
 
-```
+\`\`\`
 verification-files/
 ├── images/
 │   └── challenge-id/
@@ -136,7 +136,7 @@ verification-files/
     └── challenge-id/
         └── user-id/
             └── timestamp-randomid.mp4
-```
+\`\`\`
 
 ## Production Checklist
 
@@ -154,4 +154,4 @@ verification-files/
 3. **Configure Webhooks**: Set up file processing pipelines
 4. **Monitor Usage**: Set up AWS billing alerts
 
-Your file storage system is production-ready! 🚀 
+Your file storage system is production-ready! 🚀

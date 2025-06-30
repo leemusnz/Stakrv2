@@ -541,4 +541,4 @@ export function ProofSubmission({
       </Card>
     </div>
   )
-} 
+}

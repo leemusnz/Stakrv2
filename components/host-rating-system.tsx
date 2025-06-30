@@ -302,4 +302,4 @@ export function HostRatingSystem({
       </Alert>
     </div>
   )
-} 
+}

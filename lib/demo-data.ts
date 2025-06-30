@@ -413,4 +413,4 @@ export function getMockUserChallenges(userId: string) {
   ]
 
   return challenges
-} 
+}

@@ -52,4 +52,4 @@ export async function POST(request: NextRequest) {
       details: error instanceof Error ? error.stack : 'Unknown error'
     }, { status: 500 })
   }
-} 
+}

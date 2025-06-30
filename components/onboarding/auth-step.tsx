@@ -389,4 +389,4 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
       </Card>
     </div>
   )
-} 
+}

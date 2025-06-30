@@ -352,4 +352,4 @@ COMMENT ON TABLE activity_sessions IS 'Timed activity sessions for challenges re
 COMMENT ON TABLE random_checkins IS 'Random verification check-ins triggered during activity sessions';
 COMMENT ON TABLE proof_files IS 'File uploads for proofs and verification responses';
 COMMENT ON TABLE verification_gestures IS 'Templates for gesture verification tasks';
-COMMENT ON TABLE verification_words IS 'Templates for word verification tasks'; 
+COMMENT ON TABLE verification_words IS 'Templates for word verification tasks';

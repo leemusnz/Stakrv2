@@ -6,7 +6,7 @@
 
 Create a `.env.local` file in your project root with the following:
 
-```bash
+\`\`\`bash
 # Database Configuration (Required)
 DATABASE_URL="postgresql://your_username:your_password@your_host/your_database?sslmode=require"
 
@@ -20,7 +20,7 @@ NODE_ENV="development"
 # Optional: Google OAuth
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
-```
+\`\`\`
 
 ### 2. Testing Access Points
 
@@ -162,4 +162,4 @@ After basic testing is complete:
 4. Set up email verification
 5. Implement password reset functionality
 6. Add user profile management
-7. Connect to real challenge creation flow 
+7. Connect to real challenge creation flow

@@ -122,4 +122,4 @@ export function useErrorHandler() {
     // You can add monitoring service integration here
     // e.g., Sentry.captureException(error, { extra: errorInfo })
   }
-} 
+}

@@ -107,4 +107,4 @@ VALUES ('test@stakr.app', 'Test User', 100.00, 75)
 ON CONFLICT (email) DO NOTHING;
 
 -- Check tables were created
-SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name; 
+SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;

@@ -252,4 +252,4 @@ export function HostingQualityGates({
       </CardContent>
     </Card>
   )
-} 
+}

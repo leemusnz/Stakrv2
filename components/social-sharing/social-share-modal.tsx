@@ -326,4 +326,4 @@ export function SocialShareModal({ trigger, content, onShare }: SocialShareModal
       </DialogContent>
     </Dialog>
   )
-} 
+}

@@ -328,4 +328,4 @@ export type NewChallengeParticipant = typeof challengeParticipants.$inferInsert
 export type ProofSubmission = typeof proofSubmissions.$inferSelect
 export type NewProofSubmission = typeof proofSubmissions.$inferInsert
 export type Transaction = typeof transactions.$inferSelect
-export type NewTransaction = typeof transactions.$inferInsert 
+export type NewTransaction = typeof transactions.$inferInsert

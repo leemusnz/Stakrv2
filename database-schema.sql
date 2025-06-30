@@ -419,4 +419,4 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trust_score_update 
 AFTER UPDATE ON challenge_participants
-FOR EACH ROW EXECUTE FUNCTION update_trust_score(); 
+FOR EACH ROW EXECUTE FUNCTION update_trust_score();

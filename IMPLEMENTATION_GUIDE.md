@@ -6,7 +6,7 @@
 
 Create `.env.local` file in your project root:
 
-```bash
+\`\`\`bash
 # ================================
 # 🔧 CORE APPLICATION SETTINGS
 # ================================
@@ -49,7 +49,7 @@ AWS_BUCKET_NAME=stakr-uploads
 NEXT_PUBLIC_ENABLE_REAL_PAYMENTS=false
 NEXT_PUBLIC_ENABLE_AI_VERIFICATION=false
 NEXT_PUBLIC_ENABLE_MOCK_DATA=true
-```
+\`\`\`
 
 ### Step 2: Database Setup (Neon)
 
@@ -63,7 +63,7 @@ NEXT_PUBLIC_ENABLE_MOCK_DATA=true
 
 ### Step 3: Initialize Database Schema
 
-```bash
+\`\`\`bash
 # Generate migration files
 npm run db:generate
 
@@ -72,14 +72,14 @@ npm run db:migrate
 
 # Open database studio (optional)
 npm run db:studio
-```
+\`\`\`
 
 ### Step 4: Test Database Connection
 
 Create a test API route to verify database connectivity:
 
 **File: `app/api/test-db/route.ts`**
-```typescript
+\`\`\`typescript
 import { NextResponse } from 'next/server'
 import { testDatabaseConnection } from '@/lib/db'
 
@@ -105,7 +105,7 @@ export async function GET() {
     }, { status: 500 })
   }
 }
-```
+\`\`\`
 
 **Test**: Navigate to `http://localhost:3000/api/test-db`
 
@@ -116,7 +116,7 @@ export async function GET() {
 ### Step 1: NextAuth Configuration
 
 **File: `lib/auth.ts`**
-```typescript
+\`\`\`typescript
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
@@ -149,16 +149,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signUp: "/auth/signup",
   },
 })
-```
+\`\`\`
 
 ### Step 2: Authentication API Routes
 
 **File: `app/api/auth/[...nextauth]/route.ts`**
-```typescript
+\`\`\`typescript
 import { handlers } from "@/lib/auth"
 
 export const { GET, POST } = handlers
-```
+\`\`\`
 
 ---
 
@@ -167,7 +167,7 @@ export const { GET, POST } = handlers
 ### Step 1: User Management APIs
 
 **File: `app/api/user/profile/route.ts`**
-```typescript
+\`\`\`typescript
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db, users } from '@/lib/db'
@@ -195,12 +195,12 @@ export async function GET() {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-```
+\`\`\`
 
 ### Step 2: Challenge Management APIs
 
 **File: `app/api/challenges/route.ts`**
-```typescript
+\`\`\`typescript
 import { NextRequest, NextResponse } from 'next/server'
 import { db, challenges } from '@/lib/db'
 import { desc } from 'drizzle-orm'
@@ -226,7 +226,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -235,7 +235,7 @@ export async function GET(request: NextRequest) {
 ### Step 1: Stripe Setup
 
 **File: `lib/stripe.ts`**
-```typescript
+\`\`\`typescript
 import Stripe from 'stripe'
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -245,12 +245,12 @@ if (!process.env.STRIPE_SECRET_KEY) {
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2024-06-20',
 })
-```
+\`\`\`
 
 ### Step 2: Credit Purchase API
 
 **File: `app/api/payments/purchase-credits/route.ts`**
-```typescript
+\`\`\`typescript
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { auth } from '@/lib/auth'
@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Payment failed' }, { status: 500 })
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -290,7 +290,7 @@ export async function POST(request: NextRequest) {
 ### Step 1: S3 Configuration
 
 **File: `lib/s3.ts`**
-```typescript
+\`\`\`typescript
 import { S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
@@ -312,7 +312,7 @@ export async function getPresignedUrl(key: string, contentType: string) {
 
   return await getSignedUrl(s3Client, command, { expiresIn: 3600 })
 }
-```
+\`\`\`
 
 ---
 
@@ -356,10 +356,10 @@ export async function getPresignedUrl(key: string, contentType: string) {
 2. **Sign up for Neon** at console.neon.tech
 3. **Get your database URL** and add it to `.env.local`
 4. **Run database migrations**:
-   ```bash
+   \`\`\`bash
    npm run db:generate
    npm run db:migrate
-   ```
+   \`\`\`
 5. **Test the connection** by visiting `http://localhost:3000/api/test-db`
 
 ## 🎉 Next Steps
@@ -370,4 +370,4 @@ Once Phase 1 is complete, you'll have:
 - ✅ Type-safe database operations
 - ✅ Foundation for all features
 
-Ready to implement? Let's start with Phase 1! 🚀 
+Ready to implement? Let's start with Phase 1! 🚀

@@ -111,4 +111,4 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
     }, { status: 500 })
   }
-} 
+}

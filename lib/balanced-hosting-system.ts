@@ -293,4 +293,4 @@ export const antiGamingMeasures = {
   }
 }
 
-export default BalancedHostingSystem 
+export default BalancedHostingSystem
