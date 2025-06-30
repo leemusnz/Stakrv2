@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Clock, Calendar, DollarSign, CheckCircle, XCircle, MessageSquare, Plus } from "lucide-react"
 import { VerificationAppealModal } from "@/components/verification-appeal-modal"
+import { ChallengeAnalyticsModal } from "@/components/challenge-analytics-modal"
+import { toast } from "sonner"
 
 export default function MyChallengesPage() {
   const { data: session, status } = useSession()
@@ -91,6 +93,63 @@ export default function MyChallengesPage() {
       console.error('Failed to load hosted challenges:', error)
       // For now, show empty state
       setHostedChallenges([])
+    }
+  }
+
+  const handleEditChallenge = (challengeId: string) => {
+    // For now, show a notification that editing will be available soon
+    toast.info('Edit functionality coming soon! You\'ll be able to modify challenge details before it starts.')
+  }
+
+  const handleDeleteChallenge = async (challengeId: string, challengeTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${challengeTitle}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/challenges/${challengeId}`, {
+        method: 'DELETE',
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        toast.success('Challenge deleted successfully!')
+        await loadHostedChallenges() // Refresh the list
+      } else {
+        toast.error(`Failed to delete challenge: ${data.error}`)
+      }
+    } catch (error) {
+      console.error('Failed to delete challenge:', error)
+      toast.error('Failed to delete challenge. Please try again.')
+    }
+  }
+
+  const handleStartChallenge = async (challengeId: string, challengeTitle: string) => {
+    if (!confirm(`Are you ready to start "${challengeTitle}"? Once started, participants can begin submitting proofs.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/challenges/${challengeId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'start' }),
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        toast.success('Challenge started successfully! Participants can now begin.')
+        await loadHostedChallenges() // Refresh the list
+      } else {
+        toast.error(`Failed to start challenge: ${data.error}`)
+      }
+    } catch (error) {
+      console.error('Failed to start challenge:', error)
+      toast.error('Failed to start challenge. Please try again.')
     }
   }
 
@@ -325,6 +384,7 @@ export default function MyChallengesPage() {
                 {hostedChallenges.map((challenge) => {
                   const challengeStarted = new Date(challenge.start_date) <= new Date()
                   const canEdit = !challengeStarted && challenge.status === 'pending'
+                  const canManualStart = challenge.status === 'pending' && challenge.start_date_type === 'manual' && !challengeStarted
                   
                   return (
                     <Card key={challenge.id} className="border-l-4 border-l-secondary">
@@ -356,6 +416,11 @@ export default function MyChallengesPage() {
                                   {canEdit && (
                                     <Badge variant="outline" className="text-green-600 border-green-300">
                                       ✏️ Editable
+                                    </Badge>
+                                  )}
+                                  {canManualStart && (
+                                    <Badge variant="outline" className="text-blue-600 border-blue-300">
+                                      🎯 Ready to Start
                                     </Badge>
                                   )}
                                 </div>
@@ -412,10 +477,25 @@ export default function MyChallengesPage() {
                             
                             {canEdit ? (
                               <>
-                                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                                {canManualStart && (
+                                  <Button 
+                                    className="w-full bg-green-600 hover:bg-green-700"
+                                    onClick={() => handleStartChallenge(challenge.id, challenge.title)}
+                                  >
+                                    🚀 Start Challenge
+                                  </Button>
+                                )}
+                                <Button 
+                                  className="w-full bg-blue-600 hover:bg-blue-700"
+                                  onClick={() => handleEditChallenge(challenge.id)}
+                                >
                                   ✏️ Edit Challenge
                                 </Button>
-                                <Button variant="outline" className="w-full text-red-600 border-red-300 hover:bg-red-50">
+                                <Button 
+                                  variant="outline" 
+                                  className="w-full text-red-600 border-red-300 hover:bg-red-50"
+                                  onClick={() => handleDeleteChallenge(challenge.id, challenge.title)}
+                                >
                                   🗑️ Delete
                                 </Button>
                               </>
@@ -424,9 +504,15 @@ export default function MyChallengesPage() {
                                 <Button variant="outline" className="w-full" disabled>
                                   {challengeStarted ? '🔒 Challenge Started' : '🔒 Cannot Edit'}
                                 </Button>
-                                <Button variant="ghost" className="w-full">
-                                  📊 View Analytics
-                                </Button>
+                                <ChallengeAnalyticsModal
+                                  challengeId={challenge.id}
+                                  challengeTitle={challenge.title}
+                                  trigger={
+                                    <Button variant="ghost" className="w-full">
+                                      📊 View Analytics
+                                    </Button>
+                                  }
+                                />
                               </>
                             )}
                           </div>

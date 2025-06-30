@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DevAccessManager } from "@/components/admin/dev-access-manager"
+import { UserManagement } from "@/components/admin/user-management"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -356,14 +357,14 @@ export default function AdminDashboard() {
                   <CardContent>
                     <div className="text-2xl font-bold text-blue-700">{analytics.userStats.totalUsers.toLocaleString()}</div>
                     <p className="text-xs text-blue-600">
-                      {analytics.userStats.activeUsers.toLocaleString()} active • +{analytics.userStats.newUsersToday} today
+                      {analytics.userStats.premiumUsers} premium • +{analytics.userStats.newUsersToday} today
                     </p>
                     <div className="mt-2">
-                      <div className="text-xs text-muted-foreground">Growth Rate</div>
+                      <div className="text-xs text-muted-foreground">Monthly Growth</div>
                       <div className="flex items-center gap-1">
                         <TrendingUp className="w-3 h-3 text-green-600" />
                         <span className="text-sm font-medium text-green-600">
-                          {analytics.userStats.userGrowthRate || 15.7}%
+                          {analytics.userStats.userGrowthRate}%
                         </span>
                       </div>
                     </div>
@@ -385,7 +386,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-1">
                         <CheckCircle className="w-3 h-3 text-green-600" />
                         <span className="text-sm font-medium text-green-600">
-                          {analytics.challengeStats.successRate || 73.2}%
+                          {analytics.challengeStats.successRate}%
                         </span>
                       </div>
                     </div>
@@ -405,11 +406,11 @@ export default function AdminDashboard() {
                       ${analytics.financialStats.totalRevenue.toLocaleString()} total revenue
                     </p>
                     <div className="mt-2">
-                      <div className="text-xs text-muted-foreground">Daily Average</div>
+                      <div className="text-xs text-muted-foreground">Today's Revenue</div>
                       <div className="flex items-center gap-1">
                         <TrendingUp className="w-3 h-3 text-yellow-600" />
                         <span className="text-sm font-medium text-yellow-600">
-                          ${analytics.financialStats.dailyRevenue || 1847}
+                          ${analytics.financialStats.dailyRevenue.toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -423,18 +424,90 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-purple-700">
-                      ${analytics.financialStats.activeStakes?.toLocaleString() || '89,450'}
+                      ${analytics.financialStats.activeStakes.toLocaleString()}
                     </div>
                     <p className="text-xs text-purple-600">
-                      Avg: ${analytics.financialStats.averageStakeAmount || 47.50} per stake
+                      Avg: ${analytics.financialStats.averageStakeAmount} per stake
                     </p>
                     <div className="mt-2">
                       <div className="text-xs text-muted-foreground">Total Stakes</div>
                       <div className="flex items-center gap-1">
                         <DollarSign className="w-3 h-3 text-purple-600" />
                         <span className="text-sm font-medium text-purple-600">
-                          ${analytics.financialStats.totalStakes?.toLocaleString() || '156,890'}
+                          ${analytics.financialStats.totalStakes.toLocaleString()}
                         </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Additional Real Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="border-indigo-200 bg-indigo-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">User Trust & Engagement</CardTitle>
+                    <Activity className="h-4 w-4 text-indigo-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Avg Trust Score</span>
+                        <span className="text-sm font-medium">{analytics.userStats.averageTrustScore}/100</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Avg Current Streak</span>
+                        <span className="text-sm font-medium">{analytics.userStats.averageStreak} days</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Premium Users</span>
+                        <span className="text-sm font-medium">{analytics.userStats.premiumUsers}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-teal-200 bg-teal-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Challenge Performance</CardTitle>
+                    <BarChart3 className="h-4 w-4 text-teal-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Avg Participants</span>
+                        <span className="text-sm font-medium">{analytics.challengeStats.averageParticipants}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Monthly Growth</span>
+                        <span className="text-sm font-medium">{analytics.challengeStats.challengeGrowthRate}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Success Rate</span>
+                        <span className="text-sm font-medium">{analytics.challengeStats.successRate}%</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-orange-200 bg-orange-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">System Health</CardTitle>
+                    <Server className="h-4 w-4 text-orange-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">DB Response</span>
+                        <span className="text-sm font-medium">{analytics.systemHealth.apiResponseTime}ms</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Total Records</span>
+                        <span className="text-sm font-medium">{analytics.systemHealth.totalRecords?.toLocaleString() || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Status</span>
+                        <span className="text-sm font-medium text-green-600">{analytics.systemHealth.databaseStatus}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -920,21 +993,7 @@ export default function AdminDashboard() {
 
         {/* Users Management */}
         <TabsContent value="users" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <p className="text-muted-foreground">Monitor and manage platform users</p>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">User Management Coming Soon</h3>
-                <p className="text-muted-foreground">
-                  Advanced user management features will be available in the next update.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <UserManagement />
         </TabsContent>
 
         {/* Dev Access */}

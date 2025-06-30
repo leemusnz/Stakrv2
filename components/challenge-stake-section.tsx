@@ -20,7 +20,8 @@ import {
   UserPlus, 
   Star,
   CheckCircle,
-  Info
+  Info,
+  Trophy
 } from "lucide-react"
 import { useNotifications } from "@/components/notifications/notification-provider"
 
@@ -37,6 +38,7 @@ interface Challenge {
   isPrivate?: boolean
   status: string
   title: string
+  isHost?: boolean
 }
 
 interface ChallengeStakeSectionProps {
@@ -89,6 +91,15 @@ export function ChallengeStakeSection({
       return
     }
 
+    console.log('🚀 Attempting to join challenge:', {
+      challengeId: challenge.id,
+      userId: session.user.id,
+      isHost: challenge.isHost,
+      stakeAmount: effectiveStake,
+      pointsOnly,
+      canJoin
+    })
+
     setIsJoining(true)
     setJoinError(null)
 
@@ -100,6 +111,8 @@ export function ChallengeStakeSection({
         referralCode: referralCode.trim() || undefined
       }
 
+      console.log('📤 Sending join request with data:', joinData)
+
       const response = await fetch(`/api/challenges/${challenge.id}/join`, {
         method: 'POST',
         headers: {
@@ -108,10 +121,22 @@ export function ChallengeStakeSection({
         body: JSON.stringify(joinData)
       })
 
+      console.log('📥 Join response status:', response.status)
+
       const result = await response.json()
+      console.log('📋 Join response data:', result)
 
       if (!response.ok) {
-        throw new Error(result.error || `HTTP error! status: ${response.status}`)
+        console.error('❌ Join failed with error:', result.error)
+        console.error('❌ Full API response:', result)
+        console.error('❌ Response status:', response.status)
+        console.error('❌ Error details:', result.details)
+        console.error('❌ Error type:', result.errorType)
+        console.error('❌ Error stack:', result.errorStack)
+        
+        // Show the specific API error or a detailed message
+        const errorMessage = result.details || result.error || result.message || `HTTP ${response.status}: ${response.statusText}`
+        throw new Error(errorMessage)
       }
 
       if (result.success) {
@@ -171,6 +196,13 @@ export function ChallengeStakeSection({
 
   // Cannot join state
   if (!canJoin) {
+    console.log('🚫 Cannot join challenge - showing cannot join state:', {
+      canJoin,
+      challengeStatus: challenge.status,
+      isJoined: challenge.isJoined,
+      isHost: challenge.isHost
+    })
+    
     return (
       <Card className="lg:sticky lg:top-6 opacity-75">
         <CardHeader>
@@ -306,12 +338,21 @@ export function ChallengeStakeSection({
   }
 
   // Main join interface
+  console.log('✅ Rendering main join interface:', {
+    canJoin,
+    isJoined: challenge.isJoined,
+    isHost: challenge.isHost,
+    challengeStatus: challenge.status,
+    sessionExists: !!session?.user
+  })
+  
   return (
     <Card className="lg:sticky lg:top-6">
       <CardHeader>
         <CardTitle className="text-lg font-bold flex items-center gap-2">
           <Zap className="w-5 h-5 text-primary" />
-          {challenge.hasTeams ? 'Join Team Challenge' : 'Stake & Join'}
+          {challenge.isHost ? '🏆 Join Your Own Challenge' : 
+           challenge.hasTeams ? 'Join Team Challenge' : 'Stake & Join'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -437,6 +478,21 @@ export function ChallengeStakeSection({
           </p>
         </div>
 
+        {/* Host Info */}
+        {challenge.isHost && (
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Trophy className="w-4 h-4 text-green-600 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-green-800">You're the Host!</p>
+                <p className="text-xs text-green-600">
+                  Participate alongside your community and earn both hosting revenue AND potential winnings!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Team Info */}
         {challenge.hasTeams && (
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -479,7 +535,17 @@ export function ChallengeStakeSection({
         {/* Join Button */}
         <Button 
           className="w-full font-bold text-lg py-6" 
-          onClick={() => setShowConfirmation(true)}
+          onClick={() => {
+            console.log('🎯 Join button clicked! Current state:', {
+              canJoin,
+              isJoined: challenge.isJoined,
+              isHost: challenge.isHost,
+              challengeStatus: challenge.status,
+              session: !!session?.user,
+              userId: session?.user?.id
+            })
+            setShowConfirmation(true)
+          }}
           disabled={!session?.user}
         >
           {!session?.user ? (

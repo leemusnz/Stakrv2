@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
           status: 'pending',
           start_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
           end_date: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000).toISOString(),
+          start_date_type: 'manual',
           duration: '7 days',
           difficulty: 'Easy',
           min_stake: 10,
@@ -43,6 +44,7 @@ export async function GET(request: NextRequest) {
           status: 'active',
           start_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
           end_date: new Date(Date.now() + 27 * 24 * 60 * 60 * 1000).toISOString(),
+          start_date_type: 'days',
           duration: '30 days',
           difficulty: 'Medium',
           min_stake: 25,
@@ -54,6 +56,27 @@ export async function GET(request: NextRequest) {
           random_checkin_enabled: true,
           enable_team_mode: false,
           created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'demo-hosted-3',
+          title: 'Early Morning Workout',
+          description: 'Exercise before 7 AM every day for stronger discipline',
+          category: 'Fitness',
+          status: 'completed',
+          start_date: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
+          end_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          start_date_type: 'days',
+          duration: '30 days',
+          difficulty: 'Hard',
+          min_stake: 50,
+          max_stake: 200,
+          allow_points_only: false,
+          privacy_type: 'public',
+          current_participants: 32,
+          require_timer: false,
+          random_checkin_enabled: false,
+          enable_team_mode: false,
+          created_at: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString()
         }
       ]
 

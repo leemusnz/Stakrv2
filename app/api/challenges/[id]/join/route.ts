@@ -19,14 +19,21 @@ interface TeamData {
 // JOIN a challenge
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
+    console.log('🔄 Join API called')
+    
     const session = await getServerSession(authOptions)
+    console.log('👤 Session check:', { userId: session?.user?.id, hasSession: !!session })
     
     if (!session?.user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     const { id: challengeId } = await params
+    console.log('🎯 Challenge ID:', challengeId)
+    
     const body = await request.json()
+    console.log('📦 Request body:', body)
+    
     const { 
       stakeAmount, 
       insurancePurchased = false, 
@@ -42,14 +49,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }, { status: 400 })
     }
     
+    console.log('🔍 Checking if demo user:', session.user.id)
+    
     // Demo user handling
     if (isDemoUser(session.user.id)) {
+      console.log('🎭 Using demo mode for user:', session.user.id)
       return handleDemoJoin(challengeId, session.user, body)
     }
 
+    console.log('🗄️ Creating database connection...')
     // Real user handling
     const sql = await createDbConnection()
+    console.log('✅ Database connection created')
     
+    console.log('🔍 Querying challenge details...')
     // Get challenge details
     const challenge = await sql`
       SELECT 
@@ -62,6 +75,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       WHERE c.id = ${challengeId}
       GROUP BY c.id, u.name
     `
+    console.log('📊 Challenge query result:', { count: challenge.length, challenge: challenge[0] })
     
     if (challenge.length === 0) {
       return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
@@ -135,6 +149,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Handle team assignment for team challenges
     let assignedTeamId = null
     if (challengeData.enable_team_mode) {
+      console.log('🏷️ Team mode enabled, assigning user to team...')
       assignedTeamId = await assignUserToTeam(sql, challengeId, challengeData, teamPreference)
     }
     
@@ -235,10 +250,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }, { status: 201 })
     
   } catch (error) {
-    console.error('Challenge join error:', error)
+    console.error('❌ Challenge join error:', error)
+    console.error('❌ Error type:', typeof error)
+    console.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error')
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    
     return NextResponse.json({
       error: 'Failed to join challenge',
-      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined,
+      errorType: typeof error,
+      errorStack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
     }, { status: 500 })
   }
 }

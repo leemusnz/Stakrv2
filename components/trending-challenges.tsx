@@ -18,13 +18,31 @@ export function TrendingChallenges() {
 
   const loadTrendingChallenges = async () => {
     try {
-      // TODO: Replace with real API call
-      // const response = await fetch('/api/challenges/trending')
-      // const data = await response.json()
-      // setChallenges(data.challenges)
+      // Fetch trending challenges from API
+      const response = await fetch('/api/challenges?status=active&limit=3')
+      if (!response.ok) {
+        throw new Error('Failed to fetch challenges')
+      }
       
-      // For now, show empty state
-      setChallenges([])
+      const data = await response.json()
+      
+      if (data.success && data.challenges) {
+        // Transform API data to include trending metrics
+        const trendingChallenges = data.challenges.map((challenge: any) => ({
+          id: challenge.id,
+          title: challenge.title,
+          category: challenge.category,
+          duration: challenge.duration,
+          participants: challenge.participants_count,
+          minStake: challenge.min_stake,
+          hot: challenge.participants_count > 50, // Mark as hot if many participants
+          trend: `+${Math.floor(Math.random() * 20 + 10)}% this week` // Mock trend data
+        }))
+        
+        setChallenges(trendingChallenges)
+      } else {
+        setChallenges([])
+      }
     } catch (error) {
       console.error('Failed to load trending challenges:', error)
       setChallenges([])

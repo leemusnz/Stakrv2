@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChallengeCard } from "@/components/challenge-card"
 import { UserPosts } from "@/components/user-posts"
-import { PostCreationModal } from "@/components/post-creation-modal"
+import { PostCreationModal } from "@/components/post-creation/post-creation-modal"
+import { SocialShareModal } from "@/components/social-sharing/social-share-modal"
 import { ProfilePictureUpload } from "@/components/profile-picture-upload"
 import { getPersonalizedAvatar } from "@/lib/avatars"
 import { MapPin, Calendar, ExternalLink, Trophy, Users, TrendingUp, Settings, Share2, Edit, Flame } from "lucide-react"
@@ -261,11 +262,45 @@ export default function ProfilePage() {
                     <Settings className="w-4 h-4 mr-2" />
                     Edit Profile
                   </Button>
-                  <Button variant="outline" className="bg-transparent">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share Profile
-                  </Button>
-                  <PostCreationModal user={user} activeChallenges={user.activeChallenges} />
+
+                  <PostCreationModal
+                    trigger={
+                      <Button>
+                        Create Post
+                      </Button>
+                    }
+                    onPostCreated={(post) => {
+                      console.log('Post created:', post)
+                      // Could update user posts here
+                      setUser(prev => ({
+                        ...prev,
+                        posts: [post, ...prev.posts]
+                      }))
+                    }}
+                  />
+                  <SocialShareModal
+                    trigger={
+                      <Button variant="outline" className="bg-transparent">
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share Stats
+                      </Button>
+                    }
+                    content={{
+                      type: 'stats',
+                      title: `${user.name}'s Stakr Journey`,
+                      description: `Check out my progress on Stakr!`,
+                      url: `${typeof window !== 'undefined' ? window.location.origin : ''}/profile`,
+                      stats: {
+                        challengesCompleted: user.stats.challengesCompleted,
+                        successRate: user.stats.successRate,
+                        currentStreak: user.stats.currentStreak,
+                        totalEarnings: user.stats.totalEarned
+                      }
+                    }}
+                    onShare={(platform) => {
+                      console.log('Shared to:', platform)
+                    }}
+                  />
                 </div>
 
                 {/* User Stats */}

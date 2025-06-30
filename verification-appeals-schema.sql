@@ -3,16 +3,16 @@
 
 -- Create verification_appeals table
 CREATE TABLE IF NOT EXISTS verification_appeals (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    verification_id UUID NOT NULL REFERENCES verifications(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    verification_id UUID REFERENCES proof_submissions(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     appeal_reason TEXT NOT NULL,
     additional_evidence TEXT,
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
     admin_notes TEXT,
     reviewed_by UUID REFERENCES users(id),
-    submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    submitted_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
     
     -- Ensure only one appeal per verification per user
     UNIQUE(verification_id, user_id)
@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS verification_appeals (
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_verification_appeals_status ON verification_appeals(status);
-CREATE INDEX IF NOT EXISTS idx_verification_appeals_user_id ON verification_appeals(user_id);
-CREATE INDEX IF NOT EXISTS idx_verification_appeals_verification_id ON verification_appeals(verification_id);
+CREATE INDEX IF NOT EXISTS idx_verification_appeals_user ON verification_appeals(user_id);
+CREATE INDEX IF NOT EXISTS idx_verification_appeals_verification ON verification_appeals(verification_id);
 CREATE INDEX IF NOT EXISTS idx_verification_appeals_submitted_at ON verification_appeals(submitted_at);
 
 -- Add trigger to update updated_at timestamp
@@ -72,4 +72,13 @@ COMMENT ON COLUMN verification_appeals.reviewed_by IS 'Admin user who processed 
 
 -- Grant appropriate permissions (adjust as needed for your setup)
 -- GRANT SELECT, INSERT, UPDATE ON verification_appeals TO stakr_app_user;
--- GRANT USAGE ON SEQUENCE verification_appeals_id_seq TO stakr_app_user; 
+-- GRANT USAGE ON SEQUENCE verification_appeals_id_seq TO stakr_app_user;
+
+-- Add missing columns to existing tables if they don't exist
+ALTER TABLE users ADD COLUMN IF NOT EXISTS has_dev_access BOOLEAN DEFAULT FALSE NOT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
+
+-- Create index for dev access
+CREATE INDEX IF NOT EXISTS users_dev_access_idx ON users(has_dev_access); 

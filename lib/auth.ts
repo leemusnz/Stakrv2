@@ -4,6 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import bcrypt from 'bcryptjs'
 import { createDbConnection } from '@/lib/db'
+import { systemLogger } from '@/lib/system-logger'
 
 // Extend NextAuth types
 declare module 'next-auth' {
@@ -115,6 +116,7 @@ async function findUserInDatabase(email: string) {
         onboarding_completed,
         is_dev,
         dev_mode_enabled,
+        has_dev_access,
         created_at,
         updated_at
       FROM users 
@@ -165,6 +167,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           console.log('✅ Database login successful for:', dbUser.email)
+          systemLogger.info(`Database login successful for user: ${dbUser.email}`, 'auth')
 
           return {
             id: dbUser.id,
@@ -178,7 +181,7 @@ export const authOptions: NextAuthOptions = {
             currentStreak: dbUser.current_streak || 0,
             longestStreak: dbUser.longest_streak || 0,
             premiumSubscription: dbUser.premium_subscription || false,
-            isAdmin: dbUser.email === 'alex@stakr.app', // Admin check
+            isAdmin: dbUser.has_dev_access || false, // Use has_dev_access from database
             onboardingCompleted: dbUser.onboarding_completed || false,
             isDev: dbUser.is_dev || false,
             devModeEnabled: dbUser.dev_mode_enabled || false
@@ -206,6 +209,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         console.log('✅ Demo login successful for:', demoUser.email)
+        systemLogger.info(`Demo login successful for user: ${demoUser.email}`, 'auth')
 
         return {
           id: demoUser.id,
@@ -296,7 +300,7 @@ export const authOptions: NextAuthOptions = {
                 NOW(),
                 NOW()
               )
-              RETURNING id, credits, trust_score, verification_tier
+              RETURNING id, credits, trust_score, verification_tier, has_dev_access
             `
             
             const newUser = newUsers[0]
@@ -307,9 +311,12 @@ export const authOptions: NextAuthOptions = {
             token.currentStreak = 0
             token.longestStreak = 0
             token.premiumSubscription = false
-            token.isAdmin = user.email === 'alex@stakr.app'
+            token.isAdmin = newUser.has_dev_access || false // Use has_dev_access from database
             
             console.log('✅ Google OAuth user created:', user.email)
+          } else {
+            // Use existing user's admin status
+            token.isAdmin = existingUser.has_dev_access || false
           }
         } catch (error) {
           console.log('⚠️ Failed to create Google OAuth user:', error)

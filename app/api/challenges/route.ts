@@ -7,179 +7,170 @@ import { isDemoUser } from '@/lib/demo-data'
 // GET challenges with optional filtering
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
     const status = searchParams.get('status') || 'active'
     const limit = parseInt(searchParams.get('limit') || '20')
     
-    // Mock challenges data that matches our database schema
-    const allChallenges = [
-      {
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        title: '30-Day Fitness Challenge',
-        description: 'Complete 30 minutes of exercise every day for 30 days',
-        long_description: 'Transform your fitness routine with this comprehensive 30-day challenge. Whether you\'re a beginner or experienced athlete, this challenge will help you build consistency and see real results.',
-        category: 'fitness',
-        duration: '30 days',
-        difficulty: 'medium',
-        min_stake: 25.00,
-        max_stake: 500.00,
-        host_id: '550e8400-e29b-41d4-a716-446655440000',
-        host_contribution: 100.00,
-        entry_fee_percentage: 5.00,
-        failed_stake_cut: 20.00,
-        start_date: '2024-01-01T00:00:00Z',
-        end_date: '2024-01-31T23:59:59Z',
-        status: 'active',
-        verification_type: 'photo',
-        proof_requirements: {
-          type: 'photo',
-          description: 'Upload a photo showing your completed workout',
-          required_frequency: 'daily'
+    // For demo users, return mock challenges
+    if (session?.user && isDemoUser(session.user.id)) {
+      const mockChallenges = [
+        {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          title: '30-Day Fitness Challenge',
+          description: 'Complete 30 minutes of exercise every day for 30 days',
+          category: 'fitness',
+          duration: '30 days',
+          difficulty: 'medium',
+          min_stake: 25.00,
+          max_stake: 500.00,
+          participants_count: 47,
+          total_stake_pool: 2350.00,
+          status: 'active',
+          rules: [
+            'Complete at least 30 minutes of exercise daily',
+            'Submit proof within 24 hours of workout'
+          ],
+          start_date: '2024-01-01T00:00:00Z',
+          end_date: '2024-01-31T23:59:59Z',
+          created_at: '2023-12-15T10:00:00Z'
         },
-        rules: [
-          'Complete at least 30 minutes of exercise daily',
-          'Submit proof within 24 hours of workout',
-          'Exercise can include running, gym, yoga, sports, etc.',
-          'Rest days are allowed but must be declared in advance'
-        ],
-        participants_count: 47,
-        total_stake_pool: 2350.00,
-        created_at: '2023-12-15T10:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z'
-      },
-      {
-        id: '123e4567-e89b-12d3-a456-426614174001',
-        title: 'Read 12 Books Challenge',
-        description: 'Read one book per month for a full year',
-        long_description: 'Expand your mind and develop a consistent reading habit. Perfect for book lovers who want accountability and community support.',
-        category: 'education',
-        duration: '12 months',
-        difficulty: 'easy',
-        min_stake: 50.00,
-        max_stake: 1000.00,
-        host_id: '550e8400-e29b-41d4-a716-446655440001',
-        host_contribution: 200.00,
-        entry_fee_percentage: 5.00,
-        failed_stake_cut: 20.00,
-        start_date: '2024-01-01T00:00:00Z',
-        end_date: '2024-12-31T23:59:59Z',
-        status: 'active',
-        verification_type: 'manual',
-        proof_requirements: {
-          type: 'text',
-          description: 'Write a brief summary or review of the book you completed',
-          required_frequency: 'monthly'
-        },
-        rules: [
-          'Complete one book per month (minimum 200 pages)',
-          'Submit book summary by the last day of each month',
-          'Fiction and non-fiction both count',
-          'Audiobooks are acceptable'
-        ],
-        participants_count: 23,
-        total_stake_pool: 1450.00,
-        created_at: '2023-12-10T14:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z'
-      },
-      {
-        id: '123e4567-e89b-12d3-a456-426614174002',
-        title: 'Daily Meditation Practice',
-        description: '10 minutes of meditation every day for 21 days',
-        long_description: 'Build a sustainable meditation practice that will reduce stress and improve focus. Perfect for beginners and experienced practitioners alike.',
-        category: 'wellness',
-        duration: '21 days',
-        difficulty: 'easy',
-        min_stake: 15.00,
-        max_stake: 200.00,
-        host_id: '550e8400-e29b-41d4-a716-446655440000',
-        host_contribution: 50.00,
-        entry_fee_percentage: 5.00,
-        failed_stake_cut: 20.00,
-        start_date: '2024-01-15T00:00:00Z',
-        end_date: '2024-02-05T23:59:59Z',
-        status: 'active',
-        verification_type: 'app_sync',
-        proof_requirements: {
-          type: 'app_integration',
-          description: 'Connect with Headspace, Calm, or similar meditation app',
-          required_frequency: 'daily'
-        },
-        rules: [
-          'Meditate for at least 10 minutes daily',
-          'Use a supported meditation app for automatic tracking',
-          'Guided or unguided meditation both count',
-          'Missed days can be made up within 48 hours'
-        ],
-        participants_count: 89,
-        total_stake_pool: 3560.00,
-        created_at: '2024-01-01T09:00:00Z',
-        updated_at: '2024-01-15T00:00:00Z'
-      },
-      {
-        id: '123e4567-e89b-12d3-a456-426614174003',
-        title: 'Learn Spanish in 90 Days',
-        description: 'Complete daily Spanish lessons and reach conversational level',
-        long_description: 'Master Spanish fundamentals through daily practice and structured learning. Includes conversation practice and cultural immersion activities.',
-        category: 'education',
-        duration: '90 days',
-        difficulty: 'hard',
-        min_stake: 100.00,
-        max_stake: 2000.00,
-        host_id: '550e8400-e29b-41d4-a716-446655440001',
-        host_contribution: 500.00,
-        entry_fee_percentage: 5.00,
-        failed_stake_cut: 20.00,
-        start_date: '2024-02-01T00:00:00Z',
-        end_date: '2024-05-01T23:59:59Z',
-        status: 'upcoming',
-        verification_type: 'test',
-        proof_requirements: {
-          type: 'assessment',
-          description: 'Weekly quizzes and final conversation test',
-          required_frequency: 'weekly'
-        },
-        rules: [
-          'Complete daily lessons on approved language apps',
-          'Submit weekly quiz results',
-          'Participate in live conversation sessions',
-          'Pass final speaking assessment'
-        ],
-        participants_count: 0,
-        total_stake_pool: 0.00,
-        created_at: '2024-01-20T11:00:00Z',
-        updated_at: '2024-01-20T11:00:00Z'
+        {
+          id: '123e4567-e89b-12d3-a456-426614174002',
+          title: 'Daily Meditation Practice',
+          description: '10 minutes of meditation every day for 21 days',
+          category: 'wellness',
+          duration: '21 days',
+          difficulty: 'easy',
+          min_stake: 15.00,
+          max_stake: 200.00,
+          participants_count: 89,
+          total_stake_pool: 3560.00,
+          status: 'active',
+          rules: [
+            'Meditate for at least 10 minutes daily',
+            'Use a supported meditation app for automatic tracking'
+          ],
+          start_date: '2024-01-15T00:00:00Z',
+          end_date: '2024-02-05T23:59:59Z',
+          created_at: '2024-01-01T09:00:00Z'
+        }
+      ]
+
+      let filteredChallenges = mockChallenges
+      if (category) {
+        filteredChallenges = filteredChallenges.filter(c => c.category === category)
       }
-    ]
+      if (status !== 'all') {
+        filteredChallenges = filteredChallenges.filter(c => c.status === status)
+      }
+      filteredChallenges = filteredChallenges.slice(0, limit)
+
+      return NextResponse.json({
+        success: true,
+        challenges: filteredChallenges,
+        count: filteredChallenges.length,
+        total_available: mockChallenges.length,
+        filters_applied: { category, status, limit },
+        message: 'Demo challenges retrieved successfully'
+      })
+    }
+
+    // For real users, query the database
+    const sql = await createDbConnection()
     
-    // Filter challenges based on query parameters
-    let filteredChallenges = allChallenges
-    
+    // Build the query with filters
+    let whereClause = 'WHERE privacy_type = \'public\'' // Only show public challenges in discovery
+    const queryParams: any[] = []
+    let paramIndex = 1
+
     if (category) {
-      filteredChallenges = filteredChallenges.filter(c => c.category === category)
+      whereClause += ` AND category = $${paramIndex}`
+      queryParams.push(category)
+      paramIndex++
     }
-    
+
     if (status !== 'all') {
-      filteredChallenges = filteredChallenges.filter(c => c.status === status)
+      whereClause += ` AND status = $${paramIndex}`
+      queryParams.push(status)
+      paramIndex++
     }
-    
-    // Apply limit
-    filteredChallenges = filteredChallenges.slice(0, limit)
+
+    // Get challenges with participant count
+    const challenges = await sql`
+      SELECT 
+        c.id,
+        c.title,
+        c.description,
+        c.category,
+        c.duration,
+        c.difficulty,
+        c.min_stake,
+        c.max_stake,
+        c.host_id,
+        c.start_date,
+        c.end_date,
+        c.status,
+        c.rules,
+        c.created_at,
+        c.allow_points_only,
+        COALESCE(
+          (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id), 
+          0
+        ) as participants_count,
+        COALESCE(
+          (SELECT SUM(stake_amount) FROM challenge_participants WHERE challenge_id = c.id), 
+          0
+        ) as total_stake_pool,
+        u.name as host_name,
+        u.avatar_url as host_avatar_url
+      FROM challenges c
+      LEFT JOIN users u ON c.host_id = u.id
+      WHERE c.privacy_type = 'public'
+      ${category ? sql`AND c.category = ${category}` : sql``}
+      ${status !== 'all' ? sql`AND c.status = ${status}` : sql``}
+      ORDER BY c.created_at DESC
+      LIMIT ${limit}
+    `
+
+    // Format the challenges for the frontend
+    const formattedChallenges = challenges.map((challenge: any) => ({
+      id: challenge.id,
+      title: challenge.title,
+      description: challenge.description,
+      category: challenge.category,
+      duration: challenge.duration,
+      difficulty: challenge.difficulty,
+      min_stake: parseFloat(challenge.min_stake) || 0,
+      max_stake: parseFloat(challenge.max_stake) || 0,
+      participants_count: parseInt(challenge.participants_count) || 0,
+      total_stake_pool: parseFloat(challenge.total_stake_pool) || 0,
+      status: challenge.status,
+      rules: challenge.rules || [],
+      start_date: challenge.start_date,
+      end_date: challenge.end_date,
+      created_at: challenge.created_at,
+      host_name: challenge.host_name,
+      host_avatar_url: challenge.host_avatar_url,
+      allow_points_only: challenge.allow_points_only
+    }))
     
     return NextResponse.json({
       success: true,
-      challenges: filteredChallenges,
-      count: filteredChallenges.length,
-      total_available: allChallenges.length,
+      challenges: formattedChallenges,
+      count: formattedChallenges.length,
+      total_available: formattedChallenges.length, // Would need a separate count query for exact total
       filters_applied: { category, status, limit },
       message: 'Challenges retrieved successfully'
     })
     
   } catch (error) {
+    console.error('Challenges fetch error:', error)
     return NextResponse.json({
       success: false,
       error: 'Failed to get challenges',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
     }, { status: 500 })
   }
 }

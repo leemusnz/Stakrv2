@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { isDemoUser } from '@/lib/demo-data'
+import { systemLogger } from '@/lib/system-logger'
 
 // Mock system data for demo accounts
 const getDemoSystemData = () => ({
@@ -120,13 +121,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // Check if user is admin or has dev access
-    const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
-    const hasDevAccess = session.user.isDev || false
+    // Check if user has admin access
+    const sql = await createDbConnection()
+    const adminCheck = await sql`
+      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
+    `
     
-    if (!isAdmin && !hasDevAccess) {
-      return NextResponse.json({ error: 'Admin or dev access required' }, { status: 403 })
+    if (!adminCheck[0]?.has_dev_access) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
+
+    // Log admin dashboard access
+    systemLogger.info(`Admin dashboard system tab accessed by ${session.user.name || session.user.email}`, 'admin')
 
     // For demo users, return mock system data
     if (isDemoUser(session.user.id)) {
@@ -136,8 +142,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // For real users, get actual system data
-    const sql = await createDbConnection()
+    // For real users, get actual system data (reuse existing sql connection)
 
     // Basic system health
     const systemHealth = {
@@ -187,6 +192,7 @@ export async function GET(request: NextRequest) {
           lastCheck: new Date().toISOString()
         }
       },
+      logs: systemLogger.getLogs(50), // Get last 50 real logs
       devTools: {
         debugMode: process.env.NODE_ENV === 'development',
         logLevel: 'info'

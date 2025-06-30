@@ -10,6 +10,7 @@ import { ChallengeStakeSection } from "@/components/challenge-stake-section"
 import { ChallengeParticipants } from "@/components/challenge-participants"
 import { ChallengeHost } from "@/components/challenge-host"
 import { ChallengeProgress } from "@/components/challenge-progress"
+import { ChallengeCommunityTabs } from "@/components/challenge-community-tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -184,6 +185,27 @@ export default function ChallengePage() {
     host_name: challenge.host_name
   })
 
+  const spotsLeft = challenge.max_participants ? challenge.max_participants - challenge.current_participants : null
+  const isEnded = new Date(challenge.end_date) <= new Date()
+  const isHost = session?.user?.id === challenge.host_id
+  const canJoin = !isParticipant && !isEnded && 
+    (challenge.status === 'active' || challenge.status === 'pending') &&
+    (spotsLeft === null || spotsLeft > 0)
+    
+  // Debug logging for host join issues
+  if (isHost) {
+    console.log('🏆 Host Debug Info:', {
+      isHost: true,
+      isParticipant,
+      canJoin,
+      challengeStatus: challenge.status,
+      isEnded,
+      spotsLeft,
+      userId: session?.user?.id,
+      hostId: challenge.host_id
+    })
+  }
+
   // Transform data for existing components
   const challengeData = {
     id: challenge.id,
@@ -204,6 +226,7 @@ export default function ChallengePage() {
     status: challenge.status,
     hasTeams: challenge.enable_team_mode,
     isPrivate: challenge.privacy_type === 'private',
+    isHost: isHost,
     rules: challenge.rules,
     dailyInstructions: challenge.daily_instructions,
     proofInstructions: challenge.proof_instructions,
@@ -222,12 +245,6 @@ export default function ChallengePage() {
     recentActivity: [],
   }
 
-  const spotsLeft = challenge.max_participants ? challenge.max_participants - challenge.current_participants : null
-  const isEnded = new Date(challenge.end_date) <= new Date()
-  const canJoin = !isParticipant && !isEnded && 
-    (challenge.status === 'active' || challenge.status === 'pending') &&
-    (spotsLeft === null || spotsLeft > 0)
-
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 pb-20">
       {/* Status Banner */}
@@ -237,7 +254,7 @@ export default function ChallengePage() {
           <AlertDescription className="text-green-700">
             <div className="flex items-center justify-between">
               <span>
-                You're participating in this challenge! 
+                {isHost ? "You're hosting AND participating in this challenge! 🎯" : "You're participating in this challenge!"}
                 {participation?.team && (
                   <span className="ml-2">
                     Team: <strong>{participation.team.emoji} {participation.team.name}</strong>
@@ -249,6 +266,24 @@ export default function ChallengePage() {
                   {participation.progress.days_completed}/{participation.progress.total_days} days
                 </Badge>
               )}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {/* Host Can Join Banner */}
+      {isHost && !isParticipant && canJoin && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <Trophy className="w-4 h-4 text-blue-600" />
+          <AlertDescription className="text-blue-700">
+            <div className="flex items-center justify-between">
+              <span>
+                <strong>You're the host!</strong> Want to participate alongside your community? 
+                You can stake money and compete for rewards just like everyone else.
+              </span>
+              <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                Host + Participant = Max Earnings! 💰
+              </Badge>
             </div>
           </AlertDescription>
         </Alert>
@@ -309,30 +344,14 @@ export default function ChallengePage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-        <div className="lg:col-span-2 space-y-8 overflow-hidden">
-          <ChallengeDescription challenge={challengeData} />
-          
-          {isParticipant && participation?.progress && (
-            <ChallengeProgress challenge={challengeData} />
-          )}
-          
-          <ChallengeParticipants
-            participants={challengeData.participants}
-            recentActivity={challengeData.recentActivity}
-            completionRate={challengeData.completionRate}
-          />
-        </div>
-        
-        <div className="space-y-6 mt-8 lg:mt-0">
-          <ChallengeStakeSection 
-            challenge={challengeData} 
-            canJoin={canJoin}
-            onJoinSuccess={handleJoinSuccess}
-          />
-          <ChallengeHost host={challengeData.host} />
-        </div>
-      </div>
+      {/* Community Tabs Interface */}
+      <ChallengeCommunityTabs 
+        challenge={challengeData}
+        isParticipant={isParticipant}
+        canJoin={canJoin}
+        participation={participation}
+        onJoinSuccess={handleJoinSuccess}
+      />
     </div>
   )
 }

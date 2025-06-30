@@ -101,9 +101,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
-    if (!isAdmin) {
+    // Check if user has admin access
+    const sql = await createDbConnection()
+    const adminCheck = await sql`
+      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
+    `
+    
+    if (!adminCheck[0]?.has_dev_access) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -115,10 +119,9 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // For real users, query the database
-    const sql = await createDbConnection()
+    // For real users, query the database (reuse existing sql connection)
 
-    // Get pending appeals
+    // Get pending appeals (using proof_submissions table)
     const pendingAppeals = await sql`
       SELECT 
         a.id,
@@ -128,36 +131,36 @@ export async function GET(request: NextRequest) {
         a.additional_evidence,
         a.submitted_at as appeal_submitted_at,
         a.status,
-        v.challenge_id,
-        v.status as original_decision,
-        v.admin_notes as original_reason,
+        ps.challenge_id,
+        ps.status as original_decision,
+        ps.admin_notes as original_reason,
         c.title as challenge_title,
-        c.stake_amount,
+        c.min_stake as stake_amount,
         u.name as user_name,
         u.email as user_email
       FROM verification_appeals a
-      JOIN verifications v ON a.verification_id = v.id
-      JOIN challenges c ON v.challenge_id = c.id
+      JOIN proof_submissions ps ON a.verification_id = ps.id
+      JOIN challenges c ON ps.challenge_id = c.id
       JOIN users u ON a.user_id = u.id
       WHERE a.status = 'pending'
       ORDER BY a.submitted_at ASC
       LIMIT 20
     `
 
-    // Get recent appeal decisions
+    // Get recent appeal decisions (using proof_submissions table)
     const recentAppealDecisions = await sql`
       SELECT 
         a.id,
         a.status as appeal_decision,
         a.updated_at as appeal_decided_at,
         a.admin_notes as appeal_reason,
-        v.status as original_decision,
+        ps.status as original_decision,
         c.title as challenge_title,
-        c.stake_amount,
+        c.min_stake as stake_amount,
         u.name as user_name
       FROM verification_appeals a
-      JOIN verifications v ON a.verification_id = v.id
-      JOIN challenges c ON v.challenge_id = c.id
+      JOIN proof_submissions ps ON a.verification_id = ps.id
+      JOIN challenges c ON ps.challenge_id = c.id
       JOIN users u ON a.user_id = u.id
       WHERE a.status IN ('approved', 'rejected')
       ORDER BY a.updated_at DESC
@@ -235,9 +238,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
-    if (!isAdmin) {
+    // Check if user has admin access
+    const sql = await createDbConnection()
+    const adminCheck = await sql`
+      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
+    `
+    
+    if (!adminCheck[0]?.has_dev_access) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -263,14 +270,13 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // For real users, update the database
-    const sql = await createDbConnection()
+    // For real users, update the database (reuse existing sql connection)
 
-    // Get the appeal and original verification
+    // Get the appeal and original verification (using proof_submissions table)
     const appeal = await sql`
-      SELECT a.*, v.status as original_verification_status, v.challenge_id
+      SELECT a.*, ps.status as original_verification_status, ps.challenge_id
       FROM verification_appeals a
-      JOIN verifications v ON a.verification_id = v.id
+      JOIN proof_submissions ps ON a.verification_id = ps.id
       WHERE a.id = ${appealId}
     `
 
@@ -294,12 +300,12 @@ export async function POST(request: NextRequest) {
       const newVerificationStatus = appeal[0].original_verification_status === 'rejected' ? 'approved' : 'rejected'
       
       await sql`
-        UPDATE verifications 
+        UPDATE proof_submissions 
         SET 
           status = ${newVerificationStatus},
           admin_notes = ${`Decision reversed due to successful appeal: ${reason || 'Appeal approved'}`},
           reviewed_by = ${session.user.id},
-          updated_at = NOW()
+          reviewed_at = NOW()
         WHERE id = ${appeal[0].verification_id}
       `
 

@@ -38,12 +38,13 @@ export function Navigation({ user, onLogout }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navItems = [
-    { id: "dashboard", label: "Dashboard", icon: Trophy, href: "/" },
+    { id: "active", label: "My Active", icon: Trophy, href: "/my-active" },
     { id: "discover", label: "Discover", icon: Search, href: "/discover" },
     { id: "social", label: "Social", icon: Users, href: "/social" },
   ]
 
   const getActiveTab = () => {
+    if (pathname.startsWith("/my-active")) return "active"
     if (pathname.startsWith("/discover")) return "discover"
     if (pathname.startsWith("/social")) return "social"
     if (pathname === "/") return "dashboard"
@@ -146,6 +147,12 @@ export function Navigation({ user, onLogout }: NavigationProps) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard" className="cursor-pointer">
+                    <Home className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="cursor-pointer">
                     <Wallet className="mr-2 h-4 w-4" />

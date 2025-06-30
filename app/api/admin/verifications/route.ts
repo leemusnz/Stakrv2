@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { isDemoUser } from '@/lib/demo-data'
+import { systemLogger } from '@/lib/system-logger'
 
 // Mock verification data for demo accounts
 const getDemoVerifications = () => ({
@@ -130,9 +131,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
-    if (!isAdmin) {
+    // Check if user has admin access
+    const sql = await createDbConnection()
+    const adminCheck = await sql`
+      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
+    `
+    
+    if (!adminCheck[0]?.has_dev_access) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -144,60 +149,60 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // For real users, query the database
-    const sql = await createDbConnection()
+    // For real users, query the database (reuse existing sql connection)
 
-    // Get pending verifications
+    // Get pending verifications (using proof_submissions table)
     const pendingVerifications = await sql`
       SELECT 
-        v.id,
-        v.challenge_id,
-        v.user_id,
-        v.proof_type,
-        v.proof_url,
-        v.proof_text,
-        v.submitted_at,
-        v.status,
+        ps.id,
+        ps.challenge_id,
+        ps.user_id,
+        ps.submission_type as proof_type,
+        ps.file_url as proof_url,
+        ps.text_content as proof_text,
+        ps.submitted_at,
+        ps.status,
         c.title as challenge_title,
-        c.stake_amount,
+        c.min_stake as stake_amount,
         c.duration,
         u.name as user_name,
         u.email as user_email,
         (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id) as participant_count
-      FROM verifications v
-      JOIN challenges c ON v.challenge_id = c.id
-      JOIN users u ON v.user_id = u.id
-      WHERE v.status = 'pending'
-      ORDER BY v.submitted_at ASC
+      FROM proof_submissions ps
+      JOIN challenges c ON ps.challenge_id = c.id
+      JOIN users u ON ps.user_id = u.id
+      WHERE ps.status = 'pending'
+      ORDER BY ps.submitted_at ASC
       LIMIT 20
     `
 
-    // Get recent decisions
+    // Get recent decisions (using proof_submissions table)
     const recentDecisions = await sql`
       SELECT 
-        v.id,
-        v.status as decision,
-        v.updated_at as decided_at,
-        v.admin_notes as reason,
+        ps.id,
+        ps.status as decision,
+        ps.reviewed_at as decided_at,
+        ps.admin_notes as reason,
         c.title as challenge_title,
-        c.stake_amount,
+        c.min_stake as stake_amount,
         u.name as user_name
-      FROM verifications v
-      JOIN challenges c ON v.challenge_id = c.id
-      JOIN users u ON v.user_id = u.id
-      WHERE v.status IN ('approved', 'rejected')
-      ORDER BY v.updated_at DESC
+      FROM proof_submissions ps
+      JOIN challenges c ON ps.challenge_id = c.id
+      JOIN users u ON ps.user_id = u.id
+      WHERE ps.status IN ('approved', 'rejected')
+      ORDER BY ps.reviewed_at DESC
       LIMIT 10
     `
 
-    // Get verification stats
+    // Get verification stats (using proof_submissions table)
     const stats = await sql`
       SELECT 
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
-        COUNT(CASE WHEN status = 'approved' AND updated_at > NOW() - INTERVAL '1 day' THEN 1 END) as approved_today,
-        COUNT(CASE WHEN status = 'rejected' AND updated_at > NOW() - INTERVAL '1 day' THEN 1 END) as rejected_today,
-        SUM(CASE WHEN status = 'pending' THEN (SELECT stake_amount FROM challenges WHERE id = challenge_id) END) as total_stakes_under_review
-      FROM verifications
+        COUNT(CASE WHEN ps.status = 'pending' THEN 1 END) as pending_count,
+        COUNT(CASE WHEN ps.status = 'approved' AND ps.reviewed_at > NOW() - INTERVAL '1 day' THEN 1 END) as approved_today,
+        COUNT(CASE WHEN ps.status = 'rejected' AND ps.reviewed_at > NOW() - INTERVAL '1 day' THEN 1 END) as rejected_today,
+        SUM(CASE WHEN ps.status = 'pending' THEN c.min_stake END) as total_stakes_under_review
+      FROM proof_submissions ps
+      JOIN challenges c ON ps.challenge_id = c.id
     `
 
     const verifications = {
@@ -259,9 +264,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
-    if (!isAdmin) {
+    // Check if user has admin access
+    const sql = await createDbConnection()
+    const adminCheck = await sql`
+      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
+    `
+    
+    if (!adminCheck[0]?.has_dev_access) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -287,23 +296,30 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // For real users, update the database
-    const sql = await createDbConnection()
+    // For real users, update the database (reuse existing sql connection)
 
     const updatedVerification = await sql`
-      UPDATE verifications 
+      UPDATE proof_submissions 
       SET 
         status = ${decision},
         admin_notes = ${reason || ''},
         reviewed_by = ${session.user.id},
-        updated_at = NOW()
+        reviewed_at = NOW()
       WHERE id = ${verificationId}
-      RETURNING id, status, updated_at
+      RETURNING id, status, reviewed_at
     `
 
     if (updatedVerification.length === 0) {
       return NextResponse.json({ error: 'Verification not found' }, { status: 404 })
     }
+
+    // Log admin action
+    systemLogger.info(`Admin ${session.user.name} ${decision} verification ${verificationId}`, 'admin', {
+      verificationId,
+      decision,
+      adminId: session.user.id,
+      reason
+    })
 
     // TODO: If approved, process reward payout
     // TODO: Send notification to user about decision
@@ -338,9 +354,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
-    if (!isAdmin) {
+    // Check if user has admin access
+    const adminSql = await createDbConnection()
+    const adminCheck = await adminSql`
+      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
+    `
+    
+    if (!adminCheck[0]?.has_dev_access) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -371,7 +391,7 @@ export async function PUT(request: NextRequest) {
 
     // Get the current verification status
     const currentVerification = await sql`
-      SELECT id, status, challenge_id FROM verifications WHERE id = ${verificationId}
+      SELECT id, status, challenge_id FROM proof_submissions WHERE id = ${verificationId}
     `
 
     if (currentVerification.length === 0) {
@@ -387,14 +407,14 @@ export async function PUT(request: NextRequest) {
     const newStatus = currentStatus === 'approved' ? 'rejected' : 'approved'
     
     const updatedVerification = await sql`
-      UPDATE verifications 
+      UPDATE proof_submissions 
       SET 
         status = ${newStatus},
         admin_notes = ${`REVERSED: ${reason} (Originally ${currentStatus})`},
         reviewed_by = ${session.user.id},
-        updated_at = NOW()
+        reviewed_at = NOW()
       WHERE id = ${verificationId}
-      RETURNING id, status, updated_at
+      RETURNING id, status, reviewed_at
     `
 
     // Log the reversal in admin actions table
