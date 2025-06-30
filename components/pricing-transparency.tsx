@@ -226,4 +226,4 @@ export function PricingTransparency({ variant = "full", showExamples = true }: P
       </div>
     </div>
   )
-} 
+}

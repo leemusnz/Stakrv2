@@ -39,4 +39,4 @@ export const constants = {
   MIN_CHALLENGE_DURATION_DAYS: 1,
   MAX_PARTICIPANTS: 10000,
   MIN_PARTICIPANTS: 1
-} 
+}

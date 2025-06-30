@@ -105,4 +105,4 @@ SELECT table_name
 FROM information_schema.tables 
 WHERE table_schema = 'public' 
 AND table_name IN ('user_posts', 'post_likes', 'post_comments', 'post_shares', 'user_follows')
-ORDER BY table_name; 
+ORDER BY table_name;

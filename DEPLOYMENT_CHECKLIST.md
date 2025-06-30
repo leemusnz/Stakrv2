@@ -100,36 +100,36 @@ Your Stakr app is exceptionally well-prepared for production deployment. Here's 
 ## 🔧 **IMMEDIATE NEXT STEPS (Today)**
 
 ### **1. Environment Setup (30 minutes)**
-```bash
+\`\`\`bash
 # Create your .env.local file with the template from IMPLEMENTATION_GUIDE.md
 cp IMPLEMENTATION_GUIDE.md .env.local
 # Edit .env.local with your actual credentials
-```
+\`\`\`
 
 ### **2. Database Setup (15 minutes)**
-```bash
+\`\`\`bash
 # Sign up for Neon: https://console.neon.tech/
 # Create project: stakr-production
 # Copy connection string to .env.local
-```
+\`\`\`
 
 ### **3. Test Database Connection (5 minutes)**
-```bash
+\`\`\`bash
 # Run the development server
 npm run dev
 
 # Visit: http://localhost:3000/api/test-db
 # Should see: "Database connected successfully!"
-```
+\`\`\`
 
 ### **4. Generate Schema (5 minutes)**
-```bash
+\`\`\`bash
 # Generate migration files
 npm run db:generate
 
 # Apply to database
 npm run db:migrate
-```
+\`\`\`
 
 ---
 
@@ -227,4 +227,4 @@ Your Stakr app has several **unique competitive advantages**:
 3. Run `npm run db:migrate` (1 minute)
 4. Visit `http://localhost:3000/api/test-db` (Success!)
 
-**You're going to build something amazing!** 🔥 
+**You're going to build something amazing!** 🔥

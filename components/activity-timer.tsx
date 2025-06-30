@@ -454,4 +454,4 @@ export function ActivityTimer({
       )}
     </div>
   )
-} 
+}

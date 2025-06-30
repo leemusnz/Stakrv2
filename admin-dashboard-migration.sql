@@ -108,4 +108,4 @@ WHERE last_login IS NOT NULL;
 
 -- Show table structure
 \d proof_submissions;
-\d verification_appeals; 
+\d verification_appeals;

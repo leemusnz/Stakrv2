@@ -291,4 +291,4 @@ function handleDemoGetInteractions(challengeId: string, limit: number) {
     success: true,
     interactions: demoInteractions.slice(0, limit)
   })
-} 
+}

@@ -144,4 +144,4 @@ export function useFeeCalculation(stakeAmount: number, includeInsurance: boolean
       winnersSharePercentage: 80
     }
   }
-} 
+}

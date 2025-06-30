@@ -364,4 +364,4 @@ export function ChallengeAnalyticsModal({ challengeId, challengeTitle, trigger }
       </DialogContent>
     </Dialog>
   )
-} 
+}

@@ -79,4 +79,4 @@ export async function POST(request: NextRequest) {
       stack: error instanceof Error ? error.stack : 'No stack trace'
     }, { status: 500 })
   }
-} 
+}

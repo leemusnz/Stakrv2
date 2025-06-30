@@ -206,4 +206,4 @@ function handleDemoParticipants(challengeId: string) {
       )
     }
   })
-} 
+}

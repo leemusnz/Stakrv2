@@ -79,4 +79,4 @@ export function NavigationWrapper() {
       onLogout={handleLogout}
     />
   )
-} 
+}

@@ -24,4 +24,4 @@ CREATE INDEX IF NOT EXISTS idx_challenge_participants_team_id ON challenge_parti
 SELECT column_name, data_type, is_nullable 
 FROM information_schema.columns 
 WHERE table_name = 'challenge_participants' 
-AND column_name = 'team_id'; 
+AND column_name = 'team_id';

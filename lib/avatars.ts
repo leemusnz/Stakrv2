@@ -209,4 +209,4 @@ export function isValidAvatarUrl(url: string): boolean {
 export function createAvatarUrl(avatarId: string, userSeed?: string): string {
   const avatar = getAllAvatars(userSeed).find(a => a.id === avatarId)
   return avatar?.url || getDefaultAvatar(userSeed).url
-} 
+}

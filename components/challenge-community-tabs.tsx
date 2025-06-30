@@ -662,4 +662,4 @@ export function ChallengeCommunityTabs({
       </TabsContent>
     </Tabs>
   )
-} 
+}

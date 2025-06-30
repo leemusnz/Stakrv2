@@ -232,4 +232,4 @@ function getMockAnalytics(challengeId: string) {
     success: true,
     analytics: mockAnalytics
   })
-} 
+}

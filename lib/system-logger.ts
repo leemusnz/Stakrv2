@@ -59,4 +59,4 @@ export const systemLogger = new SystemLogger()
 
 // Add some initial logs
 systemLogger.info('System logger initialized', 'system')
-systemLogger.info('Admin dashboard logs active', 'admin') 
+systemLogger.info('Admin dashboard logs active', 'admin')

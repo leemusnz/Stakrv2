@@ -222,4 +222,4 @@ export const successMessages = {
   WITHDRAWAL_INITIATED: 'Withdrawal request initiated!',
   PROFILE_UPDATED: 'Profile updated successfully!',
   CHALLENGE_CREATED: 'Challenge created successfully!',
-} 
+}

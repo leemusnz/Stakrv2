@@ -29,4 +29,4 @@ FROM users
 WHERE is_dev = TRUE;
 
 -- Show column structure
-\d users; 
+\d users;

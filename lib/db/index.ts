@@ -65,4 +65,4 @@ export async function testDatabaseConnection(): Promise<{ success: boolean; erro
       error: error instanceof Error ? error.message : 'Unknown database error' 
     }
   }
-} 
+}

@@ -66,4 +66,4 @@ export async function POST(request: NextRequest) {
       error: error instanceof Error ? error.message : 'Failed to confirm file upload' 
     }, { status: 500 })
   }
-} 
+}

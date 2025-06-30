@@ -265,4 +265,4 @@ function handleDemoActivities(challengeId: string, limit: number, offset: number
       hasMore: offset + limit < demoActivities.length
     }
   })
-} 
+}
