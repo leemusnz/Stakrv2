@@ -66,12 +66,19 @@ export default function CreateChallengePage() {
     allowLateSubmissions: false,
     lateSubmissionHours: 4,
 
+    // Timer and Random Verification Settings
+    requireTimer: false,
+    timerMinDuration: 15, // minimum minutes
+    timerMaxDuration: 120, // maximum minutes
+    randomCheckinsEnabled: false,
+    randomCheckinProbability: 30, // percentage chance
+
     // Step 7: Stakes & Rewards (simplified)
     minStake: 25,
     maxStake: 200,
     hostContribution: 0,
     bonusRewards: [] as string[],
-    rewardDistribution: "winner-takes-all",
+    rewardDistribution: "equal-split", // Default value for money challenges
   })
 
   const totalSteps = 8
@@ -137,6 +144,25 @@ export default function CreateChallengePage() {
 
     // For points-only challenges, we don't need stake validation
     if (challengeData.allowPointsOnly) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🎯 Points-only challenge validation:', {
+          basicFieldsValid,
+          missingFields: getMissingFields(),
+          challengeData: {
+            privacyType: challengeData.privacyType,
+            category: challengeData.category,
+            title: challengeData.title,
+            description: challengeData.description,
+            duration: challengeData.duration,
+            difficulty: challengeData.difficulty,
+            rulesLength: challengeData.rules.length,
+            dailyInstructions: challengeData.dailyInstructions,
+            selectedProofTypesLength: challengeData.selectedProofTypes.length,
+            proofInstructions: challengeData.proofInstructions,
+            allowPointsOnly: challengeData.allowPointsOnly
+          }
+        })
+      }
       return basicFieldsValid
     }
 
@@ -146,6 +172,19 @@ export default function CreateChallengePage() {
       challengeData.maxStake > 0 &&
       challengeData.maxStake >= challengeData.minStake &&
       challengeData.rewardDistribution !== ""
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('💰 Money challenge validation:', {
+        basicFieldsValid,
+        stakesValid,
+        missingFields: getMissingFields(),
+        stakes: {
+          minStake: challengeData.minStake,
+          maxStake: challengeData.maxStake,
+          rewardDistribution: challengeData.rewardDistribution
+        }
+      })
+    }
 
     return basicFieldsValid && stakesValid
   }
@@ -330,6 +369,11 @@ export default function CreateChallengePage() {
             cameraOnly={challengeData.cameraOnly}
             allowLateSubmissions={challengeData.allowLateSubmissions}
             lateSubmissionHours={challengeData.lateSubmissionHours}
+            requireTimer={challengeData.requireTimer}
+            timerMinDuration={challengeData.timerMinDuration}
+            timerMaxDuration={challengeData.timerMaxDuration}
+            randomCheckinsEnabled={challengeData.randomCheckinsEnabled}
+            randomCheckinProbability={challengeData.randomCheckinProbability}
             onProofTypesChange={(types) => setChallengeData({ ...challengeData, selectedProofTypes: types })}
             onProofInstructionsChange={(instructions) =>
               setChallengeData({ ...challengeData, proofInstructions: instructions })
@@ -339,6 +383,11 @@ export default function CreateChallengePage() {
               setChallengeData({ ...challengeData, allowLateSubmissions: allow })
             }
             onLateSubmissionHoursChange={(hours) => setChallengeData({ ...challengeData, lateSubmissionHours: hours })}
+            onRequireTimerChange={(requireTimer) => setChallengeData({ ...challengeData, requireTimer })}
+            onTimerMinDurationChange={(minutes) => setChallengeData({ ...challengeData, timerMinDuration: minutes })}
+            onTimerMaxDurationChange={(minutes) => setChallengeData({ ...challengeData, timerMaxDuration: minutes })}
+            onRandomCheckinsEnabledChange={(enabled) => setChallengeData({ ...challengeData, randomCheckinsEnabled: enabled })}
+            onRandomCheckinProbabilityChange={(probability) => setChallengeData({ ...challengeData, randomCheckinProbability: probability })}
           />
         )
       case 7:

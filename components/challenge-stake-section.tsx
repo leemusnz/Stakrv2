@@ -53,24 +53,31 @@ export function ChallengeStakeSection({
   const { data: session } = useSession()
   const { addNotification } = useNotifications()
   
-  const [stakeAmount, setStakeAmount] = useState(challenge.minStake || 25)
-  const [pointsOnly, setPointsOnly] = useState(false)
+  const [stakeAmount, setStakeAmount] = useState(Number(challenge.minStake) || 25)
+  // Default to points-only if challenge doesn't allow money stakes or min/max stakes are 0
+  const [pointsOnly, setPointsOnly] = useState(
+    challenge.allowPointsOnly && (
+      !challenge.minStake || 
+      !challenge.maxStake || 
+      (Number(challenge.minStake) === 0 && Number(challenge.maxStake) === 0)
+    )
+  )
   const [insurancePurchased, setInsurancePurchased] = useState(false)
   const [referralCode, setReferralCode] = useState("")
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
   const [joinError, setJoinError] = useState<string | null>(null)
 
-  const effectiveStake = pointsOnly ? 0 : stakeAmount
+  const effectiveStake = pointsOnly ? 0 : Number(stakeAmount) || 0
   const entryFee = effectiveStake * 0.05
   const insuranceFee = insurancePurchased ? 1.00 : 0.00
-  const totalCost = effectiveStake + entryFee + insuranceFee
+  const totalCost = Number(effectiveStake) + Number(entryFee) + Number(insuranceFee)
 
   const potentialWinnings = pointsOnly ? 0 : Math.round(
-    (effectiveStake * challenge.participants * (1 - challenge.completionRate / 100)) /
-      ((challenge.participants * challenge.completionRate) / 100) +
+    (effectiveStake * Number(challenge.participants || 0) * (1 - Number(challenge.completionRate || 0) / 100)) /
+      ((Number(challenge.participants || 0) * Number(challenge.completionRate || 0)) / 100) +
       effectiveStake,
-  )
+  ) || 0
 
   const handleJoinChallenge = async () => {
     if (!session?.user) {
@@ -138,7 +145,7 @@ export function ChallengeStakeSection({
   // Already joined state
   if (challenge.isJoined) {
     return (
-      <Card className="sticky top-4">
+      <Card className="lg:sticky lg:top-6">
         <CardHeader>
           <CardTitle className="text-lg font-bold text-green-600 flex items-center gap-2">
             <Shield className="w-5 h-5" />
@@ -165,7 +172,7 @@ export function ChallengeStakeSection({
   // Cannot join state
   if (!canJoin) {
     return (
-      <Card className="sticky top-4 opacity-75">
+      <Card className="lg:sticky lg:top-6 opacity-75">
         <CardHeader>
           <CardTitle className="text-lg font-bold text-muted-foreground flex items-center gap-2">
             <AlertTriangle className="w-5 h-5" />
@@ -188,7 +195,7 @@ export function ChallengeStakeSection({
   // Confirmation modal
   if (showConfirmation) {
     return (
-      <Card className="sticky top-4">
+      <Card className="lg:sticky lg:top-6">
         <CardHeader>
           <CardTitle className="text-lg font-bold">Confirm Your Commitment</CardTitle>
         </CardHeader>
@@ -222,7 +229,7 @@ export function ChallengeStakeSection({
                 <Separator />
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Total cost:</span>
-                  <span className="font-bold text-primary">${totalCost.toFixed(2)}</span>
+                  <span className="font-bold text-primary">${Number(totalCost).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Potential winnings:</span>
@@ -280,7 +287,7 @@ export function ChallengeStakeSection({
               ) : (
                 <>
                   <Zap className="w-4 h-4 mr-2" />
-                  {pointsOnly ? 'JOIN FOR POINTS!' : `COMMIT $${totalCost.toFixed(2)} & JOIN`}
+                  {pointsOnly ? 'JOIN FOR POINTS!' : `COMMIT $${Number(totalCost).toFixed(2)} & JOIN`}
                 </>
               )}
             </Button>
@@ -300,7 +307,7 @@ export function ChallengeStakeSection({
 
   // Main join interface
   return (
-    <Card className="sticky top-4">
+    <Card className="lg:sticky lg:top-6">
       <CardHeader>
         <CardTitle className="text-lg font-bold flex items-center gap-2">
           <Zap className="w-5 h-5 text-primary" />
@@ -308,8 +315,8 @@ export function ChallengeStakeSection({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Points vs Money Toggle */}
-        {challenge.allowPointsOnly && (
+        {/* Points vs Money Toggle - Only show if challenge supports both modes */}
+        {challenge.allowPointsOnly && challenge.minStake > 0 && challenge.maxStake > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
@@ -331,32 +338,47 @@ export function ChallengeStakeSection({
           </div>
         )}
 
+        {/* Points-Only Challenge Info - Show if challenge is forced points-only */}
+        {challenge.allowPointsOnly && (!challenge.minStake || !challenge.maxStake || 
+          (Number(challenge.minStake) === 0 && Number(challenge.maxStake) === 0)) && (
+          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="w-4 h-4 text-yellow-600" />
+              <span className="text-sm font-medium text-yellow-700">Points-Only Challenge</span>
+            </div>
+            <p className="text-sm text-yellow-700">This challenge is for points and achievements only!</p>
+            <p className="text-xs text-yellow-600 mt-1">
+              No money required - focus on building the habit and having fun
+            </p>
+          </div>
+        )}
+
         {/* Stake Amount Selector (if not points-only) */}
         {!pointsOnly && challenge.minStake && challenge.maxStake && (
           <div className="space-y-4">
             <div className="text-center space-y-2">
               <p className="text-sm text-muted-foreground">Your stake amount</p>
-              <div className="text-4xl font-bold text-primary">${stakeAmount}</div>
+              <div className="text-4xl font-bold text-primary">${Number(stakeAmount) || 0}</div>
               <p className="text-xs text-muted-foreground">
-                Range: ${challenge.minStake} - ${challenge.maxStake}
+                Range: ${Number(challenge.minStake) || 0} - ${Number(challenge.maxStake) || 0}
               </p>
             </div>
 
             <input
               type="range"
-              min={challenge.minStake}
-              max={challenge.maxStake}
-              value={stakeAmount}
+              min={Number(challenge.minStake) || 0}
+              max={Number(challenge.maxStake) || 100}
+              value={Number(stakeAmount) || 0}
               onChange={(e) => setStakeAmount(Number(e.target.value))}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               style={{
-                background: `linear-gradient(to right, #F46036 0%, #F46036 ${((stakeAmount - challenge.minStake) / (challenge.maxStake - challenge.minStake)) * 100}%, #e5e5e5 ${((stakeAmount - challenge.minStake) / (challenge.maxStake - challenge.minStake)) * 100}%, #e5e5e5 100%)`,
+                background: `linear-gradient(to right, #F46036 0%, #F46036 ${((Number(stakeAmount) - Number(challenge.minStake)) / (Number(challenge.maxStake) - Number(challenge.minStake))) * 100}%, #e5e5e5 ${((Number(stakeAmount) - Number(challenge.minStake)) / (Number(challenge.maxStake) - Number(challenge.minStake))) * 100}%, #e5e5e5 100%)`,
               }}
             />
 
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>${challenge.minStake}</span>
-              <span>${challenge.maxStake}</span>
+              <span>${Number(challenge.minStake) || 0}</span>
+              <span>${Number(challenge.maxStake) || 0}</span>
             </div>
 
             {/* Insurance Option */}
@@ -449,7 +471,7 @@ export function ChallengeStakeSection({
           {!pointsOnly && (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Total cost:</span>
-              <span className="font-medium">${totalCost.toFixed(2)}</span>
+              <span className="font-medium">${Number(totalCost).toFixed(2)}</span>
             </div>
           )}
         </div>
@@ -473,7 +495,7 @@ export function ChallengeStakeSection({
           ) : (
             <>
               <DollarSign className="w-5 h-5 mr-2" />
-              STAKE ${totalCost.toFixed(2)} & JOIN
+              STAKE ${Number(totalCost).toFixed(2)} & JOIN
             </>
           )}
         </Button>

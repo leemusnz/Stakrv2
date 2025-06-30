@@ -1,0 +1,44 @@
+{
+  "name": "Stakr - Challenge-Based Self-Improvement",
+  "short_name": "Stakr",
+  "description": "Build better habits through accountable challenges with real stakes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#F46036",
+  "orientation": "portrait",
+  "scope": "/",
+  "categories": ["lifestyle", "health-and-fitness", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/logos/stakr-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logos/stakr-icon.png",
+      "sizes": "512x512", 
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Discover Challenges",
+      "short_name": "Discover",
+      "description": "Browse new challenges to join",
+      "url": "/discover",
+      "icons": [{ "src": "/logos/stakr-icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "My Profile",
+      "short_name": "Profile", 
+      "description": "View your profile and progress",
+      "url": "/profile",
+      "icons": [{ "src": "/logos/stakr-icon.png", "sizes": "96x96" }]
+    }
+  ]
+} 

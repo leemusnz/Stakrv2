@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { getProxiedAvatarUrl } from "@/lib/utils"
 import { ChallengeDetailHeader } from "@/components/challenge-detail-header"
 import { ChallengeDescription } from "@/components/challenge-description"
 import { ChallengeStakeSection } from "@/components/challenge-stake-section"
@@ -20,7 +21,8 @@ import {
   DollarSign, 
   Calendar,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Star
 } from "lucide-react"
 
 export default function ChallengePage() {
@@ -39,53 +41,62 @@ export default function ChallengePage() {
       try {
         setLoading(true)
         
-        // Use mock data for now since we don't have individual challenge API yet
-        const mockChallenge = {
-          id: challengeId,
-          title: "Morning Meditation Streak",
-          description: "Transform your mornings and build unshakeable mental clarity with a 7-day meditation commitment.",
-          long_description: `Start every day with intention and focus. This challenge will help you build a sustainable meditation practice that sticks.
-
-**What you'll do:**
-• Meditate for 10+ minutes every morning
-• Complete before 10 AM in your timezone  
-• Submit daily proof via photo or video
-• Join our supportive community chat
-
-**What you'll gain:**
-• Reduced stress and anxiety
-• Better focus throughout the day
-• Improved emotional regulation
-• A habit that lasts beyond 7 days`,
-          category: "Mindfulness",
-          duration: "7 days",
-          difficulty: "Easy",
-          current_participants: 234,
-          max_participants: 500,
-          min_participants: 10,
-          min_stake: 10,
-          max_stake: 100,
-          allow_points_only: false,
-          start_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-          end_date: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000).toISOString(),
-          status: 'active',
-          host_name: "Sarah Chen",
-          host_id: "host-123",
-          enable_team_mode: false,
-          privacy_type: 'public',
-          rules: [
-            "Meditate for minimum 10 minutes each morning",
-            "Must complete before 10 AM in your local timezone",
-            "Submit proof daily (photo of meditation setup or brief video)",
-            "No makeup days - consistency is key",
-            "Be respectful in community discussions",
-          ],
-          daily_instructions: "Start your day with 10+ minutes of meditation before 10 AM",
-          proof_instructions: "Submit a photo of your meditation setup or a brief video",
-          selected_proof_types: ["photo", "video"]
+        // Fetch real challenge data from API
+        const response = await fetch(`/api/challenges/${challengeId}`)
+        if (!response.ok) {
+          throw new Error(`Failed to fetch challenge: ${response.status}`)
         }
         
-        setChallenge(mockChallenge)
+        const data = await response.json()
+        if (!data.success || !data.challenge) {
+          throw new Error('Invalid challenge data received')
+        }
+        
+        const challengeData = data.challenge
+        
+        // Debug: Check what host data we're getting
+        console.log('🔍 Challenge host data:', {
+          host_name: challengeData.host_name,
+          host_id: challengeData.host_id,
+          host_avatar_url: challengeData.host_avatar_url
+        })
+        
+        // Transform database data to match expected format
+        const transformedChallenge = {
+          id: challengeData.id,
+          title: challengeData.title,
+          description: challengeData.description,
+          long_description: challengeData.long_description || challengeData.description,
+          category: challengeData.category,
+          duration: challengeData.duration,
+          difficulty: challengeData.difficulty,
+          current_participants: challengeData.current_participants || 0,
+          max_participants: challengeData.max_participants,
+          min_participants: challengeData.min_participants,
+          min_stake: challengeData.min_stake,
+          max_stake: challengeData.max_stake,
+          allow_points_only: challengeData.allow_points_only,
+          start_date: challengeData.start_date,
+          end_date: challengeData.end_date,
+          status: challengeData.status,
+          host_name: challengeData.host_name,
+          host_id: challengeData.host_id,
+          host_avatar_url: challengeData.host_avatar_url,
+          enable_team_mode: challengeData.enable_team_mode,
+          privacy_type: challengeData.privacy_type,
+          rules: challengeData.rules || [],
+          daily_instructions: challengeData.daily_instructions,
+          proof_instructions: challengeData.proof_instructions,
+          selected_proof_types: challengeData.selected_proof_types || ["photo"],
+          general_instructions: challengeData.general_instructions,
+          require_timer: challengeData.require_timer,
+          timer_min_duration: challengeData.timer_min_duration,
+          timer_max_duration: challengeData.timer_max_duration,
+          random_checkin_enabled: challengeData.random_checkin_enabled,
+          random_checkin_probability: challengeData.random_checkin_probability
+        }
+        
+        setChallenge(transformedChallenge)
         
         // Fetch participation status if user is logged in
         if (session?.user) {
@@ -166,6 +177,13 @@ export default function ChallengePage() {
     )
   }
 
+  // Debug: Check what we're passing to host
+  console.log('🖼️ Host avatar processing:', {
+    raw_avatar_url: challenge.host_avatar_url,
+    proxied_avatar_url: getProxiedAvatarUrl(challenge.host_avatar_url),
+    host_name: challenge.host_name
+  })
+
   // Transform data for existing components
   const challengeData = {
     id: challenge.id,
@@ -192,7 +210,7 @@ export default function ChallengePage() {
     proofTypes: challenge.selected_proof_types,
     host: {
       name: challenge.host_name,
-      avatar: "/placeholder.svg?height=60&width=60",
+      avatar: getProxiedAvatarUrl(challenge.host_avatar_url),
       bio: "Challenge host",
       completedChallenges: 12,
       successRate: 94,
@@ -211,7 +229,7 @@ export default function ChallengePage() {
     (spotsLeft === null || spotsLeft > 0)
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 pb-20">
       {/* Status Banner */}
       {isParticipant && (
         <Alert className="border-green-200 bg-green-50">
@@ -261,11 +279,24 @@ export default function ChallengePage() {
         
         <Card>
           <CardContent className="p-4 text-center">
-            <DollarSign className="w-6 h-6 mx-auto mb-2 text-yellow-600" />
-            <div className="font-semibold">
-              {challenge.allow_points_only ? 'Free' : `$${challenge.min_stake}-${challenge.max_stake}`}
-            </div>
-            <div className="text-sm text-muted-foreground">Stake Range</div>
+            {challenge.allow_points_only && (!challenge.min_stake || !challenge.max_stake || 
+              (Number(challenge.min_stake) === 0 && Number(challenge.max_stake) === 0)) ? (
+              <>
+                <Star className="w-6 h-6 mx-auto mb-2 text-yellow-600" />
+                <div className="font-semibold">Points Only</div>
+                <div className="text-sm text-muted-foreground">No Money Required</div>
+              </>
+            ) : (
+              <>
+                <DollarSign className="w-6 h-6 mx-auto mb-2 text-yellow-600" />
+                <div className="font-semibold">
+                  {challenge.allow_points_only ? 'Free or Money' : `$${challenge.min_stake}-${challenge.max_stake}`}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {challenge.allow_points_only ? 'Flexible Options' : 'Stake Range'}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
         
@@ -278,8 +309,8 @@ export default function ChallengePage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+        <div className="lg:col-span-2 space-y-8 overflow-hidden">
           <ChallengeDescription challenge={challengeData} />
           
           {isParticipant && participation?.progress && (
@@ -293,7 +324,7 @@ export default function ChallengePage() {
           />
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-6 mt-8 lg:mt-0">
           <ChallengeStakeSection 
             challenge={challengeData} 
             canJoin={canJoin}

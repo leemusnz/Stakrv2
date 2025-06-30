@@ -121,8 +121,15 @@ export function Navigation({ user, onLogout }: NavigationProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                  <Avatar 
+                    className="h-10 w-10"
+                    key={`nav-avatar-${user.avatar}`} // Force re-render when avatar changes
+                  >
+                    <AvatarImage 
+                      src={user.avatar || "/placeholder.svg"} 
+                      alt={user.name} 
+                      onLoad={() => console.log('🖼️ Navigation avatar loaded:', user.avatar)}
+                    />
                     <AvatarFallback className="bg-primary text-white font-bold">
                       {user.name.charAt(0).toUpperCase()}
                     </AvatarFallback>

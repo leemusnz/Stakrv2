@@ -46,10 +46,19 @@ export function NavigationWrapper() {
     )
   }
 
-  // Create user object from session for your existing Navigation component
+  // Create user object from session with proxy URL for S3 images
+  const rawAvatar = session.user?.image || ''
+  let avatarUrl = rawAvatar
+  
+  // Use image proxy for S3 URLs to match the settings page behavior
+  if (rawAvatar && rawAvatar.includes('stakr-verification-files.s3')) {
+    const stableTimestamp = rawAvatar.split('/').pop()?.split('-')[0] || 'default'
+    avatarUrl = `/api/image-proxy?url=${encodeURIComponent(rawAvatar)}&v=${stableTimestamp}`
+  }
+  
   const navigationUser = {
     name: session.user?.name || 'User',
-    avatar: session.user?.image || '',
+    avatar: avatarUrl,
     credits: session.user?.credits || 0,
     activeStakes: 2, // This would come from API call in real app
     isAdmin: session.user?.isAdmin || false

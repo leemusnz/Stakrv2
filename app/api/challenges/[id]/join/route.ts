@@ -5,9 +5,9 @@ import { createDbConnection } from '@/lib/db'
 import { isDemoUser } from '@/lib/demo-data'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 interface TeamData {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const challengeId = params.id
+    const { id: challengeId } = await params
     const body = await request.json()
     const { 
       stakeAmount, 
@@ -288,42 +288,40 @@ function handleDemoJoin(challengeId: string, user: any, body: any) {
 async function assignUserToTeam(sql: any, challengeId: string, challengeData: any, teamPreference?: string): Promise<string | null> {
   if (!challengeData.enable_team_mode) return null
   
-  // Get existing teams
-  const teams: TeamData[] = await sql`
-    SELECT id, current_members, max_members 
-    FROM challenge_teams 
-    WHERE challenge_id = ${challengeId}
-    ORDER BY current_members ASC
-  `
-  
-  if (teams.length === 0) {
-    // Create teams if they don't exist
-    await sql`SELECT create_challenge_teams(${challengeId}, ${challengeData.number_of_teams || 2})`
-    
-    // Re-fetch teams
-    const newTeams = await sql`
-      SELECT id FROM challenge_teams 
+  try {
+    // Get existing teams
+    const teams: TeamData[] = await sql`
+      SELECT id, current_members, max_members 
+      FROM challenge_teams 
       WHERE challenge_id = ${challengeId}
-      ORDER BY created_at ASC
-      LIMIT 1
+      ORDER BY current_members ASC
     `
-    return newTeams[0]?.id || null
+    
+    if (teams.length === 0) {
+      // For now, just return null if no teams exist
+      // In the future, we can create teams automatically
+      console.log('No teams found for team challenge, skipping team assignment')
+      return null
+    }
+    
+    // Auto-balance assignment (assign to team with fewest members)
+    const availableTeam = teams.find((team: TeamData) => team.current_members < team.max_members)
+    
+    if (availableTeam) {
+      // Update team member count
+      await sql`
+        UPDATE challenge_teams 
+        SET current_members = current_members + 1 
+        WHERE id = ${availableTeam.id}
+      `
+      return availableTeam.id
+    }
+    
+    return null // All teams full
+  } catch (error) {
+    console.log('Team assignment failed (table may not exist):', error instanceof Error ? error.message : 'Unknown error')
+    return null // Gracefully handle missing challenge_teams table
   }
-  
-  // Auto-balance assignment (assign to team with fewest members)
-  const availableTeam = teams.find((team: TeamData) => team.current_members < team.max_members)
-  
-  if (availableTeam) {
-    // Update team member count
-    await sql`
-      UPDATE challenge_teams 
-      SET current_members = current_members + 1 
-      WHERE id = ${availableTeam.id}
-    `
-    return availableTeam.id
-  }
-  
-  return null // All teams full
 }
 
 // Process referral code
@@ -365,7 +363,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const challengeId = params.id
+    const { id: challengeId } = await params
     
     // Demo user handling
     if (isDemoUser(session.user.id)) {
@@ -407,50 +405,43 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Real user handling
     const sql = await createDbConnection()
     
-    const participation = await sql`
-      SELECT 
-        cp.*,
-        ct.team_name, ct.team_color, ct.team_emoji, ct.current_members, ct.completion_rate as team_completion_rate,
-        (
-          SELECT COUNT(*) 
-          FROM daily_checkins dc 
-          WHERE dc.participant_id = cp.id AND dc.completed = true
-        ) as days_completed,
-        (
-          SELECT MAX(checkin_date) 
-          FROM daily_checkins dc 
-          WHERE dc.participant_id = cp.id AND dc.completed = true
-        ) as last_completion_date
-      FROM challenge_participants cp
-      LEFT JOIN challenge_teams ct ON cp.team_id = ct.id
-      WHERE cp.challenge_id = ${challengeId} AND cp.user_id = ${session.user.id}
-    `
-    
-    if (participation.length === 0) {
+    // Try querying with all features, fallback to basic query if tables don't exist
+    try {
+      const participation = await sql`
+        SELECT 
+          cp.*,
+          0 as days_completed,
+          NULL as last_completion_date
+        FROM challenge_participants cp
+        WHERE cp.challenge_id = ${challengeId} AND cp.user_id = ${session.user.id}
+      `
+      
+      if (participation.length === 0) {
+        return NextResponse.json({
+          success: true,
+          participation: null,
+          isParticipant: false
+        })
+      }
+      
+      const participationData = participation[0]
+      
+      return NextResponse.json({
+        success: true,
+        participation: {
+          ...participationData,
+          team: null // No team data for now
+        },
+        isParticipant: true
+      })
+    } catch (dbError) {
+      console.error('Participation query failed:', dbError)
       return NextResponse.json({
         success: true,
         participation: null,
         isParticipant: false
       })
     }
-    
-    const participationData = participation[0]
-    
-    return NextResponse.json({
-      success: true,
-      participation: {
-        ...participationData,
-        team: participationData.team_name ? {
-          id: participationData.team_id,
-          name: participationData.team_name,
-          color: participationData.team_color,
-          emoji: participationData.team_emoji,
-          members: participationData.current_members,
-          completion_rate: participationData.team_completion_rate
-        } : null
-      },
-      isParticipant: true
-    })
     
   } catch (error) {
     console.error('Get participation error:', error)

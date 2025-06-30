@@ -229,9 +229,13 @@ export function ChallengeCard({
   return (
     <Link href={`/challenge/${challengeData.id || id}`}>
       <Card
-        className={`w-full max-w-sm transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 relative cursor-pointer ${
-          active ? "ring-2 ring-primary shadow-lg" : "hover:shadow-lg"
-        } ${joined && !active ? "opacity-90" : ""}`}
+        className={`
+          w-full max-w-sm transition-all duration-300 
+          hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 
+          relative cursor-pointer touch-manipulation
+          ${active ? "ring-2 ring-primary shadow-lg" : "hover:shadow-lg"}
+          ${joined && !active ? "opacity-90" : ""}
+        `}
       >
         {/* Difficulty Corner Badge */}
         <div className="absolute top-3 right-3 z-10">
@@ -240,21 +244,23 @@ export function ChallengeCard({
           </Badge>
         </div>
 
-        {/* Save Button */}
+        {/* Save Button - Mobile optimized */}
         <div className="absolute top-3 left-3 z-10">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleSave}
-            className={`p-1 h-auto rounded-full ${
-              saved ? "text-primary bg-primary/10" : "text-muted-foreground bg-background/80"
-            } hover:bg-primary/20`}
+            className={`
+              p-2 h-10 w-10 rounded-full touch-manipulation
+              ${saved ? "text-primary bg-primary/10" : "text-muted-foreground bg-background/80"}
+              hover:bg-primary/20 active:scale-95
+            `}
           >
             {saved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
           </Button>
         </div>
 
-        <CardContent className="p-6 space-y-4">
+        <CardContent className="p-4 sm:p-6 space-y-4">
           {/* Header with proper spacing for badges */}
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-2">
@@ -334,33 +340,50 @@ export function ChallengeCard({
             </div>
           )}
 
-          {/* Social Actions */}
+          {/* Social Actions - Mobile optimized */}
           <div className="flex items-center justify-between pt-2 border-t border-muted">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleLike}
-                className={`flex items-center gap-1 ${liked ? "text-red-500" : "text-muted-foreground"}`}
+                className={`
+                  flex items-center gap-1 min-h-[44px] px-3 touch-manipulation
+                  ${liked ? "text-red-500" : "text-muted-foreground"}
+                  active:scale-95
+                `}
               >
                 <Heart className={`w-4 h-4 ${liked ? "fill-current" : ""}`} />
                 {likeCount}
               </Button>
-              <Button variant="ghost" size="sm" className="flex items-center gap-1 text-muted-foreground">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center gap-1 min-h-[44px] px-3 touch-manipulation text-muted-foreground active:scale-95"
+              >
                 <MessageCircle className="w-4 h-4" />
                 {comments}
               </Button>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleShare} className="text-muted-foreground">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleShare} 
+              className="min-h-[44px] px-3 touch-manipulation text-muted-foreground active:scale-95"
+            >
               <Share2 className="w-4 h-4" />
             </Button>
           </div>
 
-          {/* Action Button with Improved Hierarchy */}
+          {/* Action Button - Mobile optimized */}
           {joined ? (
             isCompleted ? (
               <Button
-                className="w-full font-bold text-sm py-3 bg-success hover:bg-success/90 text-white cursor-default relative overflow-hidden"
+                className="
+                  w-full font-bold text-sm py-4 min-h-[48px] 
+                  bg-success hover:bg-success/90 text-white 
+                  cursor-default relative overflow-hidden touch-manipulation
+                "
                 size="lg"
               >
                 <div className="flex items-center gap-2">
@@ -371,20 +394,30 @@ export function ChallengeCard({
             ) : (
               <Button
                 variant="outline"
-                className="w-full font-bold text-sm py-3 border-2 border-success text-success hover:bg-success/10 hover:border-success hover:text-success transition-all bg-transparent cursor-pointer active:scale-95 group relative overflow-hidden"
+                className="
+                  w-full font-bold text-sm py-4 min-h-[48px]
+                  border-2 border-success text-success 
+                  hover:bg-success/10 hover:border-success hover:text-success 
+                  transition-all bg-transparent cursor-pointer 
+                  active:scale-95 group relative overflow-hidden touch-manipulation
+                "
                 size="lg"
               >
                 <div className="flex items-center gap-2 relative z-10">
                   <Eye className="w-4 h-4 group-hover:animate-pulse" />
                   JOINED – VIEW
                 </div>
-                {/* Subtle pulse effect on hover */}
                 <div className="absolute inset-0 bg-success/5 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-300" />
               </Button>
             )
           ) : (
             <Button
-              className="w-full font-bold text-sm py-3 bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all cursor-pointer active:scale-95"
+              className="
+                w-full font-bold text-sm py-4 min-h-[48px]
+                bg-primary hover:bg-primary/90 text-white 
+                shadow-lg hover:shadow-xl transition-all 
+                cursor-pointer active:scale-95 touch-manipulation
+              "
               size="lg"
             >
               <div className="flex items-center gap-2">

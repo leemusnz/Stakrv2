@@ -53,10 +53,17 @@ export default function ProfilePage() {
     return "/placeholder.svg"
   }
 
-  // Load real user data
+  // Load real user data and update when session changes
   useEffect(() => {
     if (session?.user) {
-      const avatarUrl = session.user.image || getDefaultAvatar()
+      const rawAvatar = session.user.image || getDefaultAvatar()
+      let avatarUrl = rawAvatar
+      
+      // Use image proxy for S3 URLs to match settings page behavior
+      if (rawAvatar && rawAvatar.includes('stakr-verification-files.s3')) {
+        const stableTimestamp = rawAvatar.split('/').pop()?.split('-')[0] || 'default'
+        avatarUrl = `/api/image-proxy?url=${encodeURIComponent(rawAvatar)}&v=${stableTimestamp}`
+      }
       
       setUser(prev => ({
         ...prev,
@@ -82,6 +89,23 @@ export default function ProfilePage() {
     }
   }, [session])
 
+  // Update avatar when session image changes (for real-time updates)
+  useEffect(() => {
+    if (session?.user?.image) {
+      const rawAvatar = session.user.image
+      let avatarUrl = rawAvatar
+      
+      // Use image proxy for S3 URLs
+      if (rawAvatar.includes('stakr-verification-files.s3')) {
+        const stableTimestamp = rawAvatar.split('/').pop()?.split('-')[0] || 'default'
+        avatarUrl = `/api/image-proxy?url=${encodeURIComponent(rawAvatar)}&v=${stableTimestamp}`
+      }
+      
+      setUser(prev => ({ ...prev, avatar: avatarUrl }))
+      console.log('🔄 Profile page avatar updated:', avatarUrl)
+    }
+  }, [session?.user?.image])
+
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
       case "common":
@@ -98,8 +122,16 @@ export default function ProfilePage() {
   }
 
   const handleAvatarUpdate = (newAvatarUrl: string) => {
-    setUser(prev => ({ ...prev, avatar: newAvatarUrl }))
+    // Convert S3 URL to proxy URL for consistency
+    let avatarUrl = newAvatarUrl
+    if (newAvatarUrl.includes('stakr-verification-files.s3')) {
+      const stableTimestamp = newAvatarUrl.split('/').pop()?.split('-')[0] || 'default'
+      avatarUrl = `/api/image-proxy?url=${encodeURIComponent(newAvatarUrl)}&v=${stableTimestamp}`
+    }
+    
+    setUser(prev => ({ ...prev, avatar: avatarUrl }))
     setShowAvatarUpload(false)
+    console.log('🔄 Profile page handleAvatarUpdate:', avatarUrl)
   }
 
   if (status === "loading" || loading) {
@@ -153,8 +185,15 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <>
-                      <Avatar className="w-32 h-32">
-                        <AvatarImage src={user.avatar} alt={user.name} />
+                      <Avatar 
+                        className="w-32 h-32"
+                        key={`profile-avatar-${user.avatar}`} // Force re-render when avatar changes
+                      >
+                        <AvatarImage 
+                          src={user.avatar} 
+                          alt={user.name} 
+                          onLoad={() => console.log('🖼️ Profile page avatar loaded:', user.avatar)}
+                        />
                         <AvatarFallback className="text-2xl bg-primary text-white">
                           {user.name.charAt(0).toUpperCase()}
                         </AvatarFallback>

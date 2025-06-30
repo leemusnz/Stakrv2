@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+
 import { User, CheckCircle, Trophy, TrendingUp, MessageCircle } from "lucide-react"
 
 interface Host {
@@ -30,7 +31,7 @@ export function ChallengeHost({ host }: ChallengeHostProps) {
         {/* Host Profile */}
         <div className="flex items-start gap-3">
           <Avatar className="w-12 h-12">
-            <AvatarImage src={host.avatar || "/placeholder.svg"} />
+            <AvatarImage src={host.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary font-bold">{host.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1">

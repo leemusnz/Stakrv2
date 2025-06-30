@@ -282,6 +282,8 @@ export async function POST(request: NextRequest) {
         enable_team_mode, team_assignment_method, number_of_teams,
         winning_criteria, losing_team_outcome,
         enable_referral_bonus, referral_bonus_percentage, max_referrals,
+        require_timer, timer_min_duration, timer_max_duration,
+        random_checkin_enabled, random_checkin_probability,
         verification_type, proof_requirements
       ) VALUES (
         ${challengeData.title},
@@ -308,7 +310,7 @@ export async function POST(request: NextRequest) {
         ${challengeData.startDateType},
         ${challengeData.startDateDays},
         ${challengeData.allowPointsOnly},
-        ${challengeData.rewardDistribution || 'winner-takes-all'},
+        ${challengeData.rewardDistribution || 'equal-split'},
         ${challengeData.selectedProofTypes},
         ${challengeData.cameraOnly},
         ${challengeData.allowLateSubmissions},
@@ -323,13 +325,23 @@ export async function POST(request: NextRequest) {
         ${challengeData.enableReferralBonus},
         ${challengeData.referralBonusPercentage || 20},
         ${challengeData.maxReferrals || 3},
+        ${challengeData.requireTimer || false},
+        ${challengeData.timerMinDuration || 15},
+        ${challengeData.timerMaxDuration || 120},
+        ${challengeData.randomCheckinsEnabled || false},
+        ${challengeData.randomCheckinProbability || 30},
         ${challengeData.selectedProofTypes[0] || 'manual'}, -- primary verification type
         ${JSON.stringify({
           types: challengeData.selectedProofTypes,
           description: challengeData.proofInstructions,
           camera_only: challengeData.cameraOnly,
           late_submissions: challengeData.allowLateSubmissions,
-          late_hours: challengeData.lateSubmissionHours
+          late_hours: challengeData.lateSubmissionHours,
+          require_timer: challengeData.requireTimer,
+          timer_min: challengeData.timerMinDuration,
+          timer_max: challengeData.timerMaxDuration,
+          random_checkins: challengeData.randomCheckinsEnabled,
+          checkin_probability: challengeData.randomCheckinProbability
         })}
       )
       RETURNING id, invite_code, created_at
@@ -343,23 +355,28 @@ export async function POST(request: NextRequest) {
     }
 
     // Log challenge creation
-    await sql`
-      INSERT INTO admin_actions (admin_id, action_type, target_type, target_id, details, created_at)
-      VALUES (
-        ${session.user.id},
-        'challenge_created',
-        'challenge',
-        ${challengeId},
-        ${JSON.stringify({
-          title: challengeData.title,
-          category: challengeData.category,
-          privacy_type: challengeData.privacyType,
-          team_mode: challengeData.enableTeamMode,
-          points_only: challengeData.allowPointsOnly
-        })},
-        NOW()
-      )
-    `
+    try {
+      await sql`
+        INSERT INTO admin_actions (admin_id, action_type, target_type, target_id, details, created_at)
+        VALUES (
+          ${session.user.id},
+          'challenge_created',
+          'challenge',
+          ${challengeId},
+          ${JSON.stringify({
+            title: challengeData.title,
+            category: challengeData.category,
+            privacy_type: challengeData.privacyType,
+            team_mode: challengeData.enableTeamMode,
+            points_only: challengeData.allowPointsOnly
+          })},
+          NOW()
+        )
+      `
+    } catch (error) {
+      // Admin logging is optional - don't fail challenge creation if admin_actions table doesn't exist
+      console.log('Admin logging skipped:', error instanceof Error ? error.message : 'Unknown error')
+    }
 
     return NextResponse.json({
       success: true,

@@ -323,10 +323,27 @@ export const authOptions: NextAuthOptions = {
       if (session.user && token.sub) {
         session.user.id = token.sub
         
-        // Synchronize avatar and image fields
-        const avatarUrl = token.avatar as string
-        session.user.avatar = avatarUrl
-        session.user.image = avatarUrl  // NextAuth standard field
+        // Always fetch the latest avatar from database to ensure persistence
+        let latestAvatar = token.avatar as string
+        
+        try {
+          if (session.user.email) {
+            const dbUser = await findUserInDatabase(session.user.email)
+            if (dbUser && dbUser.avatar_url) {
+              latestAvatar = dbUser.avatar_url
+              console.log('📸 Latest avatar fetched from database:', latestAvatar)
+              
+              // Update token with latest avatar for future sessions
+              token.avatar = latestAvatar
+            }
+          }
+        } catch (error) {
+          console.log('⚠️ Could not fetch latest avatar from database, using token value')
+        }
+        
+        // Synchronize avatar and image fields with latest data
+        session.user.avatar = latestAvatar
+        session.user.image = latestAvatar  // NextAuth standard field
         
         session.user.credits = token.credits || 0
         session.user.trustScore = token.trustScore || 50
@@ -343,7 +360,8 @@ export const authOptions: NextAuthOptions = {
         console.log('🔄 Session created with avatar:', {
           userId: session.user.id,
           avatar: session.user.avatar,
-          image: session.user.image
+          image: session.user.image,
+          source: latestAvatar !== token.avatar ? 'database' : 'token'
         })
       }
       return session

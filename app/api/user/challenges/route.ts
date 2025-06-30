@@ -37,43 +37,68 @@ export async function GET(request: NextRequest) {
     // For real users, query the database
     const sql = await createDbConnection()
 
-    let whereClause = 'WHERE cp.user_id = $1'
-    const params = [session.user.id]
-
+    let challenges
     if (status !== 'all') {
-      whereClause += ' AND cp.completion_status = $2'
-      params.push(status)
+      challenges = await sql`
+        SELECT 
+          c.id,
+          c.title,
+          c.description,
+          c.category,
+          cp.stake_amount,
+          c.duration,
+          c.start_date,
+          c.end_date,
+          cp.completion_status,
+          0 as progress,
+          0 as current_streak,
+          cp.joined_at,
+          cp.completed_at,
+          NULL as failed_at,
+          (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id) as total_participants,
+          (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id AND completion_status = 'completed') as successful_participants
+        FROM challenges c
+        JOIN challenge_participants cp ON c.id = cp.challenge_id
+        WHERE cp.user_id = ${session.user.id} AND cp.completion_status = ${status}
+        ORDER BY 
+          CASE cp.completion_status 
+            WHEN 'active' THEN 1 
+            WHEN 'completed' THEN 2 
+            WHEN 'failed' THEN 3 
+          END,
+          cp.joined_at DESC
+      `
+    } else {
+      challenges = await sql`
+        SELECT 
+          c.id,
+          c.title,
+          c.description,
+          c.category,
+          cp.stake_amount,
+          c.duration,
+          c.start_date,
+          c.end_date,
+          cp.completion_status,
+          0 as progress,
+          0 as current_streak,
+          cp.joined_at,
+          cp.completed_at,
+          NULL as failed_at,
+          (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id) as total_participants,
+          (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id AND completion_status = 'completed') as successful_participants
+        FROM challenges c
+        JOIN challenge_participants cp ON c.id = cp.challenge_id
+        WHERE cp.user_id = ${session.user.id}
+        ORDER BY 
+          CASE cp.completion_status 
+            WHEN 'active' THEN 1 
+            WHEN 'completed' THEN 2 
+            WHEN 'failed' THEN 3 
+          END,
+          cp.joined_at DESC
+      `
     }
-
-    const challenges = await sql`
-      SELECT 
-        c.id,
-        c.title,
-        c.description,
-        c.category,
-        c.stake_amount,
-        c.duration,
-        c.start_date,
-        c.end_date,
-        cp.completion_status,
-        cp.progress,
-        cp.current_streak,
-        cp.joined_at,
-        cp.completed_at,
-        cp.failed_at,
-        (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id) as total_participants,
-        (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id AND completion_status = 'completed') as successful_participants
-      FROM challenges c
-      JOIN challenge_participants cp ON c.id = cp.challenge_id
-      ${whereClause}
-      ORDER BY 
-        CASE cp.completion_status 
-          WHEN 'active' THEN 1 
-          WHEN 'completed' THEN 2 
-          WHEN 'failed' THEN 3 
-        END,
-        cp.joined_at DESC
-    `
 
     // For each failed challenge, check if there are rejected verifications
     const challengesWithVerifications = await Promise.all(

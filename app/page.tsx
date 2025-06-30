@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { ArrowRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getProxiedAvatarUrl } from '@/lib/utils'
 import { 
   TrendingUp, 
   Target, 
@@ -162,7 +163,7 @@ export default function HomePage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Avatar className="w-16 h-16">
-            <AvatarImage src={user.avatar} />
+            <AvatarImage src={getProxiedAvatarUrl(user.avatar)} />
             <AvatarFallback className="text-2xl font-bold">
               {user.name.charAt(0).toUpperCase()}
             </AvatarFallback>

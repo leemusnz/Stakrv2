@@ -29,8 +29,8 @@ CREATE TABLE challenges (
   category VARCHAR(100) NOT NULL,
   duration VARCHAR(50) NOT NULL, -- "7 days", "30 days", etc.
   difficulty VARCHAR(20) NOT NULL, -- "Easy", "Medium", "Hard"
-  min_stake DECIMAL(8,2) NOT NULL,
-  max_stake DECIMAL(8,2) NOT NULL,
+  min_stake DECIMAL(8,2) DEFAULT 0.00,
+  max_stake DECIMAL(8,2) DEFAULT 0.00,
   host_id UUID REFERENCES users(id),
   host_contribution DECIMAL(8,2) DEFAULT 0.00,
   entry_fee_percentage DECIMAL(4,2) DEFAULT 5.00, -- Platform fee
@@ -41,6 +41,46 @@ CREATE TABLE challenges (
   verification_type VARCHAR(20) DEFAULT 'manual', -- 'auto', 'manual', 'ai'
   proof_requirements JSONB, -- Flexible proof requirements
   rules TEXT[],
+
+  -- Additional fields for enhanced challenge creation
+  daily_instructions TEXT,
+  general_instructions TEXT,
+  proof_instructions TEXT,
+  privacy_type VARCHAR(20) DEFAULT 'public', -- 'public', 'private'
+  tags TEXT[],
+  thumbnail_url TEXT,
+  min_participants INTEGER DEFAULT 1,
+  max_participants INTEGER,
+  start_date_type VARCHAR(20) DEFAULT 'days', -- 'days', 'fixed'
+  start_date_days INTEGER DEFAULT 2,
+  allow_points_only BOOLEAN DEFAULT FALSE,
+  reward_distribution VARCHAR(30) DEFAULT 'equal-split',
+  selected_proof_types TEXT[],
+  camera_only BOOLEAN DEFAULT FALSE,
+  allow_late_submissions BOOLEAN DEFAULT FALSE,
+  late_submission_hours INTEGER DEFAULT 4,
+  bonus_rewards TEXT[],
+  invite_code VARCHAR(20),
+
+  -- Team challenge features
+  enable_team_mode BOOLEAN DEFAULT FALSE,
+  team_assignment_method VARCHAR(20) DEFAULT 'auto-balance',
+  number_of_teams INTEGER DEFAULT 2,
+  winning_criteria VARCHAR(30) DEFAULT 'completion-rate',
+  losing_team_outcome VARCHAR(20) DEFAULT 'lose-stake',
+
+  -- Referral features
+  enable_referral_bonus BOOLEAN DEFAULT FALSE,
+  referral_bonus_percentage DECIMAL(4,2) DEFAULT 20.00,
+  max_referrals INTEGER DEFAULT 3,
+
+  -- Timer and verification features
+  require_timer BOOLEAN DEFAULT FALSE,
+  timer_min_duration INTEGER DEFAULT 15,
+  timer_max_duration INTEGER DEFAULT 120,
+  random_checkin_enabled BOOLEAN DEFAULT FALSE,
+  random_checkin_probability DECIMAL(4,2) DEFAULT 30.00,
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );

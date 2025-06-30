@@ -67,7 +67,7 @@ export async function PATCH(request: NextRequest) {
         `
         
         if (result.length > 0) {
-          console.log('✅ Database avatar updated successfully')
+          console.log('✅ Database avatar updated successfully:', result[0].avatar_url)
           
           return NextResponse.json({
             success: true,
@@ -75,7 +75,9 @@ export async function PATCH(request: NextRequest) {
             profile: {
               ...session.user,
               image: result[0].avatar_url,
-            }
+              avatar: result[0].avatar_url, // Include both fields for consistency
+            },
+            avatarUrl: result[0].avatar_url // Explicit avatar URL for verification
           })
         }
       } catch (dbError) {

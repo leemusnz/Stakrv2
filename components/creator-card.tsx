@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getProxiedAvatarUrl } from "@/lib/utils"
 import { Users, CheckCircle, UserPlus, UserCheck, Heart, MessageCircle, Share2 } from "lucide-react"
 
 interface CreatorCardProps {
@@ -103,7 +104,7 @@ export function CreatorCard({ creator }: CreatorCardProps) {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <Avatar className="w-12 h-12">
-                <AvatarImage src={avatar || "/placeholder.svg"} alt={name} />
+                <AvatarImage src={getProxiedAvatarUrl(avatar)} alt={name} />
                 <AvatarFallback className="bg-primary text-white font-bold">{getInitials(name)}</AvatarFallback>
               </Avatar>
               <div>

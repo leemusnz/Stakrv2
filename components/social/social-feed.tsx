@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { getProxiedAvatarUrl } from "@/lib/utils"
 import {
   Heart,
   MessageCircle,
@@ -347,7 +348,7 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
               <div className="flex items-start gap-4 mb-4">
                 <div className="relative">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={item.user.avatar || "/placeholder.svg"} />
+                    <AvatarImage src={getProxiedAvatarUrl(item.user.avatar)} />
                     <AvatarFallback className="bg-primary/10 text-primary font-bold">
                       {item.user.name.charAt(0)}
                     </AvatarFallback>

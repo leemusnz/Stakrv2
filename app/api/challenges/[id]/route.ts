@@ -5,16 +5,16 @@ import { createDbConnection } from '@/lib/db'
 import { isDemoUser } from '@/lib/demo-data'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 // GET individual challenge details
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions)
-    const challengeId = params.id
+    const { id: challengeId } = await params
     
     // For demo users or demo challenge IDs, return mock data
     if (!session?.user || isDemoUser(session.user.id) || challengeId.startsWith('demo-')) {
@@ -24,32 +24,62 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Real user handling
     const sql = await createDbConnection()
     
-    // Fetch challenge with host info and participant count
-    const challenge = await sql`
-      SELECT 
-        c.*,
-        u.name as host_name,
-        u.email as host_email,
-        COUNT(DISTINCT cp.id) as current_participants,
-        COUNT(DISTINCT ct.id) as team_count
-      FROM challenges c
-      LEFT JOIN users u ON c.host_id = u.id
-      LEFT JOIN challenge_participants cp ON c.id = cp.challenge_id
-      LEFT JOIN challenge_teams ct ON c.id = ct.challenge_id
-      WHERE c.id = ${challengeId}
-      GROUP BY c.id, u.name, u.email
-    `
-    
-    if (challenge.length === 0) {
-      return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
+    // Fetch challenge with host info and participant count (gracefully handle missing tables)
+    try {
+      const challenge = await sql`
+        SELECT 
+          c.*,
+          u.name as host_name,
+          u.email as host_email,
+          u.avatar_url as host_avatar_url,
+          COUNT(DISTINCT cp.id) as current_participants
+        FROM challenges c
+        LEFT JOIN users u ON c.host_id = u.id
+        LEFT JOIN challenge_participants cp ON c.id = cp.challenge_id
+        WHERE c.id = ${challengeId}
+        GROUP BY c.id, u.name, u.email, u.avatar_url
+      `
+      
+      if (challenge.length === 0) {
+        return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
+      }
+      
+      const challengeData = challenge[0]
+      
+      // Debug: Log what we're returning for host data
+      console.log('🔍 API returning host data:', {
+        host_name: challengeData.host_name,
+        host_id: challengeData.host_id,
+        host_avatar_url: challengeData.host_avatar_url
+      })
+      
+      return NextResponse.json({
+        success: true,
+        challenge: challengeData
+      })
+    } catch (dbError) {
+      console.error('Database query failed, falling back to basic query:', dbError)
+      
+      // Fallback to basic challenge query if advanced features fail
+      const challenge = await sql`
+        SELECT c.*, u.name as host_name, u.email as host_email, u.avatar_url as host_avatar_url
+        FROM challenges c
+        LEFT JOIN users u ON c.host_id = u.id
+        WHERE c.id = ${challengeId}
+      `
+      
+      if (challenge.length === 0) {
+        return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
+      }
+      
+      const challengeData = challenge[0]
+      challengeData.current_participants = 0 // Default value
+      
+      return NextResponse.json({
+        success: true,
+        challenge: challengeData
+      })
     }
-    
-    const challengeData = challenge[0]
-    
-    return NextResponse.json({
-      success: true,
-      challenge: challengeData
-    })
     
   } catch (error) {
     console.error('Get challenge error:', error)
@@ -76,6 +106,7 @@ function getMockChallenge(challengeId: string) {
     allow_points_only: true,
     status: 'active',
     host_name: "Sarah Chen",
+    host_avatar_url: null,
     enable_team_mode: false,
     privacy_type: 'public'
   }

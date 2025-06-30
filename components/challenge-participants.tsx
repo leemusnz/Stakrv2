@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { getProxiedAvatarUrl } from "@/lib/utils"
 import { Users, Activity, TrendingUp } from "lucide-react"
 
 interface ActivityItem {
@@ -58,7 +59,7 @@ export function ChallengeParticipants({ participants, recentActivity, completion
           {recentActivity.map((activity) => (
             <div key={activity.id} className="flex items-center gap-3">
               <Avatar className="w-8 h-8">
-                <AvatarImage src={activity.avatar || "/placeholder.svg"} />
+                <AvatarImage src={getProxiedAvatarUrl(activity.avatar)} />
                 <AvatarFallback className="bg-primary/10 text-primary text-xs">
                   {activity.user.charAt(0)}
                 </AvatarFallback>

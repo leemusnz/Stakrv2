@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { getProxiedAvatarUrl } from "@/lib/utils"
 import { Users, UserPlus, Trophy, Zap, Target, MessageCircle, ThumbsUp, Share2 } from "lucide-react"
 
 interface Friend {
@@ -114,7 +115,7 @@ export function FriendActivity({ friends = mockFriends, showInviteButton = true 
           <div key={friend.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
             <div className="relative">
               <Avatar className="w-12 h-12">
-                <AvatarImage src={friend.avatar || "/placeholder.svg"} />
+                <AvatarImage src={getProxiedAvatarUrl(friend.avatar)} />
                 <AvatarFallback className="bg-primary/10 text-primary font-bold">
                   {friend.name.charAt(0)}
                 </AvatarFallback>

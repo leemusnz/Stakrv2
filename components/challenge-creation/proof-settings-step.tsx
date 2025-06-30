@@ -6,7 +6,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Camera, Video, FileText, Upload, Shield, Clock, CheckCircle, Lightbulb } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Camera, Video, FileText, Upload, Shield, Clock, CheckCircle, Lightbulb, Timer, Zap, AlertCircle } from "lucide-react"
 
 interface ProofSettingsStepProps {
   selectedProofTypes: string[]
@@ -14,11 +15,21 @@ interface ProofSettingsStepProps {
   cameraOnly: boolean
   allowLateSubmissions: boolean
   lateSubmissionHours: number
+  requireTimer: boolean
+  timerMinDuration: number
+  timerMaxDuration: number
+  randomCheckinsEnabled: boolean
+  randomCheckinProbability: number
   onProofTypesChange: (types: string[]) => void
   onProofInstructionsChange: (instructions: string) => void
   onCameraOnlyChange: (cameraOnly: boolean) => void
   onAllowLateSubmissionsChange: (allow: boolean) => void
   onLateSubmissionHoursChange: (hours: number) => void
+  onRequireTimerChange: (requireTimer: boolean) => void
+  onTimerMinDurationChange: (minutes: number) => void
+  onTimerMaxDurationChange: (minutes: number) => void
+  onRandomCheckinsEnabledChange: (enabled: boolean) => void
+  onRandomCheckinProbabilityChange: (probability: number) => void
 }
 
 const proofTypes = [
@@ -70,11 +81,21 @@ export function ProofSettingsStep({
   cameraOnly,
   allowLateSubmissions,
   lateSubmissionHours,
+  requireTimer,
+  timerMinDuration,
+  timerMaxDuration,
+  randomCheckinsEnabled,
+  randomCheckinProbability,
   onProofTypesChange,
   onProofInstructionsChange,
   onCameraOnlyChange,
   onAllowLateSubmissionsChange,
   onLateSubmissionHoursChange,
+  onRequireTimerChange,
+  onTimerMinDurationChange,
+  onTimerMaxDurationChange,
+  onRandomCheckinsEnabledChange,
+  onRandomCheckinProbabilityChange,
 }: ProofSettingsStepProps) {
   const toggleProofType = (typeId: string) => {
     if (selectedProofTypes.includes(typeId)) {
@@ -178,6 +199,111 @@ export function ProofSettingsStep({
             </p>
           </div>
 
+          {/* Timer & Verification Settings */}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium flex items-center gap-2">
+                <Timer className="w-4 h-4 text-secondary" />
+                Activity Timer & Verification
+              </h3>
+
+              {/* Require Timer */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-4 bg-secondary/5 rounded-lg border border-secondary/20">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Timer className="w-4 h-4 text-secondary" />
+                      Require timed sessions
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Participants must track time during activities (great for workouts, meditation, study sessions)
+                    </p>
+                  </div>
+                  <Switch checked={requireTimer} onCheckedChange={onRequireTimerChange} />
+                </div>
+
+                {requireTimer && (
+                  <div className="ml-4 space-y-4 p-4 bg-secondary/5 rounded-lg">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Minimum duration (minutes)</Label>
+                        <Input
+                          type="number"
+                          min="5"
+                          max="480"
+                          value={timerMinDuration}
+                          onChange={(e) => onTimerMinDurationChange(Number(e.target.value))}
+                          className="w-full"
+                        />
+                        <p className="text-xs text-muted-foreground">Shortest allowed session</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Maximum duration (minutes)</Label>
+                        <Input
+                          type="number"
+                          min={timerMinDuration + 5}
+                          max="480"
+                          value={timerMaxDuration}
+                          onChange={(e) => onTimerMaxDurationChange(Number(e.target.value))}
+                          className="w-full"
+                        />
+                        <p className="text-xs text-muted-foreground">Longest allowed session</p>
+                      </div>
+                    </div>
+
+                    {/* Random Check-ins */}
+                    <div className="space-y-3 border-t pt-4">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-yellow-500" />
+                            Enhanced anti-cheat verification
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            Random gesture/word prompts during timed sessions to prevent cheating
+                          </p>
+                        </div>
+                        <Switch checked={randomCheckinsEnabled} onCheckedChange={onRandomCheckinsEnabledChange} />
+                      </div>
+
+                      {randomCheckinsEnabled && (
+                        <div className="ml-4 space-y-3">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Check-in probability (%)</Label>
+                            <Input
+                              type="number"
+                              min="10"
+                              max="80"
+                              value={randomCheckinProbability}
+                              onChange={(e) => onRandomCheckinProbabilityChange(Number(e.target.value))}
+                              className="w-32"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Chance of verification prompt during sessions (recommended: 20-40%)
+                            </p>
+                          </div>
+
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2 text-yellow-800 mb-2">
+                              <AlertCircle className="w-4 h-4" />
+                              <span className="font-medium text-sm">How Enhanced Verification Works</span>
+                            </div>
+                            <ul className="text-xs text-yellow-700 space-y-1">
+                              <li>• Participants may be asked to show specific hand gestures</li>
+                              <li>• Or say verification words during their session</li>
+                              <li>• Helps ensure they're actually doing the activity</li>
+                              <li>• Failed verifications affect their quality score</li>
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Security & Timing Settings */}
           <div className="space-y-6">
             <div className="space-y-4">
@@ -269,10 +395,32 @@ export function ProofSettingsStep({
             </CardContent>
           </Card>
 
-          {selectedProofTypes.length > 0 && (
+          {/* Timer Status Card */}
+          {requireTimer && (
             <Card className="bg-secondary/5 border-secondary/20">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm text-secondary">Selected Methods</CardTitle>
+                <CardTitle className="text-sm flex items-center gap-2 text-secondary">
+                  <Timer className="w-4 h-4" />
+                  Timer Enabled
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm">
+                <p className="text-secondary">
+                  Sessions: {timerMinDuration}-{timerMaxDuration} minutes
+                </p>
+                {randomCheckinsEnabled && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Enhanced verification: {randomCheckinProbability}% chance
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {selectedProofTypes.length > 0 && (
+            <Card className="bg-green-50 border-green-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm text-green-700">Selected Methods</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {selectedProofTypes.map((typeId) => {
@@ -281,7 +429,7 @@ export function ProofSettingsStep({
                   const Icon = type.icon
                   return (
                     <div key={typeId} className="flex items-center gap-2 text-sm">
-                      <Icon className="w-4 h-4 text-secondary" />
+                      <Icon className="w-4 h-4 text-green-600" />
                       {type.title}
                     </div>
                   )

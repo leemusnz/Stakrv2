@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { getProxiedAvatarUrl } from "@/lib/utils"
 import { Trophy, TrendingUp, TrendingDown, Minus, Crown, Medal, Award } from "lucide-react"
 
 interface LeaderboardUser {
@@ -167,7 +168,7 @@ export function Leaderboard({ timeframe = "weekly", category = "overall", showCu
             >
               <div className={`relative ${index === 0 ? "scale-110" : ""}`}>
                 <Avatar className={`mx-auto mb-2 ${index === 0 ? "w-16 h-16" : "w-12 h-12"}`}>
-                  <AvatarImage src={user.avatar || "/placeholder.svg"} />
+                  <AvatarImage src={getProxiedAvatarUrl(user.avatar)} />
                   <AvatarFallback className="bg-primary/10 text-primary font-bold">
                     {user.name.charAt(0)}
                   </AvatarFallback>
@@ -190,7 +191,7 @@ export function Leaderboard({ timeframe = "weekly", category = "overall", showCu
                   {getTrendIcon(user.rank, user.previousRank)}
                 </div>
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={user.avatar || "/placeholder.svg"} />
+                  <AvatarImage src={getProxiedAvatarUrl(user.avatar)} />
                   <AvatarFallback className="bg-primary/10 text-primary font-bold">
                     {user.name.charAt(0)}
                   </AvatarFallback>
@@ -220,7 +221,7 @@ export function Leaderboard({ timeframe = "weekly", category = "overall", showCu
                   {getTrendIcon(currentUser.rank, currentUser.previousRank)}
                 </div>
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={currentUser.avatar || "/placeholder.svg"} />
+                  <AvatarImage src={getProxiedAvatarUrl(currentUser.avatar)} />
                   <AvatarFallback className="bg-primary text-primary-foreground font-bold">
                     {currentUser.name.charAt(0)}
                   </AvatarFallback>

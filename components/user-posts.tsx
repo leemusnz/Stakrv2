@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getProxiedAvatarUrl } from "@/lib/utils"
 import { Heart, MessageCircle, Share2, Trophy, Lightbulb, Target, MoreHorizontal, Flag, Bookmark } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -135,7 +136,7 @@ export function UserPosts({ posts, user, isOwnProfile }: UserPostsProps) {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10">
-                    <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                    <AvatarImage src={getProxiedAvatarUrl(user.avatar)} alt={user.name} />
                     <AvatarFallback className="bg-primary text-white">
                       {user.name.charAt(0).toUpperCase()}
                     </AvatarFallback>

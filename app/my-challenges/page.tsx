@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { Clock, Calendar, DollarSign, CheckCircle, XCircle, MessageSquare } from "lucide-react"
+import { Clock, Calendar, DollarSign, CheckCircle, XCircle, MessageSquare, Plus } from "lucide-react"
 import { VerificationAppealModal } from "@/components/verification-appeal-modal"
 
 export default function MyChallengesPage() {
@@ -15,6 +15,7 @@ export default function MyChallengesPage() {
   const [selectedTab, setSelectedTab] = useState("active")
   const [loading, setLoading] = useState(true)
   const [allChallenges, setAllChallenges] = useState<any[]>([])
+  const [hostedChallenges, setHostedChallenges] = useState<any[]>([])
   const [stats, setStats] = useState({
     totalChallenges: 0,
     activeChallenges: 0,
@@ -68,10 +69,28 @@ export default function MyChallengesPage() {
           longestStreak: session?.user?.longestStreak || 0,
         })
       }
+
+      // Load hosted challenges
+      await loadHostedChallenges()
     } catch (error) {
       console.error('Failed to load challenges:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadHostedChallenges = async () => {
+    try {
+      const response = await fetch('/api/user/hosted-challenges')
+      const data = await response.json()
+      
+      if (data.success) {
+        setHostedChallenges(data.challenges)
+      }
+    } catch (error) {
+      console.error('Failed to load hosted challenges:', error)
+      // For now, show empty state
+      setHostedChallenges([])
     }
   }
 
@@ -173,10 +192,14 @@ export default function MyChallengesPage() {
 
         {/* Challenge Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="active" className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Active ({stats.activeChallenges})
+            </TabsTrigger>
+            <TabsTrigger value="hosted" className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              My Hosted
             </TabsTrigger>
             <TabsTrigger value="completed" className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
@@ -277,6 +300,141 @@ export default function MyChallengesPage() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Hosted Challenges */}
+          <TabsContent value="hosted" className="space-y-6">
+            {hostedChallenges.length === 0 ? (
+              <Card className="p-8 text-center">
+                <div className="space-y-4">
+                  <Plus className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+                  <h3 className="text-lg font-medium">No Hosted Challenges</h3>
+                  <p className="text-muted-foreground">
+                    Create your first challenge to help others build better habits!
+                  </p>
+                  <Button onClick={() => window.location.href = '/create-challenge'}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Challenge
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {hostedChallenges.map((challenge) => {
+                  const challengeStarted = new Date(challenge.start_date) <= new Date()
+                  const canEdit = !challengeStarted && challenge.status === 'pending'
+                  
+                  return (
+                    <Card key={challenge.id} className="border-l-4 border-l-secondary">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col lg:flex-row gap-6">
+                          {/* Challenge Info */}
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between mb-4">
+                              <div>
+                                <h3 className="text-xl font-bold mb-2">{challenge.title}</h3>
+                                <p className="text-muted-foreground mb-3">{challenge.description}</p>
+                                <div className="flex items-center gap-4 text-sm">
+                                  <Badge variant="secondary">{challenge.category}</Badge>
+                                  <Badge variant={challenge.status === 'pending' ? 'default' : challenge.status === 'active' ? 'secondary' : 'outline'}>
+                                    {challenge.status}
+                                  </Badge>
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="w-4 h-4" />
+                                    Starts {new Date(challenge.start_date).toLocaleDateString()}
+                                  </span>
+                                  {challenge.allow_points_only ? (
+                                    <Badge variant="outline" className="text-yellow-600">Points Only</Badge>
+                                  ) : (
+                                    <span className="flex items-center gap-1">
+                                      <DollarSign className="w-4 h-4" />
+                                      ${challenge.min_stake} - ${challenge.max_stake}
+                                    </span>
+                                  )}
+                                  {canEdit && (
+                                    <Badge variant="outline" className="text-green-600 border-green-300">
+                                      ✏️ Editable
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Challenge Stats */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <div className="font-semibold text-primary">{challenge.current_participants || 0}</div>
+                                <div className="text-muted-foreground">Participants</div>
+                              </div>
+                              <div>
+                                <div className="font-semibold text-secondary">{challenge.duration}</div>
+                                <div className="text-muted-foreground">Duration</div>
+                              </div>
+                              <div>
+                                <div className="font-semibold text-orange-600">{challenge.difficulty}</div>
+                                <div className="text-muted-foreground">Difficulty</div>
+                              </div>
+                              <div>
+                                <div className="font-semibold">{challenge.privacy_type}</div>
+                                <div className="text-muted-foreground">Privacy</div>
+                              </div>
+                            </div>
+
+                            {/* Challenge Features */}
+                            {(challenge.require_timer || challenge.random_checkin_enabled || challenge.enable_team_mode) && (
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                {challenge.require_timer && (
+                                  <Badge variant="outline" className="text-blue-600">
+                                    🕒 Timer Required
+                                  </Badge>
+                                )}
+                                {challenge.random_checkin_enabled && (
+                                  <Badge variant="outline" className="text-yellow-600">
+                                    ⚡ Anti-Cheat Verification
+                                  </Badge>
+                                )}
+                                {challenge.enable_team_mode && (
+                                  <Badge variant="outline" className="text-purple-600">
+                                    👥 Team Challenge
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex flex-col gap-2 lg:w-48">
+                            <Button variant="outline" className="w-full" onClick={() => window.location.href = `/challenge/${challenge.id}`}>
+                              View Challenge
+                            </Button>
+                            
+                            {canEdit ? (
+                              <>
+                                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                                  ✏️ Edit Challenge
+                                </Button>
+                                <Button variant="outline" className="w-full text-red-600 border-red-300 hover:bg-red-50">
+                                  🗑️ Delete
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button variant="outline" className="w-full" disabled>
+                                  {challengeStarted ? '🔒 Challenge Started' : '🔒 Cannot Edit'}
+                                </Button>
+                                <Button variant="ghost" className="w-full">
+                                  📊 View Analytics
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
             )}
           </TabsContent>

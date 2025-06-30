@@ -416,14 +416,42 @@ export function PreviewPublishStep({
                     <AlertDescription>Please complete the following required fields:</AlertDescription>
                   </Alert>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
                     {missingFields.map((field, index) => (
-                      <div key={index} className="flex items-center gap-2 text-sm text-orange-700">
+                      <div key={index} className="flex items-center gap-2 text-sm text-orange-700 bg-orange-50 p-2 rounded">
                         <X className="w-3 h-3" />
-                        {field}
+                        <span className="font-medium">{field}</span>
                       </div>
                     ))}
                   </div>
+
+                  {/* Debug info in development */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <details className="text-xs text-gray-500 mt-2">
+                      <summary className="cursor-pointer">Debug Info (Dev Only)</summary>
+                      <pre className="mt-2 p-2 bg-gray-100 rounded overflow-auto">
+                        {JSON.stringify({
+                          missingFields,
+                          challengeData: {
+                            privacyType: challengeData.privacyType,
+                            category: challengeData.category,
+                            title: challengeData.title,
+                            description: challengeData.description,
+                            duration: challengeData.duration,
+                            difficulty: challengeData.difficulty,
+                            rulesLength: challengeData.rules?.length,
+                            dailyInstructions: challengeData.dailyInstructions,
+                            selectedProofTypesLength: challengeData.selectedProofTypes?.length,
+                            proofInstructions: challengeData.proofInstructions,
+                            allowPointsOnly: challengeData.allowPointsOnly,
+                            minStake: challengeData.minStake,
+                            maxStake: challengeData.maxStake,
+                            rewardDistribution: challengeData.rewardDistribution
+                          }
+                        }, null, 2)}
+                      </pre>
+                    </details>
+                  )}
 
                   <Button disabled className="w-full" size="lg">
                     Complete Required Fields

@@ -985,6 +985,60 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
+                  <Database className="w-5 h-5" />
+                  Database Migrations
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/admin/run-migration', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ migration: 'challenge-schema' })
+                      })
+                      
+                      const data = await response.json()
+                      
+                      if (data.success) {
+                        addNotification({
+                          type: "system",
+                          title: "Migration Successful",
+                          message: data.message
+                        })
+                      } else {
+                        throw new Error(data.error || 'Migration failed')
+                      }
+                    } catch (error) {
+                      addNotification({
+                        type: "system",
+                        title: "Migration Failed",
+                        message: error instanceof Error ? error.message : 'Unknown error'
+                      })
+                    }
+                  }}
+                  className="w-full justify-start bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Database className="w-4 h-4 mr-2" />
+                  Run Challenge Schema Migration
+                </Button>
+                
+                <div className="text-xs text-muted-foreground p-3 bg-blue-50 rounded border">
+                  <p className="font-medium mb-1">What this migration does:</p>
+                  <ul className="space-y-1">
+                    <li>• Adds missing columns for enhanced challenge creation</li>
+                    <li>• Enables timer and random verification features</li>
+                    <li>• Fixes database schema for full functionality</li>
+                    <li>• Safe to run multiple times</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
                   <Monitor className="w-5 h-5" />
                   Performance Metrics
                 </CardTitle>
