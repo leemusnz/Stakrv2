@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { Clock, Calendar, DollarSign, CheckCircle, XCircle } from "lucide-react"
+import { Clock, Calendar, DollarSign, CheckCircle, XCircle, MessageSquare } from "lucide-react"
+import { VerificationAppealModal } from "@/components/verification-appeal-modal"
 
 export default function MyChallengesPage() {
   const { data: session, status } = useSession()
@@ -380,10 +381,28 @@ export default function MyChallengesPage() {
                                   <XCircle className="w-4 h-4" />
                                   Failed {challenge.failedAt ? new Date(challenge.failedAt).toLocaleDateString() : 'Recently'}
                                 </span>
+                                {challenge.rejectedVerification && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    Verification Rejected
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                             <Badge variant="destructive">{challenge.progress || 0}% Complete</Badge>
                           </div>
+
+                          {/* Show rejection reason if available */}
+                          {challenge.rejectedVerification && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                              <h4 className="text-sm font-medium text-red-800 mb-1">Verification Rejected:</h4>
+                              <p className="text-xs text-red-700">
+                                {challenge.rejectedVerification.reason || 'Your submitted proof did not meet the challenge requirements.'}
+                              </p>
+                              <p className="text-xs text-red-600 mt-1">
+                                Rejected on {new Date(challenge.rejectedVerification.rejectedAt || challenge.failedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
 
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             <div>
@@ -405,6 +424,34 @@ export default function MyChallengesPage() {
                           <Button variant="outline" className="w-full bg-transparent" onClick={() => window.location.href = `/challenge/${challenge.id}`}>
                             View Details
                           </Button>
+                          
+                          {/* Appeal Button for rejected verifications */}
+                          {challenge.rejectedVerification && !challenge.rejectedVerification.appealSubmitted && (
+                            <VerificationAppealModal
+                              verification={{
+                                id: challenge.rejectedVerification.id,
+                                challengeTitle: challenge.title,
+                                stakeAmount: challenge.stakeAmount,
+                                rejectionReason: challenge.rejectedVerification.reason || 'Verification did not meet requirements',
+                                rejectedAt: challenge.rejectedVerification.rejectedAt || challenge.failedAt
+                              }}
+                              trigger={
+                                <Button variant="outline" className="w-full text-blue-600 border-blue-200 hover:bg-blue-50">
+                                  <MessageSquare className="w-4 h-4 mr-2" />
+                                  Appeal Decision
+                                </Button>
+                              }
+                              onAppealSubmitted={loadUserChallenges}
+                            />
+                          )}
+                          
+                          {challenge.rejectedVerification?.appealSubmitted && (
+                            <Button variant="outline" className="w-full" disabled>
+                              <MessageSquare className="w-4 h-4 mr-2" />
+                              Appeal Submitted
+                            </Button>
+                          )}
+                          
                           <Button variant="ghost" className="w-full">
                             Try Again
                           </Button>

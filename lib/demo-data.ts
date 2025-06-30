@@ -278,4 +278,139 @@ export function getDemoNotifications(isAdmin: boolean = false) {
   }
 
   return baseNotifications
+}
+
+// Mock user challenges data
+export function getMockUserChallenges(userId: string) {
+  const challenges = [
+    // Active challenges
+    {
+      id: 'challenge-active-1',
+      title: '30-Day Morning Workout',
+      description: 'Complete a 30-minute workout every morning before 8 AM',
+      category: 'Fitness',
+      stakeAmount: 50.00,
+      participants: 127,
+      totalParticipants: 127,
+      progress: 73,
+      currentStreak: 22,
+      daysRemaining: 8,
+      completionStatus: 'active',
+      nextDeadline: new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString(), // 18 hours from now
+      potentialWinnings: 75.00
+    },
+    {
+      id: 'challenge-active-2', 
+      title: 'Daily Reading Challenge',
+      description: 'Read for at least 30 minutes every day',
+      category: 'Education',
+      stakeAmount: 30.00,
+      participants: 89,
+      totalParticipants: 89,
+      progress: 56,
+      currentStreak: 14,
+      daysRemaining: 11,
+      completionStatus: 'active',
+      nextDeadline: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(), // 6 hours from now
+      potentialWinnings: 45.00
+    },
+    // Completed challenges
+    {
+      id: 'challenge-completed-1',
+      title: 'No Social Media Week',
+      description: 'Stay off social media for 7 consecutive days',
+      category: 'Digital Wellness',
+      stakeAmount: 25.00,
+      participants: 45,
+      totalParticipants: 45,
+      progress: 100,
+      completionStatus: 'completed',
+      completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+      rewardEarned: 37.50
+    },
+    {
+      id: 'challenge-completed-2',
+      title: 'Meditation Mastery',
+      description: 'Meditate for 15 minutes daily for 2 weeks',
+      category: 'Mindfulness',
+      stakeAmount: 40.00,
+      participants: 63,
+      totalParticipants: 63,
+      progress: 100,
+      completionStatus: 'completed',
+      completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
+      rewardEarned: 60.00
+    },
+    // Failed challenges with rejected verifications
+    {
+      id: 'challenge-failed-1',
+      title: 'Early Riser Challenge',
+      description: 'Wake up at 6 AM every day for a week',
+      category: 'Productivity',
+      stakeAmount: 35.00,
+      participants: 78,
+      totalParticipants: 78,
+      progress: 65,
+      completionStatus: 'failed',
+      failedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+      rejectedVerification: {
+        id: 'verification-rejected-1',
+        reason: 'Timestamp indicates photo was taken at 8:30 AM, not 6:00 AM as required for the challenge.',
+        rejectedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        appealSubmitted: false
+      }
+    },
+    {
+      id: 'challenge-failed-2',
+      title: 'No Fast Food Week',
+      description: 'Avoid all fast food for 7 consecutive days',
+      category: 'Nutrition',
+      stakeAmount: 40.00,
+      participants: 92,
+      totalParticipants: 92,
+      progress: 43,
+      completionStatus: 'failed',
+      failedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+      rejectedVerification: {
+        id: 'verification-rejected-2',
+        reason: 'Photo appears to show fast food packaging in the background, which violates the challenge rules.',
+        rejectedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        appealSubmitted: false
+      }
+    },
+    {
+      id: 'challenge-failed-3',
+      title: '10,000 Steps Daily',
+      description: 'Walk at least 10,000 steps every day for 2 weeks',
+      category: 'Fitness',
+      stakeAmount: 30.00,
+      participants: 156,
+      totalParticipants: 156,
+      progress: 80,
+      completionStatus: 'failed',
+      failedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), // 8 days ago
+      rejectedVerification: {
+        id: 'verification-rejected-3',
+        reason: 'Step counter shows 9,847 steps, which is below the required 10,000 steps for this challenge.',
+        rejectedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+        appealSubmitted: true // This one already has an appeal submitted
+      }
+    },
+    // Failed challenge without verification issues (just didn't complete)
+    {
+      id: 'challenge-failed-4',
+      title: 'Sugar-Free Month',
+      description: 'Eliminate all refined sugar for 30 days',
+      category: 'Nutrition',
+      stakeAmount: 60.00,
+      participants: 43,
+      totalParticipants: 43,
+      progress: 23,
+      completionStatus: 'failed',
+      failedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() // 12 days ago
+      // No rejectedVerification - user just stopped participating
+    }
+  ]
+
+  return challenges
 } 

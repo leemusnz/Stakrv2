@@ -12,10 +12,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { DevModeToggle } from "@/components/dev-mode-toggle"
+import { ProfilePictureUpload } from "@/components/profile-picture-upload"
 import { User, Bell, Shield, SettingsIcon, Camera, Save, Trash2, Eye, EyeOff } from "lucide-react"
 
 export default function SettingsPage() {
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const [selectedTab, setSelectedTab] = useState("profile")
   const [settings, setSettings] = useState({
     profile: {
@@ -76,6 +77,20 @@ export default function SettingsPage() {
     }
   }, [session, dataLoaded])
 
+  // Update settings when session changes (e.g., after avatar upload)
+  useEffect(() => {
+    if (session?.user?.image && settings.profile.avatar !== session.user.image) {
+      console.log('🔄 Syncing avatar from session to settings:', session.user.image)
+      setSettings(prev => ({
+        ...prev,
+        profile: {
+          ...prev.profile,
+          avatar: session.user.image || ""
+        }
+      }))
+    }
+  }, [session?.user?.image, settings.profile.avatar])
+
   const handleSave = async (section: string) => {
     setIsLoading(true)
     try {
@@ -98,6 +113,40 @@ export default function SettingsPage() {
         [field]: value,
       },
     }))
+  }
+
+  const handleAvatarUpdate = async (avatarUrl: string) => {
+    console.log('🔄 Settings page received avatar update:', avatarUrl)
+    
+    // Update local settings state immediately
+    handleProfileUpdate("avatar", avatarUrl)
+    
+    // Refresh the session to get updated data
+    try {
+      console.log('🔄 Settings page updating session with:', avatarUrl)
+      
+      await update({
+        user: {
+          ...session?.user,
+          image: avatarUrl,
+          avatar: avatarUrl
+        }
+      })
+      console.log('✅ Settings page session updated with new avatar')
+      
+      // Additional refresh after a short delay to ensure persistence
+      setTimeout(async () => {
+        try {
+          await update()
+          console.log('✅ Settings page session double-refreshed')
+        } catch (err) {
+          console.error('❌ Settings page double refresh failed:', err)
+        }
+      }, 500)
+      
+    } catch (error) {
+      console.error('❌ Settings page failed to update session:', error)
+    }
   }
 
   const handleNotificationToggle = (field: string) => {
@@ -190,23 +239,13 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Avatar Section */}
-                <div className="flex items-center gap-6">
-                  <Avatar className="w-24 h-24">
-                    <AvatarImage src={settings.profile.avatar || "/placeholder.svg"} alt={settings.profile.name} />
-                    <AvatarFallback className="text-xl bg-primary text-white">
-                      {settings.profile.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-2">
-                    <Button variant="outline" className="flex items-center gap-2 bg-transparent">
-                      <Camera className="w-4 h-4" />
-                      Change Photo
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-red-600">
-                      Remove Photo
-                    </Button>
-                  </div>
-                </div>
+                <ProfilePictureUpload 
+                  currentAvatar={settings.profile.avatar}
+                  userName={settings.profile.name}
+                  size="lg"
+                  showControls={true}
+                  onAvatarUpdate={handleAvatarUpdate}
+                />
 
                 {/* Basic Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -500,7 +539,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label htmlFor="show-leaderboards">Show on Leaderboards</Label>
-                      <p className="text-sm text-muted-foreground">Appear on public leaderboards and rankings</p>
+                      <p className="text-sm text-muted-foreground">Include your profile in public leaderboards</p>
                     </div>
                     <Switch
                       id="show-leaderboards"
@@ -526,42 +565,6 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="current-password">Current Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="current-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter current password"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="new-password">New Password</Label>
-                    <Input id="new-password" type="password" placeholder="Enter new password" />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="confirm-password">Confirm New Password</Label>
-                    <Input id="confirm-password" type="password" placeholder="Confirm new password" />
-                  </div>
-
-                  <Button variant="outline" className="bg-transparent">
-                    Update Password
-                  </Button>
-                </div>
-
-                <div className="border-t pt-6 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <Label htmlFor="two-factor">Two-Factor Authentication</Label>
@@ -577,13 +580,82 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label htmlFor="login-alerts">Login Alerts</Label>
-                      <p className="text-sm text-muted-foreground">Get notified of new login attempts</p>
+                      <p className="text-sm text-muted-foreground">Get notified when someone logs into your account</p>
                     </div>
                     <Switch
                       id="login-alerts"
                       checked={settings.account.loginAlerts}
                       onCheckedChange={() => handleAccountToggle("loginAlerts")}
                     />
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-6 border-t">
+                  <h3 className="text-lg font-medium">Password</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="current-password">Current Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="current-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your current password"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="new-password">New Password</Label>
+                      <Input
+                        id="new-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your new password"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password">Confirm New Password</Label>
+                      <Input
+                        id="confirm-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Confirm your new password"
+                      />
+                    </div>
+                    <Button variant="outline">
+                      Update Password
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-6 border-t">
+                  <h3 className="text-lg font-medium text-red-600">Danger Zone</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
+                      <div>
+                        <Label className="text-red-600">Download Your Data</Label>
+                        <p className="text-sm text-red-500">Download a copy of all your Stakr data</p>
+                      </div>
+                      <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-100">
+                        Download Data
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
+                      <div>
+                        <Label className="text-red-600">Delete Account</Label>
+                        <p className="text-sm text-red-500">Permanently delete your account and all data</p>
+                      </div>
+                      <Button variant="destructive">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Account
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
@@ -594,38 +666,19 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-red-600">Danger Zone</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg">
-                  <div>
-                    <h3 className="font-semibold text-red-600">Download Your Data</h3>
-                    <p className="text-sm text-muted-foreground">Download a copy of all your data</p>
-                  </div>
-                  <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 bg-transparent">
-                    Download Data
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg">
-                  <div>
-                    <h3 className="font-semibold text-red-600">Delete Account</h3>
-                    <p className="text-sm text-muted-foreground">Permanently delete your account and all data</p>
-                  </div>
-                  <Button variant="destructive">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Account
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Dev Mode Toggle */}
+            {session?.user?.isDev && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Developer Settings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <DevModeToggle />
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
-
-        {/* Developer Mode Toggle (only shows if user has dev access) */}
-        <DevModeToggle className="mt-6" />
       </div>
     </div>
   )

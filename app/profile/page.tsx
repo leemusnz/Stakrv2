@@ -10,12 +10,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChallengeCard } from "@/components/challenge-card"
 import { UserPosts } from "@/components/user-posts"
 import { PostCreationModal } from "@/components/post-creation-modal"
+import { ProfilePictureUpload } from "@/components/profile-picture-upload"
+import { getPersonalizedAvatar } from "@/lib/avatars"
 import { MapPin, Calendar, ExternalLink, Trophy, Users, TrendingUp, Settings, Share2, Edit, Flame } from "lucide-react"
 
 export default function ProfilePage() {
   const { data: session, status } = useSession()
   const [selectedTab, setSelectedTab] = useState("posts")
   const [loading, setLoading] = useState(true)
+  const [showAvatarUpload, setShowAvatarUpload] = useState(false)
   const [user, setUser] = useState({
     id: "",
     name: "",
@@ -42,15 +45,25 @@ export default function ProfilePage() {
     achievements: [] as any[],
   })
 
+  // Get default avatar based on user email
+  const getDefaultAvatar = () => {
+    if (session?.user?.email) {
+      return getPersonalizedAvatar(session.user.email).url
+    }
+    return "/placeholder.svg"
+  }
+
   // Load real user data
   useEffect(() => {
     if (session?.user) {
+      const avatarUrl = session.user.image || getDefaultAvatar()
+      
       setUser(prev => ({
         ...prev,
         id: session.user.id,
         name: session.user.name || "",
         username: `@${session.user.email?.split('@')[0] || 'user'}`,
-        avatar: session.user.image || "",
+        avatar: avatarUrl,
         bio: "Welcome to Stakr! Complete challenges to build your profile.",
         joinDate: new Date().toISOString().split('T')[0], // Today as join date for demo
         isVerified: false,
@@ -82,6 +95,11 @@ export default function ProfilePage() {
       default:
         return "bg-gray-100 text-gray-800 border-gray-300"
     }
+  }
+
+  const handleAvatarUpdate = (newAvatarUrl: string) => {
+    setUser(prev => ({ ...prev, avatar: newAvatarUrl }))
+    setShowAvatarUpload(false)
   }
 
   if (status === "loading" || loading) {
@@ -116,18 +134,40 @@ export default function ProfilePage() {
               {/* Avatar and Basic Info */}
               <div className="flex flex-col items-center md:items-start">
                 <div className="relative">
-                  <Avatar className="w-32 h-32">
-                    <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
-                    <AvatarFallback className="text-2xl bg-primary text-white">
-                      {user.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button
-                    size="sm"
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 bg-primary hover:bg-primary/90"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
+                  {showAvatarUpload ? (
+                    <div className="space-y-4">
+                      <ProfilePictureUpload
+                        currentAvatar={user.avatar}
+                        userName={user.name}
+                        size="lg"
+                        showControls={true}
+                        onAvatarUpdate={handleAvatarUpdate}
+                      />
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setShowAvatarUpload(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <Avatar className="w-32 h-32">
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarFallback className="text-2xl bg-primary text-white">
+                          {user.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <Button
+                        size="sm"
+                        onClick={() => setShowAvatarUpload(true)}
+                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 bg-primary hover:bg-primary/90"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
                 </div>
                 <div className="text-center md:text-left mt-4">
                   <div className="flex items-center gap-2 justify-center md:justify-start">
@@ -138,7 +178,7 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground justify-center md:justify-start">
                     <div className="flex items-center gap-1">
                       <MapPin className="w-4 h-4" />
-                      {user.location}
+                      {user.location || "Not specified"}
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
@@ -174,7 +214,11 @@ export default function ProfilePage() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 mb-6">
-                  <Button variant="outline" className="bg-transparent">
+                  <Button 
+                    variant="outline" 
+                    className="bg-transparent"
+                    onClick={() => window.location.href = '/settings'}
+                  >
                     <Settings className="w-4 h-4 mr-2" />
                     Edit Profile
                   </Button>

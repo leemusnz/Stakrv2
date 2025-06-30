@@ -29,7 +29,10 @@ import {
   Bug,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  FileText,
+  MessageSquare,
+  RotateCcw
 } from "lucide-react"
 import { useNotifications } from "@/components/notifications/notification-provider"
 
@@ -38,6 +41,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("analytics")
   const [analytics, setAnalytics] = useState<any>(null)
   const [systemData, setSystemData] = useState<any>(null)
+  const [verifications, setVerifications] = useState<any>(null)
+  const [appeals, setAppeals] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -81,9 +86,49 @@ export default function AdminDashboard() {
     }
   }
 
+  const loadVerifications = async () => {
+    try {
+      const response = await fetch('/api/admin/verifications')
+      const data = await response.json()
+      
+      if (data.success) {
+        setVerifications(data.verifications)
+      } else {
+        throw new Error(data.error || 'Failed to load verifications')
+      }
+    } catch (error) {
+      console.error('Verifications error:', error)
+      addNotification({
+        type: "system",
+        title: "Verifications Error",
+        message: "Failed to load verification data"
+      })
+    }
+  }
+
+  const loadAppeals = async () => {
+    try {
+      const response = await fetch('/api/admin/appeals')
+      const data = await response.json()
+      
+      if (data.success) {
+        setAppeals(data.appeals)
+      } else {
+        throw new Error(data.error || 'Failed to load appeals')
+      }
+    } catch (error) {
+      console.error('Appeals error:', error)
+      addNotification({
+        type: "system",
+        title: "Appeals Error",
+        message: "Failed to load appeals data"
+      })
+    }
+  }
+
   const refreshData = async () => {
     setRefreshing(true)
-    await Promise.all([loadAnalytics(), loadSystemData()])
+    await Promise.all([loadAnalytics(), loadSystemData(), loadVerifications(), loadAppeals()])
     setRefreshing(false)
     
     addNotification({
@@ -91,6 +136,93 @@ export default function AdminDashboard() {
       title: "Data Refreshed",
       message: "Dashboard data has been updated"
     })
+  }
+
+  const processVerificationDecision = async (verificationId: string, decision: 'approved' | 'rejected', reason?: string) => {
+    try {
+      const response = await fetch('/api/admin/verifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verificationId, decision, reason })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        addNotification({
+          type: "system",
+          title: "Verification Processed",
+          message: data.message
+        })
+        await loadVerifications() // Refresh verification data
+      } else {
+        throw new Error(data.error || 'Failed to process verification')
+      }
+    } catch (error) {
+      addNotification({
+        type: "system",
+        title: "Verification Error",
+        message: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
+  const processAppealDecision = async (appealId: string, decision: 'approved' | 'rejected', reason?: string) => {
+    try {
+      const response = await fetch('/api/admin/appeals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appealId, decision, reason })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        addNotification({
+          type: "system",
+          title: "Appeal Processed",
+          message: data.message
+        })
+        await Promise.all([loadAppeals(), loadVerifications()]) // Refresh both appeals and verifications
+      } else {
+        throw new Error(data.error || 'Failed to process appeal')
+      }
+    } catch (error) {
+      addNotification({
+        type: "system",
+        title: "Appeal Error",
+        message: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
+  const reverseVerificationDecision = async (verificationId: string, reason: string) => {
+    try {
+      const response = await fetch('/api/admin/verifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verificationId, reason })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        addNotification({
+          type: "system",
+          title: "Decision Reversed",
+          message: data.message
+        })
+        await loadVerifications() // Refresh verification data
+      } else {
+        throw new Error(data.error || 'Failed to reverse decision')
+      }
+    } catch (error) {
+      addNotification({
+        type: "system",
+        title: "Reversal Error",
+        message: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
   }
 
   const executeSystemAction = async (action: string, params?: any) => {
@@ -125,7 +257,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true)
-      await Promise.all([loadAnalytics(), loadSystemData()])
+      await Promise.all([loadAnalytics(), loadSystemData(), loadVerifications(), loadAppeals()])
       setLoading(false)
     }
     
@@ -175,10 +307,18 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Analytics
+          </TabsTrigger>
+          <TabsTrigger value="verifications" className="flex items-center gap-2">
+            <Eye className="w-4 h-4" />
+            Verifications
+          </TabsTrigger>
+          <TabsTrigger value="appeals" className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            Appeals
           </TabsTrigger>
           <TabsTrigger value="monitoring" className="flex items-center gap-2">
             <Monitor className="w-4 h-4" />
@@ -395,6 +535,246 @@ export default function AdminDashboard() {
                           <Badge variant="outline" className="text-xs">
                             {activity.type.replace('_', ' ')}
                           </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </TabsContent>
+
+        {/* Verification Management */}
+        <TabsContent value="verifications" className="space-y-6">
+          {verifications && (
+            <>
+              {/* Verification Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="border-orange-200 bg-orange-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
+                    <Eye className="h-4 w-4 text-orange-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-orange-700">{verifications.stats.pendingCount}</div>
+                    <p className="text-xs text-orange-600">
+                      ${verifications.stats.totalStakesUnderReview.toFixed(2)} total stakes
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-green-200 bg-green-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Approved Today</CardTitle>
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-700">{verifications.stats.approvedToday}</div>
+                    <p className="text-xs text-green-600">Successful verifications</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-red-200 bg-red-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Rejected Today</CardTitle>
+                    <XCircle className="h-4 w-4 text-red-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-700">{verifications.stats.rejectedToday}</div>
+                    <p className="text-xs text-red-600">Failed verifications</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-blue-200 bg-blue-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Avg Processing</CardTitle>
+                    <Clock className="h-4 w-4 text-blue-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-blue-700">{verifications.stats.avgProcessingTime}h</div>
+                    <p className="text-xs text-blue-600">Average review time</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Pending Verifications */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Eye className="w-5 h-5" />
+                    Pending Verification Reviews
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {verifications.pendingVerifications.length === 0 ? (
+                    <div className="text-center py-8">
+                      <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-4" />
+                      <h3 className="text-lg font-medium">All Caught Up!</h3>
+                      <p className="text-muted-foreground">No pending verifications to review</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {verifications.pendingVerifications.map((verification: any) => (
+                        <Card key={verification.id} className="border-l-4 border-l-orange-500">
+                          <CardContent className="p-6">
+                            <div className="flex flex-col lg:flex-row gap-6">
+                              {/* Verification Info */}
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between mb-4">
+                                  <div>
+                                    <h3 className="text-lg font-bold mb-1">{verification.challengeTitle}</h3>
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      By <span className="font-medium">{verification.userName}</span> ({verification.userEmail})
+                                    </p>
+                                    <div className="flex items-center gap-4 text-sm">
+                                      <Badge variant="outline">{verification.proofType}</Badge>
+                                      <span>${verification.stakeAmount} staked</span>
+                                      <span>{verification.participantCount} participants</span>
+                                    </div>
+                                  </div>
+                                  <Badge variant="secondary">
+                                    {new Date(verification.submittedAt).toLocaleTimeString()}
+                                  </Badge>
+                                </div>
+
+                                {/* Proof Content */}
+                                <div className="mb-4 p-4 bg-muted/50 rounded-lg">
+                                  <h4 className="font-medium mb-2">Submitted Proof:</h4>
+                                  <p className="text-sm">{verification.proofText}</p>
+                                  {verification.proofUrl && (
+                                    <div className="mt-2">
+                                      <Button variant="outline" size="sm" className="h-8">
+                                        <FileText className="w-3 h-3 mr-1" />
+                                        View {verification.proofType}
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Additional Details */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                  <div>
+                                    <div className="font-medium text-muted-foreground">Progress</div>
+                                    <div>{verification.daysIntoChallenge}/{verification.challengeDuration} days</div>
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-muted-foreground">Submitted</div>
+                                    <div>{new Date(verification.submittedAt).toLocaleDateString()}</div>
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-muted-foreground">Type</div>
+                                    <div className="capitalize">{verification.proofType}</div>
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-muted-foreground">Priority</div>
+                                    <Badge variant={
+                                      verification.priority === 'high' ? 'destructive' :
+                                      verification.priority === 'medium' ? 'secondary' : 'outline'
+                                    }>
+                                      {verification.priority}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex flex-col gap-2 lg:w-48">
+                                <Button 
+                                  onClick={() => processVerificationDecision(verification.id, 'approved')}
+                                  className="w-full bg-green-600 hover:bg-green-700"
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Approve
+                                </Button>
+                                
+                                <Button 
+                                  onClick={() => processVerificationDecision(verification.id, 'rejected', 'Insufficient evidence provided')}
+                                  variant="destructive" 
+                                  className="w-full"
+                                >
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Reject
+                                </Button>
+                                
+                                <Button 
+                                  variant="outline" 
+                                  className="w-full"
+                                  onClick={() => window.location.href = `/challenge/${verification.challengeId}`}
+                                >
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  View Challenge
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Recent Decisions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Recent Verification Decisions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {verifications.recentDecisions.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No recent decisions</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {verifications.recentDecisions.map((decision: any) => (
+                        <div key={decision.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center gap-4">
+                            {decision.decision === 'approved' ? (
+                              <CheckCircle className="w-5 h-5 text-green-500" />
+                            ) : (
+                              <XCircle className="w-5 h-5 text-red-500" />
+                            )}
+                            <div>
+                              <p className="font-medium">{decision.challengeTitle}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {decision.userName} • ${decision.stakeAmount}
+                              </p>
+                              {decision.reason && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Reason: {decision.reason}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right flex items-center gap-2">
+                            <Badge variant={decision.decision === 'approved' ? 'default' : 'destructive'}>
+                              {decision.decision}
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const reason = prompt(`Reverse this ${decision.decision} decision?\n\nPlease provide a reason for reversal:`)
+                                if (reason) {
+                                  reverseVerificationDecision(decision.id, reason)
+                                }
+                              }}
+                              className="h-7 px-2 text-xs"
+                            >
+                              <RotateCcw className="w-3 h-3 mr-1" />
+                              Reverse
+                            </Button>
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(decision.decidedAt).toLocaleTimeString()}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -674,6 +1054,216 @@ export default function AdminDashboard() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Appeals Management */}
+        <TabsContent value="appeals" className="space-y-6">
+          {appeals && (
+            <>
+              {/* Appeal Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="border-purple-200 bg-purple-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Pending Appeals</CardTitle>
+                    <MessageSquare className="h-4 w-4 text-purple-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-purple-700">{appeals.stats.pendingAppeals}</div>
+                    <p className="text-xs text-purple-600">Awaiting review</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-green-200 bg-green-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Approved Today</CardTitle>
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-700">{appeals.stats.appealsApprovedToday}</div>
+                    <p className="text-xs text-green-600">Successful appeals</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-red-200 bg-red-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Rejected Today</CardTitle>
+                    <XCircle className="h-4 w-4 text-red-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-700">{appeals.stats.appealsRejectedToday}</div>
+                    <p className="text-xs text-red-600">Denied appeals</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-blue-200 bg-blue-50/50">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-blue-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-blue-700">{appeals.stats.appealSuccessRate}%</div>
+                    <p className="text-xs text-blue-600">Appeals approved</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Pending Appeals */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5" />
+                    Pending Appeal Reviews
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {appeals.pendingAppeals.length === 0 ? (
+                    <div className="text-center py-8">
+                      <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-4" />
+                      <h3 className="text-lg font-medium">No Pending Appeals</h3>
+                      <p className="text-muted-foreground">All appeals have been processed</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {appeals.pendingAppeals.map((appeal: any) => (
+                        <Card key={appeal.id} className="border-l-4 border-l-purple-500">
+                          <CardContent className="p-6">
+                            <div className="flex flex-col lg:flex-row gap-6">
+                              {/* Appeal Info */}
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between mb-4">
+                                  <div>
+                                    <h3 className="text-lg font-bold mb-1">{appeal.challengeTitle}</h3>
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      Appeal by <span className="font-medium">{appeal.userName}</span> ({appeal.userEmail})
+                                    </p>
+                                    <div className="flex items-center gap-4 text-sm">
+                                      <Badge variant="destructive">Originally {appeal.originalDecision}</Badge>
+                                      <span>${appeal.stakeAmount} at stake</span>
+                                    </div>
+                                  </div>
+                                  <Badge variant="secondary">
+                                    {new Date(appeal.appealSubmittedAt).toLocaleTimeString()}
+                                  </Badge>
+                                </div>
+
+                                {/* Original Decision */}
+                                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                  <h4 className="font-medium text-red-800 mb-1">Original Rejection Reason:</h4>
+                                  <p className="text-sm text-red-700">{appeal.originalReason}</p>
+                                </div>
+
+                                {/* User's Appeal */}
+                                <div className="mb-4 p-4 bg-muted/50 rounded-lg">
+                                  <h4 className="font-medium mb-2">User's Appeal:</h4>
+                                  <p className="text-sm">{appeal.appealReason}</p>
+                                  {appeal.additionalEvidence && (
+                                    <div className="mt-2">
+                                      <p className="text-xs font-medium text-muted-foreground">Additional Evidence:</p>
+                                      <p className="text-xs text-muted-foreground">{appeal.additionalEvidence}</p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Timeline */}
+                                <div className="text-xs text-muted-foreground">
+                                  <p>Appeal submitted: {new Date(appeal.appealSubmittedAt).toLocaleString()}</p>
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex flex-col gap-2 lg:w-48">
+                                <Button 
+                                  onClick={() => processAppealDecision(appeal.id, 'approved', 'Appeal justified - decision reversed')}
+                                  className="w-full bg-green-600 hover:bg-green-700"
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Approve Appeal
+                                </Button>
+                                
+                                <Button 
+                                  onClick={() => {
+                                    const reason = prompt('Please provide a reason for rejecting this appeal:')
+                                    if (reason) {
+                                      processAppealDecision(appeal.id, 'rejected', reason)
+                                    }
+                                  }}
+                                  variant="destructive" 
+                                  className="w-full"
+                                >
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Reject Appeal
+                                </Button>
+                                
+                                <Button 
+                                  variant="outline" 
+                                  className="w-full"
+                                  onClick={() => window.location.href = `/challenge/${appeal.challengeId}`}
+                                >
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  View Challenge
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Recent Appeal Decisions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Recent Appeal Decisions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {appeals.recentAppealDecisions.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No recent appeal decisions</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {appeals.recentAppealDecisions.map((decision: any) => (
+                        <div key={decision.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center gap-4">
+                            {decision.appealDecision === 'approved' ? (
+                              <CheckCircle className="w-5 h-5 text-green-500" />
+                            ) : (
+                              <XCircle className="w-5 h-5 text-red-500" />
+                            )}
+                            <div>
+                              <p className="font-medium">{decision.challengeTitle}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {decision.userName} • ${decision.stakeAmount} • Originally {decision.originalDecision}
+                              </p>
+                              {decision.appealReason && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {decision.appealReason}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant={decision.appealDecision === 'approved' ? 'default' : 'destructive'}>
+                              Appeal {decision.appealDecision}
+                            </Badge>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {new Date(decision.appealDecidedAt).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>

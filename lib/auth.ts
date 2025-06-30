@@ -231,7 +231,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session }) {
       // Add custom fields to JWT token
       if (user) {
         token.avatar = user.avatar
@@ -246,6 +246,23 @@ export const authOptions: NextAuthOptions = {
         token.onboardingCompleted = user.onboardingCompleted
         token.isDev = user.isDev
         token.devModeEnabled = user.devModeEnabled
+      }
+      
+      // Handle session updates (e.g., avatar changes)
+      if (trigger === 'update') {
+        console.log('🔄 JWT Update triggered:', { trigger, session })
+        if (session?.user?.image) {
+          token.avatar = session.user.image
+          console.log('✅ JWT token avatar updated to:', session.user.image)
+        }
+        if (session?.user?.avatar) {
+          token.avatar = session.user.avatar
+          console.log('✅ JWT token avatar updated to:', session.user.avatar)
+        }
+        // Handle other profile updates
+        if (session?.user?.name) token.name = session.user.name
+        if (session?.user?.credits !== undefined) token.credits = session.user.credits
+        if (session?.user?.trustScore !== undefined) token.trustScore = session.user.trustScore
       }
       
       // Handle Google OAuth user creation
@@ -305,7 +322,12 @@ export const authOptions: NextAuthOptions = {
       // Add custom fields to session
       if (session.user && token.sub) {
         session.user.id = token.sub
-        session.user.avatar = token.avatar as string
+        
+        // Synchronize avatar and image fields
+        const avatarUrl = token.avatar as string
+        session.user.avatar = avatarUrl
+        session.user.image = avatarUrl  // NextAuth standard field
+        
         session.user.credits = token.credits || 0
         session.user.trustScore = token.trustScore || 50
         session.user.verificationTier = token.verificationTier || 'manual'
@@ -317,6 +339,12 @@ export const authOptions: NextAuthOptions = {
         session.user.onboardingCompleted = token.onboardingCompleted || false
         session.user.isDev = token.isDev || false
         session.user.devModeEnabled = token.devModeEnabled || false
+        
+        console.log('🔄 Session created with avatar:', {
+          userId: session.user.id,
+          avatar: session.user.avatar,
+          image: session.user.image
+        })
       }
       return session
     }

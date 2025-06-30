@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { createDbConnection } from '@/lib/db'
+import { isDemoUser } from '@/lib/demo-data'
 
 // GET challenges with optional filtering
 export async function GET(request: NextRequest) {
@@ -180,83 +184,211 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// CREATE new challenge
+// CREATE new challenge with full feature support
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const {
-      title,
-      description,
-      category,
-      duration,
-      difficulty,
-      min_stake,
-      max_stake,
-      host_contribution,
-      start_date,
-      end_date,
-      verification_type,
-      rules
-    } = body
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    const challengeData = await request.json()
     
     // Validate required fields
-    if (!title || !description || !category || !duration || !difficulty) {
+    const requiredFields = [
+      'privacyType', 'category', 'title', 'description', 'duration', 'difficulty',
+      'rules', 'dailyInstructions', 'selectedProofTypes', 'proofInstructions'
+    ]
+    
+    const missingFields = requiredFields.filter(field => !challengeData[field] || 
+      (Array.isArray(challengeData[field]) && challengeData[field].length === 0))
+    
+    if (missingFields.length > 0) {
       return NextResponse.json({
-        success: false,
-        error: 'Missing required fields: title, description, category, duration, difficulty'
+        error: 'Missing required fields',
+        missingFields,
+        received: Object.keys(challengeData)
       }, { status: 400 })
     }
-    
-    if (!min_stake || !max_stake || min_stake > max_stake) {
+
+    // Validate stakes for money challenges
+    if (!challengeData.allowPointsOnly) {
+      if (!challengeData.minStake || !challengeData.maxStake || 
+          challengeData.minStake > challengeData.maxStake) {
+        return NextResponse.json({
+          error: 'Invalid stake amounts for money challenge'
+        }, { status: 400 })
+      }
+    }
+
+    // For demo users, return mock success
+    if (isDemoUser(session.user.id)) {
       return NextResponse.json({
-        success: false,
-        error: 'Invalid stake amounts: min_stake must be less than max_stake'
-      }, { status: 400 })
+        success: true,
+        message: 'Challenge created successfully!',
+        challenge: {
+          id: `demo-challenge-${Date.now()}`,
+          ...challengeData,
+          host_id: session.user.id,
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          invite_code: challengeData.privacyType === 'private' ? 'DEMO1234' : null
+        }
+      }, { status: 201 })
+    }
+
+    // For real users, create in database
+    const sql = await createDbConnection()
+    
+    // Calculate start/end dates
+    let startDate, endDate
+    if (challengeData.startDateType === 'days') {
+      startDate = new Date(Date.now() + challengeData.startDateDays * 24 * 60 * 60 * 1000)
+    } else {
+      startDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) // Default 2 days
     }
     
-    // Create new challenge (mock data)
-    const newChallenge = {
-      id: crypto.randomUUID(),
-      title,
-      description,
-      long_description: description, // Could be expanded
-      category,
-      duration,
-      difficulty,
-      min_stake: parseFloat(min_stake),
-      max_stake: parseFloat(max_stake),
-      host_id: '550e8400-e29b-41d4-a716-446655440000', // Mock host ID
-      host_contribution: parseFloat(host_contribution || '0'),
-      entry_fee_percentage: 5.00,
-      failed_stake_cut: 20.00,
-      start_date: start_date || new Date().toISOString(),
-      end_date: end_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'pending',
-      verification_type: verification_type || 'manual',
-      proof_requirements: {
-        type: verification_type || 'manual',
-        description: 'Submit proof of completion',
-        required_frequency: 'daily'
-      },
-      rules: rules || ['Complete the challenge requirements', 'Submit proof as required'],
-      participants_count: 0,
-      total_stake_pool: 0.00,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+    // Parse duration to calculate end date
+    const durationMatch = challengeData.duration.match(/(\d+)\s*(day|week|month)s?/)
+    if (durationMatch) {
+      const [, amount, unit] = durationMatch
+      const days = unit === 'day' ? parseInt(amount) : 
+                   unit === 'week' ? parseInt(amount) * 7 :
+                   parseInt(amount) * 30
+      endDate = new Date(startDate.getTime() + days * 24 * 60 * 60 * 1000)
+    } else {
+      endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000) // Default 30 days
     }
-    
+
+    // Generate invite code for private challenges
+    const inviteCode = challengeData.privacyType === 'private' ? 
+      await sql`SELECT generate_invite_code() as code`.then(r => r[0].code) : null
+
+    // Create the challenge
+    const newChallenge = await sql`
+      INSERT INTO challenges (
+        title, description, category, duration, difficulty,
+        min_stake, max_stake, host_id, host_contribution,
+        start_date, end_date, status,
+        rules, daily_instructions, general_instructions, proof_instructions,
+        privacy_type, tags, thumbnail_url,
+        min_participants, max_participants,
+        start_date_type, start_date_days,
+        allow_points_only, reward_distribution,
+        selected_proof_types, camera_only, 
+        allow_late_submissions, late_submission_hours,
+        bonus_rewards, invite_code,
+        enable_team_mode, team_assignment_method, number_of_teams,
+        winning_criteria, losing_team_outcome,
+        enable_referral_bonus, referral_bonus_percentage, max_referrals,
+        verification_type, proof_requirements
+      ) VALUES (
+        ${challengeData.title},
+        ${challengeData.description},
+        ${challengeData.category},
+        ${challengeData.duration},
+        ${challengeData.difficulty},
+        ${challengeData.allowPointsOnly ? 0 : challengeData.minStake},
+        ${challengeData.allowPointsOnly ? 0 : challengeData.maxStake},
+        ${session.user.id},
+        ${challengeData.hostContribution || 0},
+        ${startDate.toISOString()},
+        ${endDate.toISOString()},
+        'pending',
+        ${challengeData.rules},
+        ${challengeData.dailyInstructions},
+        ${challengeData.generalInstructions || ''},
+        ${challengeData.proofInstructions},
+        ${challengeData.privacyType},
+        ${challengeData.tags || []},
+        ${null}, -- thumbnail_url (TODO: handle file upload)
+        ${challengeData.minParticipants},
+        ${challengeData.maxParticipants},
+        ${challengeData.startDateType},
+        ${challengeData.startDateDays},
+        ${challengeData.allowPointsOnly},
+        ${challengeData.rewardDistribution || 'winner-takes-all'},
+        ${challengeData.selectedProofTypes},
+        ${challengeData.cameraOnly},
+        ${challengeData.allowLateSubmissions},
+        ${challengeData.lateSubmissionHours},
+        ${challengeData.bonusRewards || []},
+        ${inviteCode},
+        ${challengeData.enableTeamMode},
+        ${challengeData.teamAssignmentMethod || 'auto-balance'},
+        ${challengeData.numberOfTeams || 2},
+        ${challengeData.winningCriteria || 'completion-rate'},
+        ${challengeData.losingTeamOutcome || 'lose-stake'},
+        ${challengeData.enableReferralBonus},
+        ${challengeData.referralBonusPercentage || 20},
+        ${challengeData.maxReferrals || 3},
+        ${challengeData.selectedProofTypes[0] || 'manual'}, -- primary verification type
+        ${JSON.stringify({
+          types: challengeData.selectedProofTypes,
+          description: challengeData.proofInstructions,
+          camera_only: challengeData.cameraOnly,
+          late_submissions: challengeData.allowLateSubmissions,
+          late_hours: challengeData.lateSubmissionHours
+        })}
+      )
+      RETURNING id, invite_code, created_at
+    `
+
+    const challengeId = newChallenge[0].id
+
+    // Create teams if team mode is enabled
+    if (challengeData.enableTeamMode) {
+      await sql`SELECT create_challenge_teams(${challengeId}, ${challengeData.numberOfTeams || 2})`
+    }
+
+    // Log challenge creation
+    await sql`
+      INSERT INTO admin_actions (admin_id, action_type, target_type, target_id, details, created_at)
+      VALUES (
+        ${session.user.id},
+        'challenge_created',
+        'challenge',
+        ${challengeId},
+        ${JSON.stringify({
+          title: challengeData.title,
+          category: challengeData.category,
+          privacy_type: challengeData.privacyType,
+          team_mode: challengeData.enableTeamMode,
+          points_only: challengeData.allowPointsOnly
+        })},
+        NOW()
+      )
+    `
+
     return NextResponse.json({
       success: true,
-      challenge: newChallenge,
-      message: 'Challenge created successfully',
-      note: 'This is mock data. Will be replaced with real database insert.'
+      message: 'Challenge created successfully!',
+      challenge: {
+        id: challengeId,
+        ...challengeData,
+        host_id: session.user.id,
+        status: 'pending',
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        invite_code: newChallenge[0].invite_code,
+        created_at: newChallenge[0].created_at
+      },
+      next_steps: {
+        redirect_url: challengeData.privacyType === 'private' && challengeData.minParticipants > 1 
+          ? `/challenge/invite/${newChallenge[0].invite_code}`
+          : `/challenge/${challengeId}`,
+        message: challengeData.privacyType === 'private' 
+          ? 'Challenge created! Share the invite code with participants.'
+          : 'Challenge created and will be published soon!'
+      }
     }, { status: 201 })
-    
+
   } catch (error) {
+    console.error('Challenge creation error:', error)
     return NextResponse.json({
-      success: false,
       error: 'Failed to create challenge',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
     }, { status: 500 })
   }
 } 

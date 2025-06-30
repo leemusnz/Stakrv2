@@ -195,21 +195,43 @@ export default function CreateChallengePage() {
     setIsPublishing(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      // Create challenge via API
+      const response = await fetch('/api/challenges', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(challengeData)
+      })
 
-      // In real app, this would create the challenge via API
-      console.log("Publishing challenge:", challengeData)
+      const result = await response.json()
 
-      // For private challenges, redirect to invite screen
-      if (challengeData.privacyType === "private" && challengeData.minParticipants > 1) {
-        router.push("/challenge/invite/ABC123")
+      if (!response.ok) {
+        throw new Error(result.error || `HTTP error! status: ${response.status}`)
+      }
+
+      if (result.success) {
+        console.log("Challenge created successfully:", result.challenge)
+
+        // Redirect based on API response
+        if (result.next_steps?.redirect_url) {
+          router.push(result.next_steps.redirect_url)
+        } else {
+          // Fallback redirect logic
+          if (challengeData.privacyType === "private" && challengeData.minParticipants > 1) {
+            router.push(`/challenge/invite/${result.challenge.invite_code}`)
+          } else {
+            router.push(`/challenge/${result.challenge.id}`)
+          }
+        }
       } else {
-        // For public challenges or solo challenges, redirect to dashboard
-        router.push("/?created=true")
+        throw new Error(result.error || 'Failed to create challenge')
       }
     } catch (error) {
       console.error("Failed to publish challenge:", error)
+      
+      // Show user-friendly error message
+      alert(`Failed to create challenge: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsPublishing(false)
     }

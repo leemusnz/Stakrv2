@@ -4,147 +4,141 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { 
   isDemoUser, 
-  getDemoActiveChallenges, 
-  getDemoCompletedChallenges 
+  getMockUserChallenges 
 } from '@/lib/demo-data'
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user?.id) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized',
-        message: 'You must be logged in to view your challenges'
-      }, { status: 401 })
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || 'all'
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Check if this is a demo user
+    // For demo users, return mock challenges with rejected verification data
     if (isDemoUser(session.user.id)) {
-      const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
-      const activeChallenges = getDemoActiveChallenges(isAdmin)
-      const completedChallenges = getDemoCompletedChallenges(isAdmin)
+      const mockChallenges = getMockUserChallenges(session.user.id)
       
-      let challenges: any[] = []
-      
-      if (status === 'all') {
-        challenges = [...activeChallenges, ...completedChallenges]
-      } else if (status === 'active') {
-        challenges = activeChallenges
-      } else if (status === 'completed') {
-        challenges = completedChallenges
+      let filteredChallenges = mockChallenges
+      if (status !== 'all') {
+        filteredChallenges = mockChallenges.filter(challenge => challenge.completionStatus === status)
       }
 
-      // Apply pagination
-      const paginatedChallenges = challenges.slice(offset, offset + limit)
-      
       return NextResponse.json({
         success: true,
-        challenges: paginatedChallenges,
-        pagination: {
-          total: challenges.length,
-          limit,
-          offset,
-          hasMore: offset + limit < challenges.length
-        }
+        challenges: filteredChallenges,
+        totalCount: filteredChallenges.length
       })
     }
 
-    // For real database users, proceed with database queries
+    // For real users, query the database
     const sql = await createDbConnection()
-    
-    let whereClause = sql`WHERE cp.user_id = ${session.user.id}`
+
+    let whereClause = 'WHERE cp.user_id = $1'
+    const params = [session.user.id]
+
     if (status !== 'all') {
-      whereClause = sql`WHERE cp.user_id = ${session.user.id} AND cp.completion_status = ${status}`
+      whereClause += ' AND cp.completion_status = $2'
+      params.push(status)
     }
 
-    const userChallenges = await sql`
+    const challenges = await sql`
       SELECT 
         c.id,
         c.title,
         c.description,
         c.category,
+        c.stake_amount,
         c.duration,
-        c.difficulty,
         c.start_date,
         c.end_date,
-        c.status as challenge_status,
-        c.verification_type,
-        cp.stake_amount,
-        cp.entry_fee_paid,
-        cp.insurance_purchased,
         cp.completion_status,
-        cp.proof_submitted,
-        cp.verification_status,
-        cp.reward_earned,
+        cp.progress,
+        cp.current_streak,
         cp.joined_at,
         cp.completed_at,
-        -- Calculate participants count
+        cp.failed_at,
         (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id) as total_participants,
-        -- Calculate completers count
-        (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id AND completion_status = 'completed') as completers_count
+        (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id AND completion_status = 'completed') as successful_participants
       FROM challenges c
       JOIN challenge_participants cp ON c.id = cp.challenge_id
       ${whereClause}
-      ORDER BY cp.joined_at DESC
-      LIMIT ${limit}
-      OFFSET ${offset}
+      ORDER BY 
+        CASE cp.completion_status 
+          WHEN 'active' THEN 1 
+          WHEN 'completed' THEN 2 
+          WHEN 'failed' THEN 3 
+        END,
+        cp.joined_at DESC
     `
 
-    const totalCount = await sql`
-      SELECT COUNT(*) as count
-      FROM challenge_participants cp
-      ${whereClause}
-    `
+    // For each failed challenge, check if there are rejected verifications
+    const challengesWithVerifications = await Promise.all(
+      challenges.map(async (challenge: any) => {
+        if (challenge.completion_status === 'failed') {
+          // Look for rejected verifications for this challenge and user
+          const rejectedVerifications = await sql`
+            SELECT id, admin_notes as reason, updated_at as rejected_at
+            FROM verifications 
+            WHERE challenge_id = ${challenge.id} 
+              AND user_id = ${session.user.id} 
+              AND status = 'rejected'
+            ORDER BY updated_at DESC
+            LIMIT 1
+          `
 
-    const challenges = userChallenges.map((challenge: any) => ({
-      id: challenge.id,
-      title: challenge.title,
-      description: challenge.description,
-      category: challenge.category,
-      duration: challenge.duration,
-      difficulty: challenge.difficulty,
-      startDate: challenge.start_date,
-      endDate: challenge.end_date,
-      challengeStatus: challenge.challenge_status,
-      verificationType: challenge.verification_type,
-      stakeAmount: parseFloat(challenge.stake_amount),
-      entryFeePaid: parseFloat(challenge.entry_fee_paid),
-      insurancePurchased: challenge.insurance_purchased,
-      completionStatus: challenge.completion_status,
-      proofSubmitted: challenge.proof_submitted,
-      verificationStatus: challenge.verification_status,
-      rewardEarned: challenge.reward_earned ? parseFloat(challenge.reward_earned) : null,
-      joinedAt: challenge.joined_at,
-      completedAt: challenge.completed_at,
-      totalParticipants: challenge.total_participants,
-      completersCount: challenge.completers_count,
-      daysRemaining: Math.max(0, Math.ceil((new Date(challenge.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    }))
+          if (rejectedVerifications.length > 0) {
+            const verification = rejectedVerifications[0]
+            
+            // Check if user has already submitted an appeal
+            const existingAppeal = await sql`
+              SELECT id FROM verification_appeals 
+              WHERE verification_id = ${verification.id} AND user_id = ${session.user.id}
+            `
+
+            challenge.rejectedVerification = {
+              id: verification.id,
+              reason: verification.reason,
+              rejectedAt: verification.rejected_at,
+              appealSubmitted: existingAppeal.length > 0
+            }
+          }
+        }
+
+        return {
+          id: challenge.id,
+          title: challenge.title,
+          description: challenge.description,
+          category: challenge.category,
+          stakeAmount: parseFloat(challenge.stake_amount),
+          duration: challenge.duration,
+          participants: challenge.total_participants,
+          totalParticipants: challenge.total_participants,
+          successfulParticipants: challenge.successful_participants,
+          completionStatus: challenge.completion_status,
+          progress: challenge.progress || 0,
+          currentStreak: challenge.current_streak || 0,
+          joinedAt: challenge.joined_at,
+          completedAt: challenge.completed_at,
+          failedAt: challenge.failed_at,
+          rejectedVerification: challenge.rejectedVerification || null
+        }
+      })
+    )
 
     return NextResponse.json({
       success: true,
-      challenges,
-      pagination: {
-        total: parseInt(totalCount[0].count),
-        limit,
-        offset,
-        hasMore: offset + limit < parseInt(totalCount[0].count)
-      }
+      challenges: challengesWithVerifications,
+      totalCount: challengesWithVerifications.length
     })
 
   } catch (error) {
-    console.error('❌ User challenges fetch failed:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Challenges fetch failed',
-      message: 'Unable to fetch user challenges',
+    console.error('User challenges fetch error:', error)
+    return NextResponse.json({ 
+      error: 'Failed to fetch user challenges',
       details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
     }, { status: 500 })
   }

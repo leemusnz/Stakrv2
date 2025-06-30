@@ -1,354 +1,350 @@
 "use client"
 
-import { useState } from "react"
-import { useParams } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { Copy, Share2, Users, Clock, DollarSign, Trophy, CheckCircle, Calendar, User } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { 
+  Copy, 
+  Share2, 
+  Users, 
+  Calendar, 
+  DollarSign, 
+  CheckCircle,
+  Eye,
+  Send,
+  Mail,
+  MessageSquare
+} from "lucide-react"
+import { useNotifications } from "@/components/notifications/notification-provider"
 
 export default function ChallengeInvitePage() {
   const params = useParams()
-  const code = params.code as string
-  const [copied, setCopied] = useState(false)
-  const [isJoining, setIsJoining] = useState(false)
+  const router = useRouter()
+  const { data: session } = useSession()
+  const { addNotification } = useNotifications()
+  
+  const inviteCode = params.code as string
+  const [challenge, setChallenge] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [inviteEmails, setInviteEmails] = useState("")
+  const [sendingInvites, setSendingInvites] = useState(false)
 
-  // Mock challenge data - in real app, fetch based on code
-  const challenge = {
-    id: "challenge-123",
-    title: "Smith Family Fitness Challenge",
-    description:
-      "Let's get fit together! 30 days of daily exercise, tracking our progress as a family. Winner takes all the stakes!",
-    category: "Health & Fitness",
-    duration: "30",
-    difficulty: "intermediate",
-    minParticipants: 3,
-    maxParticipants: 8,
-    currentParticipants: 2,
-    minStake: 50,
-    maxStake: 100,
-    rewardDistribution: "winner-takes-all",
-    enableTeamMode: true,
-    numberOfTeams: 2,
-    isPrivate: true,
-    joinDeadlineType: "days",
-    joinDeadlineDays: 2,
-    host: {
-      name: "Sarah Smith",
-      avatar: "/placeholder.svg?height=40&width=40",
-      verified: true,
-    },
-    participants: [
-      {
-        id: "1",
-        name: "Sarah Smith",
-        avatar: "/placeholder.svg?height=32&width=32",
-        joinedAt: "2024-01-15T10:00:00Z",
-        isHost: true,
-      },
-      {
-        id: "2",
-        name: "Mike Smith",
-        avatar: "/placeholder.svg?height=32&width=32",
-        joinedAt: "2024-01-15T14:30:00Z",
-        isHost: false,
-      },
-    ],
-    startsAt: "2024-01-17T00:00:00Z", // 2 days from creation
+  // Mock challenge data for demo
+  useEffect(() => {
+    const loadChallenge = async () => {
+      try {
+        // For demo purposes, create mock challenge data
+        const mockChallenge = {
+          id: `challenge-${inviteCode}`,
+          title: "Private Fitness Challenge",
+          description: "A private 30-day fitness challenge for our group",
+          category: "fitness",
+          difficulty: "medium",
+          duration: "30 days",
+          minParticipants: 3,
+          maxParticipants: 10,
+          currentParticipants: 1,
+          hostName: session?.user?.name || "Challenge Host",
+          startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+          minStake: 25,
+          maxStake: 100,
+          allowPointsOnly: false,
+          rules: [
+            "Complete 30 minutes of exercise daily",
+            "Submit photo proof within 24 hours",
+            "Support your teammates",
+            "No excuses, only results!"
+          ],
+          inviteCode: inviteCode
+        }
+        
+        setChallenge(mockChallenge)
+      } catch (error) {
+        console.error('Failed to load challenge:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (inviteCode) {
+      loadChallenge()
+    }
+  }, [inviteCode, session])
+
+  const copyInviteCode = () => {
+    navigator.clipboard.writeText(inviteCode)
+    addNotification({
+      type: "system",
+      title: "Copied!",
+      message: "Invite code copied to clipboard"
+    })
   }
 
-  const inviteLink = `https://stakr.app/join/${code}`
-  const spotsLeft = challenge.maxParticipants - challenge.currentParticipants
-  const daysUntilStart = Math.ceil(
-    (new Date(challenge.startsAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
-  )
-
-  const copyInviteLink = async () => {
-    try {
-      await navigator.clipboard.writeText(inviteLink)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error("Failed to copy link:", err)
-    }
+  const copyInviteLink = () => {
+    const inviteLink = `${window.location.origin}/challenge/invite/${inviteCode}`
+    navigator.clipboard.writeText(inviteLink)
+    addNotification({
+      type: "system",
+      title: "Copied!",
+      message: "Invite link copied to clipboard"
+    })
   }
 
   const shareChallenge = async () => {
+    const inviteLink = `${window.location.origin}/challenge/invite/${inviteCode}`
+    
     if (navigator.share) {
       try {
         await navigator.share({
           title: challenge.title,
-          text: `Join me in the ${challenge.title}! Let's do this challenge together.`,
-          url: inviteLink,
+          text: `Join my challenge: ${challenge.title}`,
+          url: inviteLink
         })
-      } catch (err) {
-        console.error("Error sharing:", err)
+      } catch (error) {
+        // Fallback to clipboard
+        copyInviteLink()
       }
     } else {
-      // Fallback to copying link
       copyInviteLink()
     }
   }
 
-  const joinChallenge = async () => {
-    setIsJoining(true)
+  const sendEmailInvites = async () => {
+    if (!inviteEmails.trim()) {
+      addNotification({
+        type: "system",
+        title: "Missing emails",
+        message: "Please enter at least one email address"
+      })
+      return
+    }
+
+    setSendingInvites(true)
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      // In real app, would join the challenge and redirect
-      console.log("Joined challenge:", challenge.id)
+      // Mock API call - in real app would send emails
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      addNotification({
+        type: "system",
+        title: "Invites sent!",
+        message: `Invitations sent to ${inviteEmails.split(',').length} people`
+      })
+      
+      setInviteEmails("")
     } catch (error) {
-      console.error("Failed to join challenge:", error)
+      addNotification({
+        type: "system",
+        title: "Failed to send",
+        message: "Could not send email invitations"
+      })
     } finally {
-      setIsJoining(false)
+      setSendingInvites(false)
     }
   }
 
-  const user = {
-    name: "Alex Chen",
-    avatar: "/placeholder.svg?height=40&width=40",
-    credits: 250,
-    activeStakes: 3,
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading challenge...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!challenge) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold">Challenge Not Found</h1>
+          <p className="text-muted-foreground">This invite code is invalid or expired</p>
+          <Button onClick={() => router.push('/discover')}>
+            Browse Public Challenges
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Challenge Info */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Challenge Header */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                        Private Challenge
-                      </Badge>
-                      {challenge.enableTeamMode && (
-                        <Badge variant="default" className="bg-primary">
-                          <Users className="w-3 h-3 mr-1" />
-                          Team Challenge
-                        </Badge>
-                      )}
-                    </div>
-                    <CardTitle className="text-2xl">{challenge.title}</CardTitle>
-                    <CardDescription className="text-base">{challenge.description}</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <Calendar className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
-                    <p className="text-sm font-medium">{challenge.duration} Days</p>
-                    <p className="text-xs text-muted-foreground">Duration</p>
-                  </div>
-                  <div className="text-center">
-                    <Users className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
-                    <p className="text-sm font-medium">
-                      {challenge.currentParticipants}/{challenge.maxParticipants}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Participants</p>
-                  </div>
-                  <div className="text-center">
-                    <DollarSign className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
-                    <p className="text-sm font-medium">
-                      ${challenge.minStake}-${challenge.maxStake}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Stake Range</p>
-                  </div>
-                  <div className="text-center">
-                    <Clock className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
-                    <p className="text-sm font-medium">{daysUntilStart} Days</p>
-                    <p className="text-xs text-muted-foreground">Until Start</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+    <div className="min-h-screen bg-muted/30">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">🎯 Private Challenge Invite</h1>
+          <p className="text-muted-foreground">Share this challenge with your friends and get started!</p>
+        </div>
 
-            {/* Host Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Challenge Host</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={challenge.host.avatar || "/placeholder.svg"} alt={challenge.host.name} />
-                    <AvatarFallback>
-                      {challenge.host.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{challenge.host.name}</p>
-                      {challenge.host.verified && <CheckCircle className="w-4 h-4 text-green-500" />}
-                    </div>
-                    <p className="text-sm text-muted-foreground">Challenge Creator</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Challenge Details */}
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl">{challenge.title}</CardTitle>
+                <p className="text-muted-foreground mt-2">
+                  Created by <span className="font-medium">{challenge.hostName}</span>
+                </p>
+              </div>
+              <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                Private Challenge
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-lg">{challenge.description}</p>
+            
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-muted/50 rounded-lg">
+                <Calendar className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+                <div className="font-semibold">{challenge.duration}</div>
+                <div className="text-sm text-muted-foreground">Duration</div>
+              </div>
+              <div className="text-center p-4 bg-muted/50 rounded-lg">
+                <Users className="w-6 h-6 mx-auto mb-2 text-green-600" />
+                <div className="font-semibold">{challenge.currentParticipants}/{challenge.maxParticipants}</div>
+                <div className="text-sm text-muted-foreground">Participants</div>
+              </div>
+              <div className="text-center p-4 bg-muted/50 rounded-lg">
+                <DollarSign className="w-6 h-6 mx-auto mb-2 text-yellow-600" />
+                <div className="font-semibold">${challenge.minStake}-${challenge.maxStake}</div>
+                <div className="text-sm text-muted-foreground">Stake Range</div>
+              </div>
+              <div className="text-center p-4 bg-muted/50 rounded-lg">
+                <Badge variant="outline" className="mb-2">{challenge.difficulty}</Badge>
+                <div className="text-sm text-muted-foreground">Difficulty</div>
+              </div>
+            </div>
 
-            {/* Current Participants */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Who's Joining ({challenge.currentParticipants})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {challenge.participants.map((participant) => (
-                    <div key={participant.id} className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={participant.avatar || "/placeholder.svg"} alt={participant.name} />
-                        <AvatarFallback>
-                          {participant.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{participant.name}</p>
-                          {participant.isHost && (
-                            <Badge variant="outline" className="text-xs">
-                              Host
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Joined {new Date(participant.joinedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+            {/* Rules */}
+            <div>
+              <h3 className="font-semibold mb-3">Challenge Rules:</h3>
+              <ul className="space-y-2">
+                {challenge.rules.map((rule: string, index: number) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{rule}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-                  {/* Empty spots */}
-                  {Array.from({ length: spotsLeft }, (_, i) => (
-                    <div key={`empty-${i}`} className="flex items-center gap-3 opacity-50">
-                      <div className="w-10 h-10 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
-                        <User className="w-4 h-4 text-muted-foreground/50" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">Waiting for participant...</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            <Alert>
+              <Eye className="w-4 h-4" />
+              <AlertDescription>
+                Starts on {new Date(challenge.startDate).toLocaleDateString()} • 
+                Minimum {challenge.minParticipants} participants needed
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Join Challenge */}
-            <Card className="border-2 border-primary">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-primary" />
-                  Join Challenge
-                </CardTitle>
-                <CardDescription>
-                  {spotsLeft > 0 ? (
-                    <>
-                      Only {spotsLeft} {spotsLeft === 1 ? "spot" : "spots"} left!
-                    </>
-                  ) : (
-                    "Challenge is full"
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">
-                    ${challenge.minStake} - ${challenge.maxStake}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Your stake amount</p>
-                </div>
-
-                <Button className="w-full" size="lg" onClick={joinChallenge} disabled={spotsLeft === 0 || isJoining}>
-                  {isJoining ? "Joining..." : spotsLeft === 0 ? "Challenge Full" : "Join Challenge"}
-                </Button>
-
-                <div className="text-xs text-muted-foreground text-center space-y-1">
-                  <p>• Challenge starts in {daysUntilStart} days</p>
-                  <p>
-                    •{" "}
-                    {challenge.rewardDistribution === "winner-takes-all"
-                      ? "Winner takes all stakes"
-                      : "Rewards split among winners"}
-                  </p>
-                  {challenge.enableTeamMode && <p>• Teams compete for the prize pool</p>}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Share Challenge */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Invite Others</CardTitle>
-                <CardDescription>Share this challenge with friends and family</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        {/* Invite Methods */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Share Invite Code */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Copy className="w-5 h-5" />
+                Share Invite Code
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Invite Code:</p>
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 bg-transparent" onClick={copyInviteLink}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    {copied ? "Copied!" : "Copy Link"}
+                  <Input 
+                    value={inviteCode} 
+                    readOnly 
+                    className="font-mono text-lg text-center"
+                  />
+                  <Button onClick={copyInviteCode} variant="outline">
+                    <Copy className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" onClick={shareChallenge}>
-                    <Share2 className="w-4 h-4" />
-                  </Button>
                 </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button onClick={copyInviteLink} variant="outline" className="flex-1">
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Link
+                </Button>
+                <Button onClick={shareChallenge} variant="outline" className="flex-1">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+              </div>
 
-                <div className="text-xs text-muted-foreground">
-                  <p className="font-medium mb-1">Invite Link:</p>
-                  <p className="break-all bg-muted p-2 rounded text-xs">{inviteLink}</p>
-                </div>
-              </CardContent>
-            </Card>
+              <p className="text-xs text-muted-foreground">
+                Share this code or link with friends so they can join your private challenge.
+              </p>
+            </CardContent>
+          </Card>
 
-            {/* Challenge Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Challenge Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Category:</span>
-                  <span className="font-medium">{challenge.category}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Difficulty:</span>
-                  <span className="font-medium capitalize">{challenge.difficulty}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Min Participants:</span>
-                  <span className="font-medium">{challenge.minParticipants}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Max Participants:</span>
-                  <span className="font-medium">{challenge.maxParticipants}</span>
-                </div>
-                {challenge.enableTeamMode && (
+          {/* Email Invites */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                Send Email Invites
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Email addresses (comma separated):</p>
+                <textarea
+                  value={inviteEmails}
+                  onChange={(e) => setInviteEmails(e.target.value)}
+                  placeholder="friend1@email.com, friend2@email.com"
+                  className="w-full p-3 border rounded-md resize-none"
+                  rows={3}
+                />
+              </div>
+              
+              <Button 
+                onClick={sendEmailInvites} 
+                disabled={sendingInvites || !inviteEmails.trim()}
+                className="w-full"
+              >
+                {sendingInvites ? (
                   <>
-                    <Separator />
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Teams:</span>
-                      <span className="font-medium">{challenge.numberOfTeams} teams</span>
-                    </div>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Invitations
                   </>
                 )}
-              </CardContent>
-            </Card>
-          </div>
+              </Button>
+
+              <p className="text-xs text-muted-foreground">
+                We'll send them a personalized invitation with the challenge details.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Actions */}
+        <div className="mt-8 flex gap-4 justify-center">
+          <Button 
+            onClick={() => router.push(`/challenge/${challenge.id}`)} 
+            variant="outline"
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            View Challenge
+          </Button>
+          <Button onClick={() => router.push('/create-challenge')}>
+            Create Another Challenge
+          </Button>
         </div>
       </div>
     </div>
