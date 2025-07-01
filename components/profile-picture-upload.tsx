@@ -266,6 +266,15 @@ export function ProfilePictureUpload({
       if (error instanceof Error) {
         const errorMessage = error.message.toLowerCase()
         
+        // Log detailed error information for debugging
+        console.error('🔍 Detailed error info:', {
+          errorMessage: error.message,
+          errorStack: error.stack,
+          errorName: error.name,
+          sessionUserId: session?.user?.id,
+          sessionUserEmail: session?.user?.email
+        })
+        
         if (errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
           userFriendlyMessage = 'Session expired. Please refresh the page and try again.'
         } else if (errorMessage.includes('storage service not available') || errorMessage.includes('503')) {
@@ -273,7 +282,7 @@ export function ProfilePictureUpload({
         } else if (errorMessage.includes('aws credentials') || errorMessage.includes('storage config')) {
           userFriendlyMessage = 'File upload service is experiencing technical difficulties. Please contact support.'
         } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-          userFriendlyMessage = 'Network error. Please check your connection and try again.'
+          userFriendlyMessage = `Network error: ${error.message}. Please check the browser console for details.`
         } else if (errorMessage.includes('file size') || errorMessage.includes('10mb')) {
           userFriendlyMessage = 'File size must be less than 10MB. Please choose a smaller image.'
         } else if (errorMessage.includes('file type') || errorMessage.includes('invalid')) {
