@@ -288,28 +288,34 @@ export class ContentModerationService {
             content: [
               {
                 type: 'text',
-                text: `Analyze this image for appropriateness as a professional profile picture. Respond with a JSON object containing:
+                text: `Analyze this image for appropriateness as a profile picture on a social platform. Respond with a JSON object containing:
 - "flagged": boolean (true if inappropriate for a profile picture)
-- "reason": array of strings (categories like "sexual", "nudity", "violence", "harassment", "weapons", "minors", "medical_genitalia", "personal_info", "screenshots", "text_heavy", "low_quality", "political", "drugs", "drug_paraphernalia", "tobacco", "gambling", "unprofessional")
+- "reason": array of strings (categories like "sexual", "nudity", "violence", "harassment", "weapons", "minors", "medical_genitalia", "personal_info", "screenshots", "text_heavy", "low_quality", "political", "drugs", "drug_paraphernalia", "tobacco", "gambling")
 - "confidence": number 1-100 (confidence in the assessment)
 - "explanation": string (brief explanation)
 
-STRICT PROFILE PICTURE RULES - Flag as inappropriate if the image contains:
+PROFILE PICTURE SAFETY RULES - Flag as inappropriate ONLY if the image contains:
 - Sexual content, nudity, or sexually suggestive material
 - Violence, harassment, hate symbols, or threatening gestures
 - Weapons (guns, knives, etc.) even if legally owned
 - Images of minors/children (privacy and safety concerns)
 - Medical diagrams, illustrations, or photos of genitalia/reproductive organs (even if educational)
-- Personal information (QR codes, phone numbers, addresses)
+- Personal information (QR codes, phone numbers, addresses, documents)
 - Screenshots of apps, websites, or other digital content
-- Images that are primarily text, memes, or low-quality/blurry
+- Images that are primarily text or very low-quality/unrecognizable
 - Political figures, campaign materials, or divisive political content
 - Drug use, drug paraphernalia, pills, syringes, or substance abuse imagery
 - Tobacco use, smoking, vaping, or gambling imagery
-- Group photos where the account owner cannot be clearly identified
-- Any content that would be inappropriate in a professional workplace setting
 
-This is for a PROFILE PICTURE on a social platform - be more conservative than for general content moderation.`
+EXPLICITLY ALLOWED (do NOT flag):
+- Cartoon characters, anime, or illustrated avatars
+- Animals, pets, or nature photos  
+- AI-generated portraits or characters
+- Artwork, drawings, or creative imagery
+- Humorous or meme content (if not violating other rules)
+- Brand logos or symbols (if not violating other rules)
+
+This is for a social challenge platform - focus on safety, not professionalism. Allow creative expression.`
               },
               {
                 type: 'image_url',
