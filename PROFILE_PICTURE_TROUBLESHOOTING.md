@@ -33,14 +33,14 @@ Look for these critical environment variables:
 2. Navigate to "Environment Variables"
 3. Add missing variables:
 
-```env
+\`\`\`env
 AWS_ACCESS_KEY_ID=AKIA...
 AWS_SECRET_ACCESS_KEY=...
 AWS_REGION=ap-southeast-2
 AWS_BUCKET_NAME=stakr-verification-files
 NEXTAUTH_SECRET=your-secret-here
 NEXTAUTH_URL=https://your-app.vercel.app
-```
+\`\`\`
 
 ### **Test Environment Setup:**
 After adding variables, redeploy and visit:
@@ -58,7 +58,7 @@ Should show: `"fileUploadReady": true`
 3. Set region: `ap-southeast-2` (or your preferred region)
 4. **Important:** Configure CORS policy:
 
-```json
+\`\`\`json
 [
   {
     "AllowedHeaders": ["*"],
@@ -70,7 +70,7 @@ Should show: `"fileUploadReady": true`
     "ExposeHeaders": ["ETag"]
   }
 ]
-```
+\`\`\`
 
 ### **Create IAM User:**
 1. Go to AWS IAM Console
@@ -94,7 +94,7 @@ Should show: `"fileUploadReady": true`
 3. Monitor browser console for errors
 
 ### **Test API Endpoints Individually:**
-```bash
+\`\`\`bash
 # Test presigned URL generation (requires authentication)
 curl -X POST https://your-app.vercel.app/api/upload/presigned-url \
   -H "Content-Type: application/json" \
@@ -104,7 +104,7 @@ curl -X POST https://your-app.vercel.app/api/upload/presigned-url \
     "fileSize": 50000,
     "challengeId": "profile-images"
   }'
-```
+\`\`\`
 
 ---
 
@@ -153,11 +153,11 @@ The following fixes have been applied to resolve the issue:
 ## 🚀 **Step 7: Deploy & Test**
 
 1. **Deploy the fixes:**
-   ```bash
+   \`\`\`bash
    git add .
    git commit -m "Fix profile picture upload authentication and error handling"
    git push
-   ```
+   \`\`\`
 
 2. **Wait for deployment to complete**
 
@@ -202,4 +202,4 @@ In Vercel dashboard:
 - [ ] Test deployment endpoint shows all green
 - [ ] Profile picture upload tested end-to-end
 
-**Once all items are checked, profile picture uploads should work correctly!** ✅ 
+**Once all items are checked, profile picture uploads should work correctly!** ✅
