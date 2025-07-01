@@ -27,6 +27,7 @@ export function ProfilePictureUpload({
   const { data: session, update } = useSession()
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null)
   const [forceRender, setForceRender] = useState(0) // Force re-render counter
@@ -96,17 +97,20 @@ export function ProfilePictureUpload({
     // Validate file type
     if (!file.type.startsWith('image/')) {
       setUploadStatus('error')
+      setUploadError('Please select an image file (JPG, PNG, or WebP)')
       return
     }
 
     // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
       setUploadStatus('error')
+      setUploadError('File size must be less than 10MB')
       return
     }
 
     setIsUploading(true)
     setUploadStatus('idle')
+    setUploadError(null)
 
     try {
       // Create preview
@@ -125,6 +129,83 @@ export function ProfilePictureUpload({
       
       if (result.success && result.fileUrl) {
         console.log('✅ File uploaded successfully:', result.fileUrl)
+        
+        // 🛡️ MODERATE THE IMAGE BEFORE SAVING TO PROFILE
+        console.log('🔍 Moderating uploaded image:', result.fileUrl)
+        
+        // Use image proxy URL for moderation (OpenAI needs publicly accessible URLs)
+        const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(result.fileUrl)}&v=${Date.now()}`
+        const fullProxyUrl = `${window.location.origin}${proxyUrl}`
+        
+        console.log('🔗 Using proxy URL for moderation:', fullProxyUrl)
+        
+        const moderationResponse = await fetch('/api/moderate/image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            imageUrl: fullProxyUrl,
+            context: 'profile_picture' 
+          })
+        })
+
+        if (!moderationResponse.ok) {
+          console.error('❌ Moderation API failed:', moderationResponse.status)
+          // Continue anyway if moderation API fails (fail-safe)
+        } else {
+          const moderationData = await moderationResponse.json()
+          const moderationResult = moderationData.moderation
+          console.log('🛡️ Image moderation result:', moderationResult)
+          
+          if (moderationResult?.flagged) {
+            console.log('❌ Image flagged by moderation, rejecting upload')
+            setUploadStatus('error')
+            setPreviewUrl(null)
+            setUploadedAvatarUrl(null)
+            
+            // Create user-friendly error message based on flagged reasons
+            const reasons = moderationResult.reason || []
+            
+            // Handle technical error cases first
+            if (reasons.includes('moderation_unavailable')) {
+              throw new Error('Image moderation is currently unavailable. Please try again later or contact support.')
+            } else if (reasons.includes('moderation_api_failed') || reasons.includes('moderation_error') || reasons.includes('moderation_download_failed') || reasons.includes('moderation_parse_failed')) {
+              throw new Error('Unable to verify image safety. Please try a different image or contact support if this persists.')
+            }
+            
+            // Create specific user-friendly messages for content violations
+            let userMessage = 'This image is not appropriate for a profile picture.'
+            
+            if (reasons.includes('sexual') || reasons.includes('nudity')) {
+              userMessage = 'This image contains sexual content or nudity and cannot be used as a profile picture.'
+            } else if (reasons.includes('medical_genitalia')) {
+              userMessage = 'Medical diagrams of anatomy are not appropriate for profile pictures.'
+            } else if (reasons.includes('violence') || reasons.includes('weapons')) {
+              userMessage = 'Images containing violence or weapons cannot be used as profile pictures.'
+            } else if (reasons.includes('drugs') || reasons.includes('drug_paraphernalia')) {
+              userMessage = 'Images showing drugs or drug paraphernalia are not allowed as profile pictures.'
+            } else if (reasons.includes('tobacco') || reasons.includes('gambling')) {
+              userMessage = 'Images showing tobacco use or gambling are not appropriate for profile pictures.'
+            } else if (reasons.includes('minors')) {
+              userMessage = 'Images containing children cannot be used for privacy and safety reasons.'
+            } else if (reasons.includes('screenshots') || reasons.includes('text_heavy')) {
+              userMessage = 'Please upload a photo of yourself rather than screenshots or text-based images.'
+            } else if (reasons.includes('political')) {
+              userMessage = 'Political content is not appropriate for profile pictures.'
+            } else if (reasons.includes('low_quality')) {
+              userMessage = 'Please upload a clearer, higher quality image.'
+            } else if (reasons.includes('personal_info')) {
+              userMessage = 'Images containing personal information (QR codes, phone numbers) are not allowed.'
+            } else if (reasons.includes('multiple_people')) {
+              userMessage = 'Please use a photo that clearly shows only you.'
+            } else if (reasons.includes('harassment')) {
+              userMessage = 'Images containing harassment or hate symbols are not allowed.'
+            }
+            
+            throw new Error(userMessage + ' Please choose a different image.')
+          }
+          
+          console.log('✅ Image passed moderation, proceeding with profile update')
+        }
         
         // Update local state immediately for instant feedback
         setUploadedAvatarUrl(result.fileUrl)
@@ -177,6 +258,7 @@ export function ProfilePictureUpload({
     } catch (error) {
       console.error('Profile picture upload failed:', error)
       setUploadStatus('error')
+      setUploadError(error instanceof Error ? error.message : 'Upload failed')
       setPreviewUrl(null)
       setUploadedAvatarUrl(null)
     } finally {
@@ -187,6 +269,7 @@ export function ProfilePictureUpload({
   const handleRemovePicture = async () => {
     try {
       setIsUploading(true)
+      setUploadError(null)
       
       // Reset to default avatar
       const defaultAvatar = getDefaultAvatar()
@@ -323,7 +406,7 @@ export function ProfilePictureUpload({
             {uploadStatus === 'error' && !isUploading && (
               <div className="flex items-center gap-2 text-sm text-red-600">
                 <AlertCircle className="w-4 h-4" />
-                <span>Upload failed. Please try again.</span>
+                <span>{uploadError || 'Upload failed. Please try again.'}</span>
               </div>
             )}
 

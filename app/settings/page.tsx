@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -94,12 +95,78 @@ export default function SettingsPage() {
   const handleSave = async (section: string) => {
     setIsLoading(true)
     try {
-      // TODO: Implement real API call to save settings
-      console.log(`Saving ${section} settings:`, settings[section as keyof typeof settings])
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      // For now, just simulate success
+      if (section === 'profile') {
+        // Save profile settings via API
+        const response = await fetch('/api/user/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: settings.profile.name,
+            username: settings.profile.username,
+            avatar: settings.profile.avatar
+          })
+        })
+
+        const result = await response.json()
+        
+        if (!response.ok) {
+          throw new Error(result.message || result.error || 'Failed to update profile')
+        }
+
+        console.log('✅ Profile updated successfully:', result)
+        
+        // Show success message
+        toast.success("Profile updated successfully!", {
+          description: "Your changes have been saved.",
+          style: {
+            background: '#4CAF50',
+            color: 'white',
+            border: '1px solid #4CAF50',
+            fontSize: '14px',
+            fontWeight: '500',
+          },
+          className: 'text-white',
+        })
+        
+        // Update session with new data
+        await update()
+        
+      } else {
+        // For other sections, just simulate for now
+        console.log(`Saving ${section} settings:`, settings[section as keyof typeof settings])
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
     } catch (error) {
       console.error('Failed to save settings:', error)
+      
+      // Show error message with better formatting
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save settings'
+      
+      // Create concise title and description
+      let title = "Failed to save profile"
+      let description = errorMessage
+      
+      // For moderation errors, make it more specific
+      if (errorMessage.includes('username') || errorMessage.includes('Username')) {
+        title = "Username not allowed"
+        description = "Choose a different username."
+      } else if (errorMessage.includes('name') || errorMessage.includes('Name')) {
+        title = "Name not allowed"
+        description = "Choose a different name."
+      }
+      
+      toast.error(title, {
+        description: description,
+        duration: 5000,
+        style: {
+          background: '#FF3B30',
+          color: 'white',
+          border: '1px solid #FF3B30',
+          fontSize: '14px',
+          fontWeight: '500',
+        },
+        className: 'text-white',
+      })
     } finally {
       setIsLoading(false)
     }

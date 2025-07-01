@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
+import { moderationService } from '@/lib/moderation'
 
 // GET user profile
 export async function GET(request: NextRequest) {
@@ -50,30 +51,79 @@ export async function PATCH(request: NextRequest) {
     }
 
     const updates = await request.json()
-    const { name, avatar } = updates
+    const { name, username, avatar } = updates
 
-    console.log('📝 Profile update for user:', session.user.id, { name, avatar })
+    console.log('📝 Profile update for user:', session.user.id, { name, username, avatar })
 
-    // Try to update database if available, but only update avatar_url for now
-    if (avatar !== undefined) {
+    // Validate name with moderation if provided
+    if (name !== undefined) {
+      try {
+        console.log('🔍 Checking name for moderation:', name)
+        const moderationResult = await moderationService.moderateProfileName(name)
+        console.log('🛡️ Name moderation result:', moderationResult)
+        
+        if (moderationResult.flagged) {
+          console.log('❌ Name flagged, returning error')
+          return NextResponse.json({
+            error: 'Profile name not allowed',
+            reason: moderationResult.reason.join(', '),
+            message: 'Please choose a different name that follows our community guidelines'
+          }, { status: 400 })
+        }
+        console.log('✅ Name passed moderation')
+      } catch (moderationError) {
+        console.warn('Moderation check failed, allowing name:', moderationError)
+      }
+    }
+
+    // Validate username with moderation if provided
+    if (username !== undefined) {
+      try {
+        console.log('🔍 Checking username for moderation:', username)
+        const moderationResult = await moderationService.moderateProfileName(username)
+        console.log('🛡️ Username moderation result:', moderationResult)
+        
+        if (moderationResult.flagged) {
+          console.log('❌ Username flagged, returning error')
+          return NextResponse.json({
+            error: 'Username not allowed',
+            reason: moderationResult.reason.join(', '),
+            message: 'Please choose a different username that follows our community guidelines'
+          }, { status: 400 })
+        }
+        console.log('✅ Username passed moderation')
+      } catch (moderationError) {
+        console.warn('Moderation check failed, allowing username:', moderationError)
+      }
+    }
+
+    // Try to update database if available
+    if (name !== undefined || username !== undefined || avatar !== undefined) {
       try {
         const sql = await createDbConnection()
         
+        // Update user profile with moderation-approved data
         const result = await sql`
           UPDATE users 
-          SET avatar_url = ${avatar}, updated_at = NOW()
+          SET 
+            ${name !== undefined ? sql`name = ${name},` : sql``}
+            ${username !== undefined ? sql`username = ${username},` : sql``}
+            ${avatar !== undefined ? sql`avatar_url = ${avatar},` : sql``}
+            updated_at = NOW()
           WHERE id = ${session.user.id}
-          RETURNING name, avatar_url, updated_at
+          RETURNING name, username, avatar_url, updated_at
         `
         
         if (result.length > 0) {
-          console.log('✅ Database avatar updated successfully:', result[0].avatar_url)
+          console.log('✅ Database profile updated successfully:', result[0])
           
           return NextResponse.json({
             success: true,
             message: 'Profile updated successfully',
             profile: {
               ...session.user,
+              name: result[0].name,
+              username: result[0].username,
               image: result[0].avatar_url,
               avatar: result[0].avatar_url, // Include both fields for consistency
             },
@@ -89,6 +139,7 @@ export async function PATCH(request: NextRequest) {
     const mockUpdatedProfile = {
       ...session.user,
       name: name || session.user.name,
+      username: username || (session.user.email?.split('@')[0]) || 'user',
       image: avatar || session.user.image,
     }
 

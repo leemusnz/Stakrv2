@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
+import { moderationService } from '@/lib/moderation'
 import { isDemoUser } from '@/lib/demo-data'
+import { moderateUserContent } from '@/lib/moderation' // MVP version - $0 cost
 
 interface CreatePostRequest {
   content: string
@@ -48,6 +50,19 @@ export async function POST(request: NextRequest) {
       return handleDemoPost(session.user, body)
     }
 
+    // Use MVP moderation (free)
+    const moderationResult = moderateUserContent(content)
+    
+    if (moderationResult.flagged) {
+      return NextResponse.json(
+        { error: `Content rejected: ${moderationResult.reason}` }, 
+        { status: 400 }
+      )
+    }
+
+    // Set moderation status based on result
+    const moderationStatus = moderationResult.flagged ? 'rejected' : 'approved'
+
     // Real user handling
     const sql = await createDbConnection()
     
@@ -67,10 +82,11 @@ export async function POST(request: NextRequest) {
     const post = await sql`
       INSERT INTO user_posts (
         user_id, content, is_public, challenge_id, post_type,
-        include_stats, include_challenge, attached_image, created_at
+        include_stats, include_challenge, attached_image, moderation_status, created_at
       ) VALUES (
         ${session.user.id}, ${content.trim()}, ${isPublic}, ${challengeId || null},
-        ${postType}, ${includeStats}, ${includeChallenge}, ${attachedImage || null}, NOW()
+        ${postType}, ${includeStats}, ${includeChallenge}, ${attachedImage || null}, 
+        ${moderationStatus}, NOW()
       )
       RETURNING id, created_at
     `
@@ -182,7 +198,7 @@ export async function GET(request: NextRequest) {
         LEFT JOIN challenges c ON p.challenge_id = c.id
         LEFT JOIN post_likes pl ON p.id = pl.post_id
         LEFT JOIN post_comments pc ON p.id = pc.post_id
-        WHERE p.challenge_id = ${challengeId} AND p.is_public = TRUE
+        WHERE p.challenge_id = ${challengeId} AND p.is_public = TRUE AND p.moderation_status = 'approved'
         GROUP BY p.id, u.name, u.avatar_url, c.title, c.category
         ORDER BY p.created_at DESC
         LIMIT ${limit} OFFSET ${offset}
@@ -203,7 +219,7 @@ export async function GET(request: NextRequest) {
         LEFT JOIN challenges c ON p.challenge_id = c.id
         LEFT JOIN post_likes pl ON p.id = pl.post_id
         LEFT JOIN post_comments pc ON p.id = pc.post_id
-        WHERE p.is_public = TRUE
+        WHERE p.is_public = TRUE AND p.moderation_status = 'approved'
         GROUP BY p.id, u.name, u.avatar_url, c.title, c.category
         ORDER BY p.created_at DESC
         LIMIT ${limit} OFFSET ${offset}

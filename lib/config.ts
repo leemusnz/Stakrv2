@@ -223,3 +223,29 @@ export const successMessages = {
   PROFILE_UPDATED: 'Profile updated successfully!',
   CHALLENGE_CREATED: 'Challenge created successfully!',
 }
+
+// Content Moderation Configuration
+export const MODERATION_CONFIG = {
+  // Toggle between 'mvp' (free) and 'full' (paid)
+  mode: process.env.MODERATION_MODE || 'mvp',
+  
+  // MVP settings (free)
+  mvp: {
+    enabled: true,
+    profanityFilter: true,
+    spamDetection: true,
+    maxContentLength: 2000
+  },
+  
+  // Full AI moderation settings (costs money)
+  full: {
+    enabled: true,
+    openaiModeration: true,
+    awsRekognition: false, // Enable when ready to pay for image analysis
+    contextualAnalysis: true
+  }
+}
+
+// Easy check for moderation mode
+export const isMVPModeration = () => MODERATION_CONFIG.mode === 'mvp'
+export const isFullModeration = () => MODERATION_CONFIG.mode === 'full'

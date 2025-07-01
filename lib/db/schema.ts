@@ -9,6 +9,7 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   name: varchar('name', { length: 255 }).notNull(),
+  username: varchar('username', { length: 50 }).notNull().unique(),
   avatarUrl: text('avatar_url'),
   credits: decimal('credits', { precision: 10, scale: 2 }).default('0.00').notNull(),
   trustScore: integer('trust_score').default(50).notNull(),
@@ -31,6 +32,7 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   emailIdx: uniqueIndex('users_email_idx').on(table.email),
+  usernameIdx: uniqueIndex('users_username_idx').on(table.username),
   trustScoreIdx: index('users_trust_score_idx').on(table.trustScore),
   premiumIdx: index('users_premium_idx').on(table.premiumSubscription),
   devIdx: index('users_dev_idx').on(table.isDev),

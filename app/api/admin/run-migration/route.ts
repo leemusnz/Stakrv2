@@ -25,10 +25,115 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const { migrationFile } = await request.json()
+    const body = await request.json()
+    const { migrationFile, migration } = body
     
+    // Handle new migration types
+    if (migration) {
+      if (migration === 'content-moderation') {
+        try {
+          console.log('🛡️ Starting content moderation setup...')
+          
+          // Read and execute the content moderation schema
+          const migrationPath = path.join(process.cwd(), 'content-moderation-schema.sql')
+          console.log('📁 Reading schema file from:', migrationPath)
+          
+          const migrationSQL = await fs.readFile(migrationPath, 'utf8')
+          console.log('✅ Schema file read successfully, size:', migrationSQL.length, 'characters')
+          
+          // Execute the migration
+          console.log('🔄 Executing moderation schema migration...')
+          await sql.unsafe(migrationSQL)
+          console.log('✅ Migration executed successfully!')
+          
+          // Verify moderation tables exist
+          const tables = await sql`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name IN ('moderation_logs', 'user_reports', 'moderation_queue', 'user_moderation_actions')
+            ORDER BY table_name
+          `
+          
+          console.log('📊 Moderation tables found:', tables.map(t => t.table_name))
+          
+          // Also check what tables actually exist in the database for debugging
+          const allTables = await sql`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND (table_name LIKE '%moderation%' OR table_name LIKE '%report%')
+            ORDER BY table_name
+          `
+          console.log('🔍 All moderation-related tables:', allTables.map(t => t.table_name))
+          
+          const success = tables.length === 4
+          const message = success 
+            ? `Content moderation setup complete! Found all ${tables.length}/4 tables: ${tables.map(t => t.table_name).join(', ')}`
+            : `Content moderation partially setup. Found ${tables.length}/4 tables: ${tables.map(t => t.table_name).join(', ')}. Check database permissions.`
+          
+          return NextResponse.json({
+            success: true,
+            message,
+            timestamp: new Date().toISOString(),
+            details: {
+              tablesFound: tables.map(t => t.table_name),
+              allModerationTables: allTables.map(t => t.table_name),
+              schemaSize: migrationSQL.length,
+              expectedTables: ['moderation_logs', 'user_reports', 'moderation_queue', 'user_moderation_actions']
+            }
+          })
+          
+        } catch (error) {
+          console.error('❌ Content moderation migration error:', error)
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+          console.error('Error details:', errorMessage)
+          
+          return NextResponse.json({
+            error: 'Failed to setup content moderation',
+            details: errorMessage,
+            timestamp: new Date().toISOString()
+          }, { status: 500 })
+        }
+      } else if (migration === 'challenge-schema') {
+        try {
+          // Handle the challenge schema migration
+          const migrationSQL = `
+            -- Add missing columns for enhanced challenge creation
+            ALTER TABLE challenges ADD COLUMN IF NOT EXISTS timer_enabled BOOLEAN DEFAULT FALSE;
+            ALTER TABLE challenges ADD COLUMN IF NOT EXISTS timer_duration INTEGER;
+            ALTER TABLE challenges ADD COLUMN IF NOT EXISTS random_verification_enabled BOOLEAN DEFAULT FALSE;
+            ALTER TABLE challenges ADD COLUMN IF NOT EXISTS verification_frequency VARCHAR(20) DEFAULT 'daily';
+            ALTER TABLE challenges ADD COLUMN IF NOT EXISTS proof_template TEXT;
+            
+            -- Create indexes for performance
+            CREATE INDEX IF NOT EXISTS challenges_timer_idx ON challenges(timer_enabled);
+            CREATE INDEX IF NOT EXISTS challenges_verification_idx ON challenges(random_verification_enabled);
+          `
+          
+          await sql.unsafe(migrationSQL)
+          
+          return NextResponse.json({
+            success: true,
+            message: 'Challenge schema updated successfully',
+            timestamp: new Date().toISOString()
+          })
+          
+        } catch (error) {
+          console.error('Challenge schema migration error:', error)
+          return NextResponse.json({
+            error: 'Failed to update challenge schema',
+            details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
+          }, { status: 500 })
+        }
+      } else {
+        return NextResponse.json({ error: 'Unknown migration type' }, { status: 400 })
+      }
+    }
+    
+    // Handle legacy file-based migrations
     if (!migrationFile) {
-      return NextResponse.json({ error: 'Migration file name required' }, { status: 400 })
+      return NextResponse.json({ error: 'Migration file name or type required' }, { status: 400 })
     }
 
     // Security check - only allow specific migration files

@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
 import { isValidAvatarUrl } from '@/lib/avatars'
+import { moderationService } from '@/lib/moderation'
 
 // Validation schema for onboarding profile completion
 const onboardingProfileSchema = z.object({
@@ -49,6 +50,20 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, avatar, goals, interests, experience, motivation, preferredStakeRange } = validationResult.data
+
+    // Validate name with moderation service
+    try {
+      const moderationResult = await moderationService.moderateProfileName(name)
+      if (moderationResult.flagged) {
+        return NextResponse.json({
+          success: false,
+          error: 'Profile name not allowed',
+          message: `Name contains inappropriate content: ${moderationResult.reason.join(', ')}. Please choose a different name.`
+        }, { status: 400 })
+      }
+    } catch (moderationError) {
+      console.warn('Moderation check failed during onboarding, allowing name:', moderationError)
+    }
 
     const sql = await createDbConnection()
     

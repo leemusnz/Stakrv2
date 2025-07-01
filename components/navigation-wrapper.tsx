@@ -64,6 +64,8 @@ export function NavigationWrapper() {
     isAdmin: session.user?.isAdmin || false
   }
 
+
+
   // Enhanced logout handler
   const handleLogout = async () => {
     await signOut({ 

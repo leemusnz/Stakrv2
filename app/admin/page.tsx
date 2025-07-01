@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DevAccessManager } from "@/components/admin/dev-access-manager"
 import { UserManagement } from "@/components/admin/user-management"
+import { ModerationDashboard } from "@/components/admin/moderation-dashboard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -33,7 +34,8 @@ import {
   Clock,
   FileText,
   MessageSquare,
-  RotateCcw
+  RotateCcw,
+  Shield
 } from "lucide-react"
 import { useNotifications } from "@/components/notifications/notification-provider"
 
@@ -308,7 +310,7 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Analytics
@@ -320,6 +322,10 @@ export default function AdminDashboard() {
           <TabsTrigger value="appeals" className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4" />
             Appeals
+          </TabsTrigger>
+          <TabsTrigger value="moderation" className="flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Moderation
           </TabsTrigger>
           <TabsTrigger value="monitoring" className="flex items-center gap-2">
             <Monitor className="w-4 h-4" />
@@ -1083,6 +1089,107 @@ export default function AdminDashboard() {
                   Run Challenge Schema Migration
                 </Button>
                 
+                <Button 
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/admin/run-migration', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ migration: 'content-moderation' })
+                      })
+                      
+                      const data = await response.json()
+                      
+                      if (data.success) {
+                        addNotification({
+                          type: "system",
+                          title: "Moderation Setup Complete ✅",
+                          message: data.message
+                        })
+                      } else {
+                        throw new Error(data.error || 'Moderation migration failed')
+                      }
+                    } catch (error) {
+                      addNotification({
+                        type: "system",
+                        title: "Migration Failed ❌",
+                        message: error instanceof Error ? error.message : 'Unknown error'
+                      })
+                    }
+                  }}
+                  className="w-full justify-start bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Setup Content Moderation
+                </Button>
+                
+                <Button 
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/admin/moderation/queue')
+                      const reportsResponse = await fetch('/api/admin/moderation/reports')
+                      
+                      const queueData = await response.json()
+                      const reportsData = await reportsResponse.json()
+                      
+                      if (response.ok && reportsResponse.ok) {
+                        addNotification({
+                          type: "system",
+                          title: "Moderation System Active ✅",
+                          message: `Queue: ${queueData.items?.length || 0} items, Reports: ${reportsData.reports?.length || 0} pending`
+                        })
+                      } else {
+                        throw new Error('Moderation system not accessible')
+                      }
+                    } catch (error) {
+                      addNotification({
+                        type: "system",
+                        title: "Moderation Check Failed",
+                        message: "Run 'Setup Content Moderation' first"
+                      })
+                    }
+                  }}
+                  variant="outline"
+                  className="w-full justify-start border-purple-600 text-purple-600 hover:bg-purple-50"
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  Check Moderation Status
+                </Button>
+                
+                <Button 
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/admin/moderation/test-data', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                      })
+                      
+                      const data = await response.json()
+                      
+                      if (data.success) {
+                        addNotification({
+                          type: "system",
+                          title: "Test Data Added ✅",
+                          message: "Sample moderation data inserted! Check the Moderation tab to see the queue and reports."
+                        })
+                      } else {
+                        throw new Error(data.error || 'Failed to add test data')
+                      }
+                    } catch (error) {
+                      addNotification({
+                        type: "system",
+                        title: "Test Data Failed ❌",
+                        message: error instanceof Error ? error.message : 'Unknown error occurred'
+                      })
+                    }
+                  }}
+                  variant="outline"
+                  className="w-full justify-start border-green-600 text-green-600 hover:bg-green-50"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Add Test Data
+                </Button>
+                
                 <div className="text-xs text-muted-foreground p-3 bg-blue-50 rounded border">
                   <p className="font-medium mb-1">What this migration does:</p>
                   <ul className="space-y-1">
@@ -1377,6 +1484,11 @@ export default function AdminDashboard() {
               </Card>
             </>
           )}
+        </TabsContent>
+
+        {/* Content Moderation */}
+        <TabsContent value="moderation" className="space-y-6">
+          <ModerationDashboard />
         </TabsContent>
       </Tabs>
     </div>

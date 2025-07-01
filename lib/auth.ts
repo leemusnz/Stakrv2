@@ -181,7 +181,7 @@ export const authOptions: NextAuthOptions = {
             currentStreak: dbUser.current_streak || 0,
             longestStreak: dbUser.longest_streak || 0,
             premiumSubscription: dbUser.premium_subscription || false,
-            isAdmin: dbUser.has_dev_access || false, // Use has_dev_access from database
+            isAdmin: dbUser.has_dev_access || dbUser.is_dev || false, // Check both fields
             onboardingCompleted: dbUser.onboarding_completed || false,
             isDev: dbUser.is_dev || false,
             devModeEnabled: dbUser.dev_mode_enabled || false
@@ -311,12 +311,12 @@ export const authOptions: NextAuthOptions = {
             token.currentStreak = 0
             token.longestStreak = 0
             token.premiumSubscription = false
-            token.isAdmin = newUser.has_dev_access || false // Use has_dev_access from database
+            token.isAdmin = newUser.has_dev_access || newUser.is_dev || false // Check both fields
             
             console.log('✅ Google OAuth user created:', user.email)
           } else {
             // Use existing user's admin status
-            token.isAdmin = existingUser.has_dev_access || false
+            token.isAdmin = existingUser.has_dev_access || existingUser.is_dev || false
           }
         } catch (error) {
           console.log('⚠️ Failed to create Google OAuth user:', error)
@@ -330,22 +330,34 @@ export const authOptions: NextAuthOptions = {
       if (session.user && token.sub) {
         session.user.id = token.sub
         
-        // Always fetch the latest avatar from database to ensure persistence
+        // Always fetch the latest data from database to ensure persistence
         let latestAvatar = token.avatar as string
+        let latestIsAdmin = token.isAdmin || false
+        let latestIsDev = token.isDev || false
         
         try {
           if (session.user.email) {
             const dbUser = await findUserInDatabase(session.user.email)
-            if (dbUser && dbUser.avatar_url) {
-              latestAvatar = dbUser.avatar_url
-              console.log('📸 Latest avatar fetched from database:', latestAvatar)
+            if (dbUser) {
+              if (dbUser.avatar_url) {
+                latestAvatar = dbUser.avatar_url
+                console.log('📸 Latest avatar fetched from database:', latestAvatar)
+              }
               
-              // Update token with latest avatar for future sessions
+              // Update admin status from database
+              latestIsAdmin = dbUser.has_dev_access || dbUser.is_dev || false
+              latestIsDev = dbUser.is_dev || false
+              
+
+              
+              // Update token with latest data for future sessions
               token.avatar = latestAvatar
+              token.isAdmin = latestIsAdmin
+              token.isDev = latestIsDev
             }
           }
         } catch (error) {
-          console.log('⚠️ Could not fetch latest avatar from database, using token value')
+          console.log('⚠️ Could not fetch latest data from database, using token values')
         }
         
         // Synchronize avatar and image fields with latest data
@@ -359,17 +371,12 @@ export const authOptions: NextAuthOptions = {
         session.user.currentStreak = token.currentStreak || 0
         session.user.longestStreak = token.longestStreak || 0
         session.user.premiumSubscription = token.premiumSubscription || false
-        session.user.isAdmin = token.isAdmin || false
+        session.user.isAdmin = latestIsAdmin  // Use refreshed admin status
         session.user.onboardingCompleted = token.onboardingCompleted || false
-        session.user.isDev = token.isDev || false
+        session.user.isDev = latestIsDev  // Use refreshed dev status
         session.user.devModeEnabled = token.devModeEnabled || false
         
-        console.log('🔄 Session created with avatar:', {
-          userId: session.user.id,
-          avatar: session.user.avatar,
-          image: session.user.image,
-          source: latestAvatar !== token.avatar ? 'database' : 'token'
-        })
+
       }
       return session
     }
