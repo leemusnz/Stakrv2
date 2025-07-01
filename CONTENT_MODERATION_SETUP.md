@@ -28,10 +28,10 @@ A comprehensive automated moderation system to keep your community safe from off
 
 Run the moderation schema migration:
 
-```sql
+\`\`\`sql
 -- Run this in your Neon database console
 \i content-moderation-schema.sql
-```
+\`\`\`
 
 This creates:
 - `moderation_logs` - Audit trail of all AI moderation decisions
@@ -43,7 +43,7 @@ This creates:
 
 Add to your deployment environment:
 
-```env
+\`\`\`env
 # OpenAI Moderation API (RECOMMENDED - Free tier available)
 OPENAI_API_KEY=sk-your-openai-api-key
 
@@ -52,7 +52,7 @@ AWS_ACCESS_KEY_ID=your-aws-key
 AWS_SECRET_ACCESS_KEY=your-aws-secret
 AWS_REGION=ap-southeast-2
 AWS_BUCKET_NAME=stakr-verification-files
-```
+\`\`\`
 
 ### **3. Get OpenAI API Key (Free)**
 
@@ -68,13 +68,13 @@ AWS_BUCKET_NAME=stakr-verification-files
 
 ### **Content Flow**
 
-```
+\`\`\`
 User submits content → AI Moderation Check → Decision
                                         ↓
                         Approve ← Pass ← Review → Reject
                                         ↓         ↓
                                  Human Review    Blocked
-```
+\`\`\`
 
 ### **Moderation Levels**
 
@@ -123,28 +123,28 @@ The moderation system is automatically integrated into:
 ### **Moderation Logs**
 
 Track all moderation decisions:
-```sql
+\`\`\`sql
 SELECT * FROM moderation_logs 
 WHERE flagged = true 
 ORDER BY created_at DESC;
-```
+\`\`\`
 
 ### **Report Statistics**
 
 Monitor community health:
-```sql
+\`\`\`sql
 SELECT 
   report_reason,
   COUNT(*) as count,
   AVG(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) * 100 as resolution_rate
 FROM user_reports 
 GROUP BY report_reason;
-```
+\`\`\`
 
 ### **False Positive Rate**
 
 Monitor AI accuracy:
-```sql
+\`\`\`sql
 SELECT 
   service,
   COUNT(*) as total_flags,
@@ -153,7 +153,7 @@ FROM moderation_logs ml
 LEFT JOIN moderation_queue mq ON ml.content_hash = mq.content_id
 WHERE ml.flagged = true
 GROUP BY service;
-```
+\`\`\`
 
 ## ⚠️ Important Notes
 
@@ -175,14 +175,14 @@ GROUP BY service;
 
 Adjust moderation sensitivity in `lib/moderation.ts`:
 
-```typescript
+\`\`\`typescript
 // Confidence thresholds
 const LOW_CONFIDENCE = 30    // Review
 const HIGH_CONFIDENCE = 70   // Auto-reject
 
 // Content type priorities  
 const URGENT_TYPES = ['hate_speech', 'harassment', 'unsafe']
-```
+\`\`\`
 
 ## 🚨 Emergency Procedures
 
@@ -190,7 +190,7 @@ const URGENT_TYPES = ['hate_speech', 'harassment', 'unsafe']
 
 If you need to quickly remove content:
 
-```sql
+\`\`\`sql
 -- Hide all posts from a user
 UPDATE user_posts 
 SET moderation_status = 'hidden'
@@ -202,18 +202,18 @@ INSERT INTO user_moderation_actions (
 ) VALUES (
   'user-id', 'suspension', 'Terms violation', 72, 'admin-id'
 );
-```
+\`\`\`
 
 ### **Disable Moderation Temporarily**
 
 For testing or emergency content publication:
 
-```typescript
+\`\`\`typescript
 // In lib/moderation.ts - emergency bypass
 if (process.env.EMERGENCY_BYPASS === 'true') {
   return { flagged: false, action: 'approve', reason: [] }
 }
-```
+\`\`\`
 
 ## 📈 Scaling Considerations
 
@@ -242,4 +242,4 @@ Your Stakr platform now has enterprise-grade content moderation that:
 - ✅ **Scales automatically** as your platform grows
 - ✅ **Maintains transparency** with complete audit trails
 
-**Your users can now challenge themselves safely in a protected, positive environment!** 🛡️💪 
+**Your users can now challenge themselves safely in a protected, positive environment!** 🛡️💪

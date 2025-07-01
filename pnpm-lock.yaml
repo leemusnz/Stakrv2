@@ -14,6 +14,9 @@ importers:
       '@aws-sdk/client-rds-data':
         specifier: latest
         version: 3.840.0
+      '@aws-sdk/client-rekognition':
+        specifier: latest
+        version: 3.840.0
       '@aws-sdk/client-s3':
         specifier: latest
         version: 3.840.0
@@ -22,7 +25,7 @@ importers:
         version: 3.840.0
       '@cloudflare/workers-types':
         specifier: latest
-        version: 4.20250628.0
+        version: 4.20250701.0
       '@electric-sql/pglite':
         specifier: latest
         version: 0.3.4
@@ -145,7 +148,7 @@ importers:
         version: 1.4.9
       '@upstash/redis':
         specifier: latest
-        version: 1.35.0
+        version: 1.35.1
       '@vercel/postgres':
         specifier: latest
         version: 0.10.0
@@ -181,13 +184,13 @@ importers:
         version: 0.31.4
       drizzle-orm:
         specifier: latest
-        version: 0.44.2(6cf815c18645a31b3fc4caed28aa8f29)
+        version: 0.44.2(e3c98de78f9b09f9e5cc6d3ce30e5fb0)
       embla-carousel-react:
         specifier: latest
         version: 8.6.0(react@19.0.0)
       expo-sqlite:
         specifier: latest
-        version: 15.2.12(expo@53.0.13(@babel/core@7.27.7)(bufferutil@4.0.9)(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0))(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0)
+        version: 15.2.13(expo@53.0.13(@babel/core@7.27.7)(bufferutil@4.0.9)(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0))(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0)
       fs:
         specifier: latest
         version: 0.0.1-security
@@ -388,6 +391,10 @@ packages:
 
   '@aws-sdk/client-rds-data@3.840.0':
     resolution: {integrity: sha512-Dy3QeFw02qH3axkCRuFqNbiXmRv6Kl9t/vcLICkTV7DAhlHJnnyWoy7Rg17GtIhHjwSFvZPMpsw01YK2NbEyFA==}
+    engines: {node: '>=18.0.0'}
+
+  '@aws-sdk/client-rekognition@3.840.0':
+    resolution: {integrity: sha512-jAEnfFmku7Lls/ADy/nXy0tsmXx5aEYSVRNvBjo48l0amdmE4sOmiGa2V3vvtsm9Zg3tYSWaYDlWAPmt0EOGlg==}
     engines: {node: '>=18.0.0'}
 
   '@aws-sdk/client-s3@3.840.0':
@@ -1016,8 +1023,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@cloudflare/workers-types@4.20250628.0':
-    resolution: {integrity: sha512-V4HthfhtQU2vTpwLeUic8FTLgGSjglsGZMJc9jKBNYEU/k0A1rE55UgQoTb5blKQdGtpQKfVKs3FROeY/lXmbw==}
+  '@cloudflare/workers-types@4.20250701.0':
+    resolution: {integrity: sha512-q1bHwe5P7FGy9RkLYOY1kwoZrqUe2Q6XhCPscaxzQc0N7+2pwIZzZzY5iMTTfvmf65UNsadoVxuF+vPVXoAkkQ==}
 
   '@date-fns/tz@1.2.0':
     resolution: {integrity: sha512-LBrd7MiJZ9McsOgxqWX7AaxrDjcFVjWH/tIKJd7pnR7McaslGYOP1QmmiBXdJH/H/yLCT+rcQ7FaPBUxRGUtrg==}
@@ -3104,8 +3111,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@upstash/redis@1.35.0':
-    resolution: {integrity: sha512-WUm0Jz1xN4DBDGeJIi2Y0kVsolWRB2tsVds4SExaiLg4wBdHFMB+8IfZtBWr+BP0FvhuBr5G1/VLrJ9xzIWHsg==}
+  '@upstash/redis@1.35.1':
+    resolution: {integrity: sha512-sIMuAMU9IYbE2bkgDby8KLoQKRiBMXn0moXxqLvUmQ7VUu2CvulZLtK8O0x3WQZFvvZhU5sRC2/lOVZdGfudkA==}
 
   '@urql/core@5.2.0':
     resolution: {integrity: sha512-/n0ieD0mvvDnVAXEQgX/7qJiVcvYvNkOHeBvkwtylfjydar123caCXcl58PXFY11oU1oquJocVXHxLAbtv4x1A==}
@@ -4413,8 +4420,8 @@ packages:
   expo-modules-core@2.4.0:
     resolution: {integrity: sha512-Ko5eHBdvuMykjw9P9C9PF54/wBSsGOxaOjx92I5BwgKvEmUwN3UrXFV4CXzlLVbLfSYUQaLcB220xmPfgvT7Fg==}
 
-  expo-sqlite@15.2.12:
-    resolution: {integrity: sha512-J2Y7tChIFEcpgiVxxAXWaArOSIaHxct6keNZPs/6aHrSzUWmAlQS5vzGQueB1II65rl47ZtZcQEIl0NpiRhxxQ==}
+  expo-sqlite@15.2.13:
+    resolution: {integrity: sha512-CQ++NEVhpyivpWWjgZBFYzZbLVSqCr/6WdW4p12TzMOkxYqWnmvFF61N5tdhlqu7rpQeXbXq9EDlJ0nws8RFug==}
     peerDependencies:
       expo: '*'
       react: '*'
@@ -7595,6 +7602,53 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
+  '@aws-sdk/client-rekognition@3.840.0':
+    dependencies:
+      '@aws-crypto/sha256-browser': 5.2.0
+      '@aws-crypto/sha256-js': 5.2.0
+      '@aws-sdk/core': 3.840.0
+      '@aws-sdk/credential-provider-node': 3.840.0
+      '@aws-sdk/middleware-host-header': 3.840.0
+      '@aws-sdk/middleware-logger': 3.840.0
+      '@aws-sdk/middleware-recursion-detection': 3.840.0
+      '@aws-sdk/middleware-user-agent': 3.840.0
+      '@aws-sdk/region-config-resolver': 3.840.0
+      '@aws-sdk/types': 3.840.0
+      '@aws-sdk/util-endpoints': 3.840.0
+      '@aws-sdk/util-user-agent-browser': 3.840.0
+      '@aws-sdk/util-user-agent-node': 3.840.0
+      '@smithy/config-resolver': 4.1.4
+      '@smithy/core': 3.6.0
+      '@smithy/fetch-http-handler': 5.0.4
+      '@smithy/hash-node': 4.0.4
+      '@smithy/invalid-dependency': 4.0.4
+      '@smithy/middleware-content-length': 4.0.4
+      '@smithy/middleware-endpoint': 4.1.13
+      '@smithy/middleware-retry': 4.1.14
+      '@smithy/middleware-serde': 4.0.8
+      '@smithy/middleware-stack': 4.0.4
+      '@smithy/node-config-provider': 4.1.3
+      '@smithy/node-http-handler': 4.0.6
+      '@smithy/protocol-http': 5.1.2
+      '@smithy/smithy-client': 4.4.5
+      '@smithy/types': 4.3.1
+      '@smithy/url-parser': 4.0.4
+      '@smithy/util-base64': 4.0.0
+      '@smithy/util-body-length-browser': 4.0.0
+      '@smithy/util-body-length-node': 4.0.0
+      '@smithy/util-defaults-mode-browser': 4.0.21
+      '@smithy/util-defaults-mode-node': 4.0.21
+      '@smithy/util-endpoints': 3.0.6
+      '@smithy/util-middleware': 4.0.4
+      '@smithy/util-retry': 4.0.6
+      '@smithy/util-utf8': 4.0.0
+      '@smithy/util-waiter': 4.0.6
+      '@types/uuid': 9.0.8
+      tslib: 2.8.1
+      uuid: 9.0.1
+    transitivePeerDependencies:
+      - aws-crt
+
   '@aws-sdk/client-s3@3.840.0':
     dependencies:
       '@aws-crypto/sha1-browser': 5.2.0
@@ -8628,7 +8682,7 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@cloudflare/workers-types@4.20250628.0': {}
+  '@cloudflare/workers-types@4.20250701.0': {}
 
   '@date-fns/tz@1.2.0': {}
 
@@ -11057,7 +11111,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.9.2':
     optional: true
 
-  '@upstash/redis@1.35.0':
+  '@upstash/redis@1.35.1':
     dependencies:
       uncrypto: 0.1.3
 
@@ -11614,7 +11668,7 @@ snapshots:
 
   chrome-launcher@0.15.2:
     dependencies:
-      '@types/node': 22.0.0
+      '@types/node': 22.15.34
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -11623,7 +11677,7 @@ snapshots:
 
   chromium-edge-launcher@0.2.0:
     dependencies:
-      '@types/node': 22.0.0
+      '@types/node': 22.15.34
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -11991,10 +12045,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.44.2(6cf815c18645a31b3fc4caed28aa8f29):
+  drizzle-orm@0.44.2(e3c98de78f9b09f9e5cc6d3ce30e5fb0):
     optionalDependencies:
       '@aws-sdk/client-rds-data': 3.840.0
-      '@cloudflare/workers-types': 4.20250628.0
+      '@cloudflare/workers-types': 4.20250701.0
       '@electric-sql/pglite': 0.3.4
       '@libsql/client': 0.15.9(bufferutil@4.0.9)
       '@libsql/client-wasm': 0.15.9
@@ -12007,12 +12061,12 @@ snapshots:
       '@types/better-sqlite3': 7.6.13
       '@types/pg': 8.15.4
       '@types/sql.js': 1.4.9
-      '@upstash/redis': 1.35.0
+      '@upstash/redis': 1.35.1
       '@vercel/postgres': 0.10.0
       '@xata.io/client': 0.30.1(typescript@5.0.2)
       better-sqlite3: 12.2.0
       bun-types: 1.2.17
-      expo-sqlite: 15.2.12(expo@53.0.13(@babel/core@7.27.7)(bufferutil@4.0.9)(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0))(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0)
+      expo-sqlite: 15.2.13(expo@53.0.13(@babel/core@7.27.7)(bufferutil@4.0.9)(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0))(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0)
       gel: 2.1.1
       knex: 3.1.0(better-sqlite3@12.2.0)(mysql2@3.14.1)(pg@8.16.3)(sqlite3@5.1.7)
       kysely: 0.28.2
@@ -12561,7 +12615,7 @@ snapshots:
     dependencies:
       invariant: 2.2.4
 
-  expo-sqlite@15.2.12(expo@53.0.13(@babel/core@7.27.7)(bufferutil@4.0.9)(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0))(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0):
+  expo-sqlite@15.2.13(expo@53.0.13(@babel/core@7.27.7)(bufferutil@4.0.9)(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0))(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0):
     dependencies:
       await-lock: 2.2.2
       expo: 53.0.13(@babel/core@7.27.7)(bufferutil@4.0.9)(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0)

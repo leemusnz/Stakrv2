@@ -14,4 +14,4 @@ WHERE username IS NULL;
 
 -- Make username not null after setting defaults
 ALTER TABLE users 
-ALTER COLUMN username SET NOT NULL; 
+ALTER COLUMN username SET NOT NULL;
