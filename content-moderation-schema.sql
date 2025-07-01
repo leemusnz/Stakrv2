@@ -141,4 +141,4 @@ COMMENT ON TABLE user_moderation_actions IS 'Track moderation actions taken agai
 
 COMMENT ON COLUMN moderation_queue.priority IS 'Priority level 1-10, where 1 is highest priority';
 COMMENT ON COLUMN user_moderation_actions.duration_hours IS 'Duration of temporary actions like suspensions, NULL for permanent';
-COMMENT ON COLUMN user_moderation_actions.active IS 'Whether the moderation action is currently active'; 
+COMMENT ON COLUMN user_moderation_actions.active IS 'Whether the moderation action is currently active';

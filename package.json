@@ -24,6 +24,7 @@
   "dependencies": {
     "@auth/core": "latest",
     "@aws-sdk/client-rds-data": "latest",
+    "@aws-sdk/client-rekognition": "latest",
     "@aws-sdk/client-s3": "latest",
     "@aws-sdk/s3-request-presigner": "latest",
     "@cloudflare/workers-types": "latest",

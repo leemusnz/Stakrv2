@@ -764,4 +764,4 @@ export interface ModerationQueueItem {
 export type ModerationAction = 'approve' | 'review' | 'reject'
 
 // Export singleton instance
-export const moderationService = ContentModerationService.getInstance() 
+export const moderationService = ContentModerationService.getInstance()
