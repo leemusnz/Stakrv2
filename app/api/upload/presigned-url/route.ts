@@ -5,13 +5,13 @@ import { getPresignedUploadUrl, STORAGE_CONFIG } from '@/lib/storage'
 
 export async function POST(request: NextRequest) {
   try {
-    // TEMPORARILY DISABLE AUTH FOR TESTING
-    // const session = await getServerSession(authOptions)
-    // if (!session?.user?.id) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    // }
+    // Re-enable authentication for production
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    console.log('Upload request received')
+    console.log('Upload request received for user:', session.user.id)
 
     const { fileName, fileType, fileSize, challengeId } = await request.json()
 
@@ -55,9 +55,18 @@ export async function POST(request: NextRequest) {
       hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY
     })
 
-    // Get presigned URL
+    // Check if AWS credentials are available
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      console.error('❌ AWS credentials not configured')
+      return NextResponse.json({ 
+        error: 'File storage service not available. Please contact support.',
+        code: 'STORAGE_CONFIG_ERROR'
+      }, { status: 503 })
+    }
+
+    // Get presigned URL using real user ID
     const { uploadUrl, fileKey, fileUrl } = await getPresignedUploadUrl(
-      'test-user-id', // session.user.id,
+      session.user.id,
       challengeId,
       mockFile
     )
@@ -74,9 +83,25 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Presigned URL generation failed:', error)
+    
+    // Provide more specific error messages for common issues
+    let errorMessage = 'Failed to generate upload URL'
+    let statusCode = 500
+    
+    if (error instanceof Error) {
+      if (error.message.includes('AWS credentials not configured')) {
+        errorMessage = 'File storage service unavailable. Please try again later or contact support.'
+        statusCode = 503
+      } else if (error.message.includes('region')) {
+        errorMessage = 'File storage configuration error. Please contact support.'
+        statusCode = 503
+      }
+    }
+    
     return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'Failed to generate upload URL',
-      stack: error instanceof Error ? error.stack : 'No stack trace'
-    }, { status: 500 })
+      error: errorMessage,
+      code: 'UPLOAD_ERROR',
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
+    }, { status: statusCode })
   }
 }

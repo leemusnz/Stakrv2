@@ -32,6 +32,7 @@ export function ProfilePictureUpload({
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null)
   const [forceRender, setForceRender] = useState(0) // Force re-render counter
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showDebugInfo, setShowDebugInfo] = useState(false)
 
   // Get default avatar if no custom one is set
   const getDefaultAvatar = () => {
@@ -258,7 +259,32 @@ export function ProfilePictureUpload({
     } catch (error) {
       console.error('Profile picture upload failed:', error)
       setUploadStatus('error')
-      setUploadError(error instanceof Error ? error.message : 'Upload failed')
+      
+      // Handle specific error types for better user experience
+      let userFriendlyMessage = 'Upload failed. Please try again.'
+      
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase()
+        
+        if (errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
+          userFriendlyMessage = 'Session expired. Please refresh the page and try again.'
+        } else if (errorMessage.includes('storage service not available') || errorMessage.includes('503')) {
+          userFriendlyMessage = 'File upload service is temporarily unavailable. Please try again in a few minutes.'
+        } else if (errorMessage.includes('aws credentials') || errorMessage.includes('storage config')) {
+          userFriendlyMessage = 'File upload service is experiencing technical difficulties. Please contact support.'
+        } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+          userFriendlyMessage = 'Network error. Please check your connection and try again.'
+        } else if (errorMessage.includes('file size') || errorMessage.includes('10mb')) {
+          userFriendlyMessage = 'File size must be less than 10MB. Please choose a smaller image.'
+        } else if (errorMessage.includes('file type') || errorMessage.includes('invalid')) {
+          userFriendlyMessage = 'Invalid file type. Please upload a JPEG, PNG, or WebP image.'
+        } else if (error.message && error.message.length > 0) {
+          // Use the actual error message if it's user-friendly
+          userFriendlyMessage = error.message
+        }
+      }
+      
+      setUploadError(userFriendlyMessage)
       setPreviewUrl(null)
       setUploadedAvatarUrl(null)
     } finally {
@@ -404,9 +430,39 @@ export function ProfilePictureUpload({
             )}
             
             {uploadStatus === 'error' && !isUploading && (
-              <div className="flex items-center gap-2 text-sm text-red-600">
-                <AlertCircle className="w-4 h-4" />
-                <span>{uploadError || 'Upload failed. Please try again.'}</span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-red-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{uploadError || 'Upload failed. Please try again.'}</span>
+                </div>
+                
+                {/* Debug Information Toggle */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowDebugInfo(!showDebugInfo)}
+                    className="text-xs text-gray-500 hover:text-gray-700 underline"
+                  >
+                    {showDebugInfo ? 'Hide' : 'Show'} technical details
+                  </button>
+                </div>
+                
+                {showDebugInfo && (
+                  <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded border space-y-1">
+                    <div><strong>Debug Info:</strong></div>
+                    <div>User ID: {session?.user?.id || 'Not available'}</div>
+                    <div>User Email: {session?.user?.email || 'Not available'}</div>
+                    <div>Current Avatar: {rawAvatar || 'None'}</div>
+                    <div>Upload Status: {uploadStatus}</div>
+                    <div>Error Message: {uploadError || 'None'}</div>
+                    <div className="pt-2 text-gray-500">
+                      <strong>Troubleshooting:</strong><br/>
+                      1. Check that you're signed in<br/>
+                      2. Try refreshing the page<br/>
+                      3. Contact support if the issue persists<br/>
+                      4. Visit /api/test-deployment to check system status
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
