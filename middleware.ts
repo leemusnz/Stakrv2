@@ -9,6 +9,7 @@ export function middleware(request: NextRequest) {
   if (
     pathname === '/alpha-gate' ||
     pathname === '/api/alpha-access' ||
+    pathname.startsWith('/api/auth/') ||      // Allow NextAuth API routes
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/favicon') ||
     pathname.startsWith('/logos/') ||
