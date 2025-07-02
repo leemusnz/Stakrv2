@@ -203,4 +203,4 @@ function formatUser(user: any) {
     followedSince: user.followed_since,
     isFollowingBack: user.is_following_back
   }
-} 
+}

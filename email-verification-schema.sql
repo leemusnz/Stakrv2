@@ -169,4 +169,4 @@ $$ LANGUAGE plpgsql;
 COMMENT ON TABLE verification_tokens IS 'Stores email verification and password reset tokens';
 COMMENT ON FUNCTION create_verification_token IS 'Creates a new verification token for a user';
 COMMENT ON FUNCTION verify_token IS 'Verifies a token and performs the associated action';
-COMMENT ON FUNCTION cleanup_expired_tokens IS 'Removes expired and used tokens from the database'; 
+COMMENT ON FUNCTION cleanup_expired_tokens IS 'Removes expired and used tokens from the database';
