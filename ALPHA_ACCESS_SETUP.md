@@ -8,19 +8,19 @@ Your Stakr app is now protected with a simple password gate that blocks **all pu
 
 Add this to your `.env.local` (local) and Vercel environment variables (production):
 
-```env
+\`\`\`env
 ALPHA_ACCESS_PASSWORD=your-secure-alpha-password-here
-```
+\`\`\`
 
 **Default password (if not set):** `stakr-alpha-2025`
 
 ### **2. Deploy the Changes**
 
-```bash
+\`\`\`bash
 git add .
 git commit -m "Add alpha access gate to protect app during testing"
 git push
-```
+\`\`\`
 
 ### **3. Update Vercel Environment Variable**
 
@@ -139,17 +139,17 @@ Simply share the alpha password:
 ## ⚡ Quick Commands
 
 ### **Change Password**
-```bash
+\`\`\`bash
 # In Vercel Dashboard
 ALPHA_ACCESS_PASSWORD=new-secure-password-2025
-```
+\`\`\`
 
 ### **Check Current Setup**
-```bash
+\`\`\`bash
 # Visit this endpoint to test
 https://stakr.app/api/alpha-access
 # Should return 400: "Access code required"
-```
+\`\`\`
 
 ### **Emergency Access**
 If locked out, you can:
@@ -164,4 +164,4 @@ Your Stakr app is now completely protected during alpha testing. Only people wit
 
 **Perfect for:** Alpha testing, private demos, stakeholder previews, team testing
 
-**Security Level:** Medium (suitable for private testing, not production secrets) 
+**Security Level:** Medium (suitable for private testing, not production secrets)

@@ -4,7 +4,7 @@
 
 Your current **Next.js backend is perfect for mobile** - all APIs, database, payments, and business logic stay exactly the same. We just build React Native frontends that consume your existing APIs.
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────┐
 │              STAKR BACKEND (KEEP)               │
 ├─────────────────────────────────────────────────┤
@@ -22,7 +22,7 @@ Your current **Next.js backend is perfect for mobile** - all APIs, database, pay
 │  iOS  │           │ Android │
 │  App  │           │   App   │
 └───────┘           └─────────┘
-```
+\`\`\`
 
 ## 🚀 **Migration Phases**
 
@@ -34,7 +34,7 @@ Your current **Next.js backend is perfect for mobile** - all APIs, database, pay
 🔄 **Mobile-Specific Endpoints** - Device registration, app versions  
 
 ### **Phase 2: React Native Foundation (2-3 weeks)**
-```
+\`\`\`
 StakrMobile/
 ├── src/
 │   ├── screens/           # All your current pages as native screens
@@ -61,7 +61,7 @@ StakrMobile/
 ├── android/               # Android-specific code
 ├── ios/                   # iOS-specific code
 └── package.json
-```
+\`\`\`
 
 ### **Phase 3: Feature Parity (3-4 weeks)**
 🔄 **Core Features**:
@@ -87,7 +87,7 @@ StakrMobile/
 ## 📱 **Technology Stack**
 
 ### **Mobile Frontend (NEW)**
-```typescript
+\`\`\`typescript
 // React Native with Expo (recommended)
 - React Native 0.75+
 - Expo SDK 52+ (managed workflow)
@@ -99,22 +99,22 @@ StakrMobile/
 - Zustand/Redux (app state)  
 - Stripe React Native (payments)
 - Expo SecureStore (token storage)
-```
+\`\`\`
 
 ### **Backend APIs (EXISTING - NO CHANGES)**
-```typescript
+\`\`\`typescript
 ✅ Next.js 15 API routes
 ✅ Neon PostgreSQL  
 ✅ AWS S3 file storage
 ✅ Stripe payments
 ✅ NextAuth + JWT tokens
 ✅ All business logic
-```
+\`\`\`
 
 ## 🔌 **API Integration Pattern**
 
 ### **Mobile API Service Layer**
-```typescript
+\`\`\`typescript
 // services/api.ts
 const API_BASE = 'https://stakr.app/api'
 
@@ -155,46 +155,46 @@ class StakrAPI {
     return response.json()
   }
 }
-```
+\`\`\`
 
 ## 🎯 **Mobile-Specific Features**
 
 ### **Enhanced Proof Submission**
-```typescript
+\`\`\`typescript
 // Mobile camera integration
 - Native camera access (Expo Camera)
 - Real-time photo capture with overlay
 - Automatic upload to S3 via presigned URLs
 - Background progress tracking
-```
+\`\`\`
 
 ### **Push Notifications**
-```typescript
+\`\`\`typescript
 // Challenge reminders & social interactions
 - Daily challenge reminders
 - Verification results  
 - Social activity (likes, comments)
 - Payment notifications
-```
+\`\`\`
 
 ### **Offline Capabilities**
-```typescript
+\`\`\`typescript
 // React Query with persistence
 - Cache challenge data
 - Queue proof submissions
 - Sync when online
-```
+\`\`\`
 
 ## 💰 **Payments Integration**
 
 ### **Stripe React Native SDK**
-```typescript
+\`\`\`typescript
 // Your existing Stripe backend works perfectly
 - Use Stripe React Native SDK
 - Same payment intents API
 - Apple Pay / Google Pay support
 - Subscription management
-```
+\`\`\`
 
 ## 🚀 **Deployment Strategy**
 
@@ -224,7 +224,7 @@ class StakrAPI {
 
 ## ⚡ **Quick Start Commands**
 
-```bash
+\`\`\`bash
 # 1. Create React Native project
 npx create-expo-app StakrMobile --template
 
@@ -238,7 +238,7 @@ npm install --save-dev @types/react @types/react-native
 
 # 4. Start development
 npm start
-```
+\`\`\`
 
 ## 🎯 **Next Steps**
 
@@ -252,4 +252,4 @@ npm start
 
 ---
 
-**🚀 Ready to build Stakr's mobile-first future!** Your backend is perfectly positioned for this transition. 
+**🚀 Ready to build Stakr's mobile-first future!** Your backend is perfectly positioned for this transition.
