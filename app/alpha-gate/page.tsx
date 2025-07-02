@@ -35,11 +35,10 @@ export default function AlphaGatePage() {
         // Cookie is now set server-side, just need to redirect
         setIsRedirecting(true)
         
-        // Add small delay to ensure cookie is processed
+        // Use window.location for a full page reload to ensure cookie is processed
         setTimeout(() => {
-          router.push('/')
-          router.refresh()
-        }, 100)
+          window.location.href = '/'
+        }, 500)
       } else {
         setError(data.error || 'Invalid access code')
         setIsLoading(false)
@@ -111,8 +110,17 @@ export default function AlphaGatePage() {
 
               {isRedirecting && (
                 <Alert className="border-green-200 bg-green-50">
-                  <AlertDescription className="text-green-800">
-                    ✅ Access granted! Taking you to Stakr...
+                  <AlertDescription className="text-green-800 space-y-2">
+                    <div>✅ Access granted! Taking you to Stakr...</div>
+                    <div className="text-xs text-green-700">
+                      If you're not redirected automatically,{' '}
+                      <button 
+                        onClick={() => window.location.href = '/'}
+                        className="underline hover:no-underline font-medium"
+                      >
+                        click here
+                      </button>
+                    </div>
                   </AlertDescription>
                 </Alert>
               )}

@@ -21,6 +21,15 @@ export function middleware(request: NextRequest) {
   // Check for alpha access cookie
   const alphaAccess = request.cookies.get('alpha_access')
   
+  // Debug logging for development
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🔒 Middleware check for ${pathname}:`, {
+      hasCookie: !!alphaAccess,
+      cookieValue: alphaAccess?.value,
+      isValid: alphaAccess?.value === 'true'
+    })
+  }
+  
   // If no valid alpha access
   if (!alphaAccess || alphaAccess.value !== 'true') {
     // For API routes, return 401 instead of redirect
