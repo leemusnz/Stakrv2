@@ -23,23 +23,7 @@ export async function GET(request: NextRequest) {
       }, { status: 401 })
     }
 
-    // Check if this is a demo user
-    if (isDemoUser(session.user.id)) {
-      const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
-      const demoData = getDemoUserData(session)
-      
-      return NextResponse.json({
-        success: true,
-        dashboard: {
-          user: demoData.user,
-          stats: demoData.stats,
-          activeChallenges: getDemoActiveChallenges(isAdmin),
-          completedChallenges: getDemoCompletedChallenges(isAdmin),
-          recentTransactions: getDemoTransactions(isAdmin),
-          notifications: getDemoNotifications(isAdmin)
-        }
-      })
-    }
+    // Always use real database data
 
     // For real database users, proceed with database queries
     const sql = await createDbConnection()

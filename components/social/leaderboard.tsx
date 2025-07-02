@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -26,77 +27,38 @@ interface LeaderboardProps {
   showCurrentUser?: boolean
 }
 
-const mockLeaderboardData: LeaderboardUser[] = [
-  {
-    id: "1",
-    name: "Sarah Chen",
-    avatar: "/placeholder.svg?height=40&width=40",
-    score: 2847,
-    rank: 1,
-    previousRank: 2,
-    streak: 28,
-    completedChallenges: 15,
-    totalEarnings: 1247,
-    badge: "gold",
-  },
-  {
-    id: "2",
-    name: "Mike Rodriguez",
-    avatar: "/placeholder.svg?height=40&width=40",
-    score: 2634,
-    rank: 2,
-    previousRank: 1,
-    streak: 22,
-    completedChallenges: 12,
-    totalEarnings: 1089,
-    badge: "silver",
-  },
-  {
-    id: "3",
-    name: "Lisa Wang",
-    avatar: "/placeholder.svg?height=40&width=40",
-    score: 2456,
-    rank: 3,
-    previousRank: 4,
-    streak: 19,
-    completedChallenges: 11,
-    totalEarnings: 967,
-    badge: "bronze",
-  },
-  {
-    id: "4",
-    name: "Alex Kim",
-    score: 2234,
-    rank: 4,
-    previousRank: 3,
-    streak: 15,
-    completedChallenges: 9,
-    totalEarnings: 834,
-  },
-  {
-    id: "5",
-    name: "Jordan Taylor",
-    score: 2156,
-    rank: 5,
-    previousRank: 5,
-    streak: 12,
-    completedChallenges: 8,
-    totalEarnings: 756,
-  },
-  {
-    id: "current-user",
-    name: "You",
-    avatar: "/placeholder.svg?height=40&width=40",
-    score: 1834,
-    rank: 12,
-    previousRank: 15,
-    streak: 8,
-    completedChallenges: 6,
-    totalEarnings: 523,
-  },
-]
+// Real leaderboard data from API
 
 export function Leaderboard({ timeframe = "weekly", category = "overall", showCurrentUser = true }: LeaderboardProps) {
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([])
+  const [currentUserData, setCurrentUserData] = useState<LeaderboardUser | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Fetch leaderboard data from API
+  const fetchLeaderboardData = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/social/leaderboard?timeframe=${timeframe}&category=${category}&limit=50`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setLeaderboardData(data.data.leaderboard)
+        setCurrentUserData(data.data.currentUser)
+      } else {
+        console.error('Failed to fetch leaderboard:', data.error)
+      }
+    } catch (error) {
+      console.error('Leaderboard fetch error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Load data when filters change
+  useEffect(() => {
+    fetchLeaderboardData()
+  }, [timeframe, category])
+
   const getRankIcon = (rank: number, badge?: string) => {
     if (rank === 1) return <Crown className="w-5 h-5 text-yellow-500" />
     if (rank === 2) return <Medal className="w-5 h-5 text-gray-400" />
@@ -127,20 +89,12 @@ export function Leaderboard({ timeframe = "weekly", category = "overall", showCu
   }
 
   const formatScore = (user: LeaderboardUser) => {
-    switch (category) {
-      case "earnings":
-        return `$${user.totalEarnings}`
-      case "streaks":
-        return `${user.streak} days`
-      case "completions":
-        return `${user.completedChallenges}`
-      default:
-        return user.score.toLocaleString()
-    }
+    // Score is already formatted by the API
+    return user.score.toString()
   }
 
-  const topUsers = mockLeaderboardData.slice(0, 5)
-  const currentUser = mockLeaderboardData.find((u) => u.id === "current-user")
+  const topUsers = leaderboardData.slice(0, 5)
+  const currentUser = currentUserData
 
   return (
     <Card>

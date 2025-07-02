@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { isDemoUser } from '@/lib/demo-data'
+import { calculatePotentialReward } from '@/lib/reward-calculation'
 
 interface RouteParams {
   params: Promise<{
@@ -203,9 +204,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       `
     }
     
-    // Calculate potential rewards
-    const newParticipantCount = challengeData.current_participants + 1
-    const potentialReward = calculatePotentialReward(challengeData, stake, newParticipantCount)
+    // Calculate potential rewards using enhanced calculation
+    const potentialReward = await calculatePotentialReward(challengeId, stake, pointsOnly)
     
     return NextResponse.json({
       success: true,
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
       challenge_info: {
         title: challengeData.title,
-        total_participants: newParticipantCount,
+        total_participants: challengeData.current_participants + 1,
         host_name: challengeData.host_name,
         start_date: challengeData.start_date,
         end_date: challengeData.end_date,
@@ -357,23 +357,7 @@ async function processReferral(sql: any, challengeId: string, referralCode: stri
   return referrer.length > 0 ? referrer[0].id : null
 }
 
-// Calculate potential reward based on challenge settings
-function calculatePotentialReward(challengeData: any, userStake: number, totalParticipants: number): number {
-  if (challengeData.allow_points_only && userStake === 0) {
-    return 0 // Points-only challenges don't have monetary rewards
-  }
-  
-  // Simplified calculation - in reality this would be more complex
-  const averageStake = userStake // Assuming similar stakes
-  const totalPool = averageStake * totalParticipants
-  const platformCut = totalPool * (challengeData.failed_stake_cut / 100)
-  const rewardPool = totalPool - platformCut
-  
-  // Assume 70% completion rate for estimation
-  const estimatedCompleters = Math.ceil(totalParticipants * 0.7)
-  
-  return rewardPool / estimatedCompleters
-}
+
 
 // GET challenge participation status
 export async function GET(request: NextRequest, { params }: RouteParams) {

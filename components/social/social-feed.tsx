@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -61,131 +61,50 @@ interface SocialFeedProps {
   showFilters?: boolean
 }
 
-// Note: This will be replaced with real API call to /api/social/feed
-const mockFeedData: FeedItem[] = [
-  {
-    id: "1",
-    type: "achievement",
-    user: {
-      id: "real-user-1",
-      name: "Challenge Completers",
-      avatar: "/placeholder.svg?height=40&width=40",
-      verified: true,
-      isFollowing: false,
-    },
-    timestamp: "2 hours ago",
-    content: {
-      title: "🧘 Real users are completing challenges!",
-      description: "Join our community and start your journey. Data will be personalized once you participate.",
-      streak: 0,
-      amount: 0,
-    },
-    engagement: {
-      likes: 24,
-      comments: 8,
-      shares: 3,
-      liked: false,
-    },
-    trending: true,
-  },
-  {
-    id: "2",
-    type: "challenge_completion",
-    user: {
-      id: "mike-rodriguez",
-      name: "Mike Rodriguez",
-      avatar: "/placeholder.svg?height=40&width=40",
-      isFollowing: true,
-    },
-    timestamp: "4 hours ago",
-    content: {
-      title: "10K Steps Challenge Complete!",
-      description: "Walked 10,000+ steps every day for 2 weeks straight",
-      challenge: "10K Steps Daily",
-      amount: 85,
-    },
-    engagement: {
-      likes: 18,
-      comments: 5,
-      shares: 2,
-      liked: true,
-    },
-  },
-  {
-    id: "3",
-    type: "challenge_created",
-    user: {
-      id: "lisa-wang",
-      name: "Lisa Wang",
-      avatar: "/placeholder.svg?height=40&width=40",
-      verified: true,
-      isFollowing: false,
-    },
-    timestamp: "6 hours ago",
-    content: {
-      title: "Created: 30-Day Reading Challenge",
-      description: "Read 20 pages every day for a month. Join me!",
-      challenge: "30-Day Reading Challenge",
-      participants: 47,
-    },
-    engagement: {
-      likes: 31,
-      comments: 12,
-      shares: 8,
-      liked: false,
-    },
-    trending: true,
-  },
-  {
-    id: "4",
-    type: "streak_milestone",
-    user: {
-      id: "alex-kim",
-      name: "Alex Kim",
-      avatar: "/placeholder.svg?height=40&width=40",
-      isFollowing: false,
-    },
-    timestamp: "8 hours ago",
-    content: {
-      title: "50-Day Streak Milestone! 🔥",
-      description: "Consistency is everything. Half way to 100!",
-      streak: 50,
-    },
-    engagement: {
-      likes: 42,
-      comments: 15,
-      shares: 6,
-      liked: true,
-    },
-  },
-  {
-    id: "5",
-    type: "challenge_join",
-    user: {
-      id: "jordan-taylor",
-      name: "Jordan Taylor",
-      avatar: "/placeholder.svg?height=40&width=40",
-      isFollowing: false,
-    },
-    timestamp: "12 hours ago",
-    content: {
-      title: "Joined Morning Meditation Challenge",
-      description: "Time to build a mindfulness habit. Who's with me?",
-      challenge: "Morning Meditation",
-    },
-    engagement: {
-      likes: 12,
-      comments: 3,
-      shares: 1,
-      liked: false,
-    },
-  },
-]
+// Real API data - no more mock data!
 
 export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedProps) {
   const [activeFilter, setActiveFilter] = useState(filter)
-  const [feedItems, setFeedItems] = useState(mockFeedData)
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
+
+  // Fetch feed data from API
+  const fetchFeedData = async (filterType: string = activeFilter, pageNum: number = 1) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/social/feed?filter=${filterType}&page=${pageNum}&limit=20`)
+      const data = await response.json()
+      
+      if (data.success) {
+        if (pageNum === 1) {
+          setFeedItems(data.items)
+        } else {
+          setFeedItems(prev => [...prev, ...data.items])
+        }
+        setHasMore(data.pagination.hasMore)
+      } else {
+        console.error('Failed to fetch feed:', data.error)
+      }
+    } catch (error) {
+      console.error('Feed fetch error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Load initial data
+  useEffect(() => {
+    fetchFeedData(activeFilter, 1)
+    setPage(1)
+  }, [activeFilter])
+
+  // Handle filter change
+  const handleFilterChange = (newFilter: "all" | "friends" | "following" | "trending") => {
+    setActiveFilter(newFilter)
+    setPage(1)
+  }
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -221,41 +140,75 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
     }
   }
 
-  const handleLike = (itemId: string) => {
-    setFeedItems((items) =>
-      items.map((item) =>
-        item.id === itemId
-          ? {
-              ...item,
-              engagement: {
-                ...item.engagement,
-                liked: !item.engagement.liked,
-                likes: item.engagement.liked ? item.engagement.likes - 1 : item.engagement.likes + 1,
-              },
-            }
-          : item,
-      ),
-    )
+  const handleLike = async (itemId: string) => {
+    const item = feedItems.find(f => f.id === itemId)
+    if (!item) return
+
+    const action = item.engagement.liked ? 'unlike' : 'like'
+    
+    try {
+      const response = await fetch('/api/social/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedItemId: itemId, action })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        setFeedItems((items) =>
+          items.map((item) =>
+            item.id === itemId
+              ? {
+                  ...item,
+                  engagement: {
+                    ...item.engagement,
+                    liked: action === 'like',
+                    likes: data.likesCount,
+                  },
+                }
+              : item,
+          ),
+        )
+      }
+    } catch (error) {
+      console.error('Like error:', error)
+    }
   }
 
-  const handleFollow = (userId: string) => {
-    setFeedItems((items) =>
-      items.map((item) =>
-        item.user.id === userId
-          ? {
-              ...item,
-              user: {
-                ...item.user,
-                isFollowing: !item.user.isFollowing,
-              },
-            }
-          : item,
-      ),
-    )
+  const handleFollow = async (userId: string) => {
+    const item = feedItems.find(f => f.user.id === userId)
+    if (!item) return
 
-    console.log(
-      `${feedItems.find((item) => item.user.id === userId)?.user.isFollowing ? "Unfollowed" : "Followed"} user: ${userId}`,
-    )
+    const action = item.user.isFollowing ? 'unfollow' : 'follow'
+    
+    try {
+      const response = await fetch('/api/social/follow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: userId, action })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        setFeedItems((items) =>
+          items.map((item) =>
+            item.user.id === userId
+              ? {
+                  ...item,
+                  user: {
+                    ...item.user,
+                    isFollowing: action === 'follow',
+                  },
+                }
+              : item,
+          ),
+        )
+      }
+    } catch (error) {
+      console.error('Follow error:', error)
+    }
   }
 
   const handleShare = (itemId: string) => {
@@ -266,18 +219,16 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
     }
   }
 
-  const filteredItems = feedItems.filter((item) => {
-    switch (activeFilter) {
-      case "trending":
-        return item.trending
-      case "friends":
-        return ["sarah-chen", "mike-rodriguez"].includes(item.user.id) // Mock friend list
-      case "following":
-        return item.user.isFollowing
-      default:
-        return true
+  // No need to filter on frontend since API handles filtering
+  const filteredItems = feedItems
+
+  const loadMore = () => {
+    if (!isLoading && hasMore) {
+      const nextPage = page + 1
+      setPage(nextPage)
+      fetchFeedData(activeFilter, nextPage)
     }
-  })
+  }
 
   return (
     <div className="space-y-6">
@@ -296,14 +247,14 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
             <Button
               variant={activeFilter === "all" ? "default" : "outline"}
               size="sm"
-              onClick={() => setActiveFilter("all")}
+              onClick={() => handleFilterChange("all")}
             >
               All
             </Button>
             <Button
               variant={activeFilter === "trending" ? "default" : "outline"}
               size="sm"
-              onClick={() => setActiveFilter("trending")}
+              onClick={() => handleFilterChange("trending")}
             >
               <TrendingUp className="w-4 h-4 mr-1" />
               Trending
@@ -311,14 +262,14 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
             <Button
               variant={activeFilter === "friends" ? "default" : "outline"}
               size="sm"
-              onClick={() => setActiveFilter("friends")}
+              onClick={() => handleFilterChange("friends")}
             >
               Friends
             </Button>
             <Button
               variant={activeFilter === "following" ? "default" : "outline"}
               size="sm"
-              onClick={() => setActiveFilter("following")}
+              onClick={() => handleFilterChange("following")}
             >
               Following
             </Button>
@@ -480,12 +431,19 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
       </div>
 
       {/* Load More */}
-      <div className="text-center">
-        <Button variant="outline" className="flex items-center gap-2 bg-transparent">
-          <ChevronDown className="w-4 h-4" />
-          Load More
-        </Button>
-      </div>
+      {hasMore && (
+        <div className="text-center">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2 bg-transparent"
+            onClick={loadMore}
+            disabled={isLoading}
+          >
+            <ChevronDown className="w-4 h-4" />
+            {isLoading ? 'Loading...' : 'Load More'}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

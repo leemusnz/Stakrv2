@@ -131,13 +131,7 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'created_at'
     const sortOrder = searchParams.get('sortOrder') || 'desc'
 
-    // For demo users, return mock user data
-    if (isDemoUser(session.user.id)) {
-      return NextResponse.json({
-        success: true,
-        data: getDemoUsers()
-      })
-    }
+    // Always return real user data from database
 
     // For real users, query the database
     const offset = (page - 1) * limit
@@ -298,15 +292,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Action and userId are required' }, { status: 400 })
     }
 
-    // For demo users, return mock success
-    if (isDemoUser(session.user.id)) {
-      systemLogger.info(`Demo admin action: ${action} on user ${userId}`, 'admin', { action, userId, reason })
-      return NextResponse.json({
-        success: true,
-        message: `User ${action} action completed successfully`,
-        timestamp: new Date().toISOString()
-      })
-    }
+    // Process real admin actions on database
 
     let result = {}
     

@@ -1,0 +1,276 @@
+import { createDbConnection } from '@/lib/db'
+
+export type RewardDistributionMethod = 'winner-takes-all' | 'equal-split' | 'proportional'
+
+export interface ChallengeStats {
+  id: string
+  title: string
+  reward_distribution: RewardDistributionMethod
+  failed_stake_cut: number
+  host_contribution: number
+  total_participants: number
+  completed_participants: number
+  failed_participants: number
+  total_stakes: number
+  failed_stakes: number
+  completed_stakes: number
+  completion_rate: number
+}
+
+export interface ParticipantReward {
+  participant_id: string
+  user_id: string
+  original_stake: number
+  reward_amount: number
+  platform_cut: number
+  net_reward: number
+  reward_breakdown: {
+    stake_return: number
+    bonus_reward: number
+    host_contribution_share: number
+  }
+}
+
+export interface RewardDistributionResult {
+  challenge_stats: ChallengeStats
+  participant_rewards: ParticipantReward[]
+  platform_revenue: {
+    entry_fees: number
+    failed_stake_cut: number
+    total: number
+  }
+  summary: {
+    total_distributed: number
+    total_platform_cut: number
+    average_reward: number
+    max_reward: number
+    min_reward: number
+  }
+}
+
+/**
+ * Calculate rewards for a completed challenge
+ */
+export async function calculateChallengeRewards(challengeId: string): Promise<RewardDistributionResult> {
+  const sql = await createDbConnection()
+
+  // Get basic challenge data
+  const challengeData = await sql`
+    SELECT c.*, COUNT(cp.id) as total_participants
+    FROM challenges c
+    LEFT JOIN challenge_participants cp ON c.id = cp.challenge_id
+    WHERE c.id = ${challengeId}
+    GROUP BY c.id
+  `
+
+  if (challengeData.length === 0) {
+    throw new Error(`Challenge ${challengeId} not found`)
+  }
+
+  const challenge = challengeData[0]
+
+  // Get participant counts
+  const participantStats = await sql`
+    SELECT 
+      COUNT(*) as total,
+      COUNT(CASE WHEN completion_status = 'completed' THEN 1 END) as completed,
+      COUNT(CASE WHEN completion_status = 'failed' THEN 1 END) as failed,
+      SUM(stake_amount) as total_stakes,
+      SUM(CASE WHEN completion_status = 'failed' THEN stake_amount ELSE 0 END) as failed_stakes
+    FROM challenge_participants 
+    WHERE challenge_id = ${challengeId}
+  `
+
+  const stats = participantStats[0]
+  
+  // Build challenge stats
+  const challengeStats: ChallengeStats = {
+    id: challenge.id,
+    title: challenge.title,
+    reward_distribution: (challenge.reward_distribution || 'equal-split') as RewardDistributionMethod,
+    failed_stake_cut: parseFloat(challenge.failed_stake_cut || '20'),
+    host_contribution: parseFloat(challenge.host_contribution || '0'),
+    total_participants: parseInt(stats.total || '0'),
+    completed_participants: parseInt(stats.completed || '0'),
+    failed_participants: parseInt(stats.failed || '0'),
+    total_stakes: parseFloat(stats.total_stakes || '0'),
+    failed_stakes: parseFloat(stats.failed_stakes || '0'),
+    completed_stakes: parseFloat(stats.total_stakes || '0') - parseFloat(stats.failed_stakes || '0'),
+    completion_rate: stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
+  }
+
+  // Get completed participants
+  const completedParticipants = await sql`
+    SELECT 
+      cp.id as participant_id,
+      cp.user_id,
+      cp.stake_amount,
+      cp.entry_fee_paid
+    FROM challenge_participants cp
+    WHERE cp.challenge_id = ${challengeId} 
+      AND cp.completion_status = 'completed'
+  `
+
+  if (completedParticipants.length === 0) {
+    throw new Error('No completed participants found for reward calculation')
+  }
+
+  // Simple reward calculation (equal split for now)
+  const totalRewardPool = challengeStats.failed_stakes * 0.8 + challengeStats.host_contribution // 80% of failed stakes
+  const rewardPerParticipant = completedParticipants.length > 0 ? totalRewardPool / completedParticipants.length : 0
+
+  const participantRewards: ParticipantReward[] = completedParticipants.map(participant => ({
+    participant_id: participant.participant_id,
+    user_id: participant.user_id,
+    original_stake: parseFloat(participant.stake_amount),
+    reward_amount: parseFloat(participant.stake_amount) + rewardPerParticipant,
+    platform_cut: 0,
+    net_reward: parseFloat(participant.stake_amount) + rewardPerParticipant,
+    reward_breakdown: {
+      stake_return: parseFloat(participant.stake_amount),
+      bonus_reward: rewardPerParticipant,
+      host_contribution_share: challengeStats.host_contribution / completedParticipants.length
+    }
+  }))
+
+  const totalDistributed = participantRewards.reduce((sum, r) => sum + r.net_reward, 0)
+  const platformRevenue = {
+    entry_fees: completedParticipants.reduce((sum, p) => sum + parseFloat(p.entry_fee_paid || '0'), 0),
+    failed_stake_cut: challengeStats.failed_stakes * 0.2,
+    total: 0
+  }
+  platformRevenue.total = platformRevenue.entry_fees + platformRevenue.failed_stake_cut
+
+  const summary = {
+    total_distributed: totalDistributed,
+    total_platform_cut: platformRevenue.total,
+    average_reward: participantRewards.length > 0 ? totalDistributed / participantRewards.length : 0,
+    max_reward: participantRewards.length > 0 ? Math.max(...participantRewards.map(r => r.net_reward)) : 0,
+    min_reward: participantRewards.length > 0 ? Math.min(...participantRewards.map(r => r.net_reward)) : 0
+  }
+
+  return {
+    challenge_stats: challengeStats,
+    participant_rewards: participantRewards,
+    platform_revenue: platformRevenue,
+    summary
+  }
+}
+
+// Simplified reward calculation - we can add more complex distribution methods later
+
+/**
+ * Distribute calculated rewards to participants' accounts
+ */
+export async function distributeRewards(challengeId: string, dryRun: boolean = false): Promise<RewardDistributionResult> {
+  const rewardResult = await calculateChallengeRewards(challengeId)
+  
+  if (dryRun) {
+    console.log('🧮 Dry run - no rewards distributed')
+    return rewardResult
+  }
+
+  const sql = await createDbConnection()
+
+  try {
+    // Simple implementation for now - update each participant
+    for (const reward of rewardResult.participant_rewards) {
+      // Update participant reward amount
+      await sql`
+        UPDATE challenge_participants 
+        SET 
+          reward_earned = ${reward.net_reward},
+          updated_at = NOW()
+        WHERE id = ${reward.participant_id}
+      `
+
+      // Add credits to user account
+      await sql`
+        UPDATE users 
+        SET 
+          credits = credits + ${reward.net_reward},
+          updated_at = NOW()
+        WHERE id = ${reward.user_id}
+      `
+    }
+
+    // Mark challenge as rewards_distributed
+    await sql`
+      UPDATE challenges 
+      SET 
+        status = 'rewards_distributed',
+        updated_at = NOW()
+      WHERE id = ${challengeId}
+    `
+
+    console.log('✅ Rewards distributed successfully for challenge:', challengeId)
+    console.log('💰 Total distributed:', rewardResult.summary.total_distributed)
+
+    return rewardResult
+
+  } catch (error) {
+    console.error('❌ Reward distribution failed:', error)
+    throw new Error(`Failed to distribute rewards: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+/**
+ * Calculate potential reward for a user joining a challenge (estimation)
+ */
+export async function calculatePotentialReward(
+  challengeId: string, 
+  userStake: number, 
+  pointsOnly: boolean = false
+): Promise<number> {
+  if (pointsOnly) return 0
+
+  const sql = await createDbConnection()
+
+  const challengeData = await sql`
+    SELECT 
+      c.reward_distribution,
+      c.failed_stake_cut,
+      c.host_contribution,
+      c.min_stake,
+      c.max_stake,
+      COUNT(cp.id) as current_participants,
+      AVG(cp.stake_amount) as avg_stake
+    FROM challenges c
+    LEFT JOIN challenge_participants cp ON c.id = cp.challenge_id
+    WHERE c.id = ${challengeId}
+    GROUP BY c.id, c.reward_distribution, c.failed_stake_cut, c.host_contribution, c.min_stake, c.max_stake
+  `
+
+  if (challengeData.length === 0) return 0
+
+  const challenge = challengeData[0]
+  const currentParticipants = parseInt(challenge.current_participants || '0')
+  const avgStake = parseFloat(challenge.avg_stake || challenge.min_stake || '25')
+  
+  // Estimate with user's stake included
+  const estimatedParticipants = currentParticipants + 1
+  const estimatedCompletionRate = 0.4 // 40% completion rate assumption
+  const estimatedCompleters = Math.ceil(estimatedParticipants * estimatedCompletionRate)
+  const estimatedFailures = estimatedParticipants - estimatedCompleters
+  
+  // Estimate total pools
+  const estimatedFailedStakes = estimatedFailures * avgStake
+  const platformCut = estimatedFailedStakes * (parseFloat(challenge.failed_stake_cut) / 100)
+  const bonusPool = estimatedFailedStakes - platformCut + parseFloat(challenge.host_contribution)
+
+  switch (challenge.reward_distribution) {
+    case 'winner-takes-all':
+      return userStake + (bonusPool / estimatedCompleters)
+    
+    case 'equal-split':
+      const totalPool = (estimatedCompleters * avgStake) + bonusPool
+      return totalPool / estimatedCompleters
+    
+    case 'proportional':
+      const avgBonus = bonusPool / estimatedCompleters
+      return userStake + (avgBonus * (userStake / avgStake))
+    
+    default:
+      return userStake * 1.5 // Fallback estimate
+  }
+}

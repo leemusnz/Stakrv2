@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createDbConnection } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { sendEmail, createVerificationEmail, generateVerificationToken } from '@/lib/email'
 
 // Validation schema for user registration
 const registerSchema = z.object({
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     const saltRounds = 12
     const passwordHash = await bcrypt.hash(password, saltRounds)
 
-    // Create user in database
+    // Create user in database with unverified email
     const newUsers = await sql`
       INSERT INTO users (
         email, 
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
         current_streak,
         longest_streak,
         premium_subscription,
+        email_verified,
         created_at,
         updated_at
       ) VALUES (
@@ -85,15 +87,40 @@ export async function POST(request: NextRequest) {
         0,
         0,
         false,
+        false,
         NOW(),
         NOW()
       )
-      RETURNING id, email, name, avatar_url, credits, trust_score, verification_tier, created_at
+      RETURNING id, email, name, avatar_url, credits, trust_score, verification_tier, email_verified, created_at
     `
 
     const newUser = newUsers[0]
 
     console.log('✅ User created successfully:', newUser.email)
+
+    // Generate verification token and send email
+    const verificationToken = generateVerificationToken()
+    
+    try {
+      // Store verification token in database
+      await sql`
+        SELECT create_verification_token(${email}, ${verificationToken}, 'email_verification', 24)
+      `
+
+      // Send verification email
+      const emailTemplate = createVerificationEmail(email, verificationToken, name)
+      const emailResult = await sendEmail(emailTemplate)
+
+      if (!emailResult.success) {
+        console.error('❌ Failed to send verification email:', emailResult.error)
+        // Note: We don't fail registration if email fails to send
+      } else {
+        console.log('✅ Verification email sent to:', email)
+      }
+    } catch (emailError) {
+      console.error('❌ Email verification setup failed:', emailError)
+      // Continue with registration even if email fails
+    }
 
     // Return user data (without password hash)
     return NextResponse.json({
@@ -106,10 +133,12 @@ export async function POST(request: NextRequest) {
         credits: parseFloat(newUser.credits),
         trustScore: newUser.trust_score,
         verificationTier: newUser.verification_tier,
+        emailVerified: newUser.email_verified,
         isAdmin: false,
         createdAt: newUser.created_at
       },
-      message: 'Account created successfully!'
+      message: 'Account created successfully! Please check your email to verify your account.',
+      emailSent: true
     }, { status: 201 })
 
   } catch (error) {

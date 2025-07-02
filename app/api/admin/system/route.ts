@@ -134,13 +134,7 @@ export async function GET(request: NextRequest) {
     // Log admin dashboard access
     systemLogger.info(`Admin dashboard system tab accessed by ${session.user.name || session.user.email}`, 'admin')
 
-    // For demo users, return mock system data
-    if (isDemoUser(session.user.id)) {
-      return NextResponse.json({
-        success: true,
-        system: getDemoSystemData()
-      })
-    }
+    // Always return real system data
 
     // For real users, get actual system data (reuse existing sql connection)
 

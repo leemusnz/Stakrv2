@@ -1,185 +1,256 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createDbConnection } from '@/lib/db'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 // GET user dashboard data
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId') || 'default-user'
+    const session = await getServerSession(authOptions)
     
-    // Mock dashboard data that makes the app feel real and personalized
+    if (!session?.user?.id) {
+      return NextResponse.json({
+        success: false,
+        error: 'Unauthorized',
+        message: 'You must be logged in to view your dashboard'
+      }, { status: 401 })
+    }
+
+    const sql = await createDbConnection()
+    const userId = session.user.id
+    
+    // Get user profile
+    const userProfile = await sql`
+      SELECT 
+        id, email, name, avatar_url, credits, trust_score, verification_tier,
+        challenges_completed, false_claims, current_streak, longest_streak,
+        premium_subscription, premium_expires_at, created_at
+      FROM users 
+      WHERE id = ${userId}
+      LIMIT 1
+    `
+    
+    if (userProfile.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'User not found'
+      }, { status: 404 })
+    }
+
+    const user = userProfile[0]
+
+    // Get active challenges
+    const activeChallenges = await sql`
+      SELECT 
+        c.id, c.title, c.category, c.duration, c.start_date, c.end_date,
+        cp.stake_amount, cp.completion_status, cp.proof_submitted,
+        cp.verification_status, cp.joined_at
+      FROM challenges c
+      JOIN challenge_participants cp ON c.id = cp.challenge_id
+      WHERE cp.user_id = ${userId}
+        AND cp.completion_status IN ('active', 'pending_verification')
+      ORDER BY c.start_date DESC
+    `
+
+    // Get recent activity (transactions and challenge events)
+    const recentTransactions = await sql`
+      SELECT 
+        'transaction' as type, id, transaction_type as action,
+        amount, status, created_at, null as challenge_id
+      FROM transactions
+      WHERE user_id = ${userId}
+      ORDER BY created_at DESC
+      LIMIT 5
+    `
+
+    const recentChallengeEvents = await sql`
+      SELECT 
+        'challenge_event' as type, c.id, 
+        CASE 
+          WHEN cp.completion_status = 'completed' THEN 'challenge_completed'
+          WHEN cp.joined_at IS NOT NULL THEN 'challenge_joined'
+          ELSE 'challenge_updated'
+        END as action,
+        cp.reward_earned as amount, c.title,
+        COALESCE(cp.completed_at, cp.joined_at) as created_at,
+        c.id as challenge_id
+      FROM challenge_participants cp
+      JOIN challenges c ON cp.challenge_id = c.id
+      WHERE cp.user_id = ${userId}
+      ORDER BY COALESCE(cp.completed_at, cp.joined_at) DESC
+      LIMIT 5
+    `
+
+    // Combine and sort activities
+    const allActivity = [
+      ...recentTransactions.map((t: any) => ({
+        id: `tx_${t.id}`,
+        type: t.action,
+        title: `${t.action.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}`,
+        description: `${t.action === 'deposit' ? 'Added' : t.action === 'stake' ? 'Staked' : 'Received'} $${Math.abs(t.amount).toFixed(2)}`,
+        amount: parseFloat(t.amount),
+        timestamp: t.created_at,
+        challenge_id: t.challenge_id
+      })),
+      ...recentChallengeEvents.map((e: any) => ({
+        id: `ch_${e.id}`,
+        type: e.action,
+        title: e.action === 'challenge_completed' ? `Completed "${e.title}"` : 
+               e.action === 'challenge_joined' ? `Joined "${e.title}"` : `Updated "${e.title}"`,
+        description: e.action === 'challenge_completed' ? `Successfully finished and earned $${(e.amount || 0).toFixed(2)}` :
+                     e.action === 'challenge_joined' ? 'Started new challenge' : 'Challenge activity',
+        amount: parseFloat(e.amount || 0),
+        timestamp: e.created_at,
+        challenge_id: e.challenge_id
+      }))
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 5)
+
+    // Get upcoming deadlines
+    const upcomingDeadlines = await sql`
+      SELECT 
+        c.id as challenge_id, c.title, c.end_date as deadline,
+        c.verification_requirements
+      FROM challenges c
+      JOIN challenge_participants cp ON c.id = cp.challenge_id
+      WHERE cp.user_id = ${userId}
+        AND cp.completion_status = 'active'
+        AND c.end_date > NOW()
+      ORDER BY c.end_date ASC
+      LIMIT 5
+    `
+
+    // Get user achievements (based on stats)
+    const achievements = []
+    if (user.current_streak >= 25) {
+      achievements.push({
+        id: 'streak_master',
+        title: 'Streak Master',
+        description: 'Maintained a 25+ day streak',
+        icon: '🔥',
+        earned_date: new Date().toISOString(),
+        category: 'consistency'
+      })
+    }
+    if (user.challenges_completed >= 10) {
+      achievements.push({
+        id: 'challenge_veteran',
+        title: 'Challenge Veteran',
+        description: 'Completed 10+ challenges',
+        icon: '🏆',
+        earned_date: new Date().toISOString(),
+        category: 'completion'
+      })
+    }
+    if (user.trust_score >= 90) {
+      achievements.push({
+        id: 'top_performer',
+        title: 'Top Performer',
+        description: '90+ trust score',
+        icon: '⭐',
+        earned_date: new Date().toISOString(),
+        category: 'performance'
+      })
+    }
+
+    // Calculate stats
+    const totalEarnings = await sql`
+      SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE user_id = ${userId} 
+        AND transaction_type IN ('reward', 'payout')
+        AND amount > 0
+    `
+
+    const totalStakes = await sql`
+      SELECT COALESCE(SUM(amount), 0) as total
+      FROM transactions
+      WHERE user_id = ${userId}
+        AND transaction_type = 'stake'
+    `
+
+    const successRate = user.challenges_completed > 0 
+      ? Math.round(((user.challenges_completed - (user.false_claims || 0)) / user.challenges_completed) * 100)
+      : 100
+
     const dashboardData = {
       user: {
-        id: userId,
-        name: 'Alex Chen',
-        email: 'alex@stakr.app',
-        avatar_url: null,
-        credits: 247.50,
-        trust_score: 82,
-        verification_tier: 'auto',
-        current_streak: 12,
-        longest_streak: 28,
-        premium_subscription: true
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar_url: user.avatar_url,
+        credits: parseFloat(user.credits) || 0,
+        trust_score: user.trust_score || 50,
+        verification_tier: user.verification_tier || 'manual',
+        current_streak: user.current_streak || 0,
+        longest_streak: user.longest_streak || 0,
+        premium_subscription: user.premium_subscription || false
       },
       
       stats: {
-        total_challenges_completed: 15,
-        total_challenges_joined: 18,
-        success_rate: 83, // 15/18 * 100
-        total_earnings: 892.30,
-        total_stakes: 450.00,
-        net_profit: 442.30,
-        challenges_won: 15,
-        challenges_failed: 3,
-        current_month_activity: 8,
-        streak_record: 28
+        total_challenges_completed: user.challenges_completed || 0,
+        total_challenges_joined: activeChallenges.length + (user.challenges_completed || 0),
+        success_rate: successRate,
+        total_earnings: parseFloat(totalEarnings[0].total) || 0,
+        total_stakes: Math.abs(parseFloat(totalStakes[0].total)) || 0,
+        net_profit: (parseFloat(totalEarnings[0].total) || 0) - Math.abs(parseFloat(totalStakes[0].total) || 0),
+        challenges_won: user.challenges_completed || 0,
+        challenges_failed: user.false_claims || 0,
+        current_month_activity: activeChallenges.length,
+        streak_record: user.longest_streak || 0
       },
       
-      active_challenges: [
-        {
-          id: '123e4567-e89b-12d3-a456-426614174000',
-          title: '30-Day Fitness Challenge',
-          category: 'fitness',
-          days_remaining: 18,
-          total_days: 30,
-          progress_percentage: 40,
-          stake_amount: 50.00,
-          potential_reward: 67.50,
-          verification_status: 'up_to_date',
-          last_submission: '2024-01-12T09:30:00Z',
-          next_deadline: '2024-01-13T23:59:59Z',
-          status: 'on_track'
-        },
-        {
-          id: '123e4567-e89b-12d3-a456-426614174002',
-          title: 'Daily Meditation Practice',
-          category: 'wellness',
-          days_remaining: 9,
-          total_days: 21,
-          progress_percentage: 57,
-          stake_amount: 25.00,
-          potential_reward: 31.25,
-          verification_status: 'pending',
-          last_submission: '2024-01-11T07:15:00Z',
-          next_deadline: '2024-01-13T23:59:59Z',
-          status: 'at_risk'
+      active_challenges: activeChallenges.map((challenge: any) => {
+        const daysRemaining = Math.max(0, Math.ceil((new Date(challenge.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+        const totalDays = Math.ceil((new Date(challenge.end_date).getTime() - new Date(challenge.start_date).getTime()) / (1000 * 60 * 60 * 24))
+        const progressPercentage = Math.max(0, Math.min(100, Math.round(((totalDays - daysRemaining) / totalDays) * 100)))
+        
+        return {
+          id: challenge.id,
+          title: challenge.title,
+          category: challenge.category,
+          days_remaining: daysRemaining,
+          total_days: totalDays,
+          progress_percentage: progressPercentage,
+          stake_amount: parseFloat(challenge.stake_amount),
+          potential_reward: parseFloat(challenge.stake_amount) * 1.35, // Estimated 35% return
+          verification_status: challenge.verification_status || 'pending',
+          last_submission: challenge.proof_submitted,
+          next_deadline: challenge.end_date,
+          status: daysRemaining > 3 ? 'on_track' : 'at_risk'
         }
-      ],
+      }),
       
-      recent_activity: [
-        {
-          id: 'act_001',
-          type: 'challenge_completed',
-          title: 'Completed "Read 12 Books Challenge"',
-          description: 'Successfully finished all 12 months and earned $125.75',
-          amount: 125.75,
-          timestamp: '2024-01-10T16:20:00Z',
-          challenge_id: '123e4567-e89b-12d3-a456-426614174001'
-        },
-        {
-          id: 'act_002',
-          type: 'proof_submitted',
-          title: 'Submitted workout proof',
-          description: 'Daily workout verification for 30-Day Fitness Challenge',
-          timestamp: '2024-01-12T09:30:00Z',
-          challenge_id: '123e4567-e89b-12d3-a456-426614174000'
-        },
-        {
-          id: 'act_003',
-          type: 'challenge_joined',
-          title: 'Joined "Daily Meditation Practice"',
-          description: 'Staked $25.00 for 21-day meditation challenge',
-          amount: -25.00,
-          timestamp: '2024-01-03T11:45:00Z',
-          challenge_id: '123e4567-e89b-12d3-a456-426614174002'
-        },
-        {
-          id: 'act_004',
-          type: 'credits_purchased',
-          title: 'Purchased credits',
-          description: 'Added $100.00 to account balance',
-          amount: 100.00,
-          timestamp: '2024-01-01T14:30:00Z'
-        },
-        {
-          id: 'act_005',
-          type: 'reward_earned',
-          title: 'Challenge reward received',
-          description: 'Earned reward from "Morning Routine Challenge"',
-          amount: 73.25,
-          timestamp: '2023-12-28T10:15:00Z',
-          challenge_id: 'prev_challenge_id'
-        }
-      ],
+      recent_activity: allActivity,
       
-      upcoming_deadlines: [
-        {
-          challenge_id: '123e4567-e89b-12d3-a456-426614174000',
-          title: '30-Day Fitness Challenge',
-          deadline: '2024-01-13T23:59:59Z',
-          hours_remaining: 35,
-          verification_needed: 'Daily workout photo'
-        },
-        {
-          challenge_id: '123e4567-e89b-12d3-a456-426614174002',
-          title: 'Daily Meditation Practice',
-          deadline: '2024-01-13T23:59:59Z',
-          hours_remaining: 35,
-          verification_needed: 'Meditation session confirmation'
-        }
-      ],
+      upcoming_deadlines: upcomingDeadlines.map((deadline: any) => ({
+        challenge_id: deadline.challenge_id,
+        title: deadline.title,
+        deadline: deadline.deadline,
+        hours_remaining: Math.max(0, Math.floor((new Date(deadline.deadline).getTime() - Date.now()) / (1000 * 60 * 60))),
+        verification_needed: deadline.verification_requirements || 'Proof submission required'
+      })),
       
-      achievements: [
-        {
-          id: 'streak_master',
-          title: 'Streak Master',
-          description: 'Maintained a 25+ day streak',
-          icon: '🔥',
-          earned_date: '2023-12-15T00:00:00Z',
-          category: 'consistency'
-        },
-        {
-          id: 'challenge_veteran',
-          title: 'Challenge Veteran',
-          description: 'Completed 10+ challenges',
-          icon: '🏆',
-          earned_date: '2023-11-20T00:00:00Z',
-          category: 'completion'
-        },
-        {
-          id: 'top_performer',
-          title: 'Top Performer',
-          description: '90%+ success rate',
-          icon: '⭐',
-          earned_date: '2023-10-05T00:00:00Z',
-          category: 'performance'
-        }
-      ],
+      achievements,
       
       recommendations: [
         {
-          challenge_id: '123e4567-e89b-12d3-a456-426614174003',
-          title: 'Learn Spanish in 90 Days',
-          reason: 'Based on your education category success',
-          match_score: 92
-        },
-        {
-          challenge_id: 'new_fitness_challenge',
-          title: 'Advanced Strength Training',
-          reason: 'You excel at fitness challenges',
-          match_score: 88
+          challenge_id: 'recommended_1',
+          title: 'New Challenge Recommendation',
+          reason: 'Based on your success pattern',
+          match_score: 85
         }
       ],
       
       trust_score_details: {
-        current_score: 82,
-        tier: 'auto',
+        current_score: user.trust_score || 50,
+        tier: user.verification_tier || 'manual',
         next_tier_at: 90,
         factors: {
-          completion_rate: 83,
+          completion_rate: successRate,
           verification_compliance: 95,
-          community_standing: 88,
-          account_age_months: 8,
-          false_claims: 0
+          community_standing: Math.max(50, user.trust_score || 50),
+          account_age_months: Math.floor((Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24 * 30)),
+          false_claims: user.false_claims || 0
         }
       }
     }
@@ -192,10 +263,11 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
+    console.error('Dashboard error:', error)
     return NextResponse.json({
       success: false,
       error: 'Failed to get dashboard data',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
     }, { status: 500 })
   }
 }

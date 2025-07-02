@@ -105,13 +105,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    // For demo users, return mock analytics
-    if (isDemoUser(session.user.id)) {
-      return NextResponse.json({
-        success: true,
-        analytics: getDemoAnalytics()
-      })
-    }
+    // Always return real analytics data
 
     // Calculate all real analytics from database
     const now = new Date()

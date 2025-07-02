@@ -161,9 +161,15 @@ export const authOptions: NextAuthOptions = {
           const isValidPassword = await bcrypt.compare(credentials.password, dbUser.password_hash)
           console.log('🔑 Database password valid:', isValidPassword)
           
-          if (!isValidPassword) {
+                    if (!isValidPassword) {
             console.log('❌ Invalid database password')
             throw new Error('Invalid credentials')
+          }
+
+          // Check if email is verified
+          if (!dbUser.email_verified) {
+            console.log('🚫 Login denied for unverified email:', dbUser.email)
+            throw new Error('error=email_not_verified')
           }
 
           console.log('✅ Database login successful for:', dbUser.email)
@@ -171,7 +177,7 @@ export const authOptions: NextAuthOptions = {
 
           // Check if user is suspended (false_claims >= 3)
           if (dbUser.false_claims >= 3) {
-            console.log('🚫 User is suspended:', dbUser.email, 'false_claims:', dbUser.false_claims)
+            console.log('🚫 User is suspended:', dbUser.email, 'false_claims:', dbUser.false_claims) 
             throw new Error('error=suspended')
           }
 
@@ -397,12 +403,17 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
-    async redirect({ url, baseUrl }) {
+        async redirect({ url, baseUrl }) {
       // Handle custom redirects for suspended users
       if (url.includes('error=suspended') || url.includes('account%20suspended')) {
         return `${baseUrl}/auth/suspended`
       }
-      
+
+      // Handle email not verified error
+      if (url.includes('error=email_not_verified') || url.includes('email%20not%20verified')) {
+        return `${baseUrl}/auth/verify-email`
+      }
+
       // Default redirect logic
       if (url.startsWith('/')) return `${baseUrl}${url}`
       if (new URL(url).origin === baseUrl) return url

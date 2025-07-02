@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getPresignedUploadUrl, STORAGE_CONFIG } from '@/lib/storage'
+import { validateFileEnhanced } from '@/lib/enhanced-file-validation'
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,29 +25,44 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // File size validation
-    if (fileSize > STORAGE_CONFIG.MAX_FILE_SIZE) {
-      return NextResponse.json({ 
-        error: `File size exceeds ${STORAGE_CONFIG.MAX_FILE_SIZE / 1024 / 1024}MB limit` 
-      }, { status: 400 })
-    }
-
-    // File type validation
-    const isImage = STORAGE_CONFIG.ALLOWED_IMAGE_TYPES.includes(fileType)
-    const isVideo = STORAGE_CONFIG.ALLOWED_VIDEO_TYPES.includes(fileType)
-    
-    if (!isImage && !isVideo) {
-      return NextResponse.json({ 
-        error: 'Invalid file type. Only JPEG, PNG, WebP images and MP4, QuickTime, WebM videos are allowed.' 
-      }, { status: 400 })
-    }
-
-    // Create a mock File object for the storage service
+    // Create a mock File object for enhanced validation
     const mockFile = {
       name: fileName,
       type: fileType,
-      size: fileSize
+      size: fileSize,
+      lastModified: Date.now(),
+      arrayBuffer: async () => new ArrayBuffer(0),
+      slice: () => new Blob(),
+      stream: () => new ReadableStream(),
+      text: async () => ''
     } as File
+
+    // Enhanced validation with security checks
+    console.log('🔒 Running enhanced file validation...')
+    const validationResult = await validateFileEnhanced(mockFile)
+    
+    if (!validationResult.valid) {
+      console.log('❌ Enhanced validation failed:', {
+        errors: validationResult.errors,
+        warnings: validationResult.warnings,
+        riskScore: validationResult.riskScore,
+        securityFlags: validationResult.securityFlags
+      })
+      
+      return NextResponse.json({ 
+        error: 'File validation failed',
+        details: validationResult.errors,
+        warnings: validationResult.warnings,
+        riskScore: validationResult.riskScore,
+        securityFlags: validationResult.securityFlags
+      }, { status: 400 })
+    }
+    
+    if (validationResult.warnings.length > 0) {
+      console.log('⚠️ Validation warnings:', validationResult.warnings)
+    }
+    
+    console.log('✅ Enhanced validation passed with risk score:', validationResult.riskScore)
 
     console.log('AWS Config Check:', {
       region: STORAGE_CONFIG.AWS_REGION,
