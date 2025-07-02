@@ -14,6 +14,7 @@ export default function AlphaGatePage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,16 +32,20 @@ export default function AlphaGatePage() {
       const data = await response.json()
 
       if (data.success) {
-        // Set alpha access cookie and redirect
-        document.cookie = `alpha_access=true; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`
-        router.push('/')
-        router.refresh()
+        // Cookie is now set server-side, just need to redirect
+        setIsRedirecting(true)
+        
+        // Add small delay to ensure cookie is processed
+        setTimeout(() => {
+          router.push('/')
+          router.refresh()
+        }, 100)
       } else {
         setError(data.error || 'Invalid access code')
+        setIsLoading(false)
       }
     } catch (error) {
       setError('Connection error. Please try again.')
-    } finally {
       setIsLoading(false)
     }
   }
@@ -104,12 +109,25 @@ export default function AlphaGatePage() {
                 </Alert>
               )}
 
+              {isRedirecting && (
+                <Alert className="border-green-200 bg-green-50">
+                  <AlertDescription className="text-green-800">
+                    ✅ Access granted! Taking you to Stakr...
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isLoading || !password.trim()}
+                disabled={isLoading || isRedirecting || !password.trim()}
               >
-                {isLoading ? (
+                {isRedirecting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Access granted! Redirecting...
+                  </>
+                ) : isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     Verifying...
