@@ -169,6 +169,12 @@ export const authOptions: NextAuthOptions = {
           console.log('✅ Database login successful for:', dbUser.email)
           systemLogger.info(`Database login successful for user: ${dbUser.email}`, 'auth')
 
+          // Check if user is suspended (false_claims >= 3)
+          if (dbUser.false_claims >= 3) {
+            console.log('🚫 User is suspended:', dbUser.email, 'false_claims:', dbUser.false_claims)
+            throw new Error('error=suspended')
+          }
+
           return {
             id: dbUser.id,
             email: dbUser.email,
@@ -339,6 +345,13 @@ export const authOptions: NextAuthOptions = {
           if (session.user.email) {
             const dbUser = await findUserInDatabase(session.user.email)
             if (dbUser) {
+              // Check if user is suspended during active session
+              if (dbUser.false_claims >= 3) {
+                console.log('🚫 User suspended during active session:', dbUser.email)
+                // Invalidate the session by returning null
+                throw new Error('Session terminated: Account suspended')
+              }
+              
               if (dbUser.avatar_url) {
                 latestAvatar = dbUser.avatar_url
                 console.log('📸 Latest avatar fetched from database:', latestAvatar)
@@ -358,6 +371,10 @@ export const authOptions: NextAuthOptions = {
           }
         } catch (error) {
           console.log('⚠️ Could not fetch latest data from database, using token values')
+          // If the error is about suspension, we should not continue
+          if (error instanceof Error && error.message.includes('suspended')) {
+            throw error
+          }
         }
         
         // Synchronize avatar and image fields with latest data
@@ -379,6 +396,17 @@ export const authOptions: NextAuthOptions = {
 
       }
       return session
+    },
+    async redirect({ url, baseUrl }) {
+      // Handle custom redirects for suspended users
+      if (url.includes('error=suspended') || url.includes('account%20suspended')) {
+        return `${baseUrl}/auth/suspended`
+      }
+      
+      // Default redirect logic
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      if (new URL(url).origin === baseUrl) return url
+      return baseUrl
     }
   },
   pages: {

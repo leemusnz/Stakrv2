@@ -4,10 +4,63 @@
 // MVP Content Moderation - Ultra Lightweight Version
 // This version costs $0 to run and provides basic protection
 
-// Simple profanity filter for MVP
+// Enhanced profanity filter for usernames and content
 const BASIC_PROFANITY_LIST = [
-  'fuck', 'shit', 'bitch', 'asshole', 'damn', 'crap',
-  'hate', 'kill', 'die', 'stupid', 'idiot'
+  // Basic profanity
+  'fuck', 'shit', 'bitch', 'asshole', 'damn', 'crap', 'bastard',
+  'cock', 'dick', 'pussy', 'cunt', 'whore', 'slut', 'tits', 'boobs',
+  
+  // Sexual content
+  'sex', 'porn', 'nude', 'naked', 'horny', 'orgasm', 'masturbat',
+  'lick', 'suck', 'blow', 'cum', 'jizz', 'sperm', 'vagina', 'penis',
+  
+  // Hate speech and offensive terms
+  'hate', 'kill', 'die', 'murder', 'rape', 'molest', 'pedo', 'nazi',
+  'terrorist', 'bomb', 'shoot', 'stab', 'suicide', 'cancer',
+  
+  // Inappropriate usernames patterns
+  'anal', 'oral', 'booty', 'sexy', 'milf', 'thot', 'simp', 'chad',
+  'incel', 'femboy', 'trap', 'shemale', 'tranny', 'fag', 'gay',
+  
+  // Drug references
+  'weed', 'cocaine', 'meth', 'heroin', 'crack', 'molly', 'ecstasy',
+  'drug', 'dealer', 'high', 'stoned', 'junkie', 'addict',
+  
+  // General offensive
+  'stupid', 'idiot', 'retard', 'moron', 'loser', 'fatty', 'ugly'
+];
+
+// Patterns to catch variations and bypass attempts
+const PROFANITY_PATTERNS = [
+  // Letter substitutions (@ for a, 3 for e, etc.)
+  /[p]+[u]+[s]+[s]+[y]/gi,
+  /[f]+[u]+[c]+[k]/gi,
+  /[s]+[h]+[i]+[t]/gi,
+  /[b]+[i]+[t]+[c]+[h]/gi,
+  /[c]+[u]+[n]+[t]/gi,
+  /[d]+[i]+[c]+[k]/gi,
+  /[c]+[o]+[c]+[k]/gi,
+  
+  // Common substitutions
+  /p[u@0]ss[y1!]/gi,
+  /f[u@0]ck/gi,
+  /sh[i1!]t/gi,
+  /b[i1!]tch/gi,
+  /[a@4]ssh[o0]l[e3]/gi,
+  /d[i1!]ck/gi,
+  /c[o0]ck/gi,
+  
+  // Sexual content patterns
+  /se[x×]/gi,
+  /p[o0]rn/gi,
+  /h[o0]rny/gi,
+  /n[u@0]de/gi,
+  
+  // Spacing and special characters to bypass filters
+  /p\s*u\s*s\s*s\s*y/gi,
+  /f\s*u\s*c\s*k/gi,
+  /s\s*h\s*i\s*t/gi,
+  /b\s*i\s*t\s*c\s*h/gi
 ];
 
 // Common spam patterns
@@ -27,12 +80,23 @@ export class MVPModerationService {
   } {
     const lowerContent = content.toLowerCase();
     
-    // Check for basic profanity
+    // Check for basic profanity words
     for (const word of BASIC_PROFANITY_LIST) {
       if (lowerContent.includes(word)) {
         return {
           flagged: true,
-          reason: 'Inappropriate language detected',
+          reason: `Inappropriate language detected: contains "${word}"`,
+          confidence: 0.9
+        };
+      }
+    }
+    
+    // Check for profanity patterns (catches variations and bypasses)
+    for (const pattern of PROFANITY_PATTERNS) {
+      if (pattern.test(content)) {
+        return {
+          flagged: true,
+          reason: 'Inappropriate language pattern detected',
           confidence: 0.8
         };
       }
@@ -64,17 +128,29 @@ export class MVPModerationService {
   // Profile name validation - free
   static validateProfileName(name: string): { valid: boolean; reason?: string } {
     if (!name || name.trim().length < 2) {
-      return { valid: false, reason: 'Name too short' };
+      return { valid: false, reason: 'Name too short (minimum 2 characters)' };
     }
     
     if (name.length > 50) {
-      return { valid: false, reason: 'Name too long' };
+      return { valid: false, reason: 'Name too long (maximum 50 characters)' };
     }
     
     // Check for profanity in name
     const modResult = this.moderateText(name);
     if (modResult.flagged) {
-      return { valid: false, reason: 'Inappropriate name' };
+      return { 
+        valid: false, 
+        reason: `Username not allowed: ${modResult.reason}. Please choose a respectful username.` 
+      };
+    }
+    
+    // Additional username-specific checks
+    if (/^\d+$/.test(name)) {
+      return { valid: false, reason: 'Username cannot be only numbers' };
+    }
+    
+    if (/^[^a-zA-Z0-9]+$/.test(name)) {
+      return { valid: false, reason: 'Username must contain at least some letters or numbers' };
     }
     
     return { valid: true };

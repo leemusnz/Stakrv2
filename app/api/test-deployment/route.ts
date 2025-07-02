@@ -17,7 +17,15 @@ export async function GET() {
       OPENAI_API_KEY: process.env.OPENAI_API_KEY ? 'Set' : 'Missing',
     }
 
-    const missing = Object.entries(envCheck)
+    // Only mark these as critical missing (Google OAuth is optional)
+    const criticalMissing = Object.entries(envCheck)
+      .filter(([key, value]) => 
+        value === 'Missing' && 
+        !['GOOGLE_CLIENT_ID', 'OPENAI_API_KEY'].includes(key) // These are optional
+      )
+      .map(([key]) => key)
+
+    const allMissing = Object.entries(envCheck)
       .filter(([key, value]) => value === 'Missing')
       .map(([key]) => key)
 
@@ -41,27 +49,31 @@ export async function GET() {
     const fileUploadReady = Object.values(fileUploadChecks).every(check => check)
 
     return NextResponse.json({
-      success: missing.length === 0,
+      success: criticalMissing.length === 0,
       environment: envCheck,
-      missing: missing,
+      missing: allMissing,
+      criticalMissing: criticalMissing,
       authStatus,
       fileUploadChecks,
       fileUploadReady,
-      message: missing.length === 0 
-        ? 'All environment variables are set!' 
-        : `Missing: ${missing.join(', ')}`,
-      recommendations: missing.length > 0 ? [
-        ...(missing.includes('AWS_ACCESS_KEY_ID') || missing.includes('AWS_SECRET_ACCESS_KEY') 
+      message: criticalMissing.length === 0 
+        ? 'All critical environment variables are set!' 
+        : `Missing critical variables: ${criticalMissing.join(', ')}`,
+      recommendations: criticalMissing.length > 0 ? [
+        ...(criticalMissing.includes('AWS_ACCESS_KEY_ID') || criticalMissing.includes('AWS_SECRET_ACCESS_KEY') 
           ? ['Set up AWS S3 credentials for file uploads to work'] : []),
-        ...(missing.includes('NEXTAUTH_SECRET') 
+        ...(criticalMissing.includes('NEXTAUTH_SECRET') 
           ? ['Set NEXTAUTH_SECRET for authentication'] : []),
-        ...(missing.includes('DATABASE_URL') 
+        ...(criticalMissing.includes('DATABASE_URL') 
           ? ['Configure Neon PostgreSQL database connection'] : []),
-        ...(missing.includes('OPENAI_API_KEY') 
+        ...(allMissing.includes('GOOGLE_CLIENT_ID') 
+          ? ['Set up Google OAuth for Google sign-in (optional)'] : []),
+        ...(allMissing.includes('OPENAI_API_KEY') 
           ? ['Set OpenAI API key for image moderation (optional but recommended)'] : []),
       ] : [
         'Environment looks good!',
-        ...(fileUploadReady ? [] : ['File upload system may have issues - check AWS configuration'])
+        ...(fileUploadReady ? [] : ['File upload system may have issues - check AWS configuration']),
+        ...(allMissing.length > 0 ? [`Optional features missing: ${allMissing.join(', ')}`] : [])
       ]
     })
 
