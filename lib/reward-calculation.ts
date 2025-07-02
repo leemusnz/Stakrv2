@@ -453,4 +453,4 @@ export async function distributeRewards(challengeId: string): Promise<RewardDist
     console.error('❌ Reward distribution failed:', error)
     throw new Error(`Failed to distribute rewards: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
-} 
+}

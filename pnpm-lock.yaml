@@ -25,7 +25,7 @@ importers:
         version: 3.840.0
       '@cloudflare/workers-types':
         specifier: latest
-        version: 4.20250701.0
+        version: 4.20250702.0
       '@electric-sql/pglite':
         specifier: latest
         version: 0.3.4
@@ -52,7 +52,7 @@ importers:
         version: 1.19.0
       '@prisma/client':
         specifier: latest
-        version: 6.10.1(typescript@5.0.2)
+        version: 6.11.0(typescript@5.0.2)
       '@radix-ui/react-accordion':
         specifier: latest
         version: 1.2.11(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -179,6 +179,9 @@ importers:
       cmdk:
         specifier: latest
         version: 1.1.1(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      crypto:
+        specifier: latest
+        version: 1.0.1
       date-fns:
         specifier: latest
         version: 4.1.0
@@ -187,7 +190,7 @@ importers:
         version: 0.31.4
       drizzle-orm:
         specifier: latest
-        version: 0.44.2(e3c98de78f9b09f9e5cc6d3ce30e5fb0)
+        version: 0.44.2(5bcd6181bd35d127f6134d51ba67684b)
       embla-carousel-react:
         specifier: latest
         version: 8.6.0(react@19.0.0)
@@ -258,7 +261,7 @@ importers:
         specifier: latest
         version: 3.0.2(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react-is@18.3.1)(react@19.0.0)(redux@5.0.1)
       resend:
-        specifier: ^4.6.0
+        specifier: latest
         version: 4.6.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       sonner:
         specifier: latest
@@ -1032,8 +1035,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@cloudflare/workers-types@4.20250701.0':
-    resolution: {integrity: sha512-q1bHwe5P7FGy9RkLYOY1kwoZrqUe2Q6XhCPscaxzQc0N7+2pwIZzZzY5iMTTfvmf65UNsadoVxuF+vPVXoAkkQ==}
+  '@cloudflare/workers-types@4.20250702.0':
+    resolution: {integrity: sha512-gUuWeVvb0Y6E8h83nI19Ay+69x+9Xjz99TdhX0JdZoNTtyVX9KcdQgGcRK+Tmt2WC0z2AQaPq/qVmNihAgS7iQ==}
 
   '@date-fns/tz@1.2.0':
     resolution: {integrity: sha512-LBrd7MiJZ9McsOgxqWX7AaxrDjcFVjWH/tIKJd7pnR7McaslGYOP1QmmiBXdJH/H/yLCT+rcQ7FaPBUxRGUtrg==}
@@ -1866,8 +1869,8 @@ packages:
     resolution: {integrity: sha512-Tv4jcFUFAFjOWrGSio49H6R2ijALv0ZzVBfJKIdm+kl9X046Fh4LLawrF9OMsglVbK6ukqMJsUCeucGAFTBcMA==}
     engines: {node: '>=16'}
 
-  '@prisma/client@6.10.1':
-    resolution: {integrity: sha512-Re4pMlcUsQsUTAYMK7EJ4Bw2kg3WfZAAlr8GjORJaK4VOP6LxRQUQ1TuLnxcF42XqGkWQ36q5CQF1yVadANQ6w==}
+  '@prisma/client@6.11.0':
+    resolution: {integrity: sha512-K9TkKepOYvCOg3qCuKz7ZHf6rf58BFKi08plKjU4qVv9y7/UxO6tLz7PlWcgODUZKURLPmRHjHERffIx/8az4w==}
     engines: {node: '>=18.18'}
     peerDependencies:
       prisma: '*'
@@ -3755,6 +3758,10 @@ packages:
   crypto-random-string@2.0.0:
     resolution: {integrity: sha512-v1plID3y9r/lPhviJ1wrXpLeyUIGAZ2SHNYTEapm7/8A9nLPoyvVp3RK/EPFqn5kEznyWgYZNsRtYYIWbuG8KA==}
     engines: {node: '>=8'}
+
+  crypto@1.0.1:
+    resolution: {integrity: sha512-VxBKmeNcqQdiUQUW2Tzq0t377b54N2bMtXO/qiLa+6eRRmmC4qT3D4OnTGoT/U6O9aklQ/jTwbOtRMTTY8G0Ig==}
+    deprecated: This package is no longer supported. It's now a built-in Node module. If you've depended on crypto, you should switch to the one that's built-in.
 
   css.escape@1.5.1:
     resolution: {integrity: sha512-YUifsXXuknHlUsmlgyY0PKzgPOr7/FjCePfHNt0jxm83wHZi44VDMQ7/fGNkjY3/jV1MC+1CmZbaHzugyeRtpg==}
@@ -8795,7 +8802,7 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@cloudflare/workers-types@4.20250701.0': {}
+  '@cloudflare/workers-types@4.20250702.0': {}
 
   '@date-fns/tz@1.2.0': {}
 
@@ -9721,7 +9728,7 @@ snapshots:
 
   '@planetscale/database@1.19.0': {}
 
-  '@prisma/client@6.10.1(typescript@5.0.2)':
+  '@prisma/client@6.11.0(typescript@5.0.2)':
     optionalDependencies:
       typescript: 5.0.2
 
@@ -11990,6 +11997,8 @@ snapshots:
 
   crypto-random-string@2.0.0: {}
 
+  crypto@1.0.1: {}
+
   css.escape@1.5.1: {}
 
   cssesc@3.0.0: {}
@@ -12198,10 +12207,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.44.2(e3c98de78f9b09f9e5cc6d3ce30e5fb0):
+  drizzle-orm@0.44.2(5bcd6181bd35d127f6134d51ba67684b):
     optionalDependencies:
       '@aws-sdk/client-rds-data': 3.840.0
-      '@cloudflare/workers-types': 4.20250701.0
+      '@cloudflare/workers-types': 4.20250702.0
       '@electric-sql/pglite': 0.3.4
       '@libsql/client': 0.15.9(bufferutil@4.0.9)
       '@libsql/client-wasm': 0.15.9
@@ -12209,7 +12218,7 @@ snapshots:
       '@op-engineering/op-sqlite': 14.1.1(react-native@0.80.1(@babel/core@7.27.7)(@types/react@19.0.0)(bufferutil@4.0.9)(react@19.0.0))(react@19.0.0)
       '@opentelemetry/api': 1.9.0
       '@planetscale/database': 1.19.0
-      '@prisma/client': 6.10.1(typescript@5.0.2)
+      '@prisma/client': 6.11.0(typescript@5.0.2)
       '@tidbcloud/serverless': 0.2.0
       '@types/better-sqlite3': 7.6.13
       '@types/pg': 8.15.4

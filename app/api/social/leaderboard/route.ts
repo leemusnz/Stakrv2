@@ -369,4 +369,4 @@ function formatScore(score: any, category: string): string {
     default:
       return Math.floor(numericScore).toLocaleString()
   }
-} 
+}

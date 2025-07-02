@@ -123,4 +123,4 @@ function createMockFile(name: string, type: string, size: number): File {
   } as unknown as File
 
   return file
-} 
+}

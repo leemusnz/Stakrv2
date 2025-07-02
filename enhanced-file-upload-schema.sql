@@ -304,4 +304,4 @@ INSERT INTO file_security_incidents (
   'File uploaded with suspicious filename pattern suggesting stock content',
   '{"pattern": "stock_photo_123.jpg", "risk_factors": ["stock_pattern", "generic_name"]}',
   'resolved'
-) ON CONFLICT DO NOTHING; 
+) ON CONFLICT DO NOTHING;

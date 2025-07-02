@@ -315,4 +315,4 @@ function parseMetadata(metadata: any, activityType: string): any {
   }
 
   return result
-} 
+}
