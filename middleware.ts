@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
+  // TEMPORARILY DISABLED - Testing SSL issue
+  console.log('Middleware bypassed for SSL debugging')
+  return NextResponse.next()
+  
+  /* COMMENTED OUT FOR SSL DEBUGGING
   // Check if this is the alpha gate page or alpha access API - always allow these
   if (
     request.nextUrl.pathname === '/alpha-gate' ||
@@ -38,6 +43,7 @@ export function middleware(request: NextRequest) {
 
   // Allow access if they have the cookie
   return NextResponse.next()
+  */
 }
 
 export const config = {
