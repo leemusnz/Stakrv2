@@ -22,28 +22,48 @@ export default function AlphaGatePage() {
     setIsLoading(true)
     setError('')
 
+    console.log('🚀 Starting alpha access submission...')
+
     try {
+      console.log('📡 Making API call to /api/alpha-access...')
       const response = await fetch('/api/alpha-access', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
       })
 
+      console.log('📡 API response status:', response.status)
       const data = await response.json()
+      console.log('📡 API response data:', data)
 
       if (data.success) {
+        console.log('✅ Access granted! Setting redirect state...')
         // Cookie is now set server-side, just need to redirect
         setIsRedirecting(true)
         
-        // Use window.location for a full page reload to ensure cookie is processed
+        console.log('⏰ Starting redirect timeout...')
+        
+        // Check cookies before redirect
         setTimeout(() => {
+          console.log('🍪 Current cookies:', document.cookie)
+          console.log('🍪 Alpha access cookie:', document.cookie.includes('alpha_access=true'))
+        }, 100)
+        
+        // Use window.location for a full page reload to ensure cookie is processed
+        const timeoutId = setTimeout(() => {
+          console.log('🔄 Executing redirect to homepage...')
+          console.log('🍪 Final cookies check:', document.cookie)
           window.location.href = '/'
         }, 500)
+        
+        console.log('⏰ Timeout ID:', timeoutId)
       } else {
+        console.log('❌ Access denied:', data.error)
         setError(data.error || 'Invalid access code')
         setIsLoading(false)
       }
     } catch (error) {
+      console.error('💥 Alpha access error:', error)
       setError('Connection error. Please try again.')
       setIsLoading(false)
     }
@@ -112,14 +132,22 @@ export default function AlphaGatePage() {
                 <Alert className="border-green-200 bg-green-50">
                   <AlertDescription className="text-green-800 space-y-2">
                     <div>✅ Access granted! Taking you to Stakr...</div>
-                    <div className="text-xs text-green-700">
-                      If you're not redirected automatically,{' '}
-                      <button 
-                        onClick={() => window.location.href = '/'}
-                        className="underline hover:no-underline font-medium"
-                      >
-                        click here
-                      </button>
+                    <div className="text-xs text-green-700 space-y-1">
+                      <div>
+                        If you're not redirected automatically,{' '}
+                        <button 
+                          onClick={() => {
+                            console.log('🔄 Manual redirect button clicked')
+                            window.location.href = '/'
+                          }}
+                          className="underline hover:no-underline font-medium"
+                        >
+                          click here
+                        </button>
+                      </div>
+                      <div>
+                        Debug: Check browser console for logs
+                      </div>
                     </div>
                   </AlertDescription>
                 </Alert>
