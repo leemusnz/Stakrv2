@@ -59,4 +59,4 @@ export async function POST(request: NextRequest) {
       error: 'Server error. Please try again.' 
     }, { status: 500 })
   }
-} 
+}
