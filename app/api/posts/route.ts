@@ -5,6 +5,7 @@ import { createDbConnection } from '@/lib/db'
 import { moderationService } from '@/lib/moderation'
 import { isDemoUser } from '@/lib/demo-data'
 import { moderateUserContent } from '@/lib/moderation' // MVP version - $0 cost
+import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 
 interface CreatePostRequest {
   content: string
@@ -45,9 +46,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Post content too long (max 500 characters)' }, { status: 400 })
     }
 
-    // Demo user handling
-    if (isDemoUser(session.user.id)) {
-      return handleDemoPost(session.user, body)
+    // Hybrid demo system: new demo mode OR legacy demo users
+    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+      return handleDemoPost(session.user, body, request, session)
     }
 
     // Use MVP moderation (free)
@@ -150,9 +151,9 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Demo user handling
-    if (isDemoUser(session.user.id)) {
-      return handleDemoGetPosts(userId, challengeId, limit, offset)
+    // Hybrid demo system: new demo mode OR legacy demo users
+    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+      return handleDemoGetPosts(userId, challengeId, limit, offset, request, session)
     }
 
     // Real user handling
@@ -315,7 +316,7 @@ async function getChallengeInfo(sql: any, challengeId: string) {
 }
 
 // Demo implementations
-function handleDemoPost(user: any, body: CreatePostRequest) {
+function handleDemoPost(user: any, body: CreatePostRequest, request?: NextRequest, session?: any) {
   const demoPost = {
     id: `demo-post-${Date.now()}`,
     content: body.content,
@@ -346,14 +347,20 @@ function handleDemoPost(user: any, body: CreatePostRequest) {
     }
   }
 
-  return NextResponse.json({
+  const responseData = {
     success: true,
     message: 'Post created successfully (Demo Mode)',
     post: demoPost
-  }, { status: 201 })
+  }
+
+  if (request && session) {
+    return NextResponse.json(createDemoResponse(responseData, request, session), { status: 201 })
+  } else {
+    return NextResponse.json({...responseData, demo: true}, { status: 201 })
+  }
 }
 
-function handleDemoGetPosts(userId?: string | null, challengeId?: string | null, limit: number = 20, offset: number = 0) {
+function handleDemoGetPosts(userId?: string | null, challengeId?: string | null, limit: number = 20, offset: number = 0, request?: NextRequest, session?: any) {
   const demoPosts = [
     {
       id: 'demo-post-1',
@@ -399,7 +406,7 @@ function handleDemoGetPosts(userId?: string | null, challengeId?: string | null,
     }
   ]
 
-  return NextResponse.json({
+  const responseData = {
     success: true,
     posts: demoPosts.slice(offset, offset + limit),
     pagination: {
@@ -407,5 +414,11 @@ function handleDemoGetPosts(userId?: string | null, challengeId?: string | null,
       offset,
       hasMore: offset + limit < demoPosts.length
     }
-  })
+  }
+
+  if (request && session) {
+    return NextResponse.json(createDemoResponse(responseData, request, session))
+  } else {
+    return NextResponse.json({...responseData, demo: true})
+  }
 }

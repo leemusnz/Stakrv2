@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
+import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 import { isDemoUser } from '@/lib/demo-data'
 
 // GET challenges with optional filtering
@@ -13,8 +14,8 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'active'
     const limit = parseInt(searchParams.get('limit') || '20')
     
-    // For demo users, return mock challenges
-    if (session?.user && isDemoUser(session.user.id)) {
+    // Check for demo mode (new system) OR demo users (legacy compatibility)
+    if (shouldUseDemoData(request, session) || (session?.user && isDemoUser(session.user.id))) {
       const mockChallenges = [
         {
           id: '123e4567-e89b-12d3-a456-426614174000',
@@ -67,14 +68,14 @@ export async function GET(request: NextRequest) {
       }
       filteredChallenges = filteredChallenges.slice(0, limit)
 
-      return NextResponse.json({
+      return NextResponse.json(createDemoResponse({
         success: true,
         challenges: filteredChallenges,
         count: filteredChallenges.length,
         total_available: mockChallenges.length,
         filters_applied: { category, status, limit },
         message: 'Demo challenges retrieved successfully'
-      })
+      }, request, session))
     }
 
     // For real users, query the database
@@ -213,9 +214,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // For demo users, return mock success
-    if (isDemoUser(session.user.id)) {
-      return NextResponse.json({
+    // For demo mode OR demo users, return mock success
+    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+      return NextResponse.json(createDemoResponse({
         success: true,
         message: 'Challenge created successfully!',
         challenge: {
@@ -226,7 +227,7 @@ export async function POST(request: NextRequest) {
           created_at: new Date().toISOString(),
           invite_code: challengeData.privacyType === 'private' ? 'DEMO1234' : null
         }
-      }, { status: 201 })
+      }, request, session), { status: 201 })
     }
 
     // For real users, create in database

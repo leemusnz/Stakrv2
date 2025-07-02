@@ -6,6 +6,7 @@ import {
   isDemoUser, 
   getMockUserChallenges 
 } from '@/lib/demo-data'
+import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,8 +19,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || 'all'
 
-    // For demo users, return mock challenges with rejected verification data
-    if (isDemoUser(session.user.id)) {
+    // Hybrid demo system: new demo mode OR legacy demo users
+    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
       const mockChallenges = getMockUserChallenges(session.user.id)
       
       let filteredChallenges = mockChallenges
@@ -27,11 +28,11 @@ export async function GET(request: NextRequest) {
         filteredChallenges = mockChallenges.filter(challenge => challenge.completionStatus === status)
       }
 
-      return NextResponse.json({
+      return NextResponse.json(createDemoResponse({
         success: true,
         challenges: filteredChallenges,
         totalCount: filteredChallenges.length
-      })
+      }, request, session))
     }
 
     // For real users, query the database

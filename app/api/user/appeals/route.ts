@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { isDemoUser } from '@/lib/demo-data'
+import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,9 +20,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Verification ID and appeal reason are required' }, { status: 400 })
     }
 
-    // For demo users, return mock success
-    if (isDemoUser(session.user.id)) {
-      return NextResponse.json({
+    // Hybrid demo system: new demo mode OR legacy demo users
+    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+      return NextResponse.json(createDemoResponse({
         success: true,
         message: 'Appeal submitted successfully',
         appeal: {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
           status: 'pending',
           submittedAt: new Date().toISOString()
         }
-      })
+      }, request, session))
     }
 
     // For real users, process with database
@@ -116,9 +117,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // For demo users, return mock appeals
-    if (isDemoUser(session.user.id)) {
-      return NextResponse.json({
+    // Hybrid demo system: new demo mode OR legacy demo users
+    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+      return NextResponse.json(createDemoResponse({
         success: true,
         appeals: [
           {
@@ -130,7 +131,7 @@ export async function GET(request: NextRequest) {
             submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
           }
         ]
-      })
+      }, request, session))
     }
 
     // For real users, query database

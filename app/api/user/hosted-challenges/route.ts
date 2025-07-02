@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { isDemoUser } from '@/lib/demo-data'
+import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,8 +13,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // For demo users, return mock hosted challenges
-    if (isDemoUser(session.user.id)) {
+    // Hybrid demo system: new demo mode OR legacy demo users
+    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
       const mockHostedChallenges = [
         {
           id: 'demo-hosted-1',
@@ -80,10 +81,10 @@ export async function GET(request: NextRequest) {
         }
       ]
 
-      return NextResponse.json({
+      return NextResponse.json(createDemoResponse({
         success: true,
         challenges: mockHostedChallenges
-      })
+      }, request, session))
     }
 
     // For real users, query database

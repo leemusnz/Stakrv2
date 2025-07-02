@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { z } from 'zod'
 import { isDemoUser, getDemoUserData } from '@/lib/demo-data'
+import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 
 const devModeSchema = z.object({
   enabled: z.boolean()
@@ -17,8 +18,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // Check if this is a demo user
-    if (isDemoUser(session.user.id)) {
+    // Hybrid demo system: new demo mode OR legacy demo users
+    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
       const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
       
       if (!isAdmin) {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
       const { enabled } = devModeSchema.parse(body)
 
       // For demo users, return mock success response
-      return NextResponse.json({
+      return NextResponse.json(createDemoResponse({
         success: true,
         message: `Dev mode ${enabled ? 'enabled' : 'disabled'}`,
         user: {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
           isDev: true,
           devModeEnabled: enabled
         }
-      })
+      }, request, session))
     }
 
     // For real users, check dev access
@@ -98,18 +99,18 @@ export async function POST(request: NextRequest) {
 }
 
 // Get current dev mode status
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    // Check if this is a demo user
-    if (isDemoUser(session.user.id)) {
+    // Hybrid demo system: new demo mode OR legacy demo users
+    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
       const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
       
-      return NextResponse.json({
+      return NextResponse.json(createDemoResponse({
         user: {
           id: session.user.id,
           email: session.user.email,
@@ -118,7 +119,7 @@ export async function GET() {
           devModeEnabled: false,
           devAccessGrantedAt: isAdmin ? new Date('2024-01-01') : null
         }
-      })
+      }, request, session))
     }
 
     // For real users, query database
