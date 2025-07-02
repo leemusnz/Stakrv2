@@ -2,25 +2,18 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // TEMPORARILY DISABLED - Testing SSL issue
-  console.log('Middleware bypassed for SSL debugging')
-  return NextResponse.next()
+  // Skip middleware for certain paths that should always be accessible
+  const { pathname } = request.nextUrl
   
-  /* COMMENTED OUT FOR SSL DEBUGGING
-  // Check if this is the alpha gate page or alpha access API - always allow these
+  // Always allow these paths
   if (
-    request.nextUrl.pathname === '/alpha-gate' ||
-    request.nextUrl.pathname === '/api/alpha-access'
-  ) {
-    return NextResponse.next()
-  }
-
-  // Allow static assets
-  if (
-    request.nextUrl.pathname.startsWith('/_next') ||
-    request.nextUrl.pathname.startsWith('/favicon') ||
-    request.nextUrl.pathname.startsWith('/logos') ||
-    request.nextUrl.pathname.startsWith('/public')
+    pathname === '/alpha-gate' ||
+    pathname === '/api/alpha-access' ||
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/logos/') ||
+    pathname.startsWith('/public/') ||
+    pathname === '/manifest.json'
   ) {
     return NextResponse.next()
   }
@@ -28,22 +21,23 @@ export function middleware(request: NextRequest) {
   // Check for alpha access cookie
   const alphaAccess = request.cookies.get('alpha_access')
   
+  // If no valid alpha access
   if (!alphaAccess || alphaAccess.value !== 'true') {
     // For API routes, return 401 instead of redirect
-    if (request.nextUrl.pathname.startsWith('/api/')) {
+    if (pathname.startsWith('/api/')) {
       return NextResponse.json(
         { error: 'Alpha access required' }, 
         { status: 401 }
       )
     }
     
-    // For pages, redirect to alpha gate
-    return NextResponse.redirect(new URL('/alpha-gate', request.url))
+    // For pages, redirect to alpha gate (preserve protocol and host)
+    const url = new URL('/alpha-gate', request.url)
+    return NextResponse.redirect(url)
   }
 
-  // Allow access if they have the cookie
+  // Allow access if they have the valid cookie
   return NextResponse.next()
-  */
 }
 
 export const config = {
