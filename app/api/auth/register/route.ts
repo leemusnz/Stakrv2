@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createDbConnection } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
-import { sendEmail, createVerificationEmail, generateVerificationToken } from '@/lib/email'
+// import { sendEmail, createVerificationEmail, generateVerificationToken } from '@/lib/email'
 
 // Validation schema for user registration
 const registerSchema = z.object({
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const saltRounds = 12
     const passwordHash = await bcrypt.hash(password, saltRounds)
 
-    // Create user in database with unverified email
+    // Create user in database with email already verified (temporary)
     const newUsers = await sql`
       INSERT INTO users (
         email, 
@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
         longest_streak,
         premium_subscription,
         email_verified,
+        email_verified_at,
         created_at,
         updated_at
       ) VALUES (
@@ -87,7 +88,8 @@ export async function POST(request: NextRequest) {
         0,
         0,
         false,
-        false,
+        true,
+        NOW(),
         NOW(),
         NOW()
       )
@@ -98,6 +100,10 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ User created successfully:', newUser.email)
 
+    // TEMPORARY: Skip email verification for now
+    console.log('⚠️ Email verification temporarily disabled for quick setup')
+    
+    /* TEMPORARILY DISABLED - EMAIL VERIFICATION
     // Generate verification token and send email
     const verificationToken = generateVerificationToken()
     
@@ -121,6 +127,7 @@ export async function POST(request: NextRequest) {
       console.error('❌ Email verification setup failed:', emailError)
       // Continue with registration even if email fails
     }
+    */
 
     // Return user data (without password hash)
     return NextResponse.json({
@@ -137,8 +144,8 @@ export async function POST(request: NextRequest) {
         isAdmin: false,
         createdAt: newUser.created_at
       },
-      message: 'Account created successfully! Please check your email to verify your account.',
-      emailSent: true
+      message: 'Account created successfully! You can now sign in.',
+      emailSent: false
     }, { status: 201 })
 
   } catch (error) {
