@@ -136,4 +136,4 @@ export function useDemoMode() {
     isDemoMode,
     demoReason: isDemoMode ? 'client_detected' : null
   }
-} 
+}

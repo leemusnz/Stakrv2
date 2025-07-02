@@ -72,16 +72,16 @@ Must remove all demo user checks and mock data fallbacks to ensure consistent re
 ## **🛠 Implementation Steps**
 
 ### **Step 1: Remove Demo User System**
-```bash
+\`\`\`bash
 # Remove demo user dependencies
 1. Remove isDemoUser checks from all API endpoints
 2. Remove demo-data.ts imports  
 3. Remove demo user fallback from auth.ts
 4. Update all endpoints to use real database queries only
-```
+\`\`\`
 
 ### **Step 2: Create Missing API Endpoints**
-```bash
+\`\`\`bash
 # Create notifications API
 1. Create /api/user/notifications endpoint
 2. Connect notification provider to real API
@@ -96,25 +96,25 @@ Must remove all demo user checks and mock data fallbacks to ensure consistent re
 1. Create /api/social/friends endpoint  
 2. Connect friend-activity component
 3. Use existing social follows data
-```
+\`\`\`
 
 ### **Step 3: Component Cleanup**
-```bash
+\`\`\`bash
 # Convert mock components to real data
 1. Update friend-activity.tsx to use real follows
 2. Update creator-grid.tsx to use real creators
 3. Decide on brand-grid.tsx (remove or implement)
 4. Update social-proof.tsx with real testimonials or remove
-```
+\`\`\`
 
 ### **Step 4: System Cleanup**
-```bash
+\`\`\`bash
 # Remove mock infrastructure
 1. Remove or rename lib/mock-data.ts
 2. Clean up lib/api.ts mock conditionals
 3. Remove enableMockData config
 4. Update documentation
-```
+\`\`\`
 
 ## **🎯 Success Criteria**
 
@@ -163,4 +163,4 @@ Must remove all demo user checks and mock data fallbacks to ensure consistent re
 - Demo scenarios will need real data setup
 - Integration tests need database seeding
 
-This cleanup will achieve **100% production readiness** with zero mock data dependencies. 
+This cleanup will achieve **100% production readiness** with zero mock data dependencies.

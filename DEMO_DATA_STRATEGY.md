@@ -12,7 +12,7 @@
 
 ## **Method 1: Environment-Based Demo Mode** ⭐ **RECOMMENDED**
 
-```typescript
+\`\`\`typescript
 // Clean separation based on environment + explicit intent
 const isDemoMode = process.env.NODE_ENV === 'development' || 
                    searchParams.get('demo') === 'true'
@@ -21,7 +21,7 @@ if (isDemoMode && !isProductionUser) {
   return mockData
 }
 // Always return real data for production users
-```
+\`\`\`
 
 **Benefits:**
 - Demo data available in development automatically
@@ -31,7 +31,7 @@ if (isDemoMode && !isProductionUser) {
 
 ## **Method 2: Dedicated Demo Routes**
 
-```bash
+\`\`\`bash
 # Real user routes (always real data)
 /dashboard
 /challenges  
@@ -41,7 +41,7 @@ if (isDemoMode && !isProductionUser) {
 /demo/dashboard
 /demo/challenges
 /demo/social
-```
+\`\`\`
 
 **Benefits:**
 - Complete separation of demo vs real experiences
@@ -51,7 +51,7 @@ if (isDemoMode && !isProductionUser) {
 
 ## **Method 3: Admin Preview Mode**
 
-```typescript
+\`\`\`typescript
 // Only admins can toggle demo mode
 const canUseDemoMode = session?.user?.isAdmin || 
                        process.env.NODE_ENV === 'development'
@@ -59,7 +59,7 @@ const canUseDemoMode = session?.user?.isAdmin ||
 if (searchParams.get('preview') === 'demo' && canUseDemoMode) {
   return mockData
 }
-```
+\`\`\`
 
 **Benefits:**
 - Admins can preview demo experience
@@ -68,14 +68,14 @@ if (searchParams.get('preview') === 'demo' && canUseDemoMode) {
 
 ## **Method 4: Database Seeding Approach**
 
-```sql
+\`\`\`sql
 -- Create realistic seed data in database
 INSERT INTO users (id, name, email, is_seed_data) VALUES 
 ('seed-user-1', 'Demo User', 'demo@example.com', true);
 
 -- Query real data but include seed data for demos
 SELECT * FROM challenges WHERE is_seed_data = true OR user_id = $current_user
-```
+\`\`\`
 
 **Benefits:**
 - Uses real database queries
@@ -87,7 +87,7 @@ SELECT * FROM challenges WHERE is_seed_data = true OR user_id = $current_user
 
 ### **Hybrid Approach: Environment + Explicit Intent**
 
-```typescript
+\`\`\`typescript
 // New demo data utility
 export function shouldUseDemoData(request: Request, session: any): boolean {
   // 1. Development environment - always allow demo
@@ -108,12 +108,12 @@ export function shouldUseDemoData(request: Request, session: any): boolean {
   // 4. Never for real users in normal flow
   return false
 }
-```
+\`\`\`
 
 ### **Implementation Plan**
 
 #### **Step 1: Replace isDemoUser with shouldUseDemoData**
-```typescript
+\`\`\`typescript
 // Before (problematic)
 if (isDemoUser(session.user.id)) {
   return mockData
@@ -124,25 +124,25 @@ if (shouldUseDemoData(request, session)) {
   return mockData
 }
 // Always continue to real data for normal users
-```
+\`\`\`
 
 #### **Step 2: Create Demo Routes** 
-```bash
+\`\`\`bash
 app/demo/
   dashboard/page.tsx     # Always shows mock data
   challenges/page.tsx    # Always shows mock data  
   social/page.tsx        # Always shows mock data
-```
+\`\`\`
 
 #### **Step 3: Add Demo Mode Indicators**
-```typescript
+\`\`\`typescript
 // Show clear indicators when in demo mode
 {isDemoMode && (
   <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4">
     🎭 Demo Mode - This is sample data for demonstration
   </div>
 )}
-```
+\`\`\`
 
 ## **🎯 Benefits of This Approach**
 
@@ -167,7 +167,7 @@ app/demo/
 ## **🛠 Implementation Examples**
 
 ### **API Endpoint Pattern**
-```typescript
+\`\`\`typescript
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
   
@@ -190,10 +190,10 @@ export async function GET(request: NextRequest) {
     demo: false
   })
 }
-```
+\`\`\`
 
 ### **Component Pattern**
-```typescript
+\`\`\`typescript
 export function ChallengeGrid({ demo = false }: { demo?: boolean }) {
   const [challenges, setChallenges] = useState([])
   
@@ -211,7 +211,7 @@ export function ChallengeGrid({ demo = false }: { demo?: boolean }) {
     </div>
   )
 }
-```
+\`\`\`
 
 ## **📋 Migration Steps**
 
@@ -222,4 +222,4 @@ export function ChallengeGrid({ demo = false }: { demo?: boolean }) {
 5. **Test both real and demo experiences**
 6. **Update documentation**
 
-**Result:** Clean separation with both demo capabilities AND guaranteed real user experience! 
+**Result:** Clean separation with both demo capabilities AND guaranteed real user experience!
