@@ -5,6 +5,11 @@ export function middleware(request: NextRequest) {
   // Skip middleware for certain paths that should always be accessible
   const { pathname } = request.nextUrl
   
+  // Debug: Log all requests in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🔧 Middleware processing: ${pathname}`)
+  }
+  
   // Always allow these paths
   if (
     pathname === '/alpha-gate' ||
@@ -16,6 +21,9 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/public/') ||
     pathname === '/manifest.json'
   ) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ Allowing path: ${pathname}`)
+    }
     return NextResponse.next()
   }
 
