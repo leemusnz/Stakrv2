@@ -10,7 +10,7 @@ This error typically occurs due to one of the following reasons:
 
 ## 🔍 **Step 1: Check Environment Variables**
 
-Visit your deployed app at: `https://your-app.vercel.app/api/test-deployment`
+Visit your deployed app at: `https://stakr.app/api/test-deployment`
 
 Look for these critical environment variables:
 
