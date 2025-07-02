@@ -6,7 +6,7 @@ If you can't access your database immediately, here's a temporary fix for the re
 
 In `app/api/auth/register/route.ts`, temporarily comment out the email verification:
 
-```typescript
+\`\`\`typescript
 // TEMPORARY: Comment out these lines until database schema is applied
 /*
 try {
@@ -30,13 +30,13 @@ try {
   // Continue with registration even if email fails
 }
 */
-```
+\`\`\`
 
 ## Option 2: Set Email as Verified by Default (Quick Fix)
 
 Change the user creation to set `email_verified: true`:
 
-```typescript
+\`\`\`typescript
 const newUsers = await sql`
   INSERT INTO users (
     email, 
@@ -73,7 +73,7 @@ const newUsers = await sql`
   )
   RETURNING id, email, name, avatar_url, credits, trust_score, verification_tier, email_verified, created_at
 `
-```
+\`\`\`
 
 ## ⚠️ IMPORTANT: 
 
@@ -82,4 +82,4 @@ const newUsers = await sql`
 After applying the database fix:
 1. Revert these temporary changes
 2. Redeploy your application 
-3. Email verification will work properly 
+3. Email verification will work properly
