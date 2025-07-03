@@ -6,17 +6,16 @@ We've successfully implemented comprehensive swipe navigation throughout your St
 
 ## 📱 **Implemented Swipe Features**
 
-### **1. ✅ Challenge Discovery - Tinder-Style Cards**
+### **1. ✅ Challenge Discovery - Navigation Carousel**
 **Location:** `app/discover/page.tsx`
-- **Mobile**: Swipeable challenge cards with stack animation
+- **Mobile**: Swipeable challenge card carousel
 - **Desktop**: Traditional grid layout
-- **Swipe Actions:**
-  - Swipe Right ➡️ → Join Challenge
-  - Swipe Left ⬅️ → Pass/Skip
-  - Swipe Up ⬆️ → Bookmark for Later
-- **Visual Feedback**: Real-time swipe indicators with icons
-- **Progress**: Card stack with progress dots
-- **Fallback**: Manual action buttons + swipe hints
+- **Swipe Navigation:**
+  - Swipe Left ⬅️ → Next Challenge
+  - Swipe Right ➡️ → Previous Challenge
+- **Visual Feedback**: Active card highlighting and progress dots
+- **Features**: Browse mode with Join/View Details buttons
+- **No Dismissal**: Cards stay visible for easy re-browsing
 
 ### **2. ✅ Onboarding Flow - Swipe Between Steps**
 **Location:** `app/onboarding/page.tsx`
@@ -49,8 +48,7 @@ We've successfully implemented comprehensive swipe navigation throughout your St
 - `components/ui/swipe-indicators.tsx` - Visual feedback system
 - `components/ui/swipeable-tabs.tsx` - Generic tab swipe navigation
 - `components/onboarding/swipeable-onboarding-layout.tsx` - Reusable layout
-- `components/discover/swipeable-challenge-card.tsx` - Challenge card component
-- `components/discover/challenge-swipe-stack.tsx` - Card stack manager
+- `components/discover/challenge-carousel.tsx` - Challenge navigation carousel
 - `components/social/swipeable-feed-item.tsx` - Social feed items
 
 ## 🔧 **Technical Infrastructure**
@@ -122,11 +120,11 @@ We've successfully implemented comprehensive swipe navigation throughout your St
 
 ### **Challenge Discovery Flow:**
 1. User opens Discover page on mobile
-2. Sees stack of challenge cards
-3. Swipes right to join → Card animates away, shows success
-4. Swipes left to pass → Card slides out
-5. Swipes up to bookmark → Card saves and continues
-6. Progress indicators show remaining challenges
+2. Sees challenge carousel with current card highlighted
+3. Swipes left/right to browse through all available challenges
+4. Taps "Join Challenge" button to participate
+5. Taps "View Details" to learn more
+6. Progress dots show position in challenge collection
 
 ### **Onboarding Flow:**
 1. User starts onboarding on mobile
@@ -159,13 +157,13 @@ We've successfully implemented comprehensive swipe navigation throughout your St
 
 Your Stakr app now provides a **world-class mobile experience** with:
 
-✅ **Tinder-style challenge discovery**  
-✅ **Smooth onboarding navigation**  
+✅ **Smooth challenge browsing carousel**  
+✅ **Swipe navigation through content**  
 ✅ **Interactive social feed**  
 ✅ **Intuitive creation wizards**  
 ✅ **Comprehensive swipe system**  
 
-**Mobile users will love the intuitive, gesture-based navigation that makes discovering and engaging with challenges feel natural and fun!** 🚀
+**Mobile users will love the intuitive, gesture-based navigation that makes browsing and engaging with challenges feel natural and effortless!** 🚀
 
 ---
 

@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { SwipeableTabs } from "@/components/ui/swipeable-tabs"
+import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { ChallengeCard } from "@/components/challenge-card"
 import { UserPosts } from "@/components/user-posts"
 import { PostCreationModal } from "@/components/post-creation/post-creation-modal"
@@ -16,6 +18,7 @@ import { getPersonalizedAvatar } from "@/lib/avatars"
 import { MapPin, Calendar, ExternalLink, Trophy, Users, TrendingUp, Settings, Share2, Edit, Flame } from "lucide-react"
 
 export default function ProfilePage() {
+  const { isMobile } = useEnhancedMobile()
   const { data: session, status } = useSession()
   const [selectedTab, setSelectedTab] = useState("posts")
   const [loading, setLoading] = useState(true)
@@ -328,13 +331,204 @@ export default function ProfilePage() {
         </Card>
 
         {/* Profile Tabs */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="posts">Posts</TabsTrigger>
-            <TabsTrigger value="challenges">Challenges</TabsTrigger>
-            <TabsTrigger value="achievements">Achievements</TabsTrigger>
-            <TabsTrigger value="stats">Stats</TabsTrigger>
-          </TabsList>
+        {isMobile ? (
+          <SwipeableTabs
+            defaultValue="posts"
+            value={selectedTab}
+            onValueChange={setSelectedTab}
+            tabs={[
+              {
+                value: "posts",
+                label: `Posts (${user.posts.length})`,
+                content: (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-2xl font-bold">Recent Posts</h2>
+                      <Badge variant="secondary">{user.posts.length} posts</Badge>
+                    </div>
+                    {user.posts.length === 0 ? (
+                      <Card className="p-8 text-center">
+                        <div className="space-y-4">
+                          <Users className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+                          <h3 className="text-lg font-medium">No Posts Yet</h3>
+                          <p className="text-muted-foreground">
+                            Share your challenge progress and motivate others!
+                          </p>
+                        </div>
+                      </Card>
+                    ) : (
+                      <UserPosts posts={user.posts} user={user} isOwnProfile={true} />
+                    )}
+                  </div>
+                )
+              },
+              {
+                value: "challenges",
+                label: `Challenges (${user.activeChallenges.length})`,
+                content: (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-2xl font-bold">Active Challenges</h2>
+                      <Badge variant="secondary">{user.activeChallenges.length} active</Badge>
+                    </div>
+                    {user.activeChallenges.length === 0 ? (
+                      <Card className="p-8 text-center">
+                        <div className="space-y-4">
+                          <Trophy className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+                          <h3 className="text-lg font-medium">No Active Challenges</h3>
+                          <p className="text-muted-foreground">
+                            Join your first challenge to start building better habits!
+                          </p>
+                          <Button onClick={() => window.location.href = '/discover'}>
+                            Browse Challenges
+                          </Button>
+                        </div>
+                      </Card>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-6">
+                        {/* Mobile-optimized challenge cards */}
+                      </div>
+                    )}
+                  </div>
+                )
+              },
+              {
+                value: "achievements",
+                label: `Achievements (${user.achievements.length})`,
+                content: (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-2xl font-bold">Achievements</h2>
+                      <Badge variant="secondary">{user.achievements.length} unlocked</Badge>
+                    </div>
+                    {user.achievements.length === 0 ? (
+                      <Card className="p-8 text-center">
+                        <div className="space-y-4">
+                          <Trophy className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+                          <h3 className="text-lg font-medium">No Achievements Yet</h3>
+                          <p className="text-muted-foreground">
+                            Complete challenges to unlock achievements and show off your progress!
+                          </p>
+                          <Button onClick={() => window.location.href = '/discover'}>
+                            Start Your First Challenge
+                          </Button>
+                        </div>
+                      </Card>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-4">
+                        {user.achievements.map((achievement) => (
+                          <Card key={achievement.id}>
+                            <CardContent className="p-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="text-3xl">{achievement.icon}</div>
+                                <div className="flex-1">
+                                  <h3 className="font-semibold">{achievement.title}</h3>
+                                  <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Badge className={getRarityColor(achievement.rarity)} variant="outline">
+                                      {achievement.rarity}
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(achievement.unlockedDate).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              },
+              {
+                value: "stats",
+                label: "Stats",
+                content: (
+                  <div className="space-y-6">
+                    <h2 className="text-2xl font-bold">Statistics</h2>
+                    <div className="space-y-4">
+                      {/* Mobile-optimized stats cards */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Trophy className="w-5 h-5" />
+                            Challenge Statistics
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Challenges Completed</span>
+                            <span className="font-bold text-green-600">{user.stats.challengesCompleted}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Success Rate</span>
+                            <span className="font-bold text-orange-600">{user.stats.successRate}%</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Total Earned</span>
+                            <span className="font-bold text-secondary">${user.stats.totalEarned}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Flame className="w-5 h-5" />
+                            Streak Statistics
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Current Streak</span>
+                            <span className="font-bold text-red-600">{user.stats.currentStreak} days</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Longest Streak</span>
+                            <span className="font-bold text-orange-600">{user.stats.longestStreak} days</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Users className="w-5 h-5" />
+                            Social Statistics
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Followers</span>
+                            <span className="font-bold text-primary">{user.stats.followers.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Following</span>
+                            <span className="font-bold text-secondary">{user.stats.following}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Posts</span>
+                            <span className="font-bold text-green-600">{user.posts.length}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                )
+              }
+            ]}
+            tabsListClassName="grid-cols-4"
+          />
+        ) : (
+          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="posts">Posts</TabsTrigger>
+              <TabsTrigger value="challenges">Challenges</TabsTrigger>
+              <TabsTrigger value="achievements">Achievements</TabsTrigger>
+              <TabsTrigger value="stats">Stats</TabsTrigger>
+            </TabsList>
 
           {/* Posts Tab */}
           <TabsContent value="posts" className="space-y-6">
@@ -544,6 +738,7 @@ export default function ProfilePage() {
             </div>
           </TabsContent>
         </Tabs>
+        )}
       </div>
     </div>
   )
