@@ -37,15 +37,15 @@
 
 ### **1. Enhanced Mobile Hook Updates**
 Using existing `hooks/use-enhanced-mobile.tsx`:
-```typescript
+\`\`\`typescript
 // Add swipe gesture detection for specific components
 const { swipeDirection, onTouchStart, onTouchEnd, onTouchMove } = useSwipeGesture(100, 300)
-```
+\`\`\`
 
 ### **2. Component-Specific Implementations**
 
 #### **Challenge Discovery Cards**
-```typescript
+\`\`\`typescript
 // components/discover/swipeable-challenge-card.tsx
 export function SwipeableDiscoveryCard({ challenge, onLike, onPass, onBookmark }) {
   const { swipeDirection, onTouchStart, onTouchEnd, onTouchMove } = useSwipeGesture()
@@ -82,10 +82,10 @@ export function SwipeableDiscoveryCard({ challenge, onLike, onPass, onBookmark }
     </div>
   )
 }
-```
+\`\`\`
 
 #### **Onboarding Step Navigation**
-```typescript
+\`\`\`typescript
 // components/onboarding/swipeable-onboarding.tsx
 export function SwipeableOnboardingLayout({ currentStep, totalSteps, onNext, onBack, children }) {
   const { swipeDirection, onTouchStart, onTouchEnd, onTouchMove } = useSwipeGesture()
@@ -123,10 +123,10 @@ export function SwipeableOnboardingLayout({ currentStep, totalSteps, onNext, onB
     </div>
   )
 }
-```
+\`\`\`
 
 #### **Social Feed Swipe Actions**
-```typescript
+\`\`\`typescript
 // components/social/swipeable-feed-item.tsx
 export function SwipeableFeedItem({ post, onLike, onComment, onShare }) {
   const [swipeOffset, setSwipeOffset] = useState(0)
@@ -162,12 +162,12 @@ export function SwipeableFeedItem({ post, onLike, onComment, onShare }) {
     </div>
   )
 }
-```
+\`\`\`
 
 ### **3. Visual Feedback Components**
 
 #### **Swipe Indicators**
-```typescript
+\`\`\`typescript
 // components/ui/swipe-indicators.tsx
 export function SwipeIndicators({ direction, distance }) {
   const opacity = Math.min(distance / 100, 1)
@@ -209,7 +209,7 @@ export function SwipeIndicators({ direction, distance }) {
     </>
   )
 }
-```
+\`\`\`
 
 ## **📊 Success Metrics**
 
@@ -273,4 +273,4 @@ export function SwipeIndicators({ direction, distance }) {
 
 ---
 
-**Ready to implement Phase 1? Start with Challenge Discovery swipe cards for maximum impact! 🚀** 
+**Ready to implement Phase 1? Start with Challenge Discovery swipe cards for maximum impact! 🚀**

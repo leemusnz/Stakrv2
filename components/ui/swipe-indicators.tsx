@@ -156,4 +156,4 @@ export function NavigationSwipeIndicators({ direction, distance }: { direction: 
       type="navigation"
     />
   )
-} 
+}

@@ -170,4 +170,4 @@ export function useSwipeableTabs(tabsData: SwipeableTab[], defaultValue?: string
     setActiveTab,
     tabs: tabsData
   }
-} 
+}

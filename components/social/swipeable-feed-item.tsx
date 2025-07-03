@@ -424,4 +424,4 @@ export function SwipeableFeedItem({
       </Card>
     </div>
   )
-} 
+}
