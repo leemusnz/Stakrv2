@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { CreationLayout } from "@/components/challenge-creation/creation-layout"
+import { SwipeableOnboardingLayout } from "@/components/onboarding/swipeable-onboarding-layout"
+import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { ChallengeTypeStep } from "@/components/challenge-creation/challenge-type-step"
 import { BasicInfoStep } from "@/components/challenge-creation/basic-info-step"
 import { ChallengeFeaturesStep } from "@/components/challenge-creation/challenge-features-step"
@@ -13,6 +15,7 @@ import { PreviewPublishStep } from "@/components/challenge-creation/preview-publ
 import { CategorySelectionStep } from "@/components/challenge-creation/category-selection-step"
 
 export default function CreateChallengePage() {
+  const { isMobile } = useEnhancedMobile()
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [isPublishing, setIsPublishing] = useState(false)
@@ -423,6 +426,38 @@ export default function CreateChallengePage() {
     }
   }
 
+  const layoutProps = {
+    currentStep: currentStep - 1, // Convert to 0-based for swipeable layout
+    totalSteps,
+    stepId: `step-${currentStep}`,
+    onNext: handleNext,
+    onBack: handlePrevious
+  }
+
+  const stepContent = renderStep()
+
+  if (isMobile) {
+    return (
+      <SwipeableOnboardingLayout
+        {...layoutProps}
+        canGoNext={canProceed()}
+        canGoBack={currentStep > 1}
+        showSkipButton={false}
+        showProgress={true}
+      >
+        <div className="space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-bold">Create Your Challenge</h1>
+            <p className="text-muted-foreground">
+              Step {currentStep} of {totalSteps}
+            </p>
+          </div>
+          {stepContent}
+        </div>
+      </SwipeableOnboardingLayout>
+    )
+  }
+
   return (
     <CreationLayout
       currentStep={currentStep}
@@ -432,7 +467,7 @@ export default function CreateChallengePage() {
       canProceed={canProceed()}
       isLoading={isPublishing}
     >
-      {renderStep()}
+      {stepContent}
     </CreationLayout>
   )
 }

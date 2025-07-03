@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { OnboardingLayout } from "@/components/onboarding/onboarding-layout"
+import { SwipeableOnboardingLayout } from "@/components/onboarding/swipeable-onboarding-layout"
+import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { WelcomeStep } from "@/components/onboarding/welcome-step"
 import { HabitScienceStep } from "@/components/onboarding/habit-science-step"
 import { HowItWorksStep } from "@/components/onboarding/how-it-works-step"
@@ -25,6 +27,7 @@ export interface OnboardingData {
 }
 
 export default function OnboardingPage() {
+  const { isMobile } = useEnhancedMobile()
   const [currentStep, setCurrentStep] = useState(0)
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     goals: [],
@@ -82,16 +85,45 @@ export default function OnboardingPage() {
 
   const CurrentStepComponent = steps[currentStep].component
 
+  const layoutProps = {
+    currentStep,
+    totalSteps: steps.length,
+    stepId: steps[currentStep].id,
+    onNext: handleNext,
+    onBack: handleBack,
+    onSkip: handleSkip
+  }
+
+  const stepContent = (
+    <CurrentStepComponent 
+      data={onboardingData} 
+      onNext={handleNext} 
+      onBack={handleBack} 
+      onSkip={handleSkip} 
+    />
+  )
+
   return (
     <>
-      <OnboardingLayout
-        currentStep={currentStep}
-        totalSteps={steps.length}
-        onBack={handleBack}
-        canGoBack={currentStep > 0}
-      >
-        <CurrentStepComponent data={onboardingData} onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
-      </OnboardingLayout>
+      {isMobile ? (
+        <SwipeableOnboardingLayout
+          {...layoutProps}
+          showSkipButton={currentStep < 5} // Show skip button until profile setup
+          canGoNext={currentStep < steps.length - 1}
+          canGoBack={currentStep > 0}
+        >
+          {stepContent}
+        </SwipeableOnboardingLayout>
+      ) : (
+        <OnboardingLayout
+          currentStep={currentStep}
+          totalSteps={steps.length}
+          onBack={handleBack}
+          canGoBack={currentStep > 0}
+        >
+          {stepContent}
+        </OnboardingLayout>
+      )}
 
       {/* Dev Testing Panel - only show in development */}
       {process.env.NODE_ENV === "development" && (
