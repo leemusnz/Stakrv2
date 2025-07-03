@@ -199,4 +199,4 @@ export function SwipeableOnboardingLayout({
       </div>
     </div>
   )
-} 
+}

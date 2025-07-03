@@ -276,4 +276,4 @@ export function SwipeableChallengeCard({
       </Card>
     </div>
   )
-} 
+}
