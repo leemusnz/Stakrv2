@@ -8,7 +8,7 @@ Your Stakr app now has comprehensive mobile detection capabilities! Here's how t
 
 ### **Available Hooks**
 
-```typescript
+\`\`\`typescript
 import { useEnhancedMobile, useSwipeGesture } from '@/hooks/use-enhanced-mobile'
 
 // Comprehensive mobile detection
@@ -31,13 +31,13 @@ const {
   onTouchMove,
   clearSwipe       // Reset swipe state
 } = useSwipeGesture(threshold?: number, timeout?: number)
-```
+\`\`\`
 
 ## **📋 Implementation Examples**
 
 ### **1. Challenge Discovery Swipe Cards**
 
-```typescript
+\`\`\`typescript
 // In your discover page component
 import { useEnhancedMobile, useSwipeGesture } from '@/hooks/use-enhanced-mobile'
 
@@ -53,11 +53,11 @@ export function ChallengeDiscovery() {
     return <DesktopGrid challenges={challenges} />
   }
 }
-```
+\`\`\`
 
 ### **2. Swipeable Challenge Card**
 
-```typescript
+\`\`\`typescript
 function SwipeableCard({ challenge, onLike, onPass }) {
   const { swipeDirection, onTouchStart, onTouchEnd, onTouchMove } = useSwipeGesture()
   
@@ -90,11 +90,11 @@ function SwipeableCard({ challenge, onLike, onPass }) {
     </div>
   )
 }
-```
+\`\`\`
 
 ### **3. Responsive Layout Component**
 
-```typescript
+\`\`\`typescript
 function ResponsiveLayout({ children }) {
   const { isMobile, isTablet } = useEnhancedMobile()
   
@@ -109,7 +109,7 @@ function ResponsiveLayout({ children }) {
     </div>
   )
 }
-```
+\`\`\`
 
 ## **🎯 Specific Use Cases for Stakr**
 
@@ -133,7 +133,7 @@ function ResponsiveLayout({ children }) {
 ## **📱 Mobile-Specific Features to Implement**
 
 ### **Swipe Gestures**
-```typescript
+\`\`\`typescript
 // In any component
 const { isMobile } = useEnhancedMobile()
 
@@ -148,20 +148,20 @@ if (isMobile) {
     </SwipeCard>
   )
 }
-```
+\`\`\`
 
 ### **Touch-Optimized UI**
-```typescript
+\`\`\`typescript
 <Button 
   size={isMobile ? "lg" : "default"}
   className={isMobile ? "min-h-[48px] text-base" : ""}
 >
   Touch-friendly button
 </Button>
-```
+\`\`\`
 
 ### **Orientation Handling**
-```typescript
+\`\`\`typescript
 const { orientation, screenSize } = useEnhancedMobile()
 
 return (
@@ -172,14 +172,14 @@ return (
     <YourContent />
   </div>
 )
-```
+\`\`\`
 
 ## **🚀 Quick Implementation Steps**
 
 ### **Step 1: Update Existing Components**
 
 Replace existing mobile detection:
-```typescript
+\`\`\`typescript
 // Before
 import { useIsMobile } from '@/hooks/use-mobile'
 const isMobile = useIsMobile()
@@ -187,12 +187,12 @@ const isMobile = useIsMobile()
 // After  
 import { useEnhancedMobile } from '@/hooks/use-enhanced-mobile'
 const { isMobile, isTouchDevice, isIOS } = useEnhancedMobile()
-```
+\`\`\`
 
 ### **Step 2: Add Swipe to Challenge Cards**
 
 In `components/challenge-card.tsx`:
-```typescript
+\`\`\`typescript
 export function ChallengeCard({ challenge, mobile = false }) {
   const { isMobile } = useEnhancedMobile()
   
@@ -202,11 +202,11 @@ export function ChallengeCard({ challenge, mobile = false }) {
   
   return <RegularChallengeCard challenge={challenge} />
 }
-```
+\`\`\`
 
 ### **Step 3: Create Mobile-First Pages**
 
-```typescript
+\`\`\`typescript
 // pages/discover/mobile.tsx
 export function MobileDiscoverPage() {
   return (
@@ -219,7 +219,7 @@ export function MobileDiscoverPage() {
     </div>
   )
 }
-```
+\`\`\`
 
 ## **🔧 Testing Mobile Features**
 
@@ -238,7 +238,7 @@ export function MobileDiscoverPage() {
 ## **⚡ Performance Tips**
 
 ### **Conditional Loading**
-```typescript
+\`\`\`typescript
 const { isMobile } = useEnhancedMobile()
 
 // Only load heavy components on desktop
@@ -255,10 +255,10 @@ return (
     )}
   </div>
 )
-```
+\`\`\`
 
 ### **Touch Event Optimization**
-```typescript
+\`\`\`typescript
 // Use passive listeners for better scroll performance
 useEffect(() => {
   const handleTouch = (e) => { /* handle touch */ }
@@ -271,7 +271,7 @@ useEffect(() => {
     element.removeEventListener('touchmove', handleTouch)
   }
 }, [])
-```
+\`\`\`
 
 ## **📋 Next Steps**
 
@@ -281,4 +281,4 @@ useEffect(() => {
 4. **Optimize touch interactions** throughout the app
 5. **Test on real devices** for best UX
 
-**Your app can now intelligently adapt to any device and provide native-feeling mobile experiences!** 🎉 
+**Your app can now intelligently adapt to any device and provide native-feeling mobile experiences!** 🎉
