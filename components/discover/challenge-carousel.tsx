@@ -248,4 +248,4 @@ function ChallengeCard({
       </CardContent>
     </Card>
   )
-} 
+}
