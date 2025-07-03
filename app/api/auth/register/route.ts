@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createDbConnection } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
-// import { sendEmail, createVerificationEmail, generateVerificationToken } from '@/lib/email'
+import { sendEmail, createVerificationEmail, generateVerificationToken } from '@/lib/email'
 
 // Validation schema for user registration
 const registerSchema = z.object({
@@ -72,7 +72,6 @@ export async function POST(request: NextRequest) {
         longest_streak,
         premium_subscription,
         email_verified,
-        email_verified_at,
         created_at,
         updated_at
       ) VALUES (
@@ -88,8 +87,7 @@ export async function POST(request: NextRequest) {
         0,
         0,
         false,
-        true,
-        NOW(),
+        false,
         NOW(),
         NOW()
       )
@@ -100,12 +98,9 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ User created successfully:', newUser.email)
 
-    // TEMPORARY: Skip email verification for now
-    console.log('⚠️ Email verification temporarily disabled for quick setup')
-    
-    /* TEMPORARILY DISABLED - EMAIL VERIFICATION
     // Generate verification token and send email
     const verificationToken = generateVerificationToken()
+    let emailSent = false
     
     try {
       // Store verification token in database
@@ -122,12 +117,12 @@ export async function POST(request: NextRequest) {
         // Note: We don't fail registration if email fails to send
       } else {
         console.log('✅ Verification email sent to:', email)
+        emailSent = true
       }
     } catch (emailError) {
       console.error('❌ Email verification setup failed:', emailError)
       // Continue with registration even if email fails
     }
-    */
 
     // Return user data (without password hash)
     return NextResponse.json({
@@ -144,8 +139,10 @@ export async function POST(request: NextRequest) {
         isAdmin: false,
         createdAt: newUser.created_at
       },
-      message: 'Account created successfully! You can now sign in.',
-      emailSent: false
+      message: emailSent 
+        ? 'Account created successfully! Please check your email to verify your account before signing in.' 
+        : 'Account created successfully! Email verification is temporarily unavailable, but you can sign in.',
+      emailSent
     }, { status: 201 })
 
   } catch (error) {
