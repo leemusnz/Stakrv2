@@ -344,9 +344,28 @@ export class ContentModerationService {
         let imageResponse: Response
         let downloadUrl = imageUrl
         
-        // If it's an S3 URL, we need to handle it specially in production
-        if (imageUrl.includes('stakr-verification-files.s3.ap-southeast-2.amazonaws.com')) {
-          console.log('🪣 Detected S3 URL, checking AWS credentials for direct access')
+        // Check if it's a proxy URL or direct S3 URL
+        let actualS3Url = imageUrl
+        let isS3Url = false
+        
+        // Handle proxy URLs that wrap S3 URLs
+        if (imageUrl.includes('/api/image-proxy?url=')) {
+          console.log('🔗 Detected proxy URL, extracting S3 URL')
+          const urlParams = new URL(imageUrl)
+          const wrappedUrl = urlParams.searchParams.get('url')
+          if (wrappedUrl && wrappedUrl.includes('stakr-verification-files.s3.ap-southeast-2.amazonaws.com')) {
+            actualS3Url = wrappedUrl
+            isS3Url = true
+            console.log('📤 Extracted S3 URL from proxy:', actualS3Url)
+          }
+        } else if (imageUrl.includes('stakr-verification-files.s3.ap-southeast-2.amazonaws.com')) {
+          isS3Url = true
+          console.log('🪣 Detected direct S3 URL')
+        }
+        
+        // If it's an S3 URL (direct or via proxy), we need to handle it specially in production
+        if (isS3Url) {
+          console.log('🪣 S3 URL detected, checking AWS credentials for direct access')
           
           // In production, try to access S3 directly if we have credentials
           if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
@@ -355,9 +374,9 @@ export class ContentModerationService {
             try {
               const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3')
               
-              // Extract S3 key from URL
-              const urlParts = imageUrl.split('.amazonaws.com/')
-              const s3Key = urlParts[1]
+                             // Extract S3 key from URL
+               const urlParts = actualS3Url.split('.amazonaws.com/')
+               const s3Key = urlParts[1]
               
               const s3Client = new S3Client({
                 region: process.env.AWS_REGION || 'ap-southeast-2',
