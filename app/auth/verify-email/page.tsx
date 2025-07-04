@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, Mail, AlertCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -194,4 +194,28 @@ export default function VerifyEmailPage() {
       </Card>
     </div>
   )
-} 
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardContent className="flex flex-col items-center space-y-4 p-6">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <h2 className="text-xl font-semibold">Loading...</h2>
+          <p className="text-muted-foreground text-center">
+            Preparing email verification page.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <VerifyEmailContent />
+    </Suspense>
+  )
+}
