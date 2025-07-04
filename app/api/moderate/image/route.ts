@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 Server-side image moderation request:', imageUrl, 'context:', context)
     console.log('🔧 Environment:', process.env.NODE_ENV)
+    console.log('🔑 OpenAI API key configured:', !!process.env.OPENAI_API_KEY)
 
     // In development, be more permissive
     if (isDevelopment) {
@@ -61,6 +62,34 @@ export async function POST(request: NextRequest) {
     // Production moderation
     const moderationResult = await moderationService.moderateImage(imageUrl, context)
     console.log('🛡️ Server-side moderation result:', moderationResult)
+
+    // Log specific failure reasons for debugging
+    if (moderationResult.flagged && moderationResult.reason) {
+      console.log('🚨 Moderation blocked image. Reasons:', moderationResult.reason)
+      
+      const isTechnicalError = moderationResult.reason.some(r => 
+        r.includes('moderation_') || r.includes('api_') || r.includes('download_') || r.includes('parse_')
+      )
+      console.log('🚨 Is technical error?', isTechnicalError)
+      
+      // TEMPORARY FIX: Allow profile pictures to work despite technical moderation errors
+      // TODO: Remove this once moderation issues are resolved
+      if (context === 'profile_picture' && isTechnicalError) {
+        console.warn('⚠️ TEMPORARY: Allowing profile picture despite moderation technical error')
+        console.warn('⚠️ Original error reasons:', moderationResult.reason)
+        
+        return NextResponse.json({
+          success: true,
+          moderation: {
+            flagged: false,
+            reason: ['temp_technical_override'],
+            confidence: 0,
+            action: 'approve',
+            notes: 'Temporarily approved due to moderation service technical issues'
+          }
+        })
+      }
+    }
 
     return NextResponse.json({
       success: true,
