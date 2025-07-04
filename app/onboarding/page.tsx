@@ -4,14 +4,9 @@ import { useState } from "react"
 import { OnboardingLayout } from "@/components/onboarding/onboarding-layout"
 import { SwipeableOnboardingLayout } from "@/components/onboarding/swipeable-onboarding-layout"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
-import { WelcomeStep } from "@/components/onboarding/welcome-step"
-import { HabitScienceStep } from "@/components/onboarding/habit-science-step"
-import { HowItWorksStep } from "@/components/onboarding/how-it-works-step"
-import { GoalSelectionStep } from "@/components/onboarding/goal-selection-step"
-import { InterestSelectionStep } from "@/components/onboarding/interest-selection-step"
-import { ChallengeRecommendationStep } from "@/components/onboarding/challenge-recommendation-step"
-import { ProfileSetupStep } from "@/components/onboarding/profile-setup-step"
-import { ReadyToStartStep } from "@/components/onboarding/ready-to-start-step"
+import { MobileFirstWelcomeStep } from "@/components/onboarding/mobile-first-welcome-step"
+import { QuickGoalsStep } from "@/components/onboarding/quick-goals-step"
+import { InstantAuthStep } from "@/components/onboarding/instant-auth-step"
 import { DevTestingPanel } from "@/components/onboarding/dev-testing-panel"
 
 export interface OnboardingData {
@@ -24,6 +19,7 @@ export interface OnboardingData {
   preferredStakeRange: string
   recommendedChallenge?: any
   profileSaved?: boolean
+  commitmentType?: "money" | "points"
 }
 
 export default function OnboardingPage() {
@@ -38,21 +34,24 @@ export default function OnboardingPage() {
     preferredStakeRange: "",
   })
 
+  // Streamlined to 3 steps for maximum conversion
   const steps = [
-    { id: "welcome", component: WelcomeStep },
-    { id: "habit-science", component: HabitScienceStep },
-    { id: "how-it-works", component: HowItWorksStep },
-    { id: "goals", component: GoalSelectionStep },
-    { id: "interests", component: InterestSelectionStep },
-    { id: "recommendation", component: ChallengeRecommendationStep },
-    { id: "profile", component: ProfileSetupStep },
-    { id: "ready", component: ReadyToStartStep },
+    { id: "welcome", component: MobileFirstWelcomeStep },
+    { id: "goals", component: QuickGoalsStep },
+    { id: "auth", component: InstantAuthStep },
   ]
 
   const handleNext = (stepData?: Partial<OnboardingData>) => {
     if (stepData) {
       setOnboardingData((prev) => ({ ...prev, ...stepData }))
     }
+
+    // If this is the last step, redirect to discover
+    if (currentStep === steps.length - 1) {
+      window.location.href = "/discover"
+      return
+    }
+
     if (currentStep < steps.length - 1) {
       setCurrentStep((prev) => prev + 1)
     }
@@ -65,8 +64,8 @@ export default function OnboardingPage() {
   }
 
   const handleSkip = () => {
-    // Skip to profile setup
-    setCurrentStep(5)
+    // Skip to auth step
+    setCurrentStep(steps.length - 1)
   }
 
   // Dev tools handlers
@@ -80,7 +79,6 @@ export default function OnboardingPage() {
 
   const handleToggleVariant = (variant: string) => {
     console.log("Toggle variant:", variant)
-    // Could be used for A/B testing different copy/layouts
   }
 
   const CurrentStepComponent = steps[currentStep].component
@@ -91,16 +89,10 @@ export default function OnboardingPage() {
     stepId: steps[currentStep].id,
     onNext: handleNext,
     onBack: handleBack,
-    onSkip: handleSkip
   }
 
   const stepContent = (
-    <CurrentStepComponent 
-      data={onboardingData} 
-      onNext={handleNext} 
-      onBack={handleBack} 
-      onSkip={handleSkip} 
-    />
+    <CurrentStepComponent data={onboardingData} onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
   )
 
   return (
@@ -108,9 +100,10 @@ export default function OnboardingPage() {
       {isMobile ? (
         <SwipeableOnboardingLayout
           {...layoutProps}
-          showSkipButton={currentStep < 5} // Show skip button until profile setup
+          showSkipButton={currentStep < steps.length - 1}
           canGoNext={currentStep < steps.length - 1}
           canGoBack={currentStep > 0}
+          showBackButton={currentStep > 0}
         >
           {stepContent}
         </SwipeableOnboardingLayout>
