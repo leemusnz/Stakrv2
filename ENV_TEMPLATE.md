@@ -2,7 +2,7 @@
 
 ## 📋 **Copy and paste this into your `.env.local` file:**
 
-```bash
+\`\`\`bash
 # ====================================
 # GOOGLE OAUTH CONFIGURATION  
 # ====================================
@@ -59,7 +59,7 @@ NODE_ENV=development
 
 # Enable debug logging for NextAuth (uncomment if needed)
 # NEXTAUTH_DEBUG=true
-```
+\`\`\`
 
 ## 🎯 **Quick Setup Steps:**
 
@@ -73,4 +73,4 @@ NODE_ENV=development
 
 - ✅ `.env.local` is already in your `.gitignore`
 - ❌ Never commit real credentials to version control
-- 🔄 Use different values for development vs production 
+- 🔄 Use different values for development vs production

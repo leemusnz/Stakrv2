@@ -12,26 +12,26 @@
 ### 2. Copy These Exact Settings
 
 **Authorized JavaScript origins:**
-```
+\`\`\`
 https://stakr.app
 https://www.stakr.app
 http://localhost:3000
-```
+\`\`\`
 
 **Authorized redirect URIs:**
-```
+\`\`\`
 https://stakr.app/api/auth/callback/google
 https://www.stakr.app/api/auth/callback/google
 http://localhost:3000/api/auth/callback/google
-```
+\`\`\`
 
 ### 3. Environment Variables
 Add to `.env.local`:
-```bash
+\`\`\`bash
 GOOGLE_CLIENT_ID=your_client_id_here
 GOOGLE_CLIENT_SECRET=your_client_secret_here
 NEXTAUTH_URL=http://localhost:3000
-```
+\`\`\`
 
 ### 4. Test
 1. Visit: `http://localhost:3000/api/debug/google-oauth`
@@ -48,4 +48,4 @@ NEXTAUTH_URL=http://localhost:3000
 
 ---
 
-**📖 Full Guide**: See `GOOGLE_OAUTH_SETUP.md` for detailed instructions 
+**📖 Full Guide**: See `GOOGLE_OAUTH_SETUP.md` for detailed instructions
