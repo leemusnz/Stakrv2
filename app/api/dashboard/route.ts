@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createDbConnection } from '@/lib/db'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
+import { 
+  isDemoUser, 
+  getDemoUserData, 
+  getDemoActiveChallenges, 
+  getDemoCompletedChallenges,
+  getDemoTransactions,
+  getDemoNotifications 
+} from '@/lib/demo-data'
 
 // GET user dashboard data
 export async function GET(request: NextRequest) {
@@ -16,6 +25,148 @@ export async function GET(request: NextRequest) {
       }, { status: 401 })
     }
 
+    // Check for demo mode (new system) OR demo users (legacy compatibility)
+    if (shouldUseDemoData(request, session) || (session?.user && isDemoUser(session.user.id))) {
+      const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
+      
+      // Get comprehensive demo data
+      const demoUserData = getDemoUserData(session)
+      const demoActiveChallenges = getDemoActiveChallenges(isAdmin)
+      const demoCompletedChallenges = getDemoCompletedChallenges(isAdmin)
+      const demoTransactions = getDemoTransactions(isAdmin)
+      const demoNotifications = getDemoNotifications(isAdmin)
+
+      // Create recent activity from demo transactions and challenges
+      const recentActivity = [
+        ...demoTransactions.slice(0, 3).map((t: any) => ({
+          id: `tx_${t.id}`,
+          type: t.type,
+          title: `${t.type.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}`,
+          description: `${t.type === 'deposit' ? 'Added' : t.type === 'stake' ? 'Staked' : 'Received'} $${Math.abs(t.amount).toFixed(2)}`,
+          amount: t.amount,
+          timestamp: t.createdAt,
+          challenge_id: null
+        })),
+        ...demoCompletedChallenges.slice(0, 2).map((c: any) => ({
+          id: `ch_${c.id}`,
+          type: 'challenge_completed',
+          title: `Completed "${c.title}"`,
+          description: `Successfully finished and earned $${c.rewardEarned.toFixed(2)}`,
+          amount: c.rewardEarned,
+          timestamp: c.completedAt,
+          challenge_id: c.id
+        }))
+      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 5)
+
+      // Create upcoming deadlines from active challenges
+      const upcomingDeadlines = demoActiveChallenges.map((c: any) => ({
+        challenge_id: c.id,
+        title: c.title,
+        deadline: c.nextDeadline,
+        hours_remaining: Math.max(0, Math.floor((new Date(c.nextDeadline).getTime() - Date.now()) / (1000 * 60 * 60))),
+        verification_needed: 'Proof submission required'
+      })).slice(0, 3)
+
+      // Create achievements based on demo stats
+      const achievements = []
+      if (demoUserData.user.currentStreak >= 25) {
+        achievements.push({
+          id: 'streak_master',
+          title: 'Streak Master',
+          description: 'Maintained a 25+ day streak',
+          icon: '🔥',
+          earned_date: new Date().toISOString(),
+          category: 'consistency'
+        })
+      }
+      if (demoUserData.user.challengesCompleted >= 10) {
+        achievements.push({
+          id: 'challenge_veteran',
+          title: 'Challenge Veteran',
+          description: 'Completed 10+ challenges',
+          icon: '🏆',
+          earned_date: new Date().toISOString(),
+          category: 'completion'
+        })
+      }
+      if (demoUserData.user.trustScore >= 90) {
+        achievements.push({
+          id: 'top_performer',
+          title: 'Top Performer',
+          description: '90+ trust score',
+          icon: '⭐',
+          earned_date: new Date().toISOString(),
+          category: 'performance'
+        })
+      }
+
+      const demoDashboardData = {
+        user: demoUserData.user,
+        
+        stats: {
+          total_challenges_completed: demoUserData.user.challengesCompleted,
+          total_challenges_joined: demoActiveChallenges.length + demoUserData.user.challengesCompleted,
+          success_rate: Math.round(((demoUserData.user.challengesCompleted - demoUserData.user.falseClaims) / Math.max(1, demoUserData.user.challengesCompleted)) * 100),
+          total_earnings: demoUserData.stats.totalEarnings,
+          total_stakes: demoUserData.stats.activeStakes,
+          net_profit: demoUserData.stats.totalEarnings - demoUserData.stats.activeStakes,
+          challenges_won: demoUserData.user.challengesCompleted,
+          challenges_failed: demoUserData.user.falseClaims,
+          current_month_activity: demoActiveChallenges.length,
+          streak_record: demoUserData.user.longestStreak
+        },
+        
+        active_challenges: demoActiveChallenges.map((challenge: any) => ({
+          id: challenge.id,
+          title: challenge.title,
+          category: challenge.category,
+          days_remaining: challenge.daysRemaining,
+          total_days: Math.ceil((new Date(challenge.nextDeadline).getTime() - (Date.now() - challenge.progress * 24 * 60 * 60 * 1000)) / (1000 * 60 * 60 * 24)),
+          progress_percentage: challenge.progress,
+          stake_amount: challenge.stakeAmount,
+          potential_reward: challenge.potentialWinnings,
+          verification_status: challenge.verificationStatus,
+          last_submission: challenge.proofSubmitted,
+          next_deadline: challenge.nextDeadline,
+          status: challenge.daysRemaining > 3 ? 'on_track' : 'at_risk'
+        })),
+        
+        recent_activity: recentActivity,
+        upcoming_deadlines: upcomingDeadlines,
+        achievements,
+        
+        recommendations: [
+          {
+            challenge_id: 'recommended_1',
+            title: 'New Challenge Recommendation',
+            reason: 'Based on your success pattern',
+            match_score: 85
+          }
+        ],
+        
+        trust_score_details: {
+          current_score: demoUserData.user.trustScore,
+          tier: demoUserData.user.verificationTier,
+          next_tier_at: 90,
+          factors: {
+            completion_rate: Math.round(((demoUserData.user.challengesCompleted - demoUserData.user.falseClaims) / Math.max(1, demoUserData.user.challengesCompleted)) * 100),
+            verification_compliance: 95,
+            community_standing: demoUserData.user.trustScore,
+            account_age_months: Math.floor((Date.now() - new Date(demoUserData.user.memberSince).getTime()) / (1000 * 60 * 60 * 24 * 30)),
+            false_claims: demoUserData.user.falseClaims
+          }
+        }
+      }
+
+      return NextResponse.json(createDemoResponse({
+        success: true,
+        dashboard: demoDashboardData,
+        message: 'Demo dashboard data retrieved successfully',
+        last_updated: new Date().toISOString()
+      }, request, session))
+    }
+
+    // For real users, query the database
     const sql = await createDbConnection()
     const userId = session.user.id
     
