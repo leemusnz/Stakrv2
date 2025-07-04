@@ -538,9 +538,28 @@ This is for a social challenge platform - focus on safety, not professionalism. 
         body: JSON.stringify(requestBody),
       })
 
+      console.log('📡 OpenAI API response status:', response.status, response.statusText)
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('📥 OpenAI API response structure:', {
+          choices: data.choices?.length || 0,
+          hasContent: !!data.choices?.[0]?.message?.content,
+          usage: data.usage,
+          model: data.model
+        })
+        
         const content = data.choices[0]?.message?.content
+
+        if (!content) {
+          console.error('❌ No content in OpenAI response:', JSON.stringify(data, null, 2))
+          return {
+            flagged: true,
+            reason: ['moderation_no_content'],
+            confidence: 100,
+            action: 'reject'
+          }
+        }
 
         // Clean the response - remove markdown code blocks if present
         let cleanContent = content.trim()
@@ -581,109 +600,73 @@ This is for a social challenge platform - focus on safety, not professionalism. 
           return result
 
         } catch (parseError) {
-          console.error('❌ Failed to parse OpenAI vision response after cleaning:', cleanContent)
-          console.error('Parse error:', parseError)
+          console.error('❌ CRITICAL: Failed to parse OpenAI vision response')
+          console.error('📋 Raw response status:', response.status)
+          console.error('📋 Raw response headers:', Object.fromEntries(response.headers.entries()))
+          console.error('📋 Raw response content:', content)
+          console.error('📋 Cleaned content for parsing:', cleanContent)
+          console.error('📋 Parse error details:', parseError)
           
-          // Different behavior based on environment
-          const isDevelopment = process.env.NODE_ENV === 'development'
+          // Log first 500 chars of response for debugging
+          console.error('📋 Response preview:', content.substring(0, 500))
           
-          if (context === 'profile_picture' && !isDevelopment) {
-            // Only block in production when parsing fails
-            console.warn('🚫 Blocking profile picture upload due to moderation parsing failure (production)')
-            return {
-              flagged: true,
-              reason: ['moderation_parse_failed'],
-              confidence: 100,
-              action: 'reject'
-            }
-          } else if (context === 'profile_picture' && isDevelopment) {
-            // Allow in development for better developer experience
-            console.warn('🔧 Development mode: Allowing profile picture despite parsing failure')
-            return {
-              flagged: false,
-              reason: ['dev_parse_override'],
-              confidence: 0,
-              action: 'approve'
-            }
-          }
-          
-          // Fallback to safe approval for other content
+          // CRITICAL: Block all uploads when parsing fails - no overrides
+          console.error('🚨 BLOCKING upload due to moderation parsing failure - no override applied')
           return {
-            flagged: false,
-            reason: [],
-            confidence: 0,
-            action: 'approve'
+            flagged: true,
+            reason: ['moderation_parse_failed'],
+            confidence: 100,
+            action: 'reject'
           }
         }
       }
 
-      // API call failed - be more conservative for profile pictures
+      // API call failed - capture detailed error info
       const errorText = await response.text()
-      console.error('OpenAI Vision API call failed:', response.status, response.statusText)
-      console.error('OpenAI Error Response:', errorText)
+      console.error('❌ CRITICAL: OpenAI Vision API call failed')
+      console.error('📋 Status:', response.status, response.statusText)
+      console.error('📋 Headers:', Object.fromEntries(response.headers.entries()))
+      console.error('📋 Error response body:', errorText)
+      console.error('📋 Request was for image context:', context)
       
-      // Different behavior based on environment
-      const isDevelopment = process.env.NODE_ENV === 'development'
-      
-      if (context === 'profile_picture' && !isDevelopment) {
-        // Only block in production when API fails
-        console.warn('🚫 Blocking profile picture upload due to moderation API failure (production)')
-        return {
-          flagged: true,
-          reason: ['moderation_api_failed'],
-          confidence: 100,
-          action: 'reject'
+      // Try to parse error as JSON for more details
+      try {
+        const errorData = JSON.parse(errorText)
+        console.error('📋 Parsed error details:', errorData)
+        
+        // Check for specific OpenAI error types
+        if (errorData.error?.type === 'insufficient_quota') {
+          console.error('💰 OpenAI quota exceeded!')
+        } else if (errorData.error?.type === 'invalid_request_error') {
+          console.error('📝 Invalid request to OpenAI:', errorData.error.message)
+        } else if (errorData.error?.type === 'rate_limit_exceeded') {
+          console.error('⚡ Rate limit exceeded for OpenAI API')
         }
-      } else if (context === 'profile_picture' && isDevelopment) {
-        // Allow in development for better developer experience
-        console.warn('🔧 Development mode: Allowing profile picture despite API failure')
-        return {
-          flagged: false,
-          reason: ['dev_api_override'],
-          confidence: 0,
-          action: 'approve'
-        }
+      } catch {
+        console.error('📋 Error response is not JSON')
       }
       
+      // CRITICAL: Block all uploads when API fails - no overrides
+      console.error('🚨 BLOCKING upload due to OpenAI API failure - no override applied')
       return {
-        flagged: false,
-        reason: [],
-        confidence: 0,
-        action: 'approve'
+        flagged: true,
+        reason: ['moderation_api_failed'],
+        confidence: 100,
+        action: 'reject'
       }
 
     } catch (error) {
-      console.error('Image moderation error:', error)
+      console.error('❌ CRITICAL: Image moderation general error:', error)
+      console.error('📋 Error context:', context)
+      console.error('📋 Error stack:', error instanceof Error ? error.stack : 'No stack trace')
       
-      // Different behavior based on environment
-      const isDevelopment = process.env.NODE_ENV === 'development'
-      
-      if (context === 'profile_picture' && !isDevelopment) {
-        // Only block in production when general errors occur
-        console.warn('🚫 Blocking profile picture upload due to moderation error (production)')
-        return {
-          flagged: true,
-          reason: ['moderation_error'],
-          confidence: 100,
-          action: 'reject'
-        }
-      } else if (context === 'profile_picture' && isDevelopment) {
-        // Allow in development for better developer experience
-        console.warn('🔧 Development mode: Allowing profile picture despite moderation error')
-        return {
-          flagged: false,
-          reason: ['dev_error_override'],
-          confidence: 0,
-          action: 'approve'
-        }
-      }
-      
-      // Fail safe - approve but log error for other content
+      // CRITICAL: Block all uploads when general errors occur - no overrides
+      console.error('🚨 BLOCKING upload due to moderation general error - no override applied')
       return {
-        flagged: false,
-        reason: [],
-        confidence: 0,
-        action: 'approve'
+        flagged: true,
+        reason: ['moderation_error'],
+        confidence: 100,
+        action: 'reject'
       }
     }
   }
