@@ -113,6 +113,7 @@ async function findUserInDatabase(email: string) {
         longest_streak,
         premium_subscription,
         premium_expires_at,
+        email_verified,
         onboarding_completed,
         is_dev,
         dev_mode_enabled,
@@ -166,7 +167,13 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid credentials')
           }
 
-          // Check if email is verified
+          // Check if email is verified (timestamp exists)
+          console.log('📧 Email verification status:', { 
+            email: dbUser.email, 
+            email_verified: dbUser.email_verified,
+            isVerified: !!dbUser.email_verified 
+          })
+          
           if (!dbUser.email_verified) {
             console.log('🚫 Login denied for unverified email:', dbUser.email)
             throw new Error('error=email_not_verified')
@@ -356,6 +363,12 @@ export const authOptions: NextAuthOptions = {
                 console.log('🚫 User suspended during active session:', dbUser.email)
                 // Invalidate the session by returning null
                 throw new Error('Session terminated: Account suspended')
+              }
+              
+              // Check if email was unverified during active session
+              if (!dbUser.email_verified) {
+                console.log('🚫 User email unverified during active session:', dbUser.email)
+                throw new Error('Session terminated: Email not verified')
               }
               
               if (dbUser.avatar_url) {
