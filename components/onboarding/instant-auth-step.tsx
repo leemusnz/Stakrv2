@@ -161,14 +161,15 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
-                <Input
-                  type="text"
-                  placeholder="Your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  className="h-12"
-                />
+                              <Input
+                type="text"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoComplete="name"
+                className="h-12"
+              />
               </div>
             )}
 
@@ -181,6 +182,7 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                   className="h-12 pl-10"
                 />
               </div>
@@ -195,6 +197,7 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete={isLogin ? "current-password" : "new-password"}
                   className="h-12 pl-10 pr-10"
                 />
                 <button
