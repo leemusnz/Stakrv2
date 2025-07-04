@@ -65,6 +65,8 @@ function SignInContent() {
     setIsLoading(true)
     setError("")
 
+    console.log('🔐 Attempting sign in with:', { email, hasPassword: !!password })
+
     try {
       const result = await signIn("credentials", {
         email,
@@ -72,15 +74,21 @@ function SignInContent() {
         redirect: false,
       })
 
+      console.log('🔐 Sign in result:', result)
+
       if (result?.ok) {
         // Success - redirect to callback URL
+        console.log('✅ Sign in successful, redirecting to:', callbackUrl)
         router.push(callbackUrl)
       } else {
         // Handle specific error types
         const errorCode = result?.error
+        console.log('❌ Sign in failed with error:', errorCode)
+        
         switch (errorCode) {
           case 'error=email_not_verified':
             setError('Please verify your email address before signing in')
+            console.log('📧 Redirecting to verification page')
             // Redirect to verification page
             router.push(`/auth/verify-email?email=${encodeURIComponent(email)}&from=signin`)
             break
@@ -93,7 +101,7 @@ function SignInContent() {
         }
       }
     } catch (error) {
-      console.error("Sign in error:", error)
+      console.error("🚨 Sign in exception:", error)
       setError("Connection error. Please try again.")
     } finally {
       setIsLoading(false)
