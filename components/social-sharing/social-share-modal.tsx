@@ -198,7 +198,7 @@ export function SocialShareModal({ trigger, content, onShare }: SocialShareModal
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+              <DialogContent className="max-w-lg mobile-safe-width">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="w-5 h-5" />

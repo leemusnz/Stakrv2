@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { DiscoverHeader } from "@/components/discover-header"
+import { DiscoverMobile } from "@/components/discover-mobile"
 import { ChallengeGrid } from "@/components/challenge-grid"
 import { TrendingChallenges } from "@/components/trending-challenges"
 import { FloatingFilterButton } from "@/components/floating-filter-button"
@@ -83,6 +84,81 @@ export default function Discover() {
     window.location.href = `/challenge/${challenge.id}`
   }
 
+  const handleSaveChallenge = (challenge: any) => {
+    console.log('Saving challenge:', challenge.title)
+    // TODO: Implement save functionality
+  }
+
+  const handlePassChallenge = (challenge: any) => {
+    console.log('Passing on challenge:', challenge.title)
+    // TODO: Implement pass functionality
+  }
+
+  const handleFollowCreator = (creator: any) => {
+    console.log('Following creator:', creator.name)
+    // TODO: Implement follow functionality
+  }
+
+  // Use mobile discover on mobile devices
+  if (isMobile) {
+    return (
+      <DiscoverMobile
+        challenges={challenges.length > 0 ? challenges : [
+          // Mock data for demo - replace with real API call
+          {
+            id: '1',
+            title: '30-Day Meditation Challenge',
+            description: 'Develop a daily meditation practice and find inner peace. Join thousands of others on this mindfulness journey.',
+            category: 'Mindfulness',
+            difficulty: 'Beginner',
+            duration: '30 days',
+            min_stake: 25,
+            max_stake: 100,
+            participants_count: 1247,
+            total_stake_pool: 15680,
+            host_name: 'Sarah Chen',
+            host_avatar_url: '/avatars/avatar-1.svg'
+          },
+          {
+            id: '2', 
+            title: '21-Day Fitness Transformation',
+            description: 'Build strength, endurance, and confidence with our proven workout program designed for all fitness levels.',
+            category: 'Fitness',
+            difficulty: 'Intermediate',
+            duration: '21 days',
+            min_stake: 50,
+            max_stake: 200,
+            participants_count: 892,
+            total_stake_pool: 28450,
+            host_name: 'Mike Rodriguez',
+            host_avatar_url: '/avatars/avatar-2.svg'
+          },
+          {
+            id: '3',
+            title: 'Digital Detox Week',
+            description: 'Reclaim your time and mental clarity by reducing screen time and building healthier tech habits.',
+            category: 'Digital Wellness',
+            difficulty: 'Beginner',
+            duration: '7 days', 
+            min_stake: 15,
+            max_stake: 50,
+            participants_count: 634,
+            total_stake_pool: 9870,
+            host_name: 'Alex Thompson',
+            host_avatar_url: '/avatars/avatar-3.svg'
+          }
+        ]}
+        creators={[]}
+        brands={[]}
+        onJoinChallenge={handleJoinChallenge}
+        onSaveChallenge={handleSaveChallenge}
+        onPassChallenge={handlePassChallenge}
+        onFollowCreator={handleFollowCreator}
+      />
+    )
+  }
+
+  // Desktop discover
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
       <DiscoverHeader activeTab={activeTab} />

@@ -16,6 +16,7 @@ import {
 import { Home, Search, Trophy, Wallet, Settings, LogOut, Plus, Menu, X, Shield, DollarSign, Users, Bug } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { NotificationDropdown } from "@/components/notifications/notification-dropdown"
+import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { cn } from "@/lib/utils"
 
 interface NavigationUser {
@@ -36,6 +37,7 @@ export function Navigation({ user, onLogout }: NavigationProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { isMobile } = useEnhancedMobile()
 
   const navItems = [
     { id: "active", label: "My Active", icon: Trophy, href: "/my-active" },
@@ -72,7 +74,7 @@ export function Navigation({ user, onLogout }: NavigationProps) {
             <Logo variant="full" className="h-8" />
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Hidden on mobile since we use bottom nav */}
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon
@@ -210,57 +212,12 @@ export function Navigation({ user, onLogout }: NavigationProps) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
+            {/* Mobile Menu Button - Hidden since we use bottom navigation */}
+            {/* Mobile navigation is now handled by MobileBottomNavigation component */}
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t bg-background">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon
-                const isActive = pathname === item.href
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "block px-3 py-2 rounded-md text-base font-medium transition-colors",
-                      isActive ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                    )}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <div className="flex items-center gap-2">
-                      {Icon && <Icon className="w-4 h-4" />}
-                      {item.label}
-                    </div>
-                  </Link>
-                )
-              })}
-              <div className="pt-2 border-t">
-                <Link
-                  href="/create-challenge"
-                  className="block px-3 py-2 rounded-md text-base font-medium bg-secondary text-white"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <div className="flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    HOST CHALLENGE
-                  </div>
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Mobile Navigation - Replaced by MobileBottomNavigation component */}
       </div>
     </nav>
   )

@@ -3,6 +3,7 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from './navigation'
+import { MobileBottomNavigation } from './mobile-bottom-navigation'
 import { Button } from './ui/button'
 import Link from 'next/link'
 
@@ -76,9 +77,15 @@ export function NavigationWrapper() {
 
   // Return your existing Navigation with real user data and logout
   return (
-    <Navigation 
-      user={navigationUser}
-      onLogout={handleLogout}
-    />
+    <>
+      <Navigation 
+        user={navigationUser}
+        onLogout={handleLogout}
+      />
+      <MobileBottomNavigation 
+        notificationCount={0} // This would come from API call in real app
+        onCreateChallenge={() => router.push('/create-challenge')}
+      />
+    </>
   )
 }

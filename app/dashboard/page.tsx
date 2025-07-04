@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
+import { DashboardMobile } from "@/components/dashboard-mobile"
+import { MobileContainer } from "@/components/mobile-container"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Trophy, Bell, Plus } from "lucide-react"
@@ -70,6 +73,7 @@ interface DashboardData {
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { isMobile } = useEnhancedMobile()
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -156,6 +160,19 @@ export default function DashboardPage() {
 
   const { user, stats, activeChallenges, completedChallenges, notifications } = dashboardData
 
+  // Use mobile dashboard on mobile devices
+  if (isMobile) {
+    return (
+      <DashboardMobile 
+        data={dashboardData}
+        loading={loading}
+        error={error}
+        onRetry={loadDashboardData}
+      />
+    )
+  }
+
+  // Desktop dashboard
   return (
     <div className="container mx-auto p-6 space-y-8">
       {/* Header */}

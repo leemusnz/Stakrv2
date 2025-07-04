@@ -104,7 +104,7 @@ export function PostCreationModal({ user, activeChallenges }: PostCreationModalP
           Create Post
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+              <DialogContent className="sm:max-w-[600px] mobile-safe-width">
         <DialogHeader>
           <DialogTitle>Create a New Post</DialogTitle>
         </DialogHeader>

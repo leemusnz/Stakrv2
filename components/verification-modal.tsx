@@ -412,7 +412,7 @@ export function VerificationModal({ isOpen, onOpenChange, challenge, onSubmit }:
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto mobile-safe-width">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
