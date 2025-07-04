@@ -60,7 +60,13 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
         const result = await response.json()
         
         if (response.ok && result.success) {
-          onNext({ name })
+          // Redirect to email verification instead of continuing onboarding
+          if (result.emailSent) {
+            window.location.href = `/auth/verify-email?email=${encodeURIComponent(email)}&from=onboarding`
+          } else {
+            // Fallback if email sending failed
+            onNext({ name })
+          }
         } else {
           setError(result.message || result.error || "Failed to create account")
         }

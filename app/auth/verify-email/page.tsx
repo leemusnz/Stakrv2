@@ -14,6 +14,8 @@ function VerifyEmailContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendResult, setResendResult] = useState<string | null>(null)
   const [verificationResult, setVerificationResult] = useState<{
     success: boolean
     message: string
@@ -23,6 +25,8 @@ function VerifyEmailContent() {
 
   // Check if there's a token in the URL (from email link)
   const urlToken = searchParams.get('token')
+  const email = searchParams.get('email')
+  const fromSource = searchParams.get('from')
 
   useEffect(() => {
     // If there's a token in the URL, verify it automatically
@@ -65,6 +69,38 @@ function VerifyEmailContent() {
     e.preventDefault()
     if (manualToken.trim()) {
       verifyToken(manualToken.trim())
+    }
+  }
+
+  const handleResendEmail = async () => {
+    if (!email) {
+      setResendResult('Please provide your email address to resend verification.')
+      return
+    }
+
+    setResendLoading(true)
+    setResendResult(null)
+    
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const result = await response.json()
+      
+      if (response.ok && result.success) {
+        setResendResult('✅ Verification email sent! Check your inbox.')
+      } else {
+        setResendResult(result.message || 'Failed to resend verification email.')
+      }
+    } catch (error) {
+      setResendResult('❌ Network error. Please try again.')
+    } finally {
+      setResendLoading(false)
     }
   }
 
@@ -158,9 +194,41 @@ function VerifyEmailContent() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center space-y-2">
-            <p className="text-muted-foreground">
-              We sent a verification link to your email address. Click the link in the email to verify your account.
-            </p>
+            {fromSource === 'access-blocked' ? (
+              <>
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+                  <p className="text-sm text-yellow-800 font-medium">
+                    🔒 Email verification required
+                  </p>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    You need to verify your email address to access your account and start using Stakr.
+                  </p>
+                </div>
+                <p className="text-muted-foreground">
+                  {email ? `We sent a verification link to ${email}. ` : 'We sent a verification link to your email address. '}
+                  Click the link in the email to verify your account.
+                </p>
+              </>
+            ) : fromSource === 'onboarding' ? (
+              <>
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+                  <p className="text-sm text-blue-800 font-medium">
+                    🎉 Welcome to Stakr!
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    Just one more step - verify your email to complete your account setup.
+                  </p>
+                </div>
+                <p className="text-muted-foreground">
+                  {email ? `We sent a verification link to ${email}. ` : 'We sent a verification link to your email address. '}
+                  Click the link in the email to get started.
+                </p>
+              </>
+            ) : (
+              <p className="text-muted-foreground">
+                We sent a verification link to your email address. Click the link in the email to verify your account.
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               Didn't receive the email? Check your spam folder or enter your verification code below.
             </p>
@@ -183,7 +251,32 @@ function VerifyEmailContent() {
             </Button>
           </form>
 
+          {resendResult && (
+            <Alert className={resendResult.includes('✅') ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+              <AlertDescription className={resendResult.includes('✅') ? 'text-green-800' : 'text-red-800'}>
+                {resendResult}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="text-center space-y-2">
+            {email && (
+              <Button 
+                variant="outline" 
+                onClick={handleResendEmail}
+                disabled={resendLoading}
+                className="w-full text-sm"
+              >
+                {resendLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Resend Verification Email'
+                )}
+              </Button>
+            )}
             <Link href="/auth/signin">
               <Button variant="ghost" className="text-sm">
                 Back to Sign In

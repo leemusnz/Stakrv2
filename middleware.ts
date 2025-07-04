@@ -1,87 +1,94 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 
-export function middleware(request: NextRequest) {
-  // Skip middleware for certain paths that should always be accessible
-  const { pathname } = request.nextUrl
+// Routes that require authentication
+const protectedRoutes = [
+  '/dashboard',
+  '/my-challenges',
+  '/my-active', 
+  '/create-challenge',
+  '/profile',
+  '/settings',
+  '/wallet',
+  '/notifications',
+  '/social',
+  '/discover',
+  '/challenge',
+  '/creator',
+  '/brand'
+]
+
+// Routes that don't require email verification (even when authenticated)
+const verificationExemptRoutes = [
+  '/auth/verify-email',
+  '/auth/signin',
+  '/auth/suspended',
+  '/api/auth',
+  '/onboarding'
+]
+
+export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
   
-  // Debug: Log all requests in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`🔧 Middleware processing: ${pathname}`)
-  }
-
-  // Bypass alpha gate for preview environments and development
-  const hostname = request.nextUrl.hostname
-  const isPreviewEnvironment = 
-    process.env.NODE_ENV === 'development' ||
-    hostname.includes('v0.dev') ||
-    hostname.includes('vercel.app') ||
-    hostname.includes('localhost') ||
-    process.env.DISABLE_ALPHA_GATE === 'true'
-
-  if (isPreviewEnvironment) {
-    console.log(`🌐 Bypassing alpha gate for preview environment: ${hostname}`)
-    return NextResponse.next()
-  }
-  
-  // Always allow these paths
+  // Skip middleware for API routes, static files, and auth routes
   if (
-    pathname === '/alpha-gate' ||
-    pathname === '/api/alpha-access' ||
-    pathname.startsWith('/api/auth/') ||      // Allow NextAuth API routes
-    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
-    pathname.startsWith('/logos/') ||
-    pathname.startsWith('/public/') ||
-    pathname === '/manifest.json'
+    pathname.includes('.')
   ) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ Allowing path: ${pathname}`)
-    }
     return NextResponse.next()
   }
 
-  // Check for alpha access cookie
-  const alphaAccess = request.cookies.get('alpha_access')
-  
-  // Debug logging for development
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`🔒 Middleware check for ${pathname}:`, {
-      hasCookie: !!alphaAccess,
-      cookieValue: alphaAccess?.value,
-      isValid: alphaAccess?.value === 'true'
-    })
-  }
-  
-  // If no valid alpha access
-  if (!alphaAccess || alphaAccess.value !== 'true') {
-    // For API routes, return 401 instead of redirect
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'Alpha access required' }, 
-        { status: 401 }
-      )
-    }
-    
-    // For pages, redirect to alpha gate (preserve protocol and host)
-    const url = new URL('/alpha-gate', request.url)
-    return NextResponse.redirect(url)
+  // Check if this is a protected route
+  const isProtectedRoute = protectedRoutes.some(route => 
+    pathname.startsWith(route)
+  )
+
+  if (!isProtectedRoute) {
+    return NextResponse.next()
   }
 
-  // Allow access if they have the valid cookie
+  // Get the user's session token
+  const token = await getToken({ 
+    req: request, 
+    secret: process.env.NEXTAUTH_SECRET 
+  })
+
+  // If no token, redirect to sign in
+  if (!token) {
+    const signInUrl = new URL('/auth/signin', request.url)
+    signInUrl.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(signInUrl)
+  }
+
+  // Check if email verification is required and user is not verified
+  const isVerificationExempt = verificationExemptRoutes.some(route =>
+    pathname.startsWith(route)
+  )
+
+  // If user is not email verified and not on exempt route, redirect to verification
+  if (!isVerificationExempt && !token.emailVerified) {
+    console.log('🚫 Blocking unverified user from accessing:', pathname)
+    const verifyUrl = new URL('/auth/verify-email', request.url)
+    verifyUrl.searchParams.set('email', token.email as string)
+    verifyUrl.searchParams.set('from', 'access-blocked')
+    return NextResponse.redirect(verifyUrl)
+  }
+
   return NextResponse.next()
 }
 
 export const config = {
-  // Match all paths except static files and specific API routes
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api/auth (NextAuth API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder assets
      */
-    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+    '/((?!api/auth|_next/static|_next/image|favicon.ico).*)',
   ],
 }

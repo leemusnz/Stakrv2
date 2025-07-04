@@ -24,6 +24,7 @@ declare module 'next-auth' {
     onboardingCompleted?: boolean
     isDev?: boolean
     devModeEnabled?: boolean
+    emailVerified?: boolean
   }
   
   interface Session {
@@ -44,6 +45,7 @@ declare module 'next-auth' {
       onboardingCompleted?: boolean
       isDev?: boolean
       devModeEnabled?: boolean
+      emailVerified?: boolean
     }
   }
 }
@@ -62,6 +64,7 @@ declare module 'next-auth/jwt' {
     onboardingCompleted?: boolean
     isDev?: boolean
     devModeEnabled?: boolean
+    emailVerified?: boolean
   }
 }
 
@@ -205,7 +208,8 @@ export const authOptions: NextAuthOptions = {
             isAdmin: dbUser.has_dev_access || dbUser.is_dev || false, // Check both fields
             onboardingCompleted: dbUser.onboarding_completed || false,
             isDev: dbUser.is_dev || false,
-            devModeEnabled: dbUser.dev_mode_enabled || false
+            devModeEnabled: dbUser.dev_mode_enabled || false,
+            emailVerified: dbUser.email_verified === true
           }
         }
 
@@ -242,7 +246,8 @@ export const authOptions: NextAuthOptions = {
           isAdmin: demoUser.isAdmin,
           onboardingCompleted: demoUser.onboardingCompleted,
           isDev: demoUser.email === 'alex@stakr.app', // Grant dev access to admin
-          devModeEnabled: false
+          devModeEnabled: false,
+          emailVerified: true // Demo users are always verified
         }
       }
     }),
@@ -274,6 +279,7 @@ export const authOptions: NextAuthOptions = {
         token.onboardingCompleted = user.onboardingCompleted
         token.isDev = user.isDev
         token.devModeEnabled = user.devModeEnabled
+        token.emailVerified = !!user.emailVerified
       }
       
       // Handle session updates (e.g., avatar changes)
@@ -416,6 +422,7 @@ export const authOptions: NextAuthOptions = {
         session.user.onboardingCompleted = token.onboardingCompleted || false
         session.user.isDev = latestIsDev  // Use refreshed dev status
         session.user.devModeEnabled = token.devModeEnabled || false
+        session.user.emailVerified = token.emailVerified || false
         
 
       }
