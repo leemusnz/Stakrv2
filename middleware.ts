@@ -31,6 +31,11 @@ const verificationExemptRoutes = [
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   
+  // Debug logging for development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔧 Middleware processing:', pathname)
+  }
+  
   // Skip middleware for API routes, static files, and auth routes
   if (
     pathname.startsWith('/api/auth') ||
@@ -38,6 +43,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/favicon') ||
     pathname.includes('.')
   ) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('⏭️ Skipping middleware for:', pathname)
+    }
     return NextResponse.next()
   }
 
@@ -71,9 +79,12 @@ export async function middleware(request: NextRequest) {
   // If user is not email verified and not on exempt route, redirect to verification
   if (!isVerificationExempt && !token.emailVerified) {
     console.log('🚫 Blocking unverified user from accessing:', pathname)
+    console.log('📧 User email verification status:', token.emailVerified)
+    console.log('📧 User email:', token.email)
     const verifyUrl = new URL('/auth/verify-email', request.url)
     verifyUrl.searchParams.set('email', token.email as string)
     verifyUrl.searchParams.set('from', 'access-blocked')
+    console.log('🔄 Redirecting to:', verifyUrl.toString())
     return NextResponse.redirect(verifyUrl)
   }
 

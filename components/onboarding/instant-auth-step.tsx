@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ArrowRight, Mail, Lock, Eye, EyeOff, Sparkles, AlertCircle } from "lucide-react"
 import { signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { OnboardingData } from "@/app/onboarding/page"
 
@@ -20,6 +21,7 @@ interface InstantAuthStepProps {
 }
 
 export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
+  const router = useRouter()
   const [isLogin, setIsLogin] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -62,9 +64,13 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
         if (response.ok && result.success) {
           // Redirect to email verification instead of continuing onboarding
           if (result.emailSent) {
-            window.location.href = `/auth/verify-email?email=${encodeURIComponent(email)}&from=onboarding`
+            // Use Next.js router for proper navigation
+            const verifyUrl = `/auth/verify-email?email=${encodeURIComponent(email)}&from=onboarding`
+            console.log('📧 Redirecting to email verification:', verifyUrl)
+            router.push(verifyUrl)
           } else {
-            // Fallback if email sending failed
+            // Fallback if email sending failed - continue with onboarding
+            console.log('⚠️ Email not sent, continuing with onboarding')
             onNext({ name })
           }
         } else {
