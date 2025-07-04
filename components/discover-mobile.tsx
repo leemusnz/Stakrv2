@@ -458,4 +458,4 @@ function SwipeableCard({
       </CardContent>
     </Card>
   )
-} 
+}

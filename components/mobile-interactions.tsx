@@ -404,4 +404,4 @@ if (typeof document !== 'undefined') {
   const style = document.createElement('style')
   style.textContent = shakeKeyframes
   document.head.appendChild(style)
-} 
+}

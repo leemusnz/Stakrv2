@@ -219,4 +219,4 @@ export function withMobileNavigation<T extends object>(
       </div>
     )
   }
-} 
+}

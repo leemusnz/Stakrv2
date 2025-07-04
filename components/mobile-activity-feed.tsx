@@ -415,4 +415,4 @@ export function ActivityFeedExample() {
       onViewChallenge={handleViewChallenge}
     />
   )
-} 
+}
