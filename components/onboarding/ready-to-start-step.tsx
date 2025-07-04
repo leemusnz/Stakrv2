@@ -91,7 +91,7 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
     setIsCreatingAccount(true)
     try {
       await signIn(provider, { 
-        callbackUrl: '/' // Will complete onboarding after social auth
+        callbackUrl: '/dashboard' // Will complete onboarding after social auth
       })
     } catch (error) {
       setError(`${provider} authentication failed`)
@@ -123,7 +123,7 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
 
       if (result.success) {
         console.log('✅ Onboarding completed successfully!')
-        window.location.href = '/'
+        window.location.href = '/dashboard'
       } else {
         console.error('❌ Failed to complete onboarding:', result.error)
         setError(result.message || 'Failed to complete onboarding')

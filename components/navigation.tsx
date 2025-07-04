@@ -49,7 +49,7 @@ export function Navigation({ user, onLogout }: NavigationProps) {
     if (pathname.startsWith("/my-active")) return "active"
     if (pathname.startsWith("/discover")) return "discover"
     if (pathname.startsWith("/social")) return "social"
-    if (pathname === "/") return "dashboard"
+    if (pathname === "/" || pathname.startsWith("/dashboard")) return "dashboard"
     return ""
   }
 

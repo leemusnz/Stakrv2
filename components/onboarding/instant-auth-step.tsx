@@ -95,7 +95,7 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
   const handleSocialAuth = async (provider: string) => {
     setIsLoading(true)
     try {
-      await signIn(provider, { callbackUrl: "/discover" })
+      await signIn(provider, { callbackUrl: "/dashboard" })
     } catch (error) {
       console.error("Social auth error:", error)
       setIsLoading(false)

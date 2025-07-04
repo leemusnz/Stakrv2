@@ -24,9 +24,9 @@ export default function HomePage() {
         return
       }
       
-      // If user has completed onboarding, redirect to My Active page
-      console.log('✅ User has completed onboarding, redirecting to My Active')
-      router.push('/my-active')
+      // If user has completed onboarding, redirect to Dashboard (home page)
+      console.log('✅ User has completed onboarding, redirecting to Dashboard')
+      router.push('/dashboard')
       return
     } else {
       // If not authenticated, redirect to onboarding (which will handle auth)

@@ -46,9 +46,9 @@ export default function OnboardingPage() {
       setOnboardingData((prev) => ({ ...prev, ...stepData }))
     }
 
-    // If this is the last step, redirect to discover
+    // If this is the last step, redirect to dashboard
     if (currentStep === steps.length - 1) {
-      window.location.href = "/discover"
+      window.location.href = "/dashboard"
       return
     }
 

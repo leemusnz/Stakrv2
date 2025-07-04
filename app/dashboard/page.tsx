@@ -85,15 +85,10 @@ export default function DashboardPage() {
     // If user is authenticated, load dashboard data
     if (session?.user) {
       console.log('📊 Dashboard page - User authenticated:', session.user.email)
+      console.log('🎯 Onboarding completed:', session.user.onboardingCompleted)
       
-      // If user hasn't completed onboarding, redirect to onboarding
-      if (!session.user.onboardingCompleted) {
-        console.log('🚀 Redirecting to onboarding...')
-        router.push('/onboarding')
-        return
-      }
-      
-      // Load dashboard data
+      // Load dashboard data regardless of onboarding status
+      // If they haven't completed onboarding, we'll show a different view
       console.log('✅ Loading dashboard data')
       loadDashboardData()
     } else {

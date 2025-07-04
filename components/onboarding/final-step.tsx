@@ -45,7 +45,7 @@ export function FinalStep({ data }: FinalStepProps) {
       })
 
       if (response.ok) {
-        router.push("/discover")
+        router.push("/dashboard")
       }
     } catch (error) {
       console.error("Failed to complete onboarding:", error)

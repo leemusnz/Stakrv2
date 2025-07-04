@@ -20,7 +20,7 @@ function SignInContent() {
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
 
-  const callbackUrl = searchParams.get('callbackUrl') || '/discover'
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
   const errorParam = searchParams.get('error')
   const messageParam = searchParams.get('message')
   const emailParam = searchParams.get('email')
