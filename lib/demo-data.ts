@@ -414,3 +414,245 @@ export function getMockUserChallenges(userId: string) {
 
   return challenges
 }
+
+export function getDemoCreators(isAdmin: boolean = false) {
+  const baseCreators = [
+    {
+      id: "sarah-chen",
+      name: "Sarah Chen",
+      username: "sarahchen",
+      avatar: "/avatars/avatar-1.svg",
+      bio: "Mindfulness coach helping people build sustainable meditation habits through guided challenges.",
+      followers: 2847,
+      challengesCreated: 23,
+      successRate: 87,
+      totalEarnings: 12450,
+      isVerified: true,
+      isFollowing: false,
+      categories: ["Mindfulness", "Wellness", "Productivity"],
+      recentChallenge: {
+        title: "30-Day Morning Meditation",
+        participants: 1247,
+      },
+    },
+    {
+      id: "mike-fitness",
+      name: "Mike Rodriguez",
+      username: "mikefit",
+      avatar: "/avatars/avatar-2.svg",
+      bio: "Personal trainer and fitness enthusiast. Creating challenges that make fitness fun and accessible.",
+      followers: 1923,
+      challengesCreated: 18,
+      successRate: 82,
+      totalEarnings: 8900,
+      isVerified: false,
+      isFollowing: true,
+      categories: ["Fitness", "Health", "Strength"],
+      recentChallenge: {
+        title: "30-Day Push-up Challenge",
+        participants: 892,
+      },
+    },
+    {
+      id: "lisa-productivity",
+      name: "Lisa Wang",
+      username: "lisawang",
+      avatar: "/avatars/avatar-3.svg",
+      bio: "Productivity expert and author. Helping professionals optimize their daily routines for success.",
+      followers: 3421,
+      challengesCreated: 31,
+      successRate: 91,
+      totalEarnings: 15600,
+      isVerified: true,
+      isFollowing: false,
+      categories: ["Productivity", "Learning", "Career"],
+      recentChallenge: {
+        title: "Deep Work Challenge",
+        participants: 1567,
+      },
+    },
+    {
+      id: "alex-nutrition",
+      name: "Alex Kim",
+      username: "alexnutrition",
+      avatar: "/avatars/avatar-4.svg",
+      bio: "Registered dietitian creating sustainable nutrition challenges for long-term health.",
+      followers: 1654,
+      challengesCreated: 15,
+      successRate: 89,
+      totalEarnings: 7800,
+      isVerified: false,
+      isFollowing: false,
+      categories: ["Nutrition", "Health", "Cooking"],
+      recentChallenge: {
+        title: "Plant-Based Week",
+        participants: 743,
+      },
+    }
+  ]
+
+  if (isAdmin) {
+    return [
+      ...baseCreators,
+      {
+        id: "jordan-mindset",
+        name: "Jordan Taylor",
+        username: "jordanmindset",
+        avatar: "/avatars/avatar-5.svg",
+        bio: "Life coach specializing in mindset transformation and personal development challenges.",
+        followers: 2156,
+        challengesCreated: 27,
+        successRate: 85,
+        totalEarnings: 11200,
+        isVerified: true,
+        isFollowing: false,
+        categories: ["Mindset", "Personal Development", "Goals"],
+        recentChallenge: {
+          title: "Gratitude Journal Challenge",
+          participants: 1089,
+        },
+      },
+      {
+        id: "emma-creativity",
+        name: "Emma Thompson",
+        username: "emmacreates",
+        avatar: "/avatars/avatar-6.svg",
+        bio: "Artist and creativity coach inspiring others to unlock their creative potential through daily practice.",
+        followers: 1789,
+        challengesCreated: 21,
+        successRate: 78,
+        totalEarnings: 9300,
+        isVerified: false,
+        isFollowing: false,
+        categories: ["Creativity", "Art", "Writing"],
+        recentChallenge: {
+          title: "Daily Sketch Challenge",
+          participants: 634,
+        },
+      }
+    ]
+  }
+
+  return baseCreators
+}
+
+export function getDemoBrands(isAdmin: boolean = false) {
+  const baseBrands = [
+    {
+      id: "nike-wellness",
+      name: "Nike Wellness",
+      logo: "/placeholder.svg?height=80&width=80",
+      description: "Empowering athletes worldwide to push their limits and achieve greatness through movement.",
+      industry: "Sports & Fitness",
+      followers: 15420,
+      challengesSponsored: 47,
+      totalRewards: 145000,
+      isVerified: true,
+      isFollowing: false,
+      categories: ["Fitness", "Running", "Training"],
+      featuredChallenge: {
+        title: "Nike Run Club Challenge",
+        reward: 5000,
+        participants: 3247,
+      },
+    },
+    {
+      id: "headspace-mindful",
+      name: "Headspace",
+      logo: "/placeholder.svg?height=80&width=80",
+      description: "Making meditation and mindfulness accessible to everyone through guided challenges.",
+      industry: "Mental Health & Wellness",
+      followers: 12890,
+      challengesSponsored: 32,
+      totalRewards: 89000,
+      isVerified: true,
+      isFollowing: true,
+      categories: ["Mindfulness", "Mental Health", "Wellness"],
+      featuredChallenge: {
+        title: "21-Day Mindfulness Journey",
+        reward: 3500,
+        participants: 2156,
+      },
+    },
+    {
+      id: "myfitnesspal",
+      name: "MyFitnessPal",
+      logo: "/placeholder.svg?height=80&width=80",
+      description: "Helping millions track their nutrition and achieve their health goals through data-driven challenges.",
+      industry: "Health & Nutrition",
+      followers: 9876,
+      challengesSponsored: 28,
+      totalRewards: 67000,
+      isVerified: true,
+      isFollowing: false,
+      categories: ["Nutrition", "Health", "Tracking"],
+      featuredChallenge: {
+        title: "30-Day Nutrition Tracking",
+        reward: 2500,
+        participants: 1834,
+      },
+    },
+    {
+      id: "duolingo-learn",
+      name: "Duolingo",
+      logo: "/placeholder.svg?height=80&width=80",
+      description: "Making language learning fun and accessible through gamified challenges and streaks.",
+      industry: "Education & Learning",
+      followers: 8543,
+      challengesSponsored: 24,
+      totalRewards: 45000,
+      isVerified: true,
+      isFollowing: false,
+      categories: ["Learning", "Languages", "Education"],
+      featuredChallenge: {
+        title: "30-Day Language Streak",
+        reward: 2000,
+        participants: 1567,
+      },
+    }
+  ]
+
+  if (isAdmin) {
+    return [
+      ...baseBrands,
+      {
+        id: "calm-meditation",
+        name: "Calm",
+        logo: "/placeholder.svg?height=80&width=80",
+        description: "Creating peaceful moments in busy lives through meditation and sleep challenges.",
+        industry: "Mental Health & Wellness",
+        followers: 11234,
+        challengesSponsored: 35,
+        totalRewards: 78000,
+        isVerified: true,
+        isFollowing: false,
+        categories: ["Meditation", "Sleep", "Relaxation"],
+        featuredChallenge: {
+          title: "Better Sleep Challenge",
+          reward: 3000,
+          participants: 1923,
+        },
+      },
+      {
+        id: "strava-fitness",
+        name: "Strava",
+        logo: "/placeholder.svg?height=80&width=80",
+        description: "Connecting athletes worldwide through social fitness challenges and community motivation.",
+        industry: "Sports & Fitness",
+        followers: 13567,
+        challengesSponsored: 41,
+        totalRewards: 112000,
+        isVerified: true,
+        isFollowing: false,
+        categories: ["Fitness", "Running", "Cycling"],
+        featuredChallenge: {
+          title: "Monthly Distance Challenge",
+          reward: 4000,
+          participants: 2789,
+        },
+      }
+    ]
+  }
+
+  return baseBrands
+}

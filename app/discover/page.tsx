@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DiscoverHeader } from "@/components/discover-header"
 import { DiscoverMobile } from "@/components/discover-mobile"
 import { ChallengeGrid } from "@/components/challenge-grid"
@@ -25,6 +25,9 @@ export default function Discover() {
   const [selectedStakeRange, setSelectedStakeRange] = useState<string>("")
   const [viewMode, setViewMode] = useState<'browse' | 'grid'>('browse')
   const [challenges, setChallenges] = useState<any[]>([])
+  const [creators, setCreators] = useState<any[]>([])
+  const [brands, setBrands] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const categories = [
     { id: "mindfulness", name: "Mindfulness" },
@@ -34,6 +37,44 @@ export default function Discover() {
     { id: "wellness", name: "Wellness" },
     { id: "productivity", name: "Productivity" },
   ]
+
+  // Fetch data on component mount
+  useEffect(() => {
+    const fetchDiscoverData = async () => {
+      try {
+        setIsLoading(true)
+        
+        // Fetch challenges, creators, and brands in parallel
+        const [challengesRes, creatorsRes, brandsRes] = await Promise.all([
+          fetch('/api/challenges'),
+          fetch('/api/creators'),
+          fetch('/api/brands')
+        ])
+
+        if (challengesRes.ok) {
+          const challengesData = await challengesRes.json()
+          setChallenges(challengesData.challenges || [])
+        }
+
+        if (creatorsRes.ok) {
+          const creatorsData = await creatorsRes.json()
+          setCreators(creatorsData.creators || [])
+        }
+
+        if (brandsRes.ok) {
+          const brandsData = await brandsRes.json()
+          setBrands(brandsData.brands || [])
+        }
+
+      } catch (error) {
+        console.error('Failed to fetch discover data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDiscoverData()
+  }, [])
 
   const filterCount =
     selectedCategories.length + (selectedDifficulty ? 1 : 0) + (selectedDuration ? 1 : 0) + (selectedStakeRange ? 1 : 0)
@@ -103,53 +144,9 @@ export default function Discover() {
   if (isMobile) {
     return (
       <DiscoverMobile
-        challenges={challenges.length > 0 ? challenges : [
-          // Mock data for demo - replace with real API call
-          {
-            id: '1',
-            title: '30-Day Meditation Challenge',
-            description: 'Develop a daily meditation practice and find inner peace. Join thousands of others on this mindfulness journey.',
-            category: 'Mindfulness',
-            difficulty: 'Beginner',
-            duration: '30 days',
-            min_stake: 25,
-            max_stake: 100,
-            participants_count: 1247,
-            total_stake_pool: 15680,
-            host_name: 'Sarah Chen',
-            host_avatar_url: '/avatars/avatar-1.svg'
-          },
-          {
-            id: '2', 
-            title: '21-Day Fitness Transformation',
-            description: 'Build strength, endurance, and confidence with our proven workout program designed for all fitness levels.',
-            category: 'Fitness',
-            difficulty: 'Intermediate',
-            duration: '21 days',
-            min_stake: 50,
-            max_stake: 200,
-            participants_count: 892,
-            total_stake_pool: 28450,
-            host_name: 'Mike Rodriguez',
-            host_avatar_url: '/avatars/avatar-2.svg'
-          },
-          {
-            id: '3',
-            title: 'Digital Detox Week',
-            description: 'Reclaim your time and mental clarity by reducing screen time and building healthier tech habits.',
-            category: 'Digital Wellness',
-            difficulty: 'Beginner',
-            duration: '7 days', 
-            min_stake: 15,
-            max_stake: 50,
-            participants_count: 634,
-            total_stake_pool: 9870,
-            host_name: 'Alex Thompson',
-            host_avatar_url: '/avatars/avatar-3.svg'
-          }
-        ]}
-        creators={[]}
-        brands={[]}
+        challenges={challenges}
+        creators={creators}
+        brands={brands}
         onJoinChallenge={handleJoinChallenge}
         onSaveChallenge={handleSaveChallenge}
         onPassChallenge={handlePassChallenge}
@@ -207,51 +204,7 @@ export default function Discover() {
           {isMobile && viewMode === 'browse' ? (
             <div className="px-4">
               <ChallengeCarousel
-                challenges={challenges.length > 0 ? challenges : [
-                  // Mock data for demo - replace with real API call
-                  {
-                    id: '1',
-                    title: '30-Day Meditation Challenge',
-                    description: 'Develop a daily meditation practice and find inner peace. Join thousands of others on this mindfulness journey.',
-                    category: 'Mindfulness',
-                    difficulty: 'Beginner',
-                    duration: '30 days',
-                    min_stake: 25,
-                    max_stake: 100,
-                    participants_count: 1247,
-                    total_stake_pool: 15680,
-                    host_name: 'Sarah Chen',
-                    host_avatar_url: '/avatars/avatar-1.svg'
-                  },
-                  {
-                    id: '2', 
-                    title: '21-Day Fitness Transformation',
-                    description: 'Build strength, endurance, and confidence with our proven workout program designed for all fitness levels.',
-                    category: 'Fitness',
-                    difficulty: 'Intermediate',
-                    duration: '21 days',
-                    min_stake: 50,
-                    max_stake: 200,
-                    participants_count: 892,
-                    total_stake_pool: 28450,
-                    host_name: 'Mike Rodriguez',
-                    host_avatar_url: '/avatars/avatar-2.svg'
-                  },
-                  {
-                    id: '3',
-                    title: 'Digital Detox Week',
-                    description: 'Reclaim your time and mental clarity by reducing screen time and building healthier tech habits.',
-                    category: 'Digital Wellness',
-                    difficulty: 'Beginner',
-                    duration: '7 days', 
-                    min_stake: 15,
-                    max_stake: 50,
-                    participants_count: 634,
-                    total_stake_pool: 9870,
-                    host_name: 'Alex Thompson',
-                    host_avatar_url: '/avatars/avatar-3.svg'
-                  }
-                ]}
+                challenges={challenges}
                 onJoin={handleJoinChallenge}
                 onViewDetails={handleViewDetails}
                 className="w-full max-w-lg mx-auto"
@@ -266,11 +219,11 @@ export default function Discover() {
         </TabsContent>
 
         <TabsContent value="creators" className="space-y-8">
-          <CreatorGrid creators={[]} />
+          <CreatorGrid creators={creators} />
         </TabsContent>
 
         <TabsContent value="brands" className="space-y-8">
-          <BrandGrid brands={[]} />
+          <BrandGrid brands={brands} />
         </TabsContent>
       </Tabs>
 
