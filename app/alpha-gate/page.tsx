@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,21 @@ export default function AlphaGatePage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [isDevEnvironment, setIsDevEnvironment] = useState(false)
   const router = useRouter()
+
+  // Check if we're in a development/preview environment
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname
+      const isDev = 
+        hostname.includes('v0.dev') ||
+        hostname.includes('vercel.app') ||
+        hostname.includes('localhost') ||
+        hostname === '127.0.0.1'
+      setIsDevEnvironment(isDev)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -175,6 +189,32 @@ export default function AlphaGatePage() {
                   </>
                 )}
               </Button>
+
+              {/* Development bypass */}
+              {isDevEnvironment && (
+                <div className="border-t pt-4">
+                  <p className="text-sm text-gray-600 mb-2">
+                    🔧 Development Environment Detected
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/dev-bypass')
+                        if (response.ok) {
+                          window.location.href = '/'
+                        }
+                      } catch (error) {
+                        console.error('Bypass failed:', error)
+                      }
+                    }}
+                  >
+                    🚀 Bypass Alpha Gate (Dev Only)
+                  </Button>
+                </div>
+              )}
             </form>
           </CardContent>
         </Card>

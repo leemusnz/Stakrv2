@@ -9,6 +9,20 @@ export function middleware(request: NextRequest) {
   if (process.env.NODE_ENV === 'development') {
     console.log(`🔧 Middleware processing: ${pathname}`)
   }
+
+  // Bypass alpha gate for preview environments and development
+  const hostname = request.nextUrl.hostname
+  const isPreviewEnvironment = 
+    process.env.NODE_ENV === 'development' ||
+    hostname.includes('v0.dev') ||
+    hostname.includes('vercel.app') ||
+    hostname.includes('localhost') ||
+    process.env.DISABLE_ALPHA_GATE === 'true'
+
+  if (isPreviewEnvironment) {
+    console.log(`🌐 Bypassing alpha gate for preview environment: ${hostname}`)
+    return NextResponse.next()
+  }
   
   // Always allow these paths
   if (
