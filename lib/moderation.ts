@@ -340,48 +340,120 @@ export class ContentModerationService {
       let base64Image: string
       
       try {
-        const imageResponse = await fetch(imageUrl)
-        if (!imageResponse.ok) {
-          throw new Error(`Failed to download image: ${imageResponse.status}`)
+        // Try to download image - handles both proxy URLs and direct URLs
+        let imageResponse: Response
+        let downloadUrl = imageUrl
+        
+        // If it's an S3 URL, we need to handle it specially in production
+        if (imageUrl.includes('stakr-verification-files.s3.ap-southeast-2.amazonaws.com')) {
+          console.log('🪣 Detected S3 URL, checking AWS credentials for direct access')
+          
+          // In production, try to access S3 directly if we have credentials
+          if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+            console.log('🔑 AWS credentials available, attempting direct S3 access')
+            
+            try {
+              const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3')
+              
+              // Extract S3 key from URL
+              const urlParts = imageUrl.split('.amazonaws.com/')
+              const s3Key = urlParts[1]
+              
+              const s3Client = new S3Client({
+                region: process.env.AWS_REGION || 'ap-southeast-2',
+                credentials: {
+                  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+                },
+              })
+              
+              const command = new GetObjectCommand({
+                Bucket: 'stakr-verification-files',
+                Key: s3Key,
+              })
+              
+              const s3Response = await s3Client.send(command)
+              
+              if (s3Response.Body) {
+                // Convert stream to buffer for S3
+                const chunks: Uint8Array[] = []
+                const reader = s3Response.Body.transformToWebStream().getReader()
+                
+                while (true) {
+                  const { done, value } = await reader.read()
+                  if (done) break
+                  chunks.push(value)
+                }
+                
+                const imageBuffer = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0))
+                let offset = 0
+                for (const chunk of chunks) {
+                  imageBuffer.set(chunk, offset)
+                  offset += chunk.length
+                }
+                
+                const base64Data = Buffer.from(imageBuffer).toString('base64')
+                const contentType = s3Response.ContentType || 'image/jpeg'
+                base64Image = `data:${contentType};base64,${base64Data}`
+                
+                console.log('✅ Direct S3 access successful, image size:', base64Data.length, 'chars')
+              } else {
+                throw new Error('No image data in S3 response')
+              }
+            } catch (s3Error) {
+              console.warn('⚠️ Direct S3 access failed, falling back to HTTP fetch:', s3Error)
+              // Fall back to regular HTTP fetch
+              imageResponse = await fetch(downloadUrl)
+              if (!imageResponse.ok) {
+                throw new Error(`Failed to download image via HTTP: ${imageResponse.status}`)
+              }
+              
+              const imageBuffer = await imageResponse.arrayBuffer()
+              const base64Data = Buffer.from(imageBuffer).toString('base64')
+              const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
+              base64Image = `data:${contentType};base64,${base64Data}`
+              
+              console.log('✅ HTTP fallback successful, image size:', base64Data.length, 'chars')
+            }
+          } else {
+            console.log('⚠️ No AWS credentials, using HTTP fetch')
+            imageResponse = await fetch(downloadUrl)
+            if (!imageResponse.ok) {
+              throw new Error(`Failed to download image: ${imageResponse.status}`)
+            }
+            
+            const imageBuffer = await imageResponse.arrayBuffer()
+            const base64Data = Buffer.from(imageBuffer).toString('base64')
+            const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
+            base64Image = `data:${contentType};base64,${base64Data}`
+            
+            console.log('✅ HTTP fetch successful, image size:', base64Data.length, 'chars')
+          }
+        } else {
+          // For non-S3 URLs, use regular fetch
+          imageResponse = await fetch(downloadUrl)
+          if (!imageResponse.ok) {
+            throw new Error(`Failed to download image: ${imageResponse.status}`)
+          }
+          
+          const imageBuffer = await imageResponse.arrayBuffer()
+          const base64Data = Buffer.from(imageBuffer).toString('base64')
+          const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
+          base64Image = `data:${contentType};base64,${base64Data}`
+          
+          console.log('✅ Image converted to base64, size:', base64Data.length, 'chars')
         }
         
-        const imageBuffer = await imageResponse.arrayBuffer()
-        const base64Data = Buffer.from(imageBuffer).toString('base64')
-        const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
-        base64Image = `data:${contentType};base64,${base64Data}`
-        
-        console.log('✅ Image converted to base64, size:', base64Data.length, 'chars')
       } catch (downloadError) {
         console.error('❌ Failed to download image for moderation:', downloadError)
         
-        // Different behavior based on environment
-        const isDevelopment = process.env.NODE_ENV === 'development'
-        
-        if (context === 'profile_picture' && !isDevelopment) {
-          // Only block in production when download fails
-          console.warn('🚫 Blocking profile picture upload due to download failure (production)')
-          return {
-            flagged: true,
-            reason: ['moderation_download_failed'],
-            confidence: 100,
-            action: 'reject'
-          }
-        } else if (context === 'profile_picture' && isDevelopment) {
-          // Allow in development for better developer experience
-          console.warn('🔧 Development mode: Allowing profile picture despite download failure')
-          return {
-            flagged: false,
-            reason: ['dev_download_override'],
-            confidence: 0,
-            action: 'approve'
-          }
-        }
-        
+        // CRITICAL: No overrides - let real moderation results stand
+        console.error('🚨 BLOCKING upload due to download failure - no override applied')
         return {
-          flagged: false,
-          reason: [],
-          confidence: 0,
-          action: 'approve'
+          flagged: true,
+          reason: ['moderation_download_failed'],
+          confidence: 100,
+          action: 'reject'
         }
       }
 
