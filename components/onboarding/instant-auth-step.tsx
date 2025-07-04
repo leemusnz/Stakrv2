@@ -48,6 +48,7 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
           setError(result?.error || "Invalid email or password")
         }
       } else {
+        console.log('📤 Sending registration request...')
         const response = await fetch("/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -59,21 +60,27 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
           }),
         })
         
+        console.log('📥 Registration response status:', response.status)
         const result = await response.json()
+        console.log('📋 Registration result:', result)
         
         if (response.ok && result.success) {
-          // Redirect to email verification instead of continuing onboarding
+          console.log('✅ Registration successful!')
+          console.log('📧 Email sent status:', result.emailSent)
+          
+          // Always redirect to verification page after successful registration
+          const verifyUrl = `/auth/verify-email?email=${encodeURIComponent(email)}&from=onboarding`
+          console.log('🔄 Redirecting to:', verifyUrl)
+          
           if (result.emailSent) {
-            // Use Next.js router for proper navigation
-            const verifyUrl = `/auth/verify-email?email=${encodeURIComponent(email)}&from=onboarding`
-            console.log('📧 Redirecting to email verification:', verifyUrl)
+            console.log('📧 Email was sent, redirecting to verification page')
             router.push(verifyUrl)
           } else {
-            // Fallback if email sending failed - continue with onboarding
-            console.log('⚠️ Email not sent, continuing with onboarding')
-            onNext({ name })
+            console.log('⚠️ Email not sent but still redirecting to verification page for better UX')
+            router.push(verifyUrl)
           }
         } else {
+          console.log('❌ Registration failed:', result)
           setError(result.message || result.error || "Failed to create account")
         }
       }

@@ -23,6 +23,7 @@ function SignInContent() {
   const callbackUrl = searchParams.get('callbackUrl') || '/discover'
   const errorParam = searchParams.get('error')
   const messageParam = searchParams.get('message')
+  const emailParam = searchParams.get('email')
 
   useEffect(() => {
     // Handle URL parameters
@@ -46,13 +47,18 @@ function SignInContent() {
       setMessage(messageParam)
     }
 
+    // Pre-fill email if provided in URL
+    if (emailParam && !email) {
+      setEmail(emailParam)
+    }
+
     // Check if user is already signed in
     getSession().then((session) => {
       if (session) {
         router.push(callbackUrl)
       }
     })
-  }, [errorParam, messageParam, callbackUrl, router])
+  }, [errorParam, messageParam, emailParam, callbackUrl, router, email])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

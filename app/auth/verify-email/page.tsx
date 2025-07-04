@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -49,11 +50,15 @@ function VerifyEmailContent() {
       const result = await response.json()
       setVerificationResult(result)
 
-      // If successful, redirect to sign in after a delay
+      // If successful, redirect to signin with email pre-filled
       if (result.success) {
+        console.log('✅ Email verified successfully!')
+        
+        // Redirect to signin page with email pre-filled and success message
         setTimeout(() => {
-          router.push('/auth/signin?message=Email verified! You can now sign in.')
-        }, 3000)
+          const signinUrl = `/auth/signin?email=${encodeURIComponent(result.email || email || '')}&message=${encodeURIComponent('Email verified! Please sign in to continue.')}`
+          router.push(signinUrl)
+        }, 2000)
       }
     } catch (error) {
       setVerificationResult({
@@ -141,9 +146,9 @@ function VerifyEmailContent() {
                 )}
                 <div className="text-center space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Redirecting to sign in page in 3 seconds...
+                    Redirecting to sign in with your email pre-filled...
                   </p>
-                  <Link href="/auth/signin">
+                  <Link href={`/auth/signin?email=${encodeURIComponent(verificationResult.email || email || '')}&message=${encodeURIComponent('Email verified! Please sign in to continue.')}`}>
                     <Button>Sign In Now</Button>
                   </Link>
                 </div>
