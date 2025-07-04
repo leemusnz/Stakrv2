@@ -84,4 +84,4 @@ export async function POST(request: NextRequest) {
       message: 'Internal server error. Please try again later.'
     }, { status: 500 })
   }
-} 
+}
