@@ -22,125 +22,207 @@ export function createVerificationEmail(to: string, verificationToken: string, n
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="color-scheme" content="light dark">
+          <meta name="supported-color-schemes" content="light dark">
           <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
+            :root {
+              color-scheme: light dark;
+              --bg-primary: #ffffff;
+              --bg-secondary: #f8fafc;
+              --bg-accent: #fef3c7;
+              --text-primary: #1f2937;
+              --text-secondary: #6b7280;
+              --text-accent: #92400e;
+              --border-color: #e5e7eb;
+                             --stakr-primary: #FF6B35;
+               --stakr-secondary: #E55A2B;
+               --stakr-success: #10b981;
+              --shadow: rgba(0,0,0,0.1);
+            }
+            
+            @media (prefers-color-scheme: dark) {
+              :root {
+                --bg-primary: #1f2937;
+                --bg-secondary: #374151;
+                --bg-accent: #451a03;
+                --text-primary: #f9fafb;
+                --text-secondary: #d1d5db;
+                --text-accent: #fbbf24;
+                --border-color: #4b5563;
+                --shadow: rgba(0,0,0,0.3);
+              }
+            }
+            
+            * { 
+              margin: 0; 
+              padding: 0; 
+              box-sizing: border-box; 
+            }
+            
             body { 
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
               line-height: 1.6; 
-              color: #333; 
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: var(--text-primary);
+              background: var(--bg-secondary);
               padding: 20px; 
+              -webkit-text-size-adjust: 100%;
+              -ms-text-size-adjust: 100%;
             }
+            
             .container { 
               max-width: 600px; 
               margin: 0 auto; 
-              background: white; 
+              background: var(--bg-primary); 
               border-radius: 16px; 
-              box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+              box-shadow: 0 10px 30px var(--shadow); 
               overflow: hidden;
+              border: 1px solid var(--border-color);
             }
+            
             .header { 
-              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+              background: linear-gradient(135deg, var(--stakr-primary) 0%, var(--stakr-secondary) 100%); 
               padding: 40px 30px; 
               text-align: center; 
               color: white;
             }
+            
             .logo { 
               font-size: 32px; 
               font-weight: 800; 
               letter-spacing: -1px;
               margin-bottom: 8px;
+              color: white !important;
             }
+            
             .tagline { 
               font-size: 16px; 
-              opacity: 0.9; 
+              opacity: 0.95; 
               font-weight: 300;
+              color: white !important;
             }
+            
             .content { 
               padding: 40px 30px; 
+              background: var(--bg-primary);
             }
+            
             .welcome { 
               font-size: 24px; 
               font-weight: 600; 
-              color: #1f2937; 
+              color: var(--text-primary); 
               margin-bottom: 16px;
               text-align: center;
             }
+            
             .message { 
               font-size: 16px; 
-              color: #6b7280; 
+              color: var(--text-secondary); 
               margin-bottom: 32px; 
               text-align: center;
               line-height: 1.6;
             }
+            
             .cta-container { 
               text-align: center; 
               margin: 40px 0; 
             }
+            
             .button { 
               display: inline-block; 
-              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
-              color: white; 
+              background: linear-gradient(135deg, var(--stakr-primary) 0%, var(--stakr-secondary) 100%); 
+              color: white !important; 
               padding: 16px 32px; 
               text-decoration: none; 
               border-radius: 12px; 
               font-weight: 600;
               font-size: 16px;
-              box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
-              transition: transform 0.2s ease;
+              box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
             }
-            .button:hover { 
-              transform: translateY(-2px); 
-            }
+            
             .link-fallback { 
               margin: 32px 0; 
               padding: 20px; 
-              background: #f8fafc; 
+              background: var(--bg-secondary); 
               border-radius: 8px; 
-              border-left: 4px solid #2563eb;
+              border-left: 4px solid var(--stakr-primary);
             }
+            
             .link-text { 
               font-size: 14px; 
-              color: #6b7280; 
+              color: var(--text-secondary); 
               margin-bottom: 8px; 
             }
+            
             .link-url { 
               word-break: break-all; 
-              color: #2563eb; 
+              color: var(--stakr-primary); 
               font-size: 14px; 
-              font-family: monospace;
-              background: white;
+              font-family: 'SF Mono', Monaco, 'Roboto Mono', monospace;
+              background: var(--bg-primary);
               padding: 8px;
               border-radius: 4px;
+              border: 1px solid var(--border-color);
             }
+            
             .security-note { 
-              background: #fef3c7; 
-              border: 1px solid #f59e0b; 
+              background: var(--bg-accent); 
+              border: 1px solid var(--text-accent); 
               border-radius: 8px; 
               padding: 16px; 
               margin: 24px 0;
             }
+            
             .security-text { 
               font-size: 14px; 
-              color: #92400e; 
+              color: var(--text-accent); 
               font-weight: 500;
             }
+            
             .footer { 
-              background: #f8fafc; 
+              background: var(--bg-secondary); 
               padding: 30px; 
               text-align: center; 
-              border-top: 1px solid #e5e7eb;
+              border-top: 1px solid var(--border-color);
             }
+            
             .footer-text { 
               font-size: 14px; 
-              color: #6b7280; 
+              color: var(--text-secondary); 
               margin-bottom: 8px;
             }
+            
             .footer-brand { 
               font-size: 14px; 
-              color: #374151; 
+              color: var(--text-primary); 
               font-weight: 500;
             }
+            
+            .features-grid {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 20px;
+              margin: 30px 0;
+              text-align: center;
+            }
+            
+            .feature {
+              padding: 16px;
+              background: var(--bg-secondary);
+              border-radius: 8px;
+              border: 1px solid var(--border-color);
+            }
+            
+            .feature-icon {
+              font-size: 24px;
+              margin-bottom: 8px;
+            }
+            
+            .feature-text {
+              font-size: 12px;
+              color: var(--text-secondary);
+              font-weight: 500;
+            }
+            
             @media only screen and (max-width: 600px) {
               .container { margin: 10px; border-radius: 12px; }
               .header { padding: 30px 20px; }
@@ -148,13 +230,20 @@ export function createVerificationEmail(to: string, verificationToken: string, n
               .footer { padding: 20px; }
               .welcome { font-size: 20px; }
               .button { padding: 14px 24px; font-size: 15px; }
+              .features-grid { grid-template-columns: 1fr; gap: 12px; }
+            }
+            
+            @media (prefers-color-scheme: dark) {
+              .button {
+                box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+              }
             }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">🎯 Stakr</div>
+              <div class="logo">🏔️ Stakr</div>
               <div class="tagline">Challenge yourself. Build better habits.</div>
             </div>
             
@@ -162,9 +251,24 @@ export function createVerificationEmail(to: string, verificationToken: string, n
               <h1 class="welcome">Welcome aboard, ${name}! 🎉</h1>
               
               <p class="message">
-                You're just one click away from starting your journey with Stakr. 
-                We need to verify your email address to secure your account and keep you updated on your challenges.
+                You're just one click away from joining thousands of people who are building better habits through challenges. 
+                Let's verify your email to secure your account and get you started.
               </p>
+              
+              <div class="features-grid">
+                <div class="feature">
+                  <div class="feature-icon">💪</div>
+                  <div class="feature-text">Set Personal Challenges</div>
+                </div>
+                <div class="feature">
+                  <div class="feature-icon">💰</div>
+                  <div class="feature-text">Stake Real Money</div>
+                </div>
+                <div class="feature">
+                  <div class="feature-icon">🏆</div>
+                  <div class="feature-text">Build Lasting Habits</div>
+                </div>
+              </div>
               
               <div class="cta-container">
                 <a href="${verificationUrl}" class="button">
@@ -189,10 +293,10 @@ export function createVerificationEmail(to: string, verificationToken: string, n
                 If you didn't create a Stakr account, you can safely ignore this email.
               </div>
               <div class="footer-text">
-                Need help? Reply to this email or contact support.
+                Need help? Reply to this email or contact us at support@stakr.app
               </div>
               <div class="footer-brand">
-                © 2024 Stakr. Built to help you succeed. 💪
+                © 2024 Stakr. Built to help you reach new heights. 🏔️
               </div>
             </div>
           </div>

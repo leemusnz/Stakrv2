@@ -1,0 +1,42 @@
+---
+description: STAKR BRAND GUIDELINES
+
+COLORS
+Primary (Neon Orange): #F26722
+Use for: CTAs, logos, key highlights
+Vibe: Bold, disruptive, high-energy
+
+Secondary (Vibrant Teal): #F2A254
+Use for: UI contrast, creator flows, secondary buttons
+Vibe: Balanced, fresh, trustworthy
+
+Background - Dark Mode: #2E2E2F
+Neutral container/background color for dark interfaces
+
+Text / Interface Base: #2E2E2F
+(Note: “Off White” is listed but appears to duplicate dark charcoal)
+
+// -- TYPOGRAPHY --
+Font Family: Montserrat
+Weights: Bold, Regular
+Line Height: 1.4
+Letter Spacing: 0
+
+// -- LOGO USAGE --
+Logo represents personal ascent + accountability
+Geometric vector style
+Clear space around logo must equal height of flag on mountain icon
+
+// -- VOICE & TONE --
+Voice: Bold, cheeky, straight-talking
+Style: Action-oriented, motivating, anti-fluff
+Audience: Doers tired of BS, ready to bet on themselves
+
+// -- BRAND SUMMARY --
+Stakr is a challenge-driven brand with a high-stakes aesthetic
+Tone is confident and rebellious, not corporate or motivational fluff
+Design is clean, geometric, and built for clarity at speed
+
+globs:
+alwaysApply: true
+---
