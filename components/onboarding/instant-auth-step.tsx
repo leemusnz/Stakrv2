@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { ArrowRight, Mail, Lock, Eye, EyeOff, Sparkles } from "lucide-react"
+import { ArrowRight, Mail, Lock, Eye, EyeOff, Sparkles, AlertCircle } from "lucide-react"
 import { signIn } from "next-auth/react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { OnboardingData } from "@/app/onboarding/page"
 
 interface InstantAuthStepProps {
@@ -25,10 +26,12 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
   const [name, setName] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
 
     try {
       if (isLogin) {
@@ -39,6 +42,8 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
         })
         if (result?.ok) {
           onNext({ name: email.split("@")[0] })
+        } else {
+          setError(result?.error || "Invalid email or password")
         }
       } else {
         const response = await fetch("/api/auth/register", {
@@ -51,12 +56,18 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
             onboardingData: data,
           }),
         })
-        if (response.ok) {
+        
+        const result = await response.json()
+        
+        if (response.ok && result.success) {
           onNext({ name })
+        } else {
+          setError(result.message || result.error || "Failed to create account")
         }
       }
     } catch (error) {
       console.error("Auth error:", error)
+      setError("Connection error. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -176,6 +187,13 @@ export function InstantAuthStep({ data, onNext }: InstantAuthStepProps) {
                 </button>
               </div>
             </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
             <Button type="submit" disabled={isLoading} size="lg" className="w-full py-6">
               {isLoading ? (

@@ -11,7 +11,14 @@ const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   username: z.string().min(3, 'Username must be at least 3 characters').optional(),
   avatar: z.string().optional(),
-  confirmPassword: z.string().optional()
+  confirmPassword: z.string().optional(),
+  onboardingData: z.object({
+    goals: z.array(z.string()).optional(),
+    interests: z.array(z.string()).optional(),
+    experience: z.string().optional(),
+    motivation: z.string().optional(),
+    preferredStakeRange: z.string().optional()
+  }).optional()
 }).refine((data) => {
   if (data.confirmPassword && data.password !== data.confirmPassword) {
     return false
@@ -36,7 +43,17 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const { email, password, name, username: providedUsername, avatar } = validationResult.data
+    const { email, password, name, username: providedUsername, avatar, onboardingData } = validationResult.data
+    
+    // Log onboarding data for analytics
+    if (onboardingData) {
+      console.log('📊 Onboarding data received:', {
+        goals: onboardingData.goals?.length || 0,
+        hasExperience: !!onboardingData.experience,
+        hasMotivation: !!onboardingData.motivation,
+        hasStakeRange: !!onboardingData.preferredStakeRange
+      })
+    }
 
     // Generate username if not provided
     let username = providedUsername

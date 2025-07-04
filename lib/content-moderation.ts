@@ -96,7 +96,7 @@ export class ContentModerationService {
   async moderateImage(imageUrl: string, context: string = 'general'): Promise<ModerationResult> {
     try {
       if (!this.awsAccessKey || !this.awsSecretKey) {
-        console.warn('AWS credentials not configured for image moderation')
+        console.warn('AWS credentials not configured for image moderation - approving by default')
         return { flagged: false, reason: [], confidence: 0, action: 'approve' }
       }
 
@@ -136,12 +136,27 @@ export class ContentModerationService {
 
     } catch (error) {
       console.error('Image moderation error:', error)
-      // Fail safe - flag for manual review
-      return {
-        flagged: true,
-        reason: ['moderation_error'],
-        confidence: 0,
-        action: 'review'
+      // Fail safe - different behavior based on environment
+      const isDevelopment = process.env.NODE_ENV === 'development'
+      
+      if (isDevelopment) {
+        console.warn('🔧 Development mode: Approving image despite moderation error')
+        return {
+          flagged: false,
+          reason: ['moderation_error_dev_override'],
+          confidence: 0,
+          action: 'approve',
+          notes: 'Approved in development due to moderation service error'
+        }
+      } else {
+        // In production, flag for manual review
+        return {
+          flagged: true,
+          reason: ['moderation_error'],
+          confidence: 0,
+          action: 'review',
+          notes: 'Requires manual review due to moderation service error'
+        }
       }
     }
   }

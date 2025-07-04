@@ -303,16 +303,30 @@ export class ContentModerationService {
       
       if (!this.openaiApiKey) {
         console.warn('OpenAI API key not configured for image moderation')
-        // For profile pictures, be more conservative when API is not available
-        if (context === 'profile_picture') {
-          console.warn('🚫 Blocking profile picture upload due to missing moderation API')
+        
+        // Different behavior based on environment
+        const isDevelopment = process.env.NODE_ENV === 'development'
+        
+        if (context === 'profile_picture' && !isDevelopment) {
+          // Only block in production when API is unavailable
+          console.warn('🚫 Blocking profile picture upload due to missing moderation API (production)')
           return {
             flagged: true,
             reason: ['moderation_unavailable'],
             confidence: 100,
             action: 'reject'
           }
+        } else if (context === 'profile_picture' && isDevelopment) {
+          // Allow in development for better developer experience
+          console.warn('🔧 Development mode: Allowing profile picture despite missing moderation API')
+          return {
+            flagged: false,
+            reason: ['dev_mode_override'],
+            confidence: 0,
+            action: 'approve'
+          }
         }
+        
         return {
           flagged: false,
           reason: [],
@@ -339,15 +353,30 @@ export class ContentModerationService {
         console.log('✅ Image converted to base64, size:', base64Data.length, 'chars')
       } catch (downloadError) {
         console.error('❌ Failed to download image for moderation:', downloadError)
-        // Fall back to blocking upload when image can't be downloaded
-        if (context === 'profile_picture') {
+        
+        // Different behavior based on environment
+        const isDevelopment = process.env.NODE_ENV === 'development'
+        
+        if (context === 'profile_picture' && !isDevelopment) {
+          // Only block in production when download fails
+          console.warn('🚫 Blocking profile picture upload due to download failure (production)')
           return {
             flagged: true,
             reason: ['moderation_download_failed'],
             confidence: 100,
             action: 'reject'
           }
+        } else if (context === 'profile_picture' && isDevelopment) {
+          // Allow in development for better developer experience
+          console.warn('🔧 Development mode: Allowing profile picture despite download failure')
+          return {
+            flagged: false,
+            reason: ['dev_download_override'],
+            confidence: 0,
+            action: 'approve'
+          }
         }
+        
         return {
           flagged: false,
           reason: [],
@@ -464,14 +493,26 @@ This is for a social challenge platform - focus on safety, not professionalism. 
           console.error('❌ Failed to parse OpenAI vision response after cleaning:', cleanContent)
           console.error('Parse error:', parseError)
           
-          // For profile pictures, be conservative when parsing fails
-          if (context === 'profile_picture') {
-            console.warn('🚫 Blocking profile picture upload due to moderation parsing failure')
+          // Different behavior based on environment
+          const isDevelopment = process.env.NODE_ENV === 'development'
+          
+          if (context === 'profile_picture' && !isDevelopment) {
+            // Only block in production when parsing fails
+            console.warn('🚫 Blocking profile picture upload due to moderation parsing failure (production)')
             return {
               flagged: true,
               reason: ['moderation_parse_failed'],
               confidence: 100,
               action: 'reject'
+            }
+          } else if (context === 'profile_picture' && isDevelopment) {
+            // Allow in development for better developer experience
+            console.warn('🔧 Development mode: Allowing profile picture despite parsing failure')
+            return {
+              flagged: false,
+              reason: ['dev_parse_override'],
+              confidence: 0,
+              action: 'approve'
             }
           }
           
@@ -490,14 +531,26 @@ This is for a social challenge platform - focus on safety, not professionalism. 
       console.error('OpenAI Vision API call failed:', response.status, response.statusText)
       console.error('OpenAI Error Response:', errorText)
       
-      // For profile pictures, block uploads when moderation fails (safer approach)
-      if (context === 'profile_picture') {
-        console.warn('🚫 Blocking profile picture upload due to moderation API failure')
+      // Different behavior based on environment
+      const isDevelopment = process.env.NODE_ENV === 'development'
+      
+      if (context === 'profile_picture' && !isDevelopment) {
+        // Only block in production when API fails
+        console.warn('🚫 Blocking profile picture upload due to moderation API failure (production)')
         return {
           flagged: true,
           reason: ['moderation_api_failed'],
           confidence: 100,
           action: 'reject'
+        }
+      } else if (context === 'profile_picture' && isDevelopment) {
+        // Allow in development for better developer experience
+        console.warn('🔧 Development mode: Allowing profile picture despite API failure')
+        return {
+          flagged: false,
+          reason: ['dev_api_override'],
+          confidence: 0,
+          action: 'approve'
         }
       }
       
@@ -511,14 +564,26 @@ This is for a social challenge platform - focus on safety, not professionalism. 
     } catch (error) {
       console.error('Image moderation error:', error)
       
-      // For profile pictures, be conservative when errors occur
-      if (context === 'profile_picture') {
-        console.warn('🚫 Blocking profile picture upload due to moderation error')
+      // Different behavior based on environment
+      const isDevelopment = process.env.NODE_ENV === 'development'
+      
+      if (context === 'profile_picture' && !isDevelopment) {
+        // Only block in production when general errors occur
+        console.warn('🚫 Blocking profile picture upload due to moderation error (production)')
         return {
           flagged: true,
           reason: ['moderation_error'],
           confidence: 100,
           action: 'reject'
+        }
+      } else if (context === 'profile_picture' && isDevelopment) {
+        // Allow in development for better developer experience
+        console.warn('🔧 Development mode: Allowing profile picture despite moderation error')
+        return {
+          flagged: false,
+          reason: ['dev_error_override'],
+          confidence: 0,
+          action: 'approve'
         }
       }
       
