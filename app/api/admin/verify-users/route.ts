@@ -124,4 +124,4 @@ export async function GET(request: NextRequest) {
       message: 'Failed to fetch unverified users'
     }, { status: 500 })
   }
-} 
+}

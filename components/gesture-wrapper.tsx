@@ -343,4 +343,4 @@ export function InteractiveCard({
       {children}
     </GestureWrapper>
   )
-} 
+}

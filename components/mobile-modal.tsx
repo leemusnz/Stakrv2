@@ -307,4 +307,4 @@ export function useMobileModal(initialOpen = false) {
       onClose: close
     }
   }
-} 
+}

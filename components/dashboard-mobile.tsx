@@ -376,4 +376,4 @@ export function DashboardMobile({ data, loading, error, onRetry }: DashboardMobi
       />
     </MobileContainer>
   )
-} 
+}
