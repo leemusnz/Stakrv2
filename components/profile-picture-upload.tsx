@@ -156,6 +156,10 @@ export function ProfilePictureUpload({
           const moderationData = await moderationResponse.json()
           const moderationResult = moderationData.moderation
           console.log('🛡️ Image moderation result:', moderationResult)
+          console.log('🛡️ Moderation flagged:', moderationResult?.flagged)
+          console.log('🛡️ Moderation reasons:', moderationResult?.reason)
+          console.log('🛡️ Moderation action:', moderationResult?.action)
+          console.log('🛡️ Moderation notes:', moderationResult?.notes)
           
           if (moderationResult?.flagged) {
             console.log('❌ Image flagged by moderation, rejecting upload')
