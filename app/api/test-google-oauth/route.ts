@@ -112,4 +112,4 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(testResults, { 
     status: testResults.setup_status.google_oauth_ready ? 200 : 400 
   })
-} 
+}

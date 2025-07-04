@@ -21,11 +21,11 @@ This guide will help you set up Google sign-in for your Stakr application. Users
 2. **Click the project dropdown** at the top of the page
 3. **Click "New Project"**
 4. **Fill out the form**:
-   ```
+   \`\`\`
    Project Name: Stakr App
    Organization: (leave as default or select your org)
    Location: (leave as default)
-   ```
+   \`\`\`
 5. **Click "Create"**
 6. **Wait for the project to be created** (30-60 seconds)
 7. **Select your new project** from the dropdown
@@ -49,7 +49,7 @@ This guide will help you set up Google sign-in for your Stakr application. Users
 ### 2.2 Fill Out App Information
 **On the "OAuth consent screen" tab, enter:**
 
-```
+\`\`\`
 App name: Stakr
 User support email: [your-email@stakr.app]
 App logo: [Upload your logo - optional but recommended]
@@ -61,7 +61,7 @@ App domain (optional but recommended):
 
 Developer contact information:
 Email addresses: [your-email@stakr.app]
-```
+\`\`\`
 
 4. **Click "Save and Continue"**
 
@@ -95,7 +95,7 @@ Email addresses: [your-email@stakr.app]
 ### 3.2 Configure Web Application
 **Fill out the form:**
 
-```
+\`\`\`
 Name: Stakr Web App
 
 Authorized JavaScript origins:
@@ -109,7 +109,7 @@ https://stakr.app/api/auth/callback/google
 https://www.stakr.app/api/auth/callback/google
 http://localhost:3000/api/auth/callback/google
 http://localhost:3001/api/auth/callback/google
-```
+\`\`\`
 
 4. **Click "Create"**
 
@@ -129,7 +129,7 @@ http://localhost:3001/api/auth/callback/google
 1. **Open your `.env.local` file** (create if it doesn't exist)
 2. **Add these variables**:
 
-```bash
+\`\`\`bash
 # Google OAuth Configuration
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
@@ -137,7 +137,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 # NextAuth Configuration (if not already set)
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your_random_secret_here_minimum_32_characters
-```
+\`\`\`
 
 ### 4.2 Production Environment
 **Add the same variables to your hosting platform:**
@@ -147,21 +147,21 @@ NEXTAUTH_SECRET=your_random_secret_here_minimum_32_characters
 2. **Select your project**
 3. **Go to Settings → Environment Variables**
 4. **Add each variable**:
-   ```
+   \`\`\`
    Name: GOOGLE_CLIENT_ID
    Value: [your_client_id]
    Environment: Production, Preview, Development
-   ```
-   ```
+   \`\`\`
+   \`\`\`
    Name: GOOGLE_CLIENT_SECRET
    Value: [your_client_secret]
    Environment: Production, Preview, Development
-   ```
-   ```
+   \`\`\`
+   \`\`\`
    Name: NEXTAUTH_URL
    Value: https://stakr.app
    Environment: Production
-   ```
+   \`\`\`
 
 #### For Other Hosting Platforms:
 - **Netlify**: Site settings → Environment variables
@@ -175,7 +175,7 @@ NEXTAUTH_SECRET=your_random_secret_here_minimum_32_characters
 ### 5.1 Check Configuration
 1. **Visit your app**: `http://localhost:3000/api/debug/google-oauth`
 2. **You should see**:
-   ```json
+   \`\`\`json
    {
      "google_oauth_config": {
        "client_id_configured": true,
@@ -183,7 +183,7 @@ NEXTAUTH_SECRET=your_random_secret_here_minimum_32_characters
        "ready_for_google_oauth": true
      }
    }
-   ```
+   \`\`\`
 
 ### 5.2 Test Google Sign-In
 1. **Go to**: `http://localhost:3000/auth/signin`
@@ -226,14 +226,14 @@ NEXTAUTH_SECRET=your_random_secret_here_minimum_32_characters
 4. For production, redeploy after adding environment variables
 
 ### Debug Commands:
-```bash
+\`\`\`bash
 # Check if environment variables are loaded
 npm run dev
 # Then visit: http://localhost:3000/api/debug/google-oauth
 
 # Check NextAuth configuration
 # Visit: http://localhost:3000/api/auth/providers
-```
+\`\`\`
 
 ---
 
@@ -242,9 +242,9 @@ npm run dev
 When you create a mobile app, you'll need to:
 
 1. **Add mobile redirect URIs** to your Google Cloud Console:
-   ```
+   \`\`\`
    com.stakr.app://oauth/callback
-   ```
+   \`\`\`
 
 2. **Configure deep linking** in your mobile app
 
@@ -305,4 +305,4 @@ Before going live, ensure:
 
 ---
 
-**🎉 Congratulations!** Your users can now sign in with Google for a seamless authentication experience! 
+**🎉 Congratulations!** Your users can now sign in with Google for a seamless authentication experience!
