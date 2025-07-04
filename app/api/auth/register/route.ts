@@ -80,45 +80,55 @@ export async function POST(request: NextRequest) {
     
     console.log(`🔧 Creating user: email=${email}, username=${username}, name=${name}`)
 
-    // Create user in database with email already verified (temporary)
-    const newUsers = await sql`
-      INSERT INTO users (
-        email, 
-        name,
-        username,
-        password_hash,
-        avatar_url,
-        credits, 
-        trust_score, 
-        verification_tier,
-        challenges_completed,
-        false_claims,
-        current_streak,
-        longest_streak,
-        premium_subscription,
-        email_verified,
-        created_at,
-        updated_at
-      ) VALUES (
-        ${email},
-        ${name},
-        ${username},
-        ${passwordHash},
-        ${avatar || null},
-        0.00,
-        50,
-        'manual',
-        0,
-        0,
-        0,
-        0,
-        false,
-        false,
-        NOW(),
-        NOW()
-      )
-      RETURNING id, email, name, username, avatar_url, credits, trust_score, verification_tier, email_verified, created_at
-    `
+    // Create user in database
+    let newUsers
+    try {
+      newUsers = await sql`
+        INSERT INTO users (
+          email, 
+          name,
+          username,
+          password_hash,
+          avatar_url,
+          credits, 
+          trust_score, 
+          verification_tier,
+          challenges_completed,
+          false_claims,
+          current_streak,
+          longest_streak,
+          premium_subscription,
+          email_verified,
+          email_verified_at,
+          onboarding_completed,
+          created_at,
+          updated_at
+        ) VALUES (
+          ${email},
+          ${name},
+          ${username},
+          ${passwordHash},
+          ${avatar || null},
+          0.00,
+          50,
+          'manual',
+          0,
+          0,
+          0,
+          0,
+          false,
+          false,
+          NULL,
+          false,
+          NOW(),
+          NOW()
+        )
+        RETURNING id, email, name, username, avatar_url, credits, trust_score, verification_tier, email_verified, email_verified_at, created_at
+      `
+    } catch (dbError) {
+      console.error('❌ Database insertion failed:', dbError)
+      throw new Error(`Database error: ${dbError instanceof Error ? dbError.message : 'Unknown database error'}`)
+    }
 
     const newUser = newUsers[0]
 

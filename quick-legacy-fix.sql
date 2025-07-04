@@ -17,4 +17,4 @@ SELECT
     COUNT(CASE WHEN email_verified = TRUE THEN 1 END) as verified_users,
     COUNT(CASE WHEN email_verified = FALSE THEN 1 END) as unverified_users,
     COUNT(email_verified_at) as users_with_verification_date
-FROM users; 
+FROM users;
