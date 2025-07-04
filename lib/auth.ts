@@ -171,18 +171,7 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid credentials')
           }
 
-          // Check if email is verified (boolean field)
-          console.log('📧 Email verification status:', { 
-            email: dbUser.email, 
-            email_verified: dbUser.email_verified,
-            email_verified_at: dbUser.email_verified_at,
-            isVerified: dbUser.email_verified === true 
-          })
-          
-          if (dbUser.email_verified !== true) {
-            console.log('🚫 Login denied for unverified email:', dbUser.email)
-            throw new Error('error=email_not_verified')
-          }
+          // Note: Email verification is now handled in signIn callback
 
           console.log('✅ Database login successful for:', dbUser.email)
           systemLogger.info(`Database login successful for user: ${dbUser.email}`, 'auth')
@@ -264,6 +253,29 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET || 'development-secret-change-in-production',
   callbacks: {
+    async signIn({ user, account, profile, email, credentials }) {
+      // Allow Google OAuth users to sign in without email verification
+      if (account?.provider === 'google') {
+        console.log('🔑 Google OAuth sign-in allowed for:', user.email)
+        return true
+      }
+      
+      // For credentials provider, check email verification
+      if (account?.provider === 'credentials' && user?.email) {
+        try {
+          const dbUser = await findUserInDatabase(user.email)
+          if (dbUser && dbUser.email_verified !== true) {
+            console.log('🚫 Credentials sign-in blocked for unverified email:', user.email)
+            // Redirect to email verification page with email parameter
+            return `/auth/verify-email?email=${encodeURIComponent(user.email)}&from=signin`
+          }
+        } catch (error) {
+          console.log('⚠️ Could not verify email verification status:', error)
+        }
+      }
+      
+      return true
+    },
     async jwt({ token, user, account, trigger, session }) {
       // Add custom fields to JWT token
       if (user) {
@@ -317,6 +329,7 @@ export const authOptions: NextAuthOptions = {
                 trust_score, 
                 verification_tier,
                 email_verified,
+                email_verified_at,
                 created_at,
                 updated_at
               ) VALUES (
@@ -326,6 +339,7 @@ export const authOptions: NextAuthOptions = {
                 0.00,
                 50,
                 'manual',
+                TRUE,
                 NOW(),
                 NOW(),
                 NOW()
@@ -342,11 +356,28 @@ export const authOptions: NextAuthOptions = {
             token.longestStreak = 0
             token.premiumSubscription = false
             token.isAdmin = newUser.has_dev_access || newUser.is_dev || false // Check both fields
+            token.emailVerified = true // Google OAuth users are always verified
             
             console.log('✅ Google OAuth user created:', user.email)
           } else {
-            // Use existing user's admin status
+            // Use existing user's data and ensure email is verified for Google OAuth
             token.isAdmin = existingUser.has_dev_access || existingUser.is_dev || false
+            token.emailVerified = true // Google OAuth users are always verified
+            
+            // Update existing user's email verification status if not already verified
+            if (!existingUser.email_verified) {
+              try {
+                const sql = await createDbConnection()
+                await sql`
+                  UPDATE users 
+                  SET email_verified = TRUE, email_verified_at = NOW()
+                  WHERE email = ${user.email}
+                `
+                console.log('✅ Updated email verification for existing Google OAuth user:', user.email)
+              } catch (updateError) {
+                console.log('⚠️ Failed to update email verification for existing user:', updateError)
+              }
+            }
           }
         } catch (error) {
           console.log('⚠️ Failed to create Google OAuth user:', error)
@@ -434,8 +465,14 @@ export const authOptions: NextAuthOptions = {
         return `${baseUrl}/auth/suspended`
       }
 
-      // Handle email not verified error
+      // Handle email not verified error (for credentials sign-in failures)
       if (url.includes('error=email_not_verified') || url.includes('email%20not%20verified')) {
+        return `${baseUrl}/auth/verify-email`
+      }
+
+      // Handle sign-in callback errors (when signIn callback returns false)
+      if (url.includes('error=Signin') || url.includes('error=signin')) {
+        // For credentials provider, redirect to email verification
         return `${baseUrl}/auth/verify-email`
       }
 
