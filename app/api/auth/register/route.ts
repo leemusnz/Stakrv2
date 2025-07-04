@@ -9,6 +9,7 @@ const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
+  username: z.string().min(3, 'Username must be at least 3 characters').optional(),
   avatar: z.string().optional(),
   confirmPassword: z.string().optional()
 }).refine((data) => {
@@ -35,32 +36,56 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const { email, password, name, avatar } = validationResult.data
+    const { email, password, name, username: providedUsername, avatar } = validationResult.data
+
+    // Generate username if not provided
+    let username = providedUsername
+    if (!username) {
+      // Generate username from email (part before @)
+      const emailPrefix = email.split('@')[0].toLowerCase()
+      username = emailPrefix.replace(/[^a-z0-9]/g, '')
+      
+      // Ensure minimum length
+      if (username.length < 3) {
+        username = emailPrefix.slice(0, 3) + Math.random().toString(36).slice(2, 5)
+      }
+    }
 
     // Check if user already exists
     const sql = await createDbConnection()
     
     const existingUsers = await sql`
-      SELECT id, email FROM users WHERE email = ${email}
+      SELECT id, email, username FROM users 
+      WHERE email = ${email} OR username = ${username}
     `
     
     if (existingUsers.length > 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'User already exists',
-        message: 'An account with this email address already exists'
-      }, { status: 409 })
+      const existingUser = existingUsers[0]
+      if (existingUser.email === email) {
+        return NextResponse.json({
+          success: false,
+          error: 'User already exists',
+          message: 'An account with this email address already exists'
+        }, { status: 409 })
+      } else {
+        // Username conflict - generate a unique one
+        const randomSuffix = Math.random().toString(36).slice(2, 6)
+        username = `${username}${randomSuffix}`
+      }
     }
 
     // Hash password
     const saltRounds = 12
     const passwordHash = await bcrypt.hash(password, saltRounds)
+    
+    console.log(`🔧 Creating user: email=${email}, username=${username}, name=${name}`)
 
     // Create user in database with email already verified (temporary)
     const newUsers = await sql`
       INSERT INTO users (
         email, 
-        name, 
+        name,
+        username,
         password_hash,
         avatar_url,
         credits, 
@@ -77,6 +102,7 @@ export async function POST(request: NextRequest) {
       ) VALUES (
         ${email},
         ${name},
+        ${username},
         ${passwordHash},
         ${avatar || null},
         0.00,
@@ -91,12 +117,12 @@ export async function POST(request: NextRequest) {
         NOW(),
         NOW()
       )
-      RETURNING id, email, name, avatar_url, credits, trust_score, verification_tier, email_verified, created_at
+      RETURNING id, email, name, username, avatar_url, credits, trust_score, verification_tier, email_verified, created_at
     `
 
     const newUser = newUsers[0]
 
-    console.log('✅ User created successfully:', newUser.email)
+    console.log('✅ User created successfully:', newUser.email, 'with username:', newUser.username)
 
     // Generate verification token and send email
     const verificationToken = generateVerificationToken()
@@ -131,6 +157,7 @@ export async function POST(request: NextRequest) {
         id: newUser.id,
         email: newUser.email,
         name: newUser.name,
+        username: newUser.username,
         avatar: newUser.avatar_url,
         credits: parseFloat(newUser.credits),
         trustScore: newUser.trust_score,
