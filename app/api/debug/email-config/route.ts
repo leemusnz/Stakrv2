@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const emailConfig = {
       hasResendApiKey: !!process.env.RESEND_API_KEY,
       resendKeyPrefix: process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.substring(0, 7) + '...' : 'none',
+      fromEmail: process.env.RESEND_FROM_EMAIL || 'Stakr <onboarding@resend.dev>',
       nextAuthUrl: process.env.NEXTAUTH_URL || 'not set',
       nodeEnv: process.env.NODE_ENV,
       isDummyKey: process.env.RESEND_API_KEY === 'dummy-key-for-development'

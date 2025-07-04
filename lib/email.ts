@@ -141,16 +141,36 @@ export async function sendEmail(template: EmailTemplate): Promise<{ success: boo
       return { success: true } // Return success in development to not break auth flow
     }
 
+    // Use environment variable for from address or fallback to Resend's default
+    const fromAddress = process.env.RESEND_FROM_EMAIL || 'Stakr <onboarding@resend.dev>'
+    
     const { data, error } = await resend.emails.send({
-      from: 'Stakr <noreply@stakr.app>',
+      from: fromAddress,
       to: template.to,
       subject: template.subject,
       html: template.html,
     })
+    
+    console.log('📧 Sending email from:', fromAddress, 'to:', template.to)
 
     if (error) {
       console.error('❌ Email sending failed:', error)
-      return { success: false, error: error.message }
+      console.error('❌ Error details:', {
+        message: error.message,
+        name: error.name,
+        fromAddress,
+        to: template.to
+      })
+      
+      // Provide helpful error messages for common issues
+      let helpfulMessage = error.message
+      if (error.message?.includes('domain')) {
+        helpfulMessage = 'Domain not verified in Resend. Use onboarding@resend.dev or verify your domain.'
+      } else if (error.message?.includes('api_key')) {
+        helpfulMessage = 'Invalid Resend API key. Check your RESEND_API_KEY environment variable.'
+      }
+      
+      return { success: false, error: helpfulMessage }
     }
 
     console.log('✅ Email sent successfully:', data?.id)
