@@ -23,9 +23,6 @@ export async function GET(request: NextRequest) {
       }, { status: 401 })
     }
 
-    // Always use real database data
-
-    // For real database users, proceed with database queries
     const sql = await createDbConnection()
     
     // Get user profile
