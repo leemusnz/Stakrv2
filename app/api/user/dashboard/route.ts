@@ -33,30 +33,73 @@ export async function GET(request: NextRequest) {
     const sql = await createDbConnection()
     console.log('🔌 Database connection established')
     
-    // Get user profile
-    console.log('📋 Fetching user profile...')
-    const userProfile = await sql`
-      SELECT 
-        id,
-        email,
-        name,
-        avatar_url,
-        credits,
-        trust_score,
-        verification_tier,
-        challenges_completed,
-        false_claims,
-        current_streak,
-        longest_streak,
-        premium_subscription,
-        premium_expires_at,
-        is_dev,
-        dev_mode_enabled,
-        created_at
-      FROM users 
-      WHERE id = ${session.user.id}
-      LIMIT 1
-    `
+    // QUICK FIX: Handle UUID format issue
+    // The session.user.id might be a numeric string from Google OAuth
+    // but the database expects UUID format. Use email lookup as fallback.
+    
+    let userProfile = []
+    let actualUserId: string
+    
+    // Try user ID first, fallback to email if UUID format issue
+    try {
+      console.log('📋 Trying user ID lookup first...')
+      userProfile = await sql`
+        SELECT 
+          id,
+          email,
+          name,
+          avatar_url,
+          credits,
+          trust_score,
+          verification_tier,
+          challenges_completed,
+          false_claims,
+          current_streak,
+          longest_streak,
+          premium_subscription,
+          premium_expires_at,
+          is_dev,
+          dev_mode_enabled,
+          created_at
+        FROM users 
+        WHERE id = ${session.user.id}
+        LIMIT 1
+      `
+      console.log('✅ User found by ID')
+    } catch (idError) {
+      console.log('⚠️ User ID lookup failed (likely UUID format issue), trying email lookup...')
+      console.log('🔍 ID Error:', idError instanceof Error ? idError.message : 'Unknown error')
+      
+      try {
+        userProfile = await sql`
+          SELECT 
+            id,
+            email,
+            name,
+            avatar_url,
+            credits,
+            trust_score,
+            verification_tier,
+            challenges_completed,
+            false_claims,
+            current_streak,
+            longest_streak,
+            premium_subscription,
+            premium_expires_at,
+            is_dev,
+            dev_mode_enabled,
+            created_at
+          FROM users 
+          WHERE email = ${session.user.email}
+          LIMIT 1
+        `
+        console.log('✅ User found by email')
+      } catch (emailError) {
+        console.log('❌ Both ID and email lookup failed')
+        throw emailError
+      }
+    }
+    
     console.log('✅ User profile fetched, results:', userProfile.length)
     
     if (userProfile.length === 0) {
@@ -69,14 +112,17 @@ export async function GET(request: NextRequest) {
     }
 
     const user = userProfile[0]
+    actualUserId = user.id // Use the actual UUID from database
+    
     console.log('👤 User data:', {
-      id: user.id,
+      sessionId: session.user.id,
+      actualId: actualUserId,
       email: user.email,
       name: user.name,
       credits: user.credits
     })
 
-    // Get user's active challenges
+    // Get user's active challenges (using actual UUID)
     console.log('🏆 Fetching active challenges...')
     const activeChallenges = await sql`
       SELECT 
@@ -95,14 +141,14 @@ export async function GET(request: NextRequest) {
         cp.joined_at
       FROM challenges c
       JOIN challenge_participants cp ON c.id = cp.challenge_id
-      WHERE cp.user_id = ${session.user.id}
+      WHERE cp.user_id = ${actualUserId}
         AND cp.completion_status IN ('active', 'pending_verification')
       ORDER BY c.start_date DESC
       LIMIT 5
     `
     console.log('✅ Active challenges fetched:', activeChallenges.length)
 
-    // Get user's completed challenges
+    // Get user's completed challenges (using actual UUID)
     console.log('🎯 Fetching completed challenges...')
     const completedChallenges = await sql`
       SELECT 
@@ -115,14 +161,14 @@ export async function GET(request: NextRequest) {
         cp.completed_at
       FROM challenges c
       JOIN challenge_participants cp ON c.id = cp.challenge_id
-      WHERE cp.user_id = ${session.user.id}
+      WHERE cp.user_id = ${actualUserId}
         AND cp.completion_status = 'completed'
       ORDER BY cp.completed_at DESC
       LIMIT 10
     `
     console.log('✅ Completed challenges fetched:', completedChallenges.length)
 
-    // Get recent transactions
+    // Get recent transactions (using actual UUID)
     console.log('💰 Fetching recent transactions...')
     const recentTransactions = await sql`
       SELECT 
@@ -132,13 +178,13 @@ export async function GET(request: NextRequest) {
         status,
         created_at
       FROM transactions
-      WHERE user_id = ${session.user.id}
+      WHERE user_id = ${actualUserId}
       ORDER BY created_at DESC
       LIMIT 10
     `
     console.log('✅ Recent transactions fetched:', recentTransactions.length)
 
-    // Get notifications
+    // Get notifications (using actual UUID)
     console.log('🔔 Fetching notifications...')
     const notifications = await sql`
       SELECT 
@@ -150,7 +196,7 @@ export async function GET(request: NextRequest) {
         read,
         created_at
       FROM notifications
-      WHERE user_id = ${session.user.id}
+      WHERE user_id = ${actualUserId}
         AND read = false
       ORDER BY created_at DESC
       LIMIT 5

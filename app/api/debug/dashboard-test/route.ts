@@ -18,24 +18,45 @@ export async function GET(request: NextRequest) {
 
     const sql = await createDbConnection()
     
-    // Test basic user lookup
-    const userProfile = await sql`
-      SELECT id, email, name, credits
-      FROM users 
-      WHERE id = ${session.user.id}
-      LIMIT 1
-    `
+    // The issue: session.user.id is "116681594226615175759" (numeric string)
+    // But database expects UUID format for id column
+    
+    let userProfile = []
+    let lookupMethod = ''
+    
+    // Try to find user by email instead of ID (since ID format is wrong)
+    try {
+      userProfile = await sql`
+        SELECT id, email, name, credits, avatar_url, created_at
+        FROM users 
+        WHERE email = ${session.user.email}
+        LIMIT 1
+      `
+      lookupMethod = 'email'
+    } catch (emailError) {
+      return NextResponse.json({
+        success: false,
+        error: 'Email lookup failed',
+        userId: session.user.id,
+        userEmail: session.user.email,
+        emailError: emailError instanceof Error ? emailError.message : 'Unknown error'
+      })
+    }
     
     if (userProfile.length === 0) {
       return NextResponse.json({
         success: false,
-        error: 'User not found in database',
+        error: 'User not found by email',
         userId: session.user.id,
-        userEmail: session.user.email
+        userEmail: session.user.email,
+        lookupMethod,
+        message: 'User needs to be created with proper UUID format'
       })
     }
 
-    // Test table existence
+    const user = userProfile[0]
+    
+    // Test table existence with proper user ID (UUID)
     const tableTests = {
       challenges: false,
       challenge_participants: false,
@@ -73,9 +94,25 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      user: userProfile[0],
+      message: 'User found by email (ID format was incompatible)',
+      issue: {
+        description: 'Session user ID is numeric string, database expects UUID',
+        sessionUserId: session.user.id,
+        sessionUserIdType: typeof session.user.id,
+        databaseUserId: user.id,
+        databaseUserIdType: typeof user.id,
+        solution: 'User authentication needs to be updated to use UUID from database'
+      },
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        credits: user.credits,
+        avatar: user.avatar_url,
+        createdAt: user.created_at
+      },
       tableTests,
-      message: 'Debug test successful'
+      lookupMethod
     })
 
   } catch (error) {
