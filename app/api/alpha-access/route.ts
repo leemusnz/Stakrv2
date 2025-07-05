@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
 // Alpha access password - change this to your desired password
-const ALPHA_PASSWORD = process.env.ALPHA_ACCESS_PASSWORD || 'stakr-alpha-2025'
+const ALPHA_PASSWORD = process.env.ALPHA_ACCESS_PASSWORD || 'sixfishiesfarting'
 
 export async function POST(request: NextRequest) {
   try {

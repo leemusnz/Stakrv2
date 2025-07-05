@@ -28,6 +28,16 @@ const verificationExemptRoutes = [
   '/onboarding'
 ]
 
+// Routes that bypass the alpha gate
+const alphaGateExemptRoutes = [
+  '/alpha-gate',
+  '/api/alpha-access',
+  '/api/dev-bypass',
+  '/api/auth',
+  '/_next',
+  '/favicon'
+]
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   
@@ -47,6 +57,29 @@ export async function middleware(request: NextRequest) {
       console.log('⏭️ Skipping middleware for:', pathname)
     }
     return NextResponse.next()
+  }
+
+  // 🔒 ALPHA GATE ENFORCEMENT
+  // Check if this route should bypass the alpha gate
+  const isAlphaGateExempt = alphaGateExemptRoutes.some(route => 
+    pathname.startsWith(route)
+  )
+
+  if (!isAlphaGateExempt) {
+    // Check for alpha access cookie
+    const alphaAccess = request.cookies.get('alpha_access')
+    const hasAlphaAccess = alphaAccess?.value === 'true'
+
+    if (!hasAlphaAccess) {
+      console.log('🚫 No alpha access detected, redirecting to alpha gate')
+      console.log('🍪 Alpha access cookie:', alphaAccess?.value)
+      const alphaGateUrl = new URL('/alpha-gate', request.url)
+      return NextResponse.redirect(alphaGateUrl)
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Alpha access verified')
+    }
   }
 
   // Check if this is a protected route
