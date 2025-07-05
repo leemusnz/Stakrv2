@@ -13,9 +13,13 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('📊 Dashboard API called')
+    
     const session = await getServerSession(authOptions)
+    console.log('🔐 Session check:', session ? 'Session exists' : 'No session')
     
     if (!session?.user?.id) {
+      console.log('❌ No user ID in session')
       return NextResponse.json({
         success: false,
         error: 'Unauthorized',
@@ -23,9 +27,14 @@ export async function GET(request: NextRequest) {
       }, { status: 401 })
     }
 
+    console.log('👤 User ID:', session.user.id)
+    console.log('📧 User email:', session.user.email)
+
     const sql = await createDbConnection()
+    console.log('🔌 Database connection established')
     
     // Get user profile
+    console.log('📋 Fetching user profile...')
     const userProfile = await sql`
       SELECT 
         id,
@@ -48,8 +57,10 @@ export async function GET(request: NextRequest) {
       WHERE id = ${session.user.id}
       LIMIT 1
     `
+    console.log('✅ User profile fetched, results:', userProfile.length)
     
     if (userProfile.length === 0) {
+      console.log('❌ User not found in database')
       return NextResponse.json({
         success: false,
         error: 'User not found',
@@ -58,8 +69,15 @@ export async function GET(request: NextRequest) {
     }
 
     const user = userProfile[0]
+    console.log('👤 User data:', {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      credits: user.credits
+    })
 
     // Get user's active challenges
+    console.log('🏆 Fetching active challenges...')
     const activeChallenges = await sql`
       SELECT 
         c.id,
@@ -82,8 +100,10 @@ export async function GET(request: NextRequest) {
       ORDER BY c.start_date DESC
       LIMIT 5
     `
+    console.log('✅ Active challenges fetched:', activeChallenges.length)
 
     // Get user's completed challenges
+    console.log('🎯 Fetching completed challenges...')
     const completedChallenges = await sql`
       SELECT 
         c.id,
@@ -100,8 +120,10 @@ export async function GET(request: NextRequest) {
       ORDER BY cp.completed_at DESC
       LIMIT 10
     `
+    console.log('✅ Completed challenges fetched:', completedChallenges.length)
 
     // Get recent transactions
+    console.log('💰 Fetching recent transactions...')
     const recentTransactions = await sql`
       SELECT 
         id,
@@ -114,8 +136,10 @@ export async function GET(request: NextRequest) {
       ORDER BY created_at DESC
       LIMIT 10
     `
+    console.log('✅ Recent transactions fetched:', recentTransactions.length)
 
     // Get notifications
+    console.log('🔔 Fetching notifications...')
     const notifications = await sql`
       SELECT 
         id,
@@ -131,8 +155,10 @@ export async function GET(request: NextRequest) {
       ORDER BY created_at DESC
       LIMIT 5
     `
+    console.log('✅ Notifications fetched:', notifications.length)
 
     // Calculate stats
+    console.log('📊 Calculating stats...')
     const totalEarnings = completedChallenges.reduce((sum: number, challenge: any) => 
       sum + parseFloat(challenge.reward_earned || 0), 0
     )
@@ -142,6 +168,15 @@ export async function GET(request: NextRequest) {
       sum + parseFloat(challenge.stake_amount || 0), 0
     )
 
+    console.log('📊 Stats calculated:', {
+      totalEarnings,
+      currentBalance,
+      activeStakes,
+      activeChallengesCount: activeChallenges.length,
+      completedChallengesCount: completedChallenges.length
+    })
+
+    console.log('✅ Preparing response...')
     return NextResponse.json({
       success: true,
       dashboard: {
@@ -218,6 +253,9 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Dashboard data fetch failed:', error)
+    console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    
     return NextResponse.json({
       success: false,
       error: 'Dashboard data fetch failed',
