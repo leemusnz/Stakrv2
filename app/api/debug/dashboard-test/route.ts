@@ -86,4 +86,4 @@ export async function GET(request: NextRequest) {
       stack: error instanceof Error ? error.stack : 'No stack'
     })
   }
-} 
+}
