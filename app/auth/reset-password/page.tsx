@@ -337,4 +337,4 @@ export default function ResetPasswordPage() {
       <ResetPasswordContent />
     </Suspense>
   )
-} 
+}
