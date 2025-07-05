@@ -77,4 +77,4 @@ INSERT INTO users (
     email_verified_at = NOW(),
     updated_at = NOW()
 RETURNING id, email, name;
-*/ 
+*/
