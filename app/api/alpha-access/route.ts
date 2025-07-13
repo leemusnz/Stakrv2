@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
         path: '/',
         maxAge: 7 * 24 * 60 * 60, // 7 days
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax', // Changed from 'strict' to 'lax' to allow OAuth redirects
         httpOnly: false // Allow client-side access for debugging
       })
 
