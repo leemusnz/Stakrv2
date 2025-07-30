@@ -99,7 +99,7 @@
 
 ## 🏗️ **System Architecture**
 
-```
+\`\`\`
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Real-Time     │    │    Batch ML     │    │   Human Review  │
 │   Detection     │    │   Processing    │    │     Queue       │
@@ -118,7 +118,7 @@
 │ • Learning & Adaptation                                        │
 │ • Appeals Processing                                           │
 └─────────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ### **Real-Time Pipeline** ⚡
 1. **Submission Received** → Instant basic validation
