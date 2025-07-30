@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
-import { isDemoUser } from '@/lib/demo-data'
+
 
 interface RouteParams {
   params: Promise<{
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const { id: challengeId } = await params
     
     // For demo users, return mock analytics
-    if (isDemoUser(session.user.id) || challengeId.startsWith('demo-')) {
+    if ( challengeId.startsWith('demo-')) {
       return getMockAnalytics(challengeId)
     }
 

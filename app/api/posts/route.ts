@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { moderationService } from '@/lib/moderation'
-import { isDemoUser } from '@/lib/demo-data'
+
 import { moderateUserContent } from '@/lib/moderation' // MVP version - $0 cost
 import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 
@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Post content too long (max 500 characters)' }, { status: 400 })
     }
 
-    // Hybrid demo system: new demo mode OR legacy demo users
-    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+    // Hybrid demo system: new demo mode only
+    if (shouldUseDemoData(request, session)) {
       return handleDemoPost(session.user, body, request, session)
     }
 
@@ -151,8 +151,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Hybrid demo system: new demo mode OR legacy demo users
-    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+    // Hybrid demo system: new demo mode only
+    if (shouldUseDemoData(request, session)) {
       return handleDemoGetPosts(userId, challengeId, limit, offset, request, session)
     }
 

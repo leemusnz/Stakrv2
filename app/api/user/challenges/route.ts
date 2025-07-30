@@ -3,7 +3,6 @@ import { createDbConnection } from '@/lib/db'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { 
-  isDemoUser, 
   getMockUserChallenges 
 } from '@/lib/demo-data'
 import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
@@ -19,8 +18,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || 'all'
 
-    // Hybrid demo system: new demo mode OR legacy demo users
-    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+    // Hybrid demo system: new demo mode only
+    if (shouldUseDemoData(request, session)) {
       const mockChallenges = getMockUserChallenges(session.user.id)
       
       let filteredChallenges = mockChallenges

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
-import { isDemoUser } from '@/lib/demo-data'
+
 
 interface NudgeRequest {
   targetUserId: string
@@ -35,7 +35,7 @@ export async function POST(
     }
 
     // Demo user handling
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       return handleDemoNudge(session.user, targetUserId, type, message)
     }
 
@@ -153,7 +153,7 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '20')
 
     // Demo user handling
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       return handleDemoGetInteractions(challengeId, limit)
     }
 

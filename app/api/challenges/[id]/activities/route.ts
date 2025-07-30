@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
-import { isDemoUser } from '@/lib/demo-data'
+
 
 // GET challenge activities
 export async function GET(
@@ -22,7 +22,7 @@ export async function GET(
     const offset = parseInt(searchParams.get('offset') || '0')
 
     // Demo user handling
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       return handleDemoActivities(challengeId, limit, offset)
     }
 

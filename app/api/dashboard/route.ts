@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 import { 
-  isDemoUser, 
+ 
   getDemoUserData, 
   getDemoActiveChallenges, 
   getDemoCompletedChallenges,
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check for demo mode (new system) OR demo users (legacy compatibility)
-    if (shouldUseDemoData(request, session) || (session?.user && isDemoUser(session.user.id))) {
+    if (shouldUseDemoData(request, session) || false) {
       const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
       
       // Get comprehensive demo data

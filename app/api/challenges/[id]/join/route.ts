@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
-import { isDemoUser } from '@/lib/demo-data'
+
 import { calculatePotentialReward } from '@/lib/reward-calculation'
 
 interface RouteParams {
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     console.log('🔍 Checking if demo user:', session.user.id)
     
     // Demo user handling
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       console.log('🎭 Using demo mode for user:', session.user.id)
       return handleDemoJoin(challengeId, session.user, body)
     }
@@ -371,7 +371,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const { id: challengeId } = await params
     
     // Demo user handling
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       const mockParticipation = {
         id: `demo-participation-${challengeId}`,
         challenge_id: challengeId,

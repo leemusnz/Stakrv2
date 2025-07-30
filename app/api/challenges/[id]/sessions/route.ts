@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
-import { isDemoUser } from '@/lib/demo-data'
+
 
 interface RouteParams {
   params: Promise<{
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Demo user handling
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       const mockSession = {
         id: `demo-session-${Date.now()}`,
         challenge_id: challengeId,

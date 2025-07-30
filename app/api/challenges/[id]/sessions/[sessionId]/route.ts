@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { isDemoUser } from '@/lib/demo-data'
+
 
 interface RouteParams {
   params: Promise<{

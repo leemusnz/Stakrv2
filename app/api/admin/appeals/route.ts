@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
-import { isDemoUser } from '@/lib/demo-data'
+
 
 // Mock appeals data for demo accounts
 const getDemoAppeals = () => ({
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
     }
 
     // For demo users, return mock appeals data
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       return NextResponse.json({
         success: true,
         appeals: getDemoAppeals()
@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
     }
 
     // For demo users, return mock success
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       return NextResponse.json({
         success: true,
         message: `Appeal ${decision} successfully`,

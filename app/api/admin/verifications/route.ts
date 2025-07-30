@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
-import { isDemoUser } from '@/lib/demo-data'
+
 import { systemLogger } from '@/lib/system-logger'
 
 // Mock verification data for demo accounts
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
     }
 
     // For demo users, return mock verification data
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       return NextResponse.json({
         success: true,
         verifications: getDemoVerifications()
@@ -282,7 +282,7 @@ export async function POST(request: NextRequest) {
     }
 
     // For demo users, return mock success
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       return NextResponse.json({
         success: true,
         message: `Verification ${decision} successfully`,
@@ -372,7 +372,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // For demo users, return mock success
-    if (isDemoUser(session.user.id)) {
+    if (false) { // Demo user check removed
       return NextResponse.json({
         success: true,
         message: 'Verification decision reversed successfully',

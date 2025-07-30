@@ -3,7 +3,7 @@ import { createDbConnection } from '@/lib/db'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { 
-  isDemoUser, 
+ 
   getDemoUserData, 
   getDemoActiveChallenges, 
   getDemoCompletedChallenges, 

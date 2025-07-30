@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
-import { isDemoUser } from '@/lib/demo-data'
+
 import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 
 export async function POST(request: NextRequest) {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hybrid demo system: new demo mode OR legacy demo users
-    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+    if (shouldUseDemoData(request, session) ) {
       return NextResponse.json(createDemoResponse({
         success: true,
         message: 'Appeal submitted successfully',
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Hybrid demo system: new demo mode OR legacy demo users
-    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+    if (shouldUseDemoData(request, session) ) {
       return NextResponse.json(createDemoResponse({
         success: true,
         appeals: [

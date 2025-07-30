@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { z } from 'zod'
-import { isDemoUser, getDemoUserData } from '@/lib/demo-data'
+import { getDemoUserData } from '@/lib/demo-data'
 import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 
 const devModeSchema = z.object({
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hybrid demo system: new demo mode OR legacy demo users
-    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+    if (shouldUseDemoData(request, session) ) {
       const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
       
       if (!isAdmin) {
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Hybrid demo system: new demo mode OR legacy demo users
-    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+    if (shouldUseDemoData(request, session) ) {
       const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
       
       return NextResponse.json(createDemoResponse({

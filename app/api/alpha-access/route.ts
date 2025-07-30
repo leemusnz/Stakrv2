@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         maxAge: 7 * 24 * 60 * 60, // 7 days
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax", // Changed from 'strict' to 'lax' to allow OAuth redirects
-        httpOnly: false, // Allow client-side access for debugging
+        httpOnly: process.env.NODE_ENV === "production", // Better security in production
       })
 
       console.log("✅ Cookie set, returning success response")

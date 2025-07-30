@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
-import { isDemoUser, getDemoCreators } from '@/lib/demo-data'
+import { getDemoCreators } from '@/lib/demo-data'
 
 // GET creators with optional filtering
 export async function GET(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     
     // Check for demo mode (new system) OR demo users (legacy compatibility)
-    if (shouldUseDemoData(request, session) || (session?.user && isDemoUser(session.user.id))) {
+    if (shouldUseDemoData(request, session) || false) {
       const isAdmin = session?.user?.isAdmin || session?.user?.email === 'alex@stakr.app'
       let demoCreators = getDemoCreators(isAdmin)
       

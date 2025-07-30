@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
-import { isDemoUser } from '@/lib/demo-data'
+
 
 interface RouteParams {
   params: Promise<{
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const { id: challengeId } = await params
     
     // For demo users or demo challenge IDs, return mock data
-    if (!session?.user || isDemoUser(session.user.id) || challengeId.startsWith('demo-')) {
+    if (!session?.user  || challengeId.startsWith('demo-')) {
       return getMockChallenge(challengeId)
     }
 
@@ -103,7 +103,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const updateData = await request.json()
     
     // For demo users, return mock success
-    if (isDemoUser(session.user.id) || challengeId.startsWith('demo-')) {
+    if ( challengeId.startsWith('demo-')) {
       return NextResponse.json({
         success: true,
         message: 'Challenge updated successfully! (Demo Mode)',
@@ -181,7 +181,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const { id: challengeId } = await params
     
     // For demo users, return mock success
-    if (isDemoUser(session.user.id) || challengeId.startsWith('demo-')) {
+    if ( challengeId.startsWith('demo-')) {
       return NextResponse.json({
         success: true,
         message: 'Challenge deleted successfully! (Demo Mode)'

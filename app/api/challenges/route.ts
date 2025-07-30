@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
-import { isDemoUser } from '@/lib/demo-data'
+
 
 // GET challenges with optional filtering
 export async function GET(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     
     // Check for demo mode (new system) OR demo users (legacy compatibility)
-    if (shouldUseDemoData(request, session) || (session?.user && isDemoUser(session.user.id))) {
+    if (shouldUseDemoData(request, session) || false) {
       const mockChallenges = [
         {
           id: '123e4567-e89b-12d3-a456-426614174000',
@@ -214,8 +214,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // For demo mode OR demo users, return mock success
-    if (shouldUseDemoData(request, session) || isDemoUser(session.user.id)) {
+    // For demo mode only, return mock success
+    if (shouldUseDemoData(request, session)) {
       return NextResponse.json(createDemoResponse({
         success: true,
         message: 'Challenge created successfully!',
