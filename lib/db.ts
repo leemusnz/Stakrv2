@@ -15,6 +15,32 @@ export async function createDbConnection() {
   }
 }
 
+export async function testDatabaseConnection(): Promise<{ success: boolean; error?: string; message?: string }> {
+  try {
+    const db = await createDbConnection()
+    if (!db) {
+      return {
+        success: false,
+        error: "Failed to create database connection",
+      }
+    }
+
+    // Test the connection with a simple query
+    const result = await db`SELECT 1 as test`
+    console.log("✅ Database connection test successful:", result)
+    return {
+      success: true,
+      message: "Database connection and query successful!",
+    }
+  } catch (error) {
+    console.error("❌ Database connection test failed:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown database error",
+    }
+  }
+}
+
 // Simple fallback for when database is not available
 export const db = {
   user: {
