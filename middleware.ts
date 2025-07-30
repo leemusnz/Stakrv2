@@ -35,6 +35,7 @@ const alphaGateExemptRoutes = [
   '/api/dev-bypass',
   '/api/auth',
   '/api/test', // AI system testing endpoints
+  '/api/debug', // Debug endpoints
   '/_next',
   '/favicon'
 ]
