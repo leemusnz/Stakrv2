@@ -1,232 +1,303 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Lock, Eye, EyeOff, Rocket } from "lucide-react"
+import { Loader2, Lock, Zap, Shield, Gamepad2, Trophy } from "lucide-react"
 
 export default function AlphaGatePage() {
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
+  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
   const [isRedirecting, setIsRedirecting] = useState(false)
-  const [isDevEnvironment, setIsDevEnvironment] = useState(false)
   const router = useRouter()
 
-  // Check if we're in a development/preview environment
+  // Check if user already has alpha access
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname
-      const isDev = 
-        hostname.includes('v0.dev') ||
-        hostname.includes('vercel.app') ||
-        hostname.includes('localhost') ||
-        hostname === '127.0.0.1'
-      setIsDevEnvironment(isDev)
+    const checkAlphaAccess = () => {
+      try {
+        const hasAccess = document.cookie.includes("alpha_access=true")
+        if (hasAccess) {
+          console.log("✅ User already has alpha access, redirecting...")
+          router.push("/onboarding")
+        }
+      } catch (error) {
+        console.log("⚠️ Could not check alpha access cookie:", error)
+      }
     }
-  }, [])
+
+    checkAlphaAccess()
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError('')
-
-    console.log('🚀 Starting alpha access submission...')
+    setError("")
 
     try {
-      console.log('📡 Making API call to /api/alpha-access...')
-      const response = await fetch('/api/alpha-access', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
+      // Validate input
+      if (!password.trim()) {
+        setError("Please enter the alpha access password")
+        setIsLoading(false)
+        return
+      }
+
+      console.log("🔐 Attempting alpha access...")
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+      const response = await fetch("/api/alpha-access", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ password: password.trim() }),
+        signal: controller.signal,
       })
 
-      console.log('📡 API response status:', response.status)
-      const data = await response.json()
-      console.log('📡 API response data:', data)
+      clearTimeout(timeoutId)
+
+      console.log("📡 API response status:", response.status)
+
+      // Check content type before parsing
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        console.error("❌ Invalid content type:", contentType)
+        throw new Error("Server returned invalid response format")
+      }
+
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        console.error("❌ Failed to parse JSON response:", parseError)
+        throw new Error("Invalid server response format")
+      }
+
+      console.log("📝 Alpha access response:", data)
 
       if (data.success) {
-        console.log('✅ Access granted! Setting redirect state...')
-        // Cookie is now set server-side, just need to redirect
+        console.log("✅ Alpha access granted")
         setIsRedirecting(true)
-        
-        console.log('⏰ Starting redirect timeout...')
-        
-        // Check cookies before redirect
-        setTimeout(() => {
-          console.log('🍪 Current cookies:', document.cookie)
-          console.log('🍪 Alpha access cookie:', document.cookie.includes('alpha_access=true'))
-        }, 100)
-        
+
+        // Set a client-side cookie as backup
+        document.cookie = "alpha_access=true; path=/; max-age=2592000; SameSite=Lax"
+
         // Use window.location for a full page reload to ensure cookie is processed
-        const timeoutId = setTimeout(() => {
-          console.log('🔄 Executing redirect to homepage...')
-          console.log('🍪 Final cookies check:', document.cookie)
-          window.location.href = '/'
-        }, 500)
-        
-        console.log('⏰ Timeout ID:', timeoutId)
+        setTimeout(() => {
+          window.location.href = "/onboarding"
+        }, 1000)
       } else {
-        console.log('❌ Access denied:', data.error)
-        setError(data.error || 'Invalid access code')
-        setIsLoading(false)
+        console.log("❌ Alpha access denied:", data.error)
+        setError(data.error || "Access denied")
       }
     } catch (error) {
-      console.error('💥 Alpha access error:', error)
-      setError('Connection error. Please try again.')
+      console.error("❌ Alpha access error:", error)
+
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          setError("Request timed out. Please try again.")
+        } else if (error.message.includes("fetch")) {
+          setError("Network error. Please check your connection and try again.")
+        } else {
+          setError(error.message)
+        }
+      } else {
+        setError("An unexpected error occurred. Please try again.")
+      }
+    } finally {
       setIsLoading(false)
     }
   }
 
+  const handleDevBypass = async () => {
+    setIsLoading(true)
+    setError("")
+
+    try {
+      const response = await fetch("/api/dev-bypass", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      })
+
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Server returned invalid response format")
+      }
+
+      const data = await response.json()
+
+      if (data.success) {
+        setIsRedirecting(true)
+        document.cookie = "alpha_access=true; path=/; max-age=2592000; SameSite=Lax"
+        setTimeout(() => {
+          window.location.href = "/onboarding"
+        }, 500)
+      } else {
+        setError(data.error || "Dev bypass failed")
+      }
+    } catch (error) {
+      console.error("❌ Dev bypass error:", error)
+      setError("Dev bypass failed")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#F46036] mx-auto mb-4" />
+          <p className="text-white text-lg">Access granted! Redirecting...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-            <Rocket className="w-8 h-8 text-white" />
+    <div className="min-h-screen bg-[#1A1A1A] relative overflow-hidden flex items-center justify-center p-4">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#F46036] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#3FC1C9] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-[#F46036] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse delay-500"></div>
+      </div>
+
+      {/* Grid pattern overlay */}
+      <div
+        className="absolute inset-0 opacity-50"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23F46036' fillOpacity='0.05'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      ></div>
+
+      <div className="relative z-10 w-full max-w-md">
+        {/* Logo/Brand section */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#F46036] to-[#3FC1C9] rounded-2xl mb-6 shadow-2xl">
+            <Shield className="w-10 h-10 text-white" />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Stakr</h1>
-            <p className="text-gray-600 mt-2">Alpha Access Required</p>
-          </div>
+          <h1 className="text-4xl font-bold text-white mb-2">Stakr</h1>
+          <p className="text-gray-400 text-lg">Level up your life</p>
         </div>
 
-        {/* Access Card */}
-        <Card className="border-blue-200 shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center gap-2 text-blue-800">
-              <Lock className="w-5 h-5" />
-              Private Alpha Testing
-            </CardTitle>
-            <CardDescription>
-              Stakr is currently in private alpha testing. Enter your access code to continue.
+        {/* Main card */}
+        <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
+          <CardHeader className="text-center pb-6">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-[#F46036] rounded-lg flex items-center justify-center">
+                <Lock className="w-4 h-4 text-white" />
+              </div>
+              <div className="w-8 h-8 bg-[#3FC1C9] rounded-lg flex items-center justify-center">
+                <Gamepad2 className="w-4 h-4 text-white" />
+              </div>
+              <div className="w-8 h-8 bg-[#F46036] rounded-lg flex items-center justify-center">
+                <Trophy className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl font-bold text-white">Alpha Access Required</CardTitle>
+            <CardDescription className="text-gray-300 text-base">
+              Join the exclusive alpha testing community and be the first to experience the future of personal
+              challenges.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+
+          <CardContent className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Access Code
-                </Label>
+                <label className="text-sm font-medium text-gray-300">Access Code</label>
                 <div className="relative">
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
+                    type="password"
+                    placeholder="Enter your exclusive access code"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your alpha access code"
-                    className="pr-10"
-                    required
                     disabled={isLoading}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-[#F46036] focus:ring-[#F46036] h-12 text-center text-lg tracking-wider"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    disabled={isLoading}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                  <div className="absolute inset-0 rounded-md bg-gradient-to-r from-[#F46036]/20 to-[#3FC1C9]/20 opacity-0 hover:opacity-100 transition-opacity pointer-events-none"></div>
                 </div>
               </div>
 
               {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                <Alert variant="destructive" className="bg-red-500/20 border-red-500/30 text-red-200">
+                  <AlertDescription className="text-center">{error}</AlertDescription>
                 </Alert>
               )}
 
-              {isRedirecting && (
-                <Alert className="border-green-200 bg-green-50">
-                  <AlertDescription className="text-green-800 space-y-2">
-                    <div>✅ Access granted! Taking you to Stakr...</div>
-                    <div className="text-xs text-green-700 space-y-1">
-                      <div>
-                        If you're not redirected automatically,{' '}
-                        <button 
-                          onClick={() => {
-                            console.log('🔄 Manual redirect button clicked')
-                            window.location.href = '/'
-                          }}
-                          className="underline hover:no-underline font-medium"
-                        >
-                          click here
-                        </button>
-                      </div>
-                      <div>
-                        Debug: Check browser console for logs
-                      </div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isLoading || isRedirecting || !password.trim()}
+              <Button
+                type="submit"
+                className="w-full h-12 bg-gradient-to-r from-[#F46036] to-[#3FC1C9] hover:from-[#F46036]/90 hover:to-[#3FC1C9]/90 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                disabled={isLoading}
               >
-                {isRedirecting ? (
+                {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Access granted! Redirecting...
-                  </>
-                ) : isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Verifying...
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Verifying Access...
                   </>
                 ) : (
                   <>
-                    <Lock className="w-4 h-4 mr-2" />
-                    Access Stakr Alpha
+                    <Zap className="mr-2 h-5 w-5" />
+                    Enter the Arena
                   </>
                 )}
               </Button>
-
-              {/* Development bypass */}
-              {isDevEnvironment && (
-                <div className="border-t pt-4">
-                  <p className="text-sm text-gray-600 mb-2">
-                    🔧 Development Environment Detected
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={async () => {
-                      try {
-                        const response = await fetch('/api/dev-bypass')
-                        if (response.ok) {
-                          window.location.href = '/'
-                        }
-                      } catch (error) {
-                        console.error('Bypass failed:', error)
-                      }
-                    }}
-                  >
-                    🚀 Bypass Alpha Gate (Dev Only)
-                  </Button>
-                </div>
-              )}
             </form>
+
+            {process.env.NODE_ENV === "development" && (
+              <div className="pt-4 border-t border-white/20">
+                <Button
+                  variant="outline"
+                  onClick={handleDevBypass}
+                  disabled={isLoading}
+                  className="w-full bg-transparent border-white/30 text-gray-300 hover:bg-white/10 hover:text-white"
+                >
+                  🚀 Dev Bypass
+                </Button>
+              </div>
+            )}
+
+            {/* Features preview */}
+            <div className="pt-4 border-t border-white/20">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="space-y-2">
+                  <div className="w-8 h-8 bg-[#F46036]/20 rounded-lg flex items-center justify-center mx-auto">
+                    <Trophy className="w-4 h-4 text-[#F46036]" />
+                  </div>
+                  <p className="text-xs text-gray-400">Earn Rewards</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="w-8 h-8 bg-[#3FC1C9]/20 rounded-lg flex items-center justify-center mx-auto">
+                    <Gamepad2 className="w-4 h-4 text-[#3FC1C9]" />
+                  </div>
+                  <p className="text-xs text-gray-400">Level Up</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="w-8 h-8 bg-[#F46036]/20 rounded-lg flex items-center justify-center mx-auto">
+                    <Zap className="w-4 h-4 text-[#F46036]" />
+                  </div>
+                  <p className="text-xs text-gray-400">Stay Motivated</p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Info */}
-        <div className="text-center space-y-2">
-          <p className="text-sm text-gray-500">
-            Don't have access? Contact the Stakr team for an invitation.
-          </p>
-          <p className="text-xs text-gray-400">
-            This is a private alpha version • stakr.app
-          </p>
+        {/* Footer */}
+        <div className="text-center mt-8 space-y-2">
+          <p className="text-gray-400 text-sm">Don't have access? Contact us for an exclusive invitation.</p>
+          <p className="text-gray-500 text-xs">Private Alpha • Limited Access • stakr.app</p>
         </div>
       </div>
     </div>
