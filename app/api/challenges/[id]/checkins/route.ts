@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { validateProofSubmission, processDetectionResult } from '@/lib/ai-anti-cheat'
+import { createDbConnection } from '@/lib/db'
 
 interface RouteParams {
   params: Promise<{
@@ -49,7 +51,80 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }, { status: 400 })
     }
 
-    // Mock handling for demo purposes
+    // 🛡️ AI ANTI-CHEAT VALIDATION
+    console.log('🤖 Running AI anti-cheat validation...')
+    
+    let aiValidationResult = null
+    let verificationStatus = 'pending'
+    
+    try {
+      // Extract proof content for AI analysis
+      let proofContent = ''
+      if (proof_type === 'text') {
+        proofContent = proof_data?.text || proof_data?.description || JSON.stringify(proof_data)
+      } else if (proof_type === 'photo' || proof_type === 'video') {
+        proofContent = proof_data?.file_url || proof_data?.file_name || 'Media file submitted'
+      } else {
+        proofContent = JSON.stringify(proof_data)
+      }
+
+      // Map proof_type to AI system format
+      const aiProofType = proof_type === 'photo' ? 'image' : 
+                         proof_type === 'video' ? 'video' : 
+                         proof_type === 'text' ? 'text' : 'document'
+
+      // Run AI validation
+      aiValidationResult = await validateProofSubmission(
+        'test-user-id', // TODO: Use session.user.id when auth is enabled
+        challengeId,
+        {
+          type: aiProofType,
+          content: proofContent,
+          metadata: {
+            deviceInfo: 'web-browser',
+            location: location ? `${location.lat},${location.lng}` : undefined,
+            fileSize: proof_data?.file_size,
+            submissionType: submission_type,
+            timerDuration: timer_duration
+          }
+        }
+      )
+
+      console.log('🧠 AI Analysis Result:', {
+        confidence: aiValidationResult.confidence,
+        action: aiValidationResult.action,
+        processingTime: aiValidationResult.processingTime
+      })
+
+      // Set verification status based on AI decision
+      switch (aiValidationResult.action) {
+        case 'approve':
+          verificationStatus = 'approved'
+          break
+        case 'review':
+          verificationStatus = 'pending_review'
+          break
+        case 'reject':
+          verificationStatus = 'rejected'
+          break
+        case 'ban':
+          verificationStatus = 'banned'
+          // Process the ban
+          await processDetectionResult(aiValidationResult, 'test-user-id', `checkin-${Date.now()}`)
+          break
+        default:
+          verificationStatus = 'pending'
+      }
+
+      console.log(`✅ AI validation complete: ${aiValidationResult.action} (${aiValidationResult.confidence}% confidence)`)
+
+    } catch (aiError) {
+      console.error('❌ AI validation failed:', aiError)
+      // Don't block submission on AI errors, just log and continue
+      verificationStatus = 'pending'
+    }
+
+    // Mock handling for demo purposes (enhanced with AI results)
     const mockCheckin = {
       id: `checkin-${Date.now()}`,
       challenge_id: challengeId,
@@ -62,8 +137,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       proof_data: proof_data,
       notes: notes,
       submitted_at: new Date().toISOString(),
-      verification_status: 'pending',
+      verification_status: verificationStatus,
       timer_duration: timer_duration,
+      
+      // AI Analysis Results
+      ai_confidence: aiValidationResult?.confidence || null,
+      ai_decision: aiValidationResult?.action || null,
+      ai_reasons: aiValidationResult?.reasons || [],
+      ai_processing_time: aiValidationResult?.processingTime || null,
       location: location,
       
       // Session-based scoring
@@ -75,13 +156,56 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         Math.floor(Math.random() * 1) : 0
     }
 
-    return NextResponse.json({
-      success: true,
-      checkin: mockCheckin,
-      message: submission_type === 'timer_based' ? 
+    // Generate AI-enhanced response message
+    let responseMessage = ''
+    let aiMessage = ''
+    
+    if (aiValidationResult) {
+      switch (aiValidationResult.action) {
+        case 'approve':
+          aiMessage = `✅ AI Auto-Approved (${aiValidationResult.confidence}% confidence)`
+          responseMessage = submission_type === 'timer_based' ? 
+            'Timer-based check-in approved! Your session quality score has been calculated.' :
+            'Check-in approved automatically! Great work!'
+          break
+        case 'review':
+          aiMessage = `🔍 Queued for Review (${aiValidationResult.confidence}% confidence)`
+          responseMessage = 'Check-in submitted and queued for human review. You\'ll be notified when it\'s processed.'
+          break
+        case 'reject':
+          aiMessage = `❌ Rejected (${aiValidationResult.confidence}% confidence)`
+          responseMessage = `Check-in rejected: ${aiValidationResult.reasons.join(', ')}. You may appeal this decision.`
+          break
+        case 'ban':
+          aiMessage = `🚫 Account Suspended (${aiValidationResult.confidence}% confidence)`
+          responseMessage = 'Account suspended due to violation of platform policies. Contact support to appeal.'
+          break
+        default:
+          aiMessage = 'Pending validation'
+          responseMessage = submission_type === 'timer_based' ? 
+            'Timer-based check-in submitted! Your session quality score has been calculated.' :
+            'Daily check-in submitted successfully! Awaiting verification.'
+      }
+    } else {
+      responseMessage = submission_type === 'timer_based' ? 
         'Timer-based check-in submitted! Your session quality score has been calculated.' :
-        'Daily check-in submitted successfully! Awaiting verification.',
-      next_checkin_available: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        'Daily check-in submitted successfully! Awaiting verification.'
+    }
+
+    return NextResponse.json({
+      success: verificationStatus !== 'banned', // Don't return success for banned users
+      checkin: mockCheckin,
+      message: responseMessage,
+      ai_analysis: aiValidationResult ? {
+        decision: aiValidationResult.action,
+        confidence: aiValidationResult.confidence,
+        processing_time: aiValidationResult.processingTime,
+        reasons: aiValidationResult.reasons,
+        can_appeal: ['reject', 'ban'].includes(aiValidationResult.action)
+      } : null,
+      ai_message: aiMessage,
+      next_checkin_available: verificationStatus !== 'banned' ? 
+        new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null
     })
 
   } catch (error) {

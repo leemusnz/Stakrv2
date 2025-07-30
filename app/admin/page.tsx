@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { DevAccessManager } from "@/components/admin/dev-access-manager"
 import { UserManagement } from "@/components/admin/user-management"
 import { ModerationDashboard } from "@/components/admin/moderation-dashboard"
+import { AIAntiCheatDashboard } from "@/components/admin/ai-anti-cheat-dashboard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -35,7 +36,8 @@ import {
   FileText,
   MessageSquare,
   RotateCcw,
-  Shield
+  Shield,
+  Brain
 } from "lucide-react"
 import { useNotifications } from "@/components/notifications/notification-provider"
 
@@ -310,7 +312,7 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Analytics
@@ -326,6 +328,10 @@ export default function AdminDashboard() {
           <TabsTrigger value="moderation" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
             Moderation
+          </TabsTrigger>
+          <TabsTrigger value="ai-anticheat" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            AI Security
           </TabsTrigger>
           <TabsTrigger value="monitoring" className="flex items-center gap-2">
             <Monitor className="w-4 h-4" />
@@ -1489,6 +1495,11 @@ export default function AdminDashboard() {
         {/* Content Moderation */}
         <TabsContent value="moderation" className="space-y-6">
           <ModerationDashboard />
+        </TabsContent>
+
+        {/* AI Anti-Cheat Security */}
+        <TabsContent value="ai-anticheat" className="space-y-6">
+          <AIAntiCheatDashboard />
         </TabsContent>
       </Tabs>
     </div>

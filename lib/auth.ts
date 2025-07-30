@@ -179,10 +179,110 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET || "development-secret-change-in-production",
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       try {
-        // Simplified sign-in callback to avoid database operations that might fail
-        console.log("🔑 Sign-in callback:", { email: user.email, provider: account?.provider })
+        console.log("🔑 Sign-in callback:", { 
+          email: user.email, 
+          provider: account?.provider,
+          accountType: account?.type,
+          userId: user.id 
+        })
+        
+        // OAuth providers (Google, etc.) have already verified the email
+        if (account?.type === 'oauth') {
+          console.log("✅ OAuth user - email pre-verified by", account.provider)
+          
+          // Create OAuth user in database if they don't exist
+          try {
+            const { createDbConnection } = await import('@/lib/db')
+            const sql = await createDbConnection()
+            
+            // Check if user exists
+            const existingUsers = await sql`
+              SELECT id, email, email_verified FROM users 
+              WHERE email = ${user.email}
+            `
+            
+            if (existingUsers.length === 0) {
+              // Create new OAuth user
+              console.log("🆕 Creating new OAuth user:", user.email)
+              
+              // Generate username from email
+              const emailPrefix = user.email!.split('@')[0].toLowerCase()
+              let username = emailPrefix.replace(/[^a-z0-9]/g, '')
+              
+              // Ensure minimum length
+              if (username.length < 3) {
+                username = emailPrefix.slice(0, 3) + Math.random().toString(36).slice(2, 5)
+              }
+              
+              const newUsers = await sql`
+                INSERT INTO users (
+                  email, 
+                  name,
+                  username,
+                  avatar_url,
+                  credits, 
+                  trust_score, 
+                  verification_tier,
+                  challenges_completed,
+                  false_claims,
+                  current_streak,
+                  longest_streak,
+                  premium_subscription,
+                  email_verified,
+                  email_verified_at,
+                  onboarding_completed,
+                  created_at,
+                  updated_at
+                ) VALUES (
+                  ${user.email},
+                  ${user.name || 'New User'},
+                  ${username},
+                  ${user.image || null},
+                  0.00,
+                  50,
+                  'manual',
+                  0,
+                  0,
+                  0,
+                  0,
+                  false,
+                  true,
+                  NOW(),
+                  false,
+                  NOW(),
+                  NOW()
+                )
+                RETURNING id, email, name, username
+              `
+              
+              console.log("✅ OAuth user created:", newUsers[0].email)
+              user.id = newUsers[0].id
+            } else {
+              console.log("✅ OAuth user exists:", existingUsers[0].email)
+              user.id = existingUsers[0].id
+              
+              // Update email verification if not set
+              if (!existingUsers[0].email_verified) {
+                await sql`
+                  UPDATE users 
+                  SET email_verified = true, email_verified_at = NOW() 
+                  WHERE email = ${user.email}
+                `
+                console.log("✅ Updated email verification for existing user")
+              }
+            }
+          } catch (dbError) {
+            console.error("❌ Database error during OAuth user creation:", dbError)
+            // Don't block sign-in for database errors
+          }
+          
+          // Mark OAuth users as email verified since the provider already did this
+          user.emailVerified = true
+        }
+        
+        console.log("✅ Sign-in approved for:", user.email)
         return true
       } catch (error) {
         console.error("❌ Error in signIn callback:", error)
@@ -205,7 +305,8 @@ export const authOptions: NextAuthOptions = {
           token.onboardingCompleted = user.onboardingCompleted
           token.isDev = user.isDev
           token.devModeEnabled = user.devModeEnabled
-          token.emailVerified = !!user.emailVerified
+          // For OAuth users, emailVerified is set to true in signIn callback
+          token.emailVerified = Boolean(user.emailVerified)
         }
 
         // Handle session updates (e.g., avatar changes)
@@ -255,12 +356,23 @@ export const authOptions: NextAuthOptions = {
     },
     async redirect({ url, baseUrl }) {
       try {
-        // Simplified redirect logic
-        if (url.startsWith("/")) return `${baseUrl}${url}`
-        if (new URL(url).origin === baseUrl) return url
+        console.log("🔄 Redirect callback:", { url, baseUrl })
+        // Allow any redirect to the same origin
+        if (url.startsWith("/")) {
+          const redirectUrl = `${baseUrl}${url}`
+          console.log("✅ Relative redirect:", redirectUrl)
+          return redirectUrl
+        }
+        // Allow full URLs on same origin
+        if (new URL(url).origin === baseUrl) {
+          console.log("✅ Same origin redirect:", url)
+          return url
+        }
+        console.log("🔄 Default redirect to baseUrl:", baseUrl)
         return baseUrl
       } catch (error) {
         console.error("❌ Error in redirect callback:", error)
+        console.log("🔄 Fallback redirect to baseUrl:", baseUrl)
         return baseUrl
       }
     },

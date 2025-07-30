@@ -167,7 +167,32 @@ export function ProofSubmission({
       const data = await response.json()
 
       if (data.success) {
-        toast.success(data.message)
+        // Show AI analysis results if available
+        if (data.ai_analysis) {
+          const aiIcon = 
+            data.ai_analysis.decision === 'approve' ? '✅' :
+            data.ai_analysis.decision === 'review' ? '🔍' :
+            data.ai_analysis.decision === 'reject' ? '❌' :
+            data.ai_analysis.decision === 'ban' ? '🚫' : '🤖'
+          
+          toast.success(data.message, {
+            description: `${aiIcon} ${data.ai_message} • Processed in ${data.ai_analysis.processing_time}ms`,
+            duration: data.ai_analysis.decision === 'approve' ? 4000 : 6000
+          })
+
+          // Show additional info for rejected submissions
+          if (data.ai_analysis.decision === 'reject' && data.ai_analysis.can_appeal) {
+            setTimeout(() => {
+              toast.info("You can appeal this decision", {
+                description: "Contact support if you believe this was flagged incorrectly",
+                duration: 8000
+              })
+            }, 2000)
+          }
+        } else {
+          toast.success(data.message)
+        }
+        
         resetForm()
         onSubmissionComplete?.(data.checkin)
       } else {
