@@ -92,12 +92,41 @@ const demoUsers = [
 
 async function findUserInDatabase(email: string) {
   try {
-    // For now, we'll use demo users to avoid database connection issues
-    // that might be causing the NextAuth API to return HTML error pages
-    console.log("🔍 Looking up user:", email)
-    return null // Force fallback to demo users for now
+    console.log("🔍 Looking up user in database:", email)
+    const { createDbConnection } = await import('@/lib/db')
+    const sql = await createDbConnection()
+    
+    const users = await sql`
+      SELECT 
+        id, 
+        email, 
+        name, 
+        password_hash,
+        credits,
+        trust_score,
+        verification_tier,
+        challenges_completed,
+        current_streak,
+        longest_streak,
+        premium_subscription,
+        email_verified,
+        onboarding_completed,
+        is_dev,
+        dev_mode_enabled
+      FROM users 
+      WHERE email = ${email}
+      LIMIT 1
+    `
+    
+    if (users.length === 0) {
+      console.log("❌ User not found in database:", email)
+      return null
+    }
+    
+    console.log("✅ User found in database:", email)
+    return users[0]
   } catch (error) {
-    console.log("🔍 Database lookup failed, using demo users:", error)
+    console.error("❌ Database lookup failed:", error)
     return null
   }
 }
@@ -123,12 +152,58 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
-          // For now, only use demo users to avoid database issues
-          console.log("🔍 Checking demo users...")
+          // First, try to find user in database
+          console.log("🔍 Checking database users...")
+          const dbUser = await findUserInDatabase(credentials.email)
+          
+          if (dbUser) {
+            console.log("👤 Database user found:", dbUser.email)
+            
+            // Verify password (assuming bcrypt hashing)
+            let isValidPassword = false
+            try {
+              const bcrypt = await import('bcryptjs')
+              isValidPassword = await bcrypt.compare(credentials.password, dbUser.password_hash)
+            } catch (bcryptError) {
+              console.log("⚠️ bcrypt not available, trying plain text comparison")
+              // Fallback to plain text for development
+              isValidPassword = credentials.password === dbUser.password_hash
+            }
+            
+            console.log("🔑 Database password valid:", isValidPassword)
+
+            if (!isValidPassword) {
+              console.log("❌ Invalid database password")
+              return null
+            }
+
+            console.log("✅ Database login successful for:", dbUser.email)
+
+            return {
+              id: dbUser.id,
+              email: dbUser.email,
+              name: dbUser.name,
+              credits: parseFloat(dbUser.credits) || 0,
+              trustScore: dbUser.trust_score || 50,
+              verificationTier: dbUser.verification_tier || 'manual',
+              challengesCompleted: dbUser.challenges_completed || 0,
+              currentStreak: dbUser.current_streak || 0,
+              longestStreak: dbUser.longest_streak || 0,
+              premiumSubscription: dbUser.premium_subscription || false,
+              isAdmin: dbUser.email === 'alex@stakr.app', // Admin check
+              onboardingCompleted: dbUser.onboarding_completed || false,
+              isDev: dbUser.is_dev || false,
+              devModeEnabled: dbUser.dev_mode_enabled || false,
+              emailVerified: dbUser.email_verified || false,
+            }
+          }
+
+          // Fallback to demo users if not found in database
+          console.log("🔍 Checking demo users as fallback...")
           const demoUser = demoUsers.find((u) => u.email === credentials.email)
 
           if (!demoUser) {
-            console.log("❌ User not found in demo users")
+            console.log("❌ User not found in database or demo users")
             return null
           }
 
