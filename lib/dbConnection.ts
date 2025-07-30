@@ -1,39 +1,28 @@
 import { neon } from "@neondatabase/serverless"
 
-// Validate required environment variables
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL environment variable is required")
-}
-
 let connection: any = null
 
-export async function createDbConnection() {
-  try {
-    if (!connection) {
-      connection = neon(process.env.DATABASE_URL!)
-      console.log("✅ Database connection initialized")
-    }
-    return connection
-  } catch (error) {
-    console.error("❌ Failed to create database connection:", error)
-    throw new Error("Database connection failed")
+export function createDbConnection() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is not set")
   }
+
+  if (!connection) {
+    connection = neon(process.env.DATABASE_URL)
+  }
+
+  return connection
 }
 
-// Database utilities
-export const dbConfig = {
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production",
-}
-
-// Connection health check
-export async function checkConnection(): Promise<boolean> {
+export async function testConnection() {
   try {
-    const db = await createDbConnection()
-    await db`SELECT 1`
+    const sql = createDbConnection()
+    await sql`SELECT 1`
     return true
   } catch (error) {
-    console.error("Database health check failed:", error)
+    console.error("Database connection test failed:", error)
     return false
   }
 }
+
+export default createDbConnection

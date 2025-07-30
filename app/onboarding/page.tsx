@@ -4,9 +4,9 @@ import { useState } from "react"
 import { OnboardingLayout } from "@/components/onboarding/onboarding-layout"
 import { SwipeableOnboardingLayout } from "@/components/onboarding/swipeable-onboarding-layout"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
-import { MobileFirstWelcomeStep } from "@/components/onboarding/mobile-first-welcome-step"
-import { QuickGoalsStep } from "@/components/onboarding/quick-goals-step"
-import { InstantAuthStep } from "@/components/onboarding/instant-auth-step"
+import { GamefiedWelcomeStep } from "@/components/onboarding/gamified-welcome-step"
+import { GamefiedGoalsStep } from "@/components/onboarding/gamified-goals-step"
+import { GamefiedAuthStep } from "@/components/onboarding/gamified-auth-step"
 import { DevTestingPanel } from "@/components/onboarding/dev-testing-panel"
 
 export interface OnboardingData {
@@ -20,6 +20,8 @@ export interface OnboardingData {
   recommendedChallenge?: any
   profileSaved?: boolean
   commitmentType?: "money" | "points"
+  xp?: number
+  level?: number
 }
 
 export default function OnboardingPage() {
@@ -32,18 +34,28 @@ export default function OnboardingPage() {
     motivation: "",
     name: "",
     preferredStakeRange: "",
+    xp: 0,
+    level: 1,
   })
 
-  // Streamlined to 3 steps for maximum conversion
+  // Gamified 3-step onboarding
   const steps = [
-    { id: "welcome", component: MobileFirstWelcomeStep },
-    { id: "goals", component: QuickGoalsStep },
-    { id: "auth", component: InstantAuthStep },
+    { id: "welcome", component: GamefiedWelcomeStep, xpReward: 50 },
+    { id: "goals", component: GamefiedGoalsStep, xpReward: 100 },
+    { id: "auth", component: GamefiedAuthStep, xpReward: 150 },
   ]
 
   const handleNext = (stepData?: Partial<OnboardingData>) => {
     if (stepData) {
       setOnboardingData((prev) => ({ ...prev, ...stepData }))
+    }
+
+    // Award XP for completing step
+    const currentStepData = steps[currentStep]
+    if (currentStepData) {
+      const newXP = (onboardingData.xp || 0) + currentStepData.xpReward
+      const newLevel = Math.floor(newXP / 200) + 1
+      setOnboardingData((prev) => ({ ...prev, xp: newXP, level: newLevel }))
     }
 
     // If this is the last step, redirect to dashboard

@@ -1,51 +1,29 @@
 import { neon } from "@neondatabase/serverless"
 
-let sql: any = null
+let db: any = null
 
-export async function createDbConnection() {
+export function createDbConnection() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is not set")
+  }
+
+  if (!db) {
+    db = neon(process.env.DATABASE_URL)
+  }
+
+  return db
+}
+
+export async function testDatabaseConnection() {
   try {
-    if (!sql && process.env.DATABASE_URL) {
-      sql = neon(process.env.DATABASE_URL)
-      console.log("✅ Database connection created")
-    }
-    return sql
+    const sql = createDbConnection()
+    const result = await sql`SELECT 1 as test`
+    console.log("✅ Database connection successful")
+    return { success: true, message: "Database connection successful" }
   } catch (error) {
     console.error("❌ Database connection failed:", error)
-    throw new Error("Database connection failed")
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
   }
 }
 
-export async function testDatabaseConnection(): Promise<{ success: boolean; error?: string; message?: string }> {
-  try {
-    const db = await createDbConnection()
-    if (!db) {
-      return {
-        success: false,
-        error: "Failed to create database connection",
-      }
-    }
-
-    // Test the connection with a simple query
-    const result = await db`SELECT 1 as test`
-    console.log("✅ Database connection test successful:", result)
-    return {
-      success: true,
-      message: "Database connection and query successful!",
-    }
-  } catch (error) {
-    console.error("❌ Database connection test failed:", error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown database error",
-    }
-  }
-}
-
-// Simple fallback for when database is not available
-export const db = {
-  user: {
-    findUnique: async () => null,
-    create: async () => null,
-    update: async () => null,
-  },
-}
+export { db }
