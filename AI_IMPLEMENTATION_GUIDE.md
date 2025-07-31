@@ -51,23 +51,23 @@
 ### **Phase 1: Foundation Deployment (Week 1)**
 
 1. **Apply Database Schema**
-   ```sql
+   \`\`\`sql
    -- Run this in your Neon PostgreSQL database
    psql -f ai-anti-cheat-schema.sql
-   ```
+   \`\`\`
 
 2. **Initialize AI System**
-   ```typescript
+   \`\`\`typescript
    // Add to your app initialization
    import { aiAntiCheat } from '@/lib/ai-anti-cheat'
    await aiAntiCheat.initialize()
-   ```
+   \`\`\`
 
 3. **Integrate Admin Dashboard**
-   ```typescript
+   \`\`\`typescript
    // Add to your admin routes
    import { AIAntiCheatDashboard } from '@/components/admin/ai-anti-cheat-dashboard'
-   ```
+   \`\`\`
 
 ### **Phase 2: Basic Detection (Week 2-3)**
 
@@ -108,7 +108,7 @@
 ## 🔧 **Integration Points**
 
 ### **Existing Proof Submission Flow**
-```typescript
+\`\`\`typescript
 // In your existing proof submission endpoint
 import { validateProofSubmission } from '@/lib/ai-anti-cheat'
 
@@ -128,33 +128,33 @@ switch (aiResult.action) {
     // Auto-ban user
     break
 }
-```
+\`\`\`
 
 ### **Challenge Completion System**
-```typescript
+\`\`\`typescript
 // Before marking challenge as complete
 const aiValidation = await validateProofSubmission(...)
 if (aiValidation.action === 'approve') {
   await completeChallenge(userId, challengeId)
 }
-```
+\`\`\`
 
 ### **User Dashboard**
-```typescript
+\`\`\`typescript
 // Show AI validation status
 <ProofSubmissionCard 
   status={submission.aiDecision}
   confidence={submission.aiConfidence}
   canAppeal={submission.aiDecision === 'reject'}
 />
-```
+\`\`\`
 
 ---
 
 ## 🎚️ **Configuration Options**
 
 ### **Confidence Thresholds**
-```typescript
+\`\`\`typescript
 // Adjust these based on your risk tolerance
 const CONFIDENCE_THRESHOLDS = {
   AUTO_APPROVE: 95,    // ✅ Instant approval
@@ -162,10 +162,10 @@ const CONFIDENCE_THRESHOLDS = {
   AUTO_REJECT: 30,     // ❌ Reject with appeal
   AUTO_BAN: 0          // 🚫 Immediate ban
 }
-```
+\`\`\`
 
 ### **Detection Sensitivity**
-```typescript
+\`\`\`typescript
 // Layer weights (adjust based on your priorities)
 const LAYER_WEIGHTS = {
   PROOF_VALIDATION: 0.35,     // Most important
@@ -174,7 +174,7 @@ const LAYER_WEIGHTS = {
   CONTEXT_ANALYSIS: 0.15,      
   ECONOMIC_ANALYSIS: 0.10      
 }
-```
+\`\`\`
 
 ---
 
