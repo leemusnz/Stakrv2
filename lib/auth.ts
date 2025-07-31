@@ -112,8 +112,7 @@ async function findUserInDatabase(email: string) {
         email_verified,
         onboarding_completed,
         is_dev,
-        dev_mode_enabled,
-        has_dev_access
+        dev_mode_enabled
       FROM users 
       WHERE email = ${email}
       LIMIT 1
@@ -191,7 +190,7 @@ export const authOptions: NextAuthOptions = {
               currentStreak: dbUser.current_streak || 0,
               longestStreak: dbUser.longest_streak || 0,
               premiumSubscription: dbUser.premium_subscription || false,
-              isAdmin: dbUser.is_dev || dbUser.has_dev_access || dbUser.email === 'alex@stakr.app', // Admin privileges for dev users
+              isAdmin: dbUser.email === 'alex@stakr.app', // Admin check
               onboardingCompleted: dbUser.onboarding_completed || false,
               isDev: dbUser.is_dev || false,
               devModeEnabled: dbUser.dev_mode_enabled || false,
