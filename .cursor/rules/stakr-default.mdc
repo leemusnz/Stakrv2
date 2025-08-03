@@ -1,0 +1,87 @@
+# Stakr - Default Rules
+
+## CORE DEVELOPMENT PRINCIPLES
+
+- Always prioritize fairness, verification integrity, and anti-abuse
+- Avoid pay-to-win mechanics at all costs
+- Use TypeScript for all new code
+- Follow consistent naming conventions
+- Write self-documenting code with clear variable names
+- Use proper error handling for all operations
+- Implement proper logging for debugging
+- Use environment variables for configuration
+- Follow the existing codebase patterns and conventions
+- Write clear commit messages
+- Keep functions small and focused
+- Use proper TypeScript types and interfaces
+- Implement proper error boundaries in React components
+- Use proper loading states for async operations
+- Implement proper empty states for lists and data
+- Use proper accessibility attributes (aria-labels, roles)
+- Implement proper keyboard navigation
+- Use proper semantic HTML elements
+- Follow mobile-first responsive design principles
+- Optimize for performance and user experience
+
+## CODE QUALITY
+
+- Use ESLint and Prettier for code formatting
+- Write meaningful comments for complex logic
+- Use proper TypeScript strict mode
+- Implement proper null checking and error handling
+- Use proper async/await patterns
+- Implement proper error boundaries
+- Use proper React hooks patterns
+- Implement proper state management
+- Use proper component composition
+- Implement proper prop validation
+- Use proper CSS-in-JS or Tailwind patterns
+- Implement proper responsive design
+- Use proper image optimization
+- Implement proper SEO meta tags
+- Use proper caching strategies
+
+## NEW FEATURE REQUIREMENTS
+
+- All new features must be tested before implementation
+- All new components must be mobile-first and accessible
+- All new API endpoints must include proper authentication
+- All new features must follow Stakr's fairness principles
+- All new code must include proper error handling
+- All new features must include proper loading states
+- All new features must include proper empty states
+- All new features must be documented
+- All new features must be optimized for performance
+- All new features must include proper logging
+- All new features must be accessible (WCAG 2.1 AA)
+- All new features must work on mobile devices
+- All new features must include proper TypeScript types
+- All new features must follow existing naming conventions
+- All new features must include proper state management
+
+## COMPONENT DEVELOPMENT
+
+- Use functional components with hooks
+- Implement proper prop validation with TypeScript
+- Use proper component composition patterns
+- Implement proper error boundaries
+- Use proper loading and error states
+- Implement proper accessibility (aria-labels, roles, keyboard navigation)
+- Use proper responsive design patterns
+- Implement proper mobile touch interactions
+- Use proper semantic HTML elements
+- Implement proper focus management
+- Use proper animation and transition patterns
+- Implement proper form validation
+- Use proper data fetching patterns
+- Implement proper caching strategies
+- Use proper performance optimization techniques
+
+description: Default rules for Stakr development. Applies to all files when no specialized rules match.
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.css", "**/*.scss", "**/*.json", "**/*.md"]
+alwaysApply: true
+---
+description:
+globs:
+alwaysApply: false
+---

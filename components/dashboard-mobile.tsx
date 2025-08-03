@@ -24,7 +24,7 @@ import {
   Users,
   Star
 } from "lucide-react"
-import { getProxiedAvatarUrl } from '@/lib/utils'
+import { useUserAvatar } from '@/hooks/use-user-avatar'
 
 interface DashboardData {
   user: {
@@ -82,6 +82,7 @@ interface DashboardMobileProps {
 }
 
 export function DashboardMobile({ data, loading, error, onRetry }: DashboardMobileProps) {
+  const { avatarUrl } = useUserAvatar() // Use unified avatar system
   const { isMobile } = useEnhancedMobile()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("overview")
@@ -129,7 +130,7 @@ export function DashboardMobile({ data, loading, error, onRetry }: DashboardMobi
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16 border-2 border-primary/20">
-              <AvatarImage src={getProxiedAvatarUrl(user.avatar)} />
+              <AvatarImage src={avatarUrl || '/placeholder.svg'} />
               <AvatarFallback className="text-lg font-bold bg-primary/10">
                 {user.name.charAt(0).toUpperCase()}
               </AvatarFallback>

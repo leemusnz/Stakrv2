@@ -7,11 +7,13 @@ import { MobileBottomNavigation } from './mobile-bottom-navigation'
 import { Button } from './ui/button'
 import Link from 'next/link'
 import { Logo } from './logo'
+import { useUserAvatar } from '@/hooks/use-user-avatar'
 
 export function NavigationWrapper() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const pathname = usePathname()
+  const { avatarUrl } = useUserAvatar()
 
   // Check if we're on onboarding or auth pages
   const isOnOnboarding = pathname?.startsWith('/onboarding')
@@ -78,22 +80,14 @@ export function NavigationWrapper() {
     )
   }
 
-  // Create user object from session with proxy URL for S3 images
-  const rawAvatar = session.user?.image || ''
-  let avatarUrl = rawAvatar
-  
-  // Use image proxy for S3 URLs to match the settings page behavior
-  if (rawAvatar && rawAvatar.includes('stakr-verification-files.s3')) {
-    const stableTimestamp = rawAvatar.split('/').pop()?.split('-')[0] || 'default'
-    avatarUrl = `/api/image-proxy?url=${encodeURIComponent(rawAvatar)}&v=${stableTimestamp}`
-  }
-  
+  // Create user object from session with consistent avatar handling
   const navigationUser = {
     name: session.user?.name || 'User',
-    avatar: avatarUrl,
+    avatar: avatarUrl || '/placeholder.svg', // Use unified avatar from hook
     credits: session.user?.credits || 0,
     activeStakes: 2, // This would come from API call in real app
-    isAdmin: session.user?.isAdmin || false
+    isAdmin: session.user?.isAdmin || false,
+    isDev: session.user?.isDev || false // Added isDev for dev tools link
   }
 
   // Enhanced logout handler

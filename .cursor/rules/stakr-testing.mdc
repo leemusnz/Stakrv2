@@ -1,0 +1,36 @@
+# Stakr - Testing Focused Rules
+
+## CRITICAL TESTING REQUIREMENTS
+
+- **CRITICAL**: All new code must include unit tests. Use Jest/Vitest
+- **CRITICAL**: Test files should be in `__tests__/` directories matching source structure
+- **CRITICAL**: All API endpoints must have integration tests
+- **CRITICAL**: Test success, failure, and edge cases for every endpoint
+- **CRITICAL**: Maintain at least 80% code coverage
+- **CRITICAL**: Generate E2E tests for core flows: user joins → verifies → gets reward
+- **CRITICAL**: If core files change (challenge.ts, verification.ts, payouts.ts, trustScore.ts), update tests
+- **CRITICAL**: All database operations must be tested with proper mocking
+- **CRITICAL**: All authentication flows must be tested (OAuth, email/password, session management)
+- **CRITICAL**: All payment calculations must have unit tests with edge cases
+- **CRITICAL**: All file uploads must be tested for validation and security
+- **CRITICAL**: All error handling must be tested (network failures, validation errors)
+- **CRITICAL**: All user inputs must be tested for XSS, SQL injection prevention
+- **CRITICAL**: All mobile responsiveness must be tested on multiple screen sizes
+- **CRITICAL**: All performance must be tested (sub-2-second page loads, sub-500ms API responses)
+
+## TESTING PATTERNS
+
+- Use descriptive test names: `describe('User Registration', () => {})`
+- Test both happy path and error scenarios
+- Mock external dependencies (APIs, databases)
+- Use test data factories for consistent test data
+- Group related tests with `describe` blocks
+- Use `beforeEach` and `afterEach` for test setup/cleanup
+- Test edge cases: empty inputs, malformed data, network failures
+- Test accessibility: keyboard navigation, screen readers
+- Test security: authentication bypass, authorization checks
+- Test performance: load testing, memory leaks, bundle size
+description: Testing-focused rules for Stakr development. Use when writing tests, debugging, or ensuring code quality.
+globs: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "**/__tests__/**/*", "**/tests/**/*", "**/jest.config.*", "**/vitest.config.*", "**/playwright.config.*"]
+alwaysApply: false
+---

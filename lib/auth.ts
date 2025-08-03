@@ -102,6 +102,7 @@ async function findUserInDatabase(email: string) {
         email, 
         name, 
         password_hash,
+        avatar_url,
         credits,
         trust_score,
         verification_tier,
@@ -184,6 +185,7 @@ export const authOptions: NextAuthOptions = {
               id: dbUser.id,
               email: dbUser.email,
               name: dbUser.name,
+              avatar: dbUser.avatar_url || null,
               credits: parseFloat(dbUser.credits) || 0,
               trustScore: dbUser.trust_score || 50,
               verificationTier: dbUser.verification_tier || 'manual',
@@ -348,6 +350,55 @@ export const authOptions: NextAuthOptions = {
                 `
                 console.log("✅ Updated email verification for existing user")
               }
+            }
+            
+            // Load full user data from database for both new and existing users
+            const fullUserData = await sql`
+              SELECT 
+                id, 
+                email, 
+                name,
+                avatar_url,
+                credits,
+                trust_score,
+                verification_tier,
+                challenges_completed,
+                current_streak,
+                longest_streak,
+                premium_subscription,
+                email_verified,
+                onboarding_completed,
+                is_dev,
+                dev_mode_enabled,
+                has_dev_access
+              FROM users 
+              WHERE email = ${user.email}
+            `
+            
+            if (fullUserData.length > 0) {
+              const dbUser = fullUserData[0]
+              console.log("📊 Loading full user data for OAuth:", dbUser.email)
+              
+              // Set all user properties from database
+              user.avatar = dbUser.avatar_url || null
+              user.credits = parseFloat(dbUser.credits) || 0
+              user.trustScore = dbUser.trust_score || 50
+              user.verificationTier = dbUser.verification_tier || 'manual'
+              user.challengesCompleted = dbUser.challenges_completed || 0
+              user.currentStreak = dbUser.current_streak || 0
+              user.longestStreak = dbUser.longest_streak || 0
+              user.premiumSubscription = dbUser.premium_subscription || false
+              user.isAdmin = dbUser.is_dev || dbUser.has_dev_access || dbUser.email === 'alex@stakr.app'
+              user.onboardingCompleted = dbUser.onboarding_completed || false
+              user.isDev = dbUser.is_dev || false
+              user.devModeEnabled = dbUser.dev_mode_enabled || false
+              user.emailVerified = dbUser.email_verified || false
+              
+              console.log("✅ Full user data loaded for OAuth:", {
+                isDev: user.isDev,
+                isAdmin: user.isAdmin,
+                devModeEnabled: user.devModeEnabled
+              })
             }
           } catch (dbError) {
             console.error("❌ Database error during OAuth user creation:", dbError)

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { uploadFile } from "@/lib/file-upload"
 import { getPersonalizedAvatar } from "@/lib/avatars"
 import { Camera, Upload, Trash2, User, CheckCircle, AlertCircle } from "lucide-react"
+import { avatarEvents } from '@/lib/avatar-events'
 
 interface ProfilePictureUploadProps {
   currentAvatar?: string
@@ -84,6 +85,17 @@ export function ProfilePictureUpload({
     setForceRender(prev => prev + 1)
   }, [session?.user?.image])
 
+  // Listen for avatar events from other components
+  useEffect(() => {
+    const unsubscribe = avatarEvents.subscribe((newAvatarUrl) => {
+      console.log('🔄 Avatar event received:', newAvatarUrl)
+      setUploadedAvatarUrl(newAvatarUrl)
+      setForceRender(prev => prev + 1)
+    })
+
+    return unsubscribe
+  }, [])
+
   // Size configurations
   const sizeClasses = {
     sm: "w-16 h-16",
@@ -127,224 +139,158 @@ export function ProfilePictureUpload({
           userId: session?.user?.id || 'unknown'
         }
       })
-      
-      if (result.success && result.fileUrl) {
-        console.log('✅ File uploaded successfully:', result.fileUrl)
-        
-        // 🛡️ MODERATE THE IMAGE BEFORE SAVING TO PROFILE
-        console.log('🔍 Moderating uploaded image:', result.fileUrl)
-        
-        // Use image proxy URL for moderation (OpenAI needs publicly accessible URLs)
-        const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(result.fileUrl)}&v=${Date.now()}`
-        const fullProxyUrl = `${window.location.origin}${proxyUrl}`
-        
-        console.log('🔗 Using proxy URL for moderation:', fullProxyUrl)
-        
-        const moderationResponse = await fetch('/api/moderate/image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            imageUrl: fullProxyUrl,
-            context: 'profile_picture' 
-          })
-        })
 
-        if (!moderationResponse.ok) {
-          console.error('❌ Moderation API failed:', moderationResponse.status)
-          // Continue anyway if moderation API fails (fail-safe)
-        } else {
-          const moderationData = await moderationResponse.json()
-          const moderationResult = moderationData.moderation
-          console.log('🛡️ Image moderation result:', moderationResult)
-          console.log('🛡️ Moderation flagged:', moderationResult?.flagged)
-          console.log('🛡️ Moderation reasons:', moderationResult?.reason)
-          console.log('🛡️ Moderation action:', moderationResult?.action)
-          console.log('🛡️ Moderation notes:', moderationResult?.notes)
-          
-          if (moderationResult?.flagged) {
-            console.log('❌ Image flagged by moderation, rejecting upload')
-            setUploadStatus('error')
-            setPreviewUrl(null)
-            setUploadedAvatarUrl(null)
-            
-            // Create user-friendly error message based on flagged reasons
-            const reasons = moderationResult.reason || []
-            
-            // Handle technical error cases first
-            if (reasons.includes('moderation_unavailable')) {
-              throw new Error('Image moderation is currently unavailable. Please try again later or contact support.')
-            } else if (reasons.includes('moderation_api_failed') || reasons.includes('moderation_error') || reasons.includes('moderation_download_failed') || reasons.includes('moderation_parse_failed')) {
-              throw new Error('Unable to verify image safety. Please try a different image or contact support if this persists.')
-            }
-            
-            // Create specific user-friendly messages for content violations
-            let userMessage = 'This image is not appropriate for a profile picture.'
-            
-            if (reasons.includes('sexual') || reasons.includes('nudity')) {
-              userMessage = 'This image contains sexual content or nudity and cannot be used as a profile picture.'
-            } else if (reasons.includes('medical_genitalia')) {
-              userMessage = 'Medical diagrams of anatomy are not appropriate for profile pictures.'
-            } else if (reasons.includes('violence') || reasons.includes('weapons')) {
-              userMessage = 'Images containing violence or weapons cannot be used as profile pictures.'
-            } else if (reasons.includes('drugs') || reasons.includes('drug_paraphernalia')) {
-              userMessage = 'Images showing drugs or drug paraphernalia are not allowed as profile pictures.'
-            } else if (reasons.includes('tobacco') || reasons.includes('gambling')) {
-              userMessage = 'Images showing tobacco use or gambling are not appropriate for profile pictures.'
-            } else if (reasons.includes('minors')) {
-              userMessage = 'Images containing children cannot be used for privacy and safety reasons.'
-            } else if (reasons.includes('screenshots') || reasons.includes('text_heavy')) {
-              userMessage = 'Please upload a photo of yourself rather than screenshots or text-based images.'
-            } else if (reasons.includes('political')) {
-              userMessage = 'Political content is not appropriate for profile pictures.'
-            } else if (reasons.includes('low_quality')) {
-              userMessage = 'Please upload a clearer, higher quality image.'
-            } else if (reasons.includes('personal_info')) {
-              userMessage = 'Images containing personal information (QR codes, phone numbers) are not allowed.'
-            } else if (reasons.includes('multiple_people')) {
-              userMessage = 'Please use a photo that clearly shows only you.'
-            } else if (reasons.includes('harassment')) {
-              userMessage = 'Images containing harassment or hate symbols are not allowed.'
-            }
-            
-            throw new Error(userMessage + ' Please choose a different image.')
-          }
-          
-          console.log('✅ Image passed moderation, proceeding with profile update')
-        }
-        
-        // Update local state immediately for instant feedback
-        setUploadedAvatarUrl(result.fileUrl)
-        
-        // Save to user profile via API
-        const updateResponse = await fetch('/api/user/profile', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ avatar: result.fileUrl })
-        })
-
-        if (updateResponse.ok) {
-          const profileUpdateResult = await updateResponse.json()
-          console.log('✅ Profile API updated successfully:', profileUpdateResult)
-          
-          setUploadStatus('success')
-          
-          // Notify parent component immediately
-          onAvatarUpdate?.(result.fileUrl)
-          
-                    // Update session and local state without page reload
-          try {
-            console.log('✅ Avatar uploaded and database updated successfully')
-            console.log('🔄 Updating session with new avatar...')
-            
-            // Update session to reflect new avatar
-            await update()
-            
-            // Update local state for immediate visual feedback
-            setUploadedAvatarUrl(result.fileUrl)
-            setForceRender(prev => prev + 1)
-            
-            console.log('✅ Avatar update completed without page reload')
-            
-          } catch (sessionError) {
-            console.error('❌ Session update failed:', sessionError)
-            // Fallback: still update local state
-            setUploadedAvatarUrl(result.fileUrl)
-            setForceRender(prev => prev + 1)
-          }
-          
-          // Clear preview since we have the uploaded version
-          setPreviewUrl(null)
-        } else {
-          throw new Error('Failed to update profile')
-        }
-      } else {
+      if (!result.success || !result.fileUrl) {
         throw new Error(result.error || 'Upload failed')
       }
-    } catch (error) {
-      console.error('Profile picture upload failed:', error)
-      setUploadStatus('error')
-      
-      // Handle specific error types for better user experience
-      let userFriendlyMessage = 'Upload failed. Please try again.'
-      
-      if (error instanceof Error) {
-        const errorMessage = error.message.toLowerCase()
-        
-        // Log detailed error information for debugging
-        console.error('🔍 Detailed error info:', {
-          errorMessage: error.message,
-          errorStack: error.stack,
-          errorName: error.name,
-          sessionUserId: session?.user?.id,
-          sessionUserEmail: session?.user?.email
-        })
-        
-        if (errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
-          userFriendlyMessage = 'Session expired. Please refresh the page and try again.'
-        } else if (errorMessage.includes('storage service not available') || errorMessage.includes('503')) {
-          userFriendlyMessage = 'File upload service is temporarily unavailable. Please try again in a few minutes.'
-        } else if (errorMessage.includes('aws credentials') || errorMessage.includes('storage config')) {
-          userFriendlyMessage = 'File upload service is experiencing technical difficulties. Please contact support.'
-        } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-          userFriendlyMessage = `Network error: ${error.message}. Please check the browser console for details.`
-        } else if (errorMessage.includes('file size') || errorMessage.includes('10mb')) {
-          userFriendlyMessage = 'File size must be less than 10MB. Please choose a smaller image.'
-        } else if (errorMessage.includes('file type') || errorMessage.includes('invalid')) {
-          userFriendlyMessage = 'Invalid file type. Please upload a JPEG, PNG, or WebP image.'
-        } else if (error.message && error.message.length > 0) {
-          // Use the actual error message if it's user-friendly
-          userFriendlyMessage = error.message
+
+      console.log('✅ File uploaded successfully:', result.fileUrl)
+
+      // Check image moderation if available
+      if (process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_MODERATION === 'true') {
+        try {
+          console.log('🔍 Running image moderation check...')
+          const moderationResponse = await fetch('/api/moderate/image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: result.fileUrl })
+          })
+
+          if (moderationResponse.ok) {
+            const moderationResult = await moderationResponse.json()
+            console.log('🛡️ Moderation result:', moderationResult)
+            
+            if (moderationResult.flagged) {
+              const reasons = moderationResult.reason || []
+              let userMessage = 'This image does not meet our community guidelines.'
+              
+              if (reasons.includes('inappropriate')) {
+                userMessage = 'This image contains inappropriate content and cannot be used as a profile picture.'
+              } else if (reasons.includes('tobacco') || reasons.includes('gambling')) {
+                userMessage = 'Images showing tobacco use or gambling are not appropriate for profile pictures.'
+              } else if (reasons.includes('minors')) {
+                userMessage = 'Images containing children cannot be used for privacy and safety reasons.'
+              } else if (reasons.includes('screenshots') || reasons.includes('text_heavy')) {
+                userMessage = 'Please upload a photo of yourself rather than screenshots or text-based images.'
+              } else if (reasons.includes('political')) {
+                userMessage = 'Political content is not appropriate for profile pictures.'
+              } else if (reasons.includes('low_quality')) {
+                userMessage = 'Please upload a clearer, higher quality image.'
+              } else if (reasons.includes('personal_info')) {
+                userMessage = 'Images containing personal information (QR codes, phone numbers) are not allowed.'
+              } else if (reasons.includes('multiple_people')) {
+                userMessage = 'Please use a photo that clearly shows only you.'
+              } else if (reasons.includes('harassment')) {
+                userMessage = 'Images containing harassment or hate symbols are not allowed.'
+              }
+              
+              throw new Error(userMessage + ' Please choose a different image.')
+            }
+            
+            console.log('✅ Image passed moderation, proceeding with profile update')
+          }
+        } catch (moderationError) {
+          console.warn('Moderation check failed, proceeding with upload:', moderationError)
         }
       }
       
-      setUploadError(userFriendlyMessage)
-      setPreviewUrl(null)
-      setUploadedAvatarUrl(null)
+      // Update local state immediately for instant feedback
+      setUploadedAvatarUrl(result.fileUrl)
+      
+      // Save to user profile via API
+      const updateResponse = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar: result.fileUrl })
+      })
+
+      if (updateResponse.ok) {
+        const profileUpdateResult = await updateResponse.json()
+        console.log('✅ Profile API updated successfully:', profileUpdateResult)
+        
+        setUploadStatus('success')
+        
+        // Notify parent component immediately
+        onAvatarUpdate?.(result.fileUrl)
+        
+        // Update session and local state without page reload
+        try {
+          console.log('✅ Avatar uploaded and database updated successfully')
+          console.log('🔄 Updating session with new avatar...')
+          
+          // Update session to reflect new avatar
+          await update({ 
+            user: {
+              ...session?.user,
+              image: result.fileUrl,
+              avatar: result.fileUrl
+            }
+          })
+          
+          // Update local state for immediate visual feedback
+          setUploadedAvatarUrl(result.fileUrl)
+          setForceRender(prev => prev + 1)
+          
+          // Notify all components using the avatar system
+          avatarEvents.notify(result.fileUrl)
+          
+          console.log('✅ Avatar update completed without page reload')
+          
+        } catch (sessionError) {
+          console.error('❌ Session update failed:', sessionError)
+          // Fallback: still update local state and notify components
+          setUploadedAvatarUrl(result.fileUrl)
+          setForceRender(prev => prev + 1)
+          avatarEvents.notify(result.fileUrl)
+        }
+        
+        // Clear preview since we have the uploaded version
+        setPreviewUrl(null)
+      } else {
+        throw new Error('Failed to update profile')
+      }
+
+    } catch (error) {
+      console.error('Upload failed:', error)
+      setUploadStatus('error')
+      setUploadError(error instanceof Error ? error.message : 'Upload failed')
     } finally {
       setIsUploading(false)
     }
   }
 
   const handleRemovePicture = async () => {
+    setIsUploading(true)
     try {
-      setIsUploading(true)
-      setUploadError(null)
-      
-      // Reset to default avatar
-      const defaultAvatar = getDefaultAvatar()
-      
+      // Remove avatar from profile via API
       const response = await fetch('/api/user/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ avatar: defaultAvatar })
+        body: JSON.stringify({ avatar: null })
       })
 
       if (response.ok) {
-        setPreviewUrl(null)
-        setUploadedAvatarUrl(null)
-        setUploadStatus('success')
-        onAvatarUpdate?.(defaultAvatar)
+        // Update session to remove avatar
+        await update({ 
+          user: {
+            ...session?.user,
+            image: null,
+            avatar: null
+          }
+        })
         
-        // Update session and local state without page reload
-        try {
-          console.log('✅ Avatar removed and database updated successfully')
-          console.log('🔄 Updating session with default avatar...')
-          
-          // Update session to reflect default avatar
-          await update()
-          
-          // Update local state for immediate visual feedback
-          setUploadedAvatarUrl(null)
-          setForceRender(prev => prev + 1)
-          
-          console.log('✅ Avatar removal completed without page reload')
-          
-        } catch (sessionError) {
-          console.error('❌ Session update failed:', sessionError)
-          // Fallback: still update local state
-          setUploadedAvatarUrl(null)
-          setForceRender(prev => prev + 1)
-        }
+        // Clear local state
+        setUploadedAvatarUrl(null)
+        setPreviewUrl(null)
+        setForceRender(prev => prev + 1)
+        
+        // Notify parent component
+        onAvatarUpdate?.('')
+        
+        // Notify all components
+        avatarEvents.notify('')
+        
+        console.log('✅ Avatar removed successfully')
       } else {
         throw new Error('Failed to remove picture')
       }
@@ -363,7 +309,7 @@ export function ProfilePictureUpload({
         <div className="relative">
           <Avatar 
             className={`${sizeClasses[size]} ${isUploading ? 'opacity-50' : ''}`}
-            key={`avatar-container-${displayAvatar}`} // Force re-render when avatar changes
+            key={`avatar-container-${displayAvatar}-${forceRender}`} // Force re-render when avatar changes
           >
             <AvatarImage 
               src={displayAvatar} 
@@ -402,127 +348,66 @@ export function ProfilePictureUpload({
 
         {/* Upload Controls */}
         {showControls && (
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => fileInputRef.current?.click()}
+          <div className="flex flex-col gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Camera className="w-4 h-4" />
+              {isCustomAvatar ? 'Change Photo' : 'Upload Photo'}
+            </Button>
+            
+            {isCustomAvatar && (
+              <Button
+                onClick={handleRemovePicture}
                 disabled={isUploading}
-                className="flex items-center gap-2"
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 text-destructive hover:text-destructive"
               >
-                <Camera className="w-4 h-4" />
-                {isCustomAvatar ? 'Change Photo' : 'Upload Photo'}
+                <Trash2 className="w-4 h-4" />
+                Remove
               </Button>
-              
-              {isCustomAvatar && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleRemovePicture}
-                  disabled={isUploading}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-
-            {/* Status Messages */}
-            {isUploading && (
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                <span>Uploading and updating profile...</span>
-              </div>
             )}
-            
-            {uploadStatus === 'success' && !isUploading && (
-              <div className="flex items-center gap-2 text-sm text-green-600">
-                <CheckCircle className="w-4 h-4" />
-                <span>Profile picture updated successfully!</span>
-              </div>
-            )}
-            
-            {uploadStatus === 'error' && !isUploading && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-red-600">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>{uploadError || 'Upload failed. Please try again.'}</span>
-                </div>
-                
-                {/* Debug Information Toggle */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowDebugInfo(!showDebugInfo)}
-                    className="text-xs text-gray-500 hover:text-gray-700 underline"
-                  >
-                    {showDebugInfo ? 'Hide' : 'Show'} technical details
-                  </button>
-                </div>
-                
-                {showDebugInfo && (
-                  <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded border space-y-1">
-                    <div><strong>Debug Info:</strong></div>
-                    <div>User ID: {session?.user?.id || 'Not available'}</div>
-                    <div>User Email: {session?.user?.email || 'Not available'}</div>
-                    <div>Current Avatar: {rawAvatar || 'None'}</div>
-                    <div>Upload Status: {uploadStatus}</div>
-                    <div>Error Message: {uploadError || 'None'}</div>
-                    <div className="pt-2 text-gray-500">
-                      <strong>Troubleshooting:</strong><br/>
-                      1. Check that you're signed in<br/>
-                      2. Try refreshing the page<br/>
-                      3. Contact support if the issue persists<br/>
-                      4. Visit /api/test-deployment to check system status
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <p className="text-xs text-muted-foreground">
-              JPG, PNG or WebP. Max 10MB.
-            </p>
-            
-                        {/* Simplified Debug Info - Only for development */}
-            {process.env.NODE_ENV === 'development' && (
-              <details className="mt-4">
-                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
-                  Debug Info (Click to expand)
-                </summary>
-                                 <div className="mt-2 p-2 bg-muted/50 rounded text-xs space-y-1">
-                   <div>Using Proxy: {rawAvatar?.includes('stakr-verification-files.s3') ? 'Yes' : 'No'}</div>
-                   <div>Is Custom: {isCustomAvatar ? 'Yes' : 'No'}</div>
-                   <div>Force Render: {forceRender}</div>
-                   <Button 
-                     size="sm" 
-                     variant="outline" 
-                     className="mt-2"
-                     onClick={() => {
-                       console.log('🔍 Avatar Debug:', {
-                         session: session?.user?.image,
-                         raw: rawAvatar,
-                         display: displayAvatar,
-                         forceRender: forceRender
-                       })
-                     }}
-                   >
-                     Log Debug Info
-                   </Button>
-                 </div>
-              </details>
-             )}
           </div>
         )}
       </div>
 
-      {/* Hidden File Input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileSelect}
-        className="hidden"
-      />
+      {/* Status Messages */}
+      {uploadStatus === 'success' && (
+        <div className="flex items-center gap-2 text-green-600 text-sm">
+          <CheckCircle className="w-4 h-4" />
+          Avatar updated successfully!
+        </div>
+      )}
+
+      {uploadStatus === 'error' && uploadError && (
+        <div className="flex items-center gap-2 text-red-600 text-sm">
+          <AlertCircle className="w-4 h-4" />
+          {uploadError}
+        </div>
+      )}
+
+      {/* Debug Info (Development Only) */}
+      {showDebugInfo && process.env.NODE_ENV === 'development' && (
+        <div className="text-xs text-muted-foreground space-y-1">
+          <div>Session Avatar: {session?.user?.image || 'null'}</div>
+          <div>Current Avatar: {currentAvatar || 'null'}</div>
+          <div>Uploaded Avatar: {uploadedAvatarUrl || 'null'}</div>
+          <div>Display Avatar: {displayAvatar}</div>
+          <div>Force Render: {forceRender}</div>
+        </div>
+      )}
     </div>
   )
 }

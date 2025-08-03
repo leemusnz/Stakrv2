@@ -1,0 +1,46 @@
+# Stakr - Mobile UI Focused Rules
+
+## CRITICAL MOBILE REQUIREMENTS
+
+- **CRITICAL**: Prioritize mobile-first design over desktop
+- **CRITICAL**: All layouts must be optimized for mobile usability
+- **CRITICAL**: Touch targets must be minimum 44px height/width
+- **CRITICAL**: All forms must be mobile-friendly (16px font size to prevent zoom)
+- **CRITICAL**: Implement proper safe area handling for notched devices
+- **CRITICAL**: All navigation must work with touch gestures
+- **CRITICAL**: Optimize images for mobile (WebP, responsive sizes)
+- **CRITICAL**: Implement pull-to-refresh for feeds and lists
+- **CRITICAL**: Use bottom navigation for primary app sections
+- **CRITICAL**: All modals must be dismissible with touch gestures
+- **CRITICAL**: Implement proper loading states for mobile
+- **CRITICAL**: All text must be readable on small screens
+- **CRITICAL**: Avoid horizontal scrolling on mobile
+- **CRITICAL**: Implement proper keyboard handling for forms
+- **CRITICAL**: All buttons must have proper touch feedback
+- **CRITICAL**: Use native share API when available
+- **CRITICAL**: Implement proper offline functionality
+- **CRITICAL**: Optimize bundle size for mobile performance
+- **CRITICAL**: Test on multiple screen sizes and orientations
+- **CRITICAL**: Implement proper haptic feedback for interactions
+
+## MOBILE UI PATTERNS
+
+- Use responsive design with mobile-first breakpoints
+- Implement touch-friendly button sizes (min 44px)
+- Use proper spacing for touch interactions
+- Implement swipe gestures for common actions
+- Use bottom sheets for secondary actions
+- Implement proper form validation with mobile UX
+- Use skeleton loading states for better perceived performance
+- Implement proper error states for mobile
+- Use native mobile patterns (pull-to-refresh, infinite scroll)
+- Implement proper keyboard handling
+- Use proper typography scaling for mobile
+- Implement proper color contrast for mobile screens
+- Use proper icon sizes for touch interaction
+- Implement proper animation timing for mobile
+- Use proper spacing and padding for mobile layouts
+description: Mobile UI-focused rules for Stakr development. Use when working on components, layouts, or user interface features.
+globs: ["**/components/**/*", "**/app/**/*.tsx", "**/styles/**/*", "**/hooks/use-mobile.tsx", "**/hooks/use-enhanced-mobile.tsx", "**/components/ui/**/*", "**/components/mobile/**/*", "**/components/discover/**/*", "**/components/onboarding/**/*"]
+alwaysApply: false
+---

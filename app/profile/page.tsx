@@ -136,6 +136,11 @@ export default function ProfilePage() {
     setUser(prev => ({ ...prev, avatar: avatarUrl }))
     setShowAvatarUpload(false)
     console.log('🔄 Profile page handleAvatarUpdate:', avatarUrl)
+    
+    // Force a re-render to ensure the avatar updates immediately
+    setTimeout(() => {
+      setUser(prev => ({ ...prev }))
+    }, 100)
   }
 
   if (status === "loading" || loading) {

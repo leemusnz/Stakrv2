@@ -1,0 +1,46 @@
+# Stakr - Security Focused Rules
+
+## CRITICAL SECURITY REQUIREMENTS
+
+- **CRITICAL**: All user inputs must be validated and sanitized
+- **CRITICAL**: Prevent XSS, SQL injection, CSRF, and other attacks
+- **CRITICAL**: All database operations must use parameterized queries
+- **CRITICAL**: Never use string concatenation for SQL queries
+- **CRITICAL**: All authentication must be secure (JWT, session management)
+- **CRITICAL**: All file uploads must be validated for type, size, and content
+- **CRITICAL**: Scan uploaded files for malware and dangerous content
+- **CRITICAL**: All API endpoints must validate authorization
+- **CRITICAL**: Implement proper CORS policies
+- **CRITICAL**: Use security headers (CSP, HSTS, X-Frame-Options)
+- **CRITICAL**: All secrets must be managed securely (environment variables)
+- **CRITICAL**: All passwords must be hashed with bcrypt
+- **CRITICAL**: Implement rate limiting on all endpoints
+- **CRITICAL**: Log all security events (failed logins, suspicious activity)
+- **CRITICAL**: All third-party integrations must be validated
+- **CRITICAL**: Never expose internal system details in error messages
+- **CRITICAL**: Implement proper session timeout and cleanup
+- **CRITICAL**: Use HTTPS everywhere (no HTTP in production)
+- **CRITICAL**: Validate all API responses from third-party services
+- **CRITICAL**: Implement proper error handling without information leakage
+
+## SECURITY PATTERNS
+
+- Use input validation libraries (Zod, Joi, Yup)
+- Implement Content Security Policy (CSP)
+- Use prepared statements for all database queries
+- Implement proper authentication middleware
+- Use secure random generators for tokens
+- Validate file types using magic bytes, not extensions
+- Implement proper CORS configuration
+- Use environment variables for all secrets
+- Implement proper session management
+- Use HTTPS redirects in production
+- Implement proper logout functionality
+- Use secure cookie settings (HttpOnly, Secure, SameSite)
+- Implement proper password reset flows
+- Use rate limiting to prevent abuse
+- Implement proper audit logging
+description: Security-focused rules for Stakr development. Use when working on authentication, validation, file uploads, or security features.
+globs: ["**/auth/**/*", "**/api/**/*", "**/lib/auth.ts", "**/lib/validation.ts", "**/middleware.ts", "**/upload/**/*", "**/moderate/**/*", "**/lib/security.ts", "**/lib/encryption.ts", "**/lib/hashing.ts", "**/api/admin/**/*"]
+alwaysApply: false
+---

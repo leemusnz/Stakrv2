@@ -1,0 +1,6 @@
+---
+description: General development rules for Stakr. Use for overall development practices, code quality, and best practices.
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+alwaysApply: false
+---
+---

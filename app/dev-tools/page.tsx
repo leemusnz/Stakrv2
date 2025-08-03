@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
 import { DevModeToggle, useDevMode } from "@/components/dev-mode-toggle"
+import { AvatarTestPanel } from "@/components/avatar-test-panel"
 import {
   Bug,
   Database,
@@ -29,7 +30,8 @@ import {
   Terminal,
   FileText,
   Users,
-  Lock
+  Lock,
+  User
 } from "lucide-react"
 
 export default function DevToolsPage() {
@@ -200,6 +202,7 @@ export default function DevToolsPage() {
             <TabsTrigger value="system">System</TabsTrigger>
             <TabsTrigger value="users">User Tools</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+            <TabsTrigger value="avatar">Avatar</TabsTrigger>
           </TabsList>
 
           {/* Overview */}
@@ -599,6 +602,21 @@ export default function DevToolsPage() {
                     <p className="text-muted-foreground">Loading system monitoring data...</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Avatar Test Panel */}
+          <TabsContent value="avatar" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  Avatar Testing
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AvatarTestPanel />
               </CardContent>
             </Card>
           </TabsContent>

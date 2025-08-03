@@ -1,0 +1,46 @@
+# Stakr - Business Logic Focused Rules
+
+## CRITICAL BUSINESS REQUIREMENTS
+
+- **CRITICAL**: Always prioritize fairness, verification integrity, and anti-abuse
+- **CRITICAL**: Avoid pay-to-win mechanics at all costs
+- **CRITICAL**: Verification logic must support media uploads, app timers, AI/manual checks
+- **CRITICAL**: No peer reviews allowed in verification system
+- **CRITICAL**: Insurance logic must be strict and include proof of attempt
+- **CRITICAL**: Limit insurance usage and enforce strict rules
+- **CRITICAL**: Stakes are locked after challenge start
+- **CRITICAL**: Platform earns 5% entry fee and 20% of failed stakes
+- **CRITICAL**: Reward pool must follow: all completers win, split failed stakes
+- **CRITICAL**: No winner-takes-all mechanics allowed
+- **CRITICAL**: Trust score must influence verification difficulty
+- **CRITICAL**: Trust score must unlock features progressively
+- **CRITICAL**: Cheaters must be blocked and trust score reduced
+- **CRITICAL**: Enable monitoring for failed verifications
+- **CRITICAL**: Monitor reward miscalculations and trust score anomalies
+- **CRITICAL**: Alert on business logic failures
+- **CRITICAL**: All financial calculations must be precise (use decimal handling)
+- **CRITICAL**: All time-based logic must handle timezones correctly
+- **CRITICAL**: All user actions must be logged for audit purposes
+- **CRITICAL**: Implement proper fraud detection and prevention
+
+## BUSINESS LOGIC PATTERNS
+
+- Use immutable data structures for financial calculations
+- Implement proper decimal handling for currency
+- Use proper timezone handling for all date/time operations
+- Implement proper state machines for challenge lifecycle
+- Use event sourcing for important business events
+- Implement proper validation for all business rules
+- Use proper error handling for business logic failures
+- Implement proper rollback mechanisms for failed operations
+- Use proper audit logging for all business actions
+- Implement proper rate limiting for business operations
+- Use proper caching for frequently accessed business data
+- Implement proper backup and recovery for business data
+- Use proper monitoring and alerting for business metrics
+- Implement proper testing for all business logic
+- Use proper documentation for all business rules
+description: Business logic-focused rules for Stakr development. Use when working on challenge logic, verification, payments, or core business features.
+globs: ["**/lib/challenge.ts", "**/lib/verification.ts", "**/lib/payouts.ts", "**/lib/trustScore.ts", "**/api/challenges/**/*", "**/api/verification/**/*", "**/api/payments/**/*", "**/api/admin/**/*", "**/lib/business-logic/**/*", "**/lib/financial/**/*", "**/lib/gamification/**/*"]
+alwaysApply: false
+---

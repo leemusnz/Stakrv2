@@ -1,0 +1,32 @@
+{
+  "project": "Stakr - General Development",
+  "rules": [
+    "Always prioritize fairness, verification integrity, and anti-abuse. Avoid pay-to-win mechanics.",
+    "CRITICAL: All new code must include unit tests. Use Jest/Vitest. Test files should be in __tests__/ directories matching source structure.",
+    "CRITICAL: All API endpoints must have integration tests. Test success, failure, and edge cases.",
+    "CRITICAL: All user inputs must be validated and sanitized. Prevent XSS, SQL injection, and other attacks.",
+    "CRITICAL: All database operations must use parameterized queries. Never use string concatenation for SQL.",
+    "CRITICAL: All authentication must be secure. Use proper session management and JWT handling.",
+    "CRITICAL: All file uploads must be validated for type, size, and content. Scan for malware.",
+    "CRITICAL: All error handling must be comprehensive. Never expose internal system details to users.",
+    "CRITICAL: All mobile-first design. Optimize for mobile usability over desktop.",
+    "CRITICAL: All performance must be monitored. Ensure sub-2-second page loads and sub-500ms API responses.",
+    "CRITICAL: All security headers must be implemented. Use CSP, HSTS, and other security headers.",
+    "CRITICAL: All environment variables must be validated at startup. Fail fast if required config is missing.",
+    "CRITICAL: All logging must be comprehensive. Log all errors, warnings, and important user actions.",
+    "CRITICAL: All third-party integrations must be tested. Handle API changes and failures gracefully.",
+    "CRITICAL: All code must be reviewed before merging. No code should be deployed without review.",
+    "Use feature flags to safely test new features. No unfinished logic in production.",
+    "Maintain at least 80% code coverage. Highlight untested code and prompt for test generation if below threshold.",
+    "All features — new and existing — must have unit and integration tests. Cursor should generate or prompt for missing tests.",
+    "If core files are changed (challenge.ts, verification.ts, payouts.ts, trustScore.ts), related tests must be updated or regenerated.",
+    "Generate and maintain an end-to-end test for the core flow: user joins → verifies → gets reward.",
+    "Verification logic must support: media uploads, app timers, optional AI/manual checks. No peer reviews allowed.",
+    "Insurance logic must be strict and include proof of attempt. Limit usage and enforce rules.",
+    "Stakes are locked after challenge start. Platform earns 5% entry fee and 20% of failed stakes.",
+    "Reward pool must follow: all completers win, split failed stakes. No winner-takes-all.",
+    "Trust score must influence verification difficulty and unlock features. Cheaters are blocked.",
+    "Enable monitoring for failed verifications, reward miscalculations, and trust score anomalies. Alert on failure.",
+    "Prioritize a mobile-first UI. Layouts must be optimized for mobile usability over desktop. Avoid clunky swipeable card patterns unless they serve a clear purpose."
+  ]
+} 

@@ -1,0 +1,182 @@
+# Stakr - New Features & Components Rules
+
+## CRITICAL NEW FEATURE REQUIREMENTS
+
+- **CRITICAL**: All new features must include unit tests before implementation
+- **CRITICAL**: All new components must be mobile-first and responsive
+- **CRITICAL**: All new API endpoints must include authentication and authorization
+- **CRITICAL**: All new features must follow Stakr's fairness principles
+- **CRITICAL**: All new components must include proper accessibility attributes
+- **CRITICAL**: All new features must include proper error handling
+- **CRITICAL**: All new database operations must use parameterized queries
+- **CRITICAL**: All new file uploads must include validation and security checks
+- **CRITICAL**: All new user inputs must be validated and sanitized
+- **CRITICAL**: All new features must include proper loading states
+- **CRITICAL**: All new features must include proper empty states
+- **CRITICAL**: All new features must be tested on mobile devices
+- **CRITICAL**: All new features must include proper TypeScript types
+- **CRITICAL**: All new features must follow existing naming conventions
+- **CRITICAL**: All new features must include proper logging
+- **CRITICAL**: All new features must be documented
+- **CRITICAL**: All new features must include proper error boundaries
+- **CRITICAL**: All new features must be optimized for performance
+- **CRITICAL**: All new features must include proper state management
+- **CRITICAL**: All new features must be accessible (WCAG 2.1 AA)
+
+## NEW COMPONENT PATTERNS
+
+- Use functional components with hooks
+- Implement proper prop validation with TypeScript
+- Use proper component composition patterns
+- Implement proper error boundaries
+- Use proper loading and error states
+- Implement proper accessibility (aria-labels, roles, keyboard navigation)
+- Use proper responsive design patterns
+- Implement proper mobile touch interactions
+- Use proper semantic HTML elements
+- Implement proper focus management
+- Use proper animation and transition patterns
+- Implement proper form validation
+- Use proper data fetching patterns
+- Implement proper caching strategies
+- Use proper performance optimization techniques
+
+## NEW API ENDPOINT PATTERNS
+
+- Use proper HTTP status codes
+- Implement proper request validation
+- Use proper response formatting
+- Implement proper error handling
+- Use proper authentication middleware
+- Implement proper authorization checks
+- Use proper rate limiting
+- Implement proper logging
+- Use proper database transaction handling
+- Implement proper input sanitization
+- Use proper CORS configuration
+- Implement proper security headers
+- Use proper caching headers
+- Implement proper pagination
+- Use proper filtering and sorting
+
+## NEW DATABASE PATTERNS
+
+- Use proper migration files
+- Implement proper schema validation
+- Use proper indexing strategies
+- Implement proper foreign key constraints
+- Use proper transaction handling
+- Implement proper backup strategies
+- Use proper connection pooling
+- Implement proper query optimization
+- Use proper data validation
+- Implement proper audit logging
+- Use proper soft deletes
+- Implement proper data encryption
+- Use proper backup and recovery
+- Implement proper monitoring
+- Use proper performance tuning
+
+## NEW FEATURE CHECKLIST
+
+### Before Implementation
+- [ ] Feature requirements documented
+- [ ] Technical design reviewed
+- [ ] Security implications assessed
+- [ ] Performance impact evaluated
+- [ ] Accessibility requirements defined
+- [ ] Mobile compatibility planned
+- [ ] Testing strategy defined
+- [ ] Error handling planned
+- [ ] Logging strategy defined
+- [ ] Monitoring requirements defined
+
+### During Implementation
+- [ ] Unit tests written
+- [ ] Integration tests written
+- [ ] Component tests written
+- [ ] E2E tests written
+- [ ] Error handling implemented
+- [ ] Loading states implemented
+- [ ] Empty states implemented
+- [ ] Accessibility implemented
+- [ ] Mobile responsiveness tested
+- [ ] Performance optimized
+
+### After Implementation
+- [ ] Code review completed
+- [ ] Security review completed
+- [ ] Performance testing completed
+- [ ] Accessibility testing completed
+- [ ] Mobile testing completed
+- [ ] Documentation updated
+- [ ] Monitoring configured
+- [ ] Alerts configured
+- [ ] Backup procedures tested
+- [ ] Rollback plan tested
+
+## NEW FEATURE TEMPLATES
+
+### React Component Template
+```typescript
+import React from 'react'
+import { useIsMobile } from '@/hooks/use-mobile'
+
+interface ComponentProps {
+  // Define props with proper types
+}
+
+export function ComponentName({ ...props }: ComponentProps) {
+  const isMobile = useIsMobile()
+  
+  // Implement proper error handling
+  // Implement proper loading states
+  // Implement proper accessibility
+  // Implement proper mobile responsiveness
+  
+  return (
+    <div role="main" aria-label="Component description">
+      {/* Component content */}
+    </div>
+  )
+}
+```
+
+### API Endpoint Template
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+
+export async function POST(request: NextRequest) {
+  try {
+    // Validate authentication
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Validate input
+    const body = await request.json()
+    // Implement proper validation
+
+    // Process request
+    // Implement proper error handling
+    // Implement proper logging
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('API error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+```
+
+description: New features and components rules for Stakr development. Use when creating new features, components, or functionality.
+globs: ["**/components/**/*", "**/app/**/*.tsx", "**/api/**/*", "**/lib/**/*", "**/hooks/**/*", "**/features/**/*", "**/modules/**/*"]
+alwaysApply: false
+---
+description:
+globs:
+alwaysApply: false
+---

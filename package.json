@@ -10,6 +10,13 @@
     "start": "next start",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest --testPathPattern=\"unit|utils|helpers\"",
+    "test:integration": "jest --testPathPattern=\"integration|api-endpoints|auth|avatar-system|challenge-system\"",
+    "test:components": "jest --testPathPattern=\"components|app\" --testEnvironment=jsdom",
+    "test:e2e": "playwright test",
+    "test:all": "node scripts/run-tests.js",
+    "test:report": "jest --coverage --json --outputFile=test-reports/coverage.json",
     "type-check": "tsc --noEmit"
   },
   "lint-staged": {

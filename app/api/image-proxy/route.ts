@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const imageUrl = searchParams.get('url')
+    const version = searchParams.get('v') || 'default'
     
     if (!imageUrl) {
       return NextResponse.json({ error: 'Missing image URL' }, { status: 400 })
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 })
     }
 
-    console.log('🖼️ Proxying image with AWS SDK:', imageUrl)
+    console.log('🖼️ Proxying image with AWS SDK:', imageUrl, 'version:', version)
 
     // Extract the S3 key from the URL
     const urlParts = imageUrl.split('.amazonaws.com/')
@@ -76,14 +77,17 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ Image fetched successfully via AWS SDK, content-type:', contentType, 'size:', imageBuffer.length)
 
-    // Return the image with proper headers
+    // Return the image with proper headers and cache busting
     return new NextResponse(imageBuffer, {
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+        'Cache-Control': 'public, max-age=300, s-maxage=300', // Cache for 5 minutes
+        'ETag': `"${version}-${Date.now()}"`, // Cache busting ETag
+        'Last-Modified': new Date().toUTCString(),
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET',
         'Access-Control-Allow-Headers': 'Content-Type',
+        'Vary': 'Accept-Encoding', // Vary by encoding for better caching
       },
     })
 

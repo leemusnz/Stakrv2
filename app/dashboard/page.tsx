@@ -14,7 +14,7 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { ArrowRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getProxiedAvatarUrl } from '@/lib/utils'
+import { useUserAvatar } from '@/hooks/use-user-avatar'
 import { 
   TrendingUp, 
   Target, 
@@ -74,6 +74,7 @@ export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { isMobile } = useEnhancedMobile()
+  const { avatarUrl } = useUserAvatar() // Use unified avatar system
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -174,7 +175,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Avatar className="w-16 h-16">
-            <AvatarImage src={getProxiedAvatarUrl(user.avatar)} />
+            <AvatarImage src={avatarUrl || '/placeholder.svg'} />
             <AvatarFallback className="text-2xl font-bold">
               {user.name.charAt(0).toUpperCase()}
             </AvatarFallback>
