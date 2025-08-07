@@ -335,7 +335,7 @@ describe('Challenge System', () => {
       const rewardPerPerson = totalRewardPool / successfulParticipants
 
       expect(totalRewardPool).toBe(1250)
-      expect(rewardPerPerson).toBe(83.33) // 1250 / 15
+      expect(rewardPerPerson).toBeCloseTo(83.33, 2) // 1250 / 15
     })
 
     it('should handle edge case with no successful completions', () => {
