@@ -131,4 +131,4 @@ describe('Basic Component Tests', () => {
       expect(screen.getByTestId('title')).toHaveTextContent('')
     })
   })
-}) 
+})

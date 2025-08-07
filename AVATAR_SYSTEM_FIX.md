@@ -60,7 +60,7 @@ The avatar upload system was inconsistent across the site:
 ## Key Changes Made
 
 ### ProfilePictureUpload Component (`components/profile-picture-upload.tsx`)
-```typescript
+\`\`\`typescript
 // Fixed session update format
 await update({ 
   user: {
@@ -78,20 +78,20 @@ useEffect(() => {
   })
   return unsubscribe
 }, [])
-```
+\`\`\`
 
 ### New useAvatar Hook (`hooks/use-avatar.ts`)
-```typescript
+\`\`\`typescript
 export function useAvatar() {
   // Centralized avatar state management
   // Automatic image proxy processing
   // Session synchronization
   // Avatar event listening
 }
-```
+\`\`\`
 
 ### Enhanced Avatar Events (`lib/avatar-events.ts`)
-```typescript
+\`\`\`typescript
 class AvatarEventManager {
   private lastAvatarUrl: string | null = null
   
@@ -102,14 +102,14 @@ class AvatarEventManager {
     }
   }
 }
-```
+\`\`\`
 
 ### Updated Image Proxy (`app/api/image-proxy/route.ts`)
-```typescript
+\`\`\`typescript
 // Reduced cache time and added cache busting
 'Cache-Control': 'public, max-age=300, s-maxage=300', // 5 minutes
 'ETag': `"${version}-${Date.now()}"`, // Cache busting
-```
+\`\`\`
 
 ## Testing the Fix
 
@@ -199,4 +199,4 @@ Watch for these log messages:
 - **Optimized**: Image proxy now has better cache management
 - **Scalable**: Centralized state management scales well
 
-This comprehensive fix ensures consistent avatar behavior across the entire application with proper error handling, caching, and state management. 
+This comprehensive fix ensures consistent avatar behavior across the entire application with proper error handling, caching, and state management.

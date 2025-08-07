@@ -33,4 +33,4 @@ describe('Basic Test Suite', () => {
     expect(obj.value).toBe(42)
     expect(Object.keys(obj)).toHaveLength(2)
   })
-}) 
+})

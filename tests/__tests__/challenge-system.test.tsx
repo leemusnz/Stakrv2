@@ -701,4 +701,4 @@ describe('Challenge System Tests', () => {
       expect(screen.queryByTestId('complete-button')).not.toBeInTheDocument()
     })
   })
-}) 
+})

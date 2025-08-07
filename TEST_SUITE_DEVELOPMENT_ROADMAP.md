@@ -12,131 +12,131 @@
 
 ### 1.1 Avatar System Tests
 **Priority**: High (Critical user feature)
-```typescript
+\`\`\`typescript
 // tests/__tests__/avatar-system.test.tsx
 - Avatar upload functionality
 - Image moderation integration
 - Avatar persistence across sessions
 - Real-time avatar updates
 - Error handling for failed uploads
-```
+\`\`\`
 
 ### 1.2 Challenge System Tests
 **Priority**: High (Core business logic)
-```typescript
+\`\`\`typescript
 // tests/__tests__/challenge-system.test.tsx
 - Challenge creation flow
 - Challenge joining process
 - Proof submission and verification
 - Reward calculation
 - Challenge completion workflows
-```
+\`\`\`
 
 ### 1.3 User Profile Tests
 **Priority**: Medium
-```typescript
+\`\`\`typescript
 // tests/__tests__/user-profile.test.tsx
 - Profile editing functionality
 - Settings management
 - Onboarding flow
 - User preferences
-```
+\`\`\`
 
 ## 🚀 Phase 2: Integration Testing (Weeks 3-4)
 
 ### 2.1 Database Integration Tests
 **Priority**: High
-```typescript
+\`\`\`typescript
 // tests/__tests__/database.test.ts
 - User data persistence
 - Challenge data management
 - Transaction handling
 - Data integrity checks
-```
+\`\`\`
 
 ### 2.2 API Endpoint Tests
 **Priority**: High
-```typescript
+\`\`\`typescript
 // tests/__tests__/api-endpoints.test.ts
 - All API routes functionality
 - Error handling
 - Authentication middleware
 - Rate limiting
-```
+\`\`\`
 
 ### 2.3 File Upload Tests
 **Priority**: Medium
-```typescript
+\`\`\`typescript
 // tests/__tests__/file-upload.test.ts
 - S3 integration
 - Image processing
 - File validation
 - Upload progress tracking
-```
+\`\`\`
 
 ## 🚀 Phase 3: Advanced Testing (Weeks 5-6)
 
 ### 3.1 E2E Testing with Playwright
 **Priority**: High
-```typescript
+\`\`\`typescript
 // tests/e2e/
 - Complete user journeys
 - Cross-browser testing
 - Mobile responsiveness
 - Performance testing
-```
+\`\`\`
 
 ### 3.2 Performance Testing
 **Priority**: Medium
-```typescript
+\`\`\`typescript
 // tests/performance/
 - Load testing
 - Memory usage monitoring
 - Response time analysis
 - Database query optimization
-```
+\`\`\`
 
 ### 3.3 Security Testing
 **Priority**: High
-```typescript
+\`\`\`typescript
 // tests/security/
 - Authentication bypass attempts
 - SQL injection prevention
 - XSS protection
 - CSRF protection
-```
+\`\`\`
 
 ## 🚀 Phase 4: Specialized Testing (Weeks 7-8)
 
 ### 4.1 AI Moderation Tests
 **Priority**: Medium
-```typescript
+\`\`\`typescript
 // tests/__tests__/ai-moderation.test.ts
 - Image content analysis
 - Text moderation
 - Moderation accuracy
 - Fallback handling
-```
+\`\`\`
 
 ### 4.2 Payment System Tests
 **Priority**: High
-```typescript
+\`\`\`typescript
 // tests/__tests__/payment-system.test.ts
 - Stripe integration
 - Payment processing
 - Refund handling
 - Subscription management
-```
+\`\`\`
 
 ### 4.3 Social Features Tests
 **Priority**: Medium
-```typescript
+\`\`\`typescript
 // tests/__tests__/social-features.test.ts
 - Following/follower system
 - Activity feeds
 - Notifications
 - Social sharing
-```
+\`\`\`
 
 ## 🛠️ Implementation Strategy
 
@@ -240,7 +240,7 @@
 ## 🔧 Technical Implementation
 
 ### Test Infrastructure
-```bash
+\`\`\`bash
 # Current working setup
 npm test                    # Run all tests
 npm run test:watch         # Watch mode
@@ -249,20 +249,20 @@ npm run test:unit          # Unit tests only
 npm run test:integration   # Integration tests only
 npm run test:components    # Component tests only
 npm run test:e2e          # E2E tests (when ready)
-```
+\`\`\`
 
 ### New Commands to Add
-```bash
+\`\`\`bash
 npm run test:performance   # Performance tests
 npm run test:security     # Security tests
 npm run test:database     # Database tests
 npm run test:ai           # AI moderation tests
 npm run test:payment      # Payment system tests
 npm run test:social       # Social features tests
-```
+\`\`\`
 
 ### CI/CD Integration
-```yaml
+\`\`\`yaml
 # .github/workflows/test.yml
 name: Test Suite
 on: [push, pull_request]
@@ -276,7 +276,7 @@ jobs:
       - run: npm run test:all
       - run: npm run test:coverage
       - run: npm run test:e2e
-```
+\`\`\`
 
 ## 📈 Monitoring & Maintenance
 
@@ -363,4 +363,4 @@ jobs:
 
 ---
 
-**Ready to begin Phase 1 implementation!** 🚀 
+**Ready to begin Phase 1 implementation!** 🚀

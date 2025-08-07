@@ -82,4 +82,4 @@ export function useAvatar() {
       !avatarUrl.includes('robohash') &&
       !avatarUrl.includes('placeholder')
   }
-} 
+}

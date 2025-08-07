@@ -118,7 +118,7 @@
 ## NEW FEATURE TEMPLATES
 
 ### React Component Template
-```typescript
+\`\`\`typescript
 import React from 'react'
 import { useIsMobile } from '@/hooks/use-mobile'
 
@@ -140,10 +140,10 @@ export function ComponentName({ ...props }: ComponentProps) {
     </div>
   )
 }
-```
+\`\`\`
 
 ### API Endpoint Template
-```typescript
+\`\`\`typescript
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-```
+\`\`\`
 
 description: New features and components rules for Stakr development. Use when creating new features, components, or functionality.
 globs: ["**/components/**/*", "**/app/**/*.tsx", "**/api/**/*", "**/lib/**/*", "**/hooks/**/*", "**/features/**/*", "**/modules/**/*"]
