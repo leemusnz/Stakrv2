@@ -126,6 +126,175 @@ export async function POST(request: NextRequest) {
             details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
           }, { status: 500 })
         }
+      } else if (migration === 'verification-schema-fix') {
+        try {
+          console.log('🔧 Starting verification schema fix...')
+          
+          // Check current table structure
+          const currentColumns = await sql`
+            SELECT column_name, data_type, is_nullable 
+            FROM information_schema.columns 
+            WHERE table_name = 'proof_submissions' 
+            ORDER BY ordinal_position
+          `
+          
+          console.log('📊 Current proof_submissions columns:', currentColumns.map(c => c.column_name))
+          
+          // Fix missing columns with proper error handling
+          const fixes = [
+            {
+              name: 'submission_type',
+              sql: `
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'proof_submissions' 
+                        AND column_name = 'submission_type'
+                    ) THEN
+                        ALTER TABLE proof_submissions 
+                        ADD COLUMN submission_type VARCHAR(20) NOT NULL DEFAULT 'manual';
+                        
+                        ALTER TABLE proof_submissions 
+                        ALTER COLUMN submission_type DROP DEFAULT;
+                        
+                        RAISE NOTICE 'Added submission_type column';
+                    ELSE
+                        RAISE NOTICE 'submission_type column already exists';
+                    END IF;
+                END $$;
+              `
+            },
+            {
+              name: 'admin_notes',
+              sql: `
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'proof_submissions' 
+                        AND column_name = 'admin_notes'
+                    ) THEN
+                        ALTER TABLE proof_submissions 
+                        ADD COLUMN admin_notes TEXT;
+                        RAISE NOTICE 'Added admin_notes column';
+                    ELSE
+                        RAISE NOTICE 'admin_notes column already exists';
+                    END IF;
+                END $$;
+              `
+            },
+            {
+              name: 'submitted_at',
+              sql: `
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'proof_submissions' 
+                        AND column_name = 'submitted_at'
+                    ) THEN
+                        ALTER TABLE proof_submissions 
+                        ADD COLUMN submitted_at TIMESTAMP DEFAULT NOW();
+                        RAISE NOTICE 'Added submitted_at column';
+                    ELSE
+                        RAISE NOTICE 'submitted_at column already exists';
+                    END IF;
+                END $$;
+              `
+            }
+          ]
+          
+          // Apply each fix
+          for (const fix of fixes) {
+            try {
+              await sql.unsafe(fix.sql)
+              console.log(`✅ Fixed ${fix.name} column`)
+            } catch (error) {
+              console.error(`❌ Error fixing ${fix.name}:`, error)
+            }
+          }
+          
+          // Ensure verification_appeals table exists
+          await sql`
+            CREATE TABLE IF NOT EXISTS verification_appeals (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              verification_id UUID REFERENCES proof_submissions(id) ON DELETE CASCADE,
+              user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+              appeal_reason TEXT NOT NULL,
+              additional_evidence TEXT,
+              status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+              admin_notes TEXT,
+              reviewed_by UUID REFERENCES users(id),
+              submitted_at TIMESTAMP DEFAULT NOW(),
+              updated_at TIMESTAMP DEFAULT NOW(),
+              
+              UNIQUE(verification_id, user_id)
+            );
+          `
+          
+          // Create performance indexes
+          await sql`
+            CREATE INDEX IF NOT EXISTS idx_proof_submissions_status ON proof_submissions(status);
+            CREATE INDEX IF NOT EXISTS idx_proof_submissions_challenge ON proof_submissions(challenge_id);
+            CREATE INDEX IF NOT EXISTS idx_proof_submissions_user ON proof_submissions(user_id);
+            CREATE INDEX IF NOT EXISTS idx_proof_submissions_submitted_at ON proof_submissions(submitted_at);
+            
+            CREATE INDEX IF NOT EXISTS idx_verification_appeals_status ON verification_appeals(status);
+            CREATE INDEX IF NOT EXISTS idx_verification_appeals_user ON verification_appeals(user_id);
+            CREATE INDEX IF NOT EXISTS idx_verification_appeals_verification ON verification_appeals(verification_id);
+          `
+          
+          // Verify the fixes worked
+          const updatedColumns = await sql`
+            SELECT column_name, data_type, is_nullable 
+            FROM information_schema.columns 
+            WHERE table_name = 'proof_submissions' 
+            ORDER BY ordinal_position
+          `
+          
+          const appealsColumns = await sql`
+            SELECT column_name, data_type, is_nullable 
+            FROM information_schema.columns 
+            WHERE table_name = 'verification_appeals' 
+            ORDER BY ordinal_position
+          `
+          
+          // Test the tables work
+          const rowCounts = await sql`
+            SELECT 'proof_submissions' as table_name, COUNT(*) as row_count FROM proof_submissions
+            UNION ALL
+            SELECT 'verification_appeals' as table_name, COUNT(*) as row_count FROM verification_appeals
+          `
+          
+          console.log('🎉 Verification schema fix completed successfully!')
+          
+          return NextResponse.json({
+            success: true,
+            message: 'Verification schema fixed successfully',
+            timestamp: new Date().toISOString(),
+            details: {
+              proof_submissions: {
+                columns: updatedColumns.length,
+                column_names: updatedColumns.map(c => c.column_name)
+              },
+              verification_appeals: {
+                columns: appealsColumns.length,
+                column_names: appealsColumns.map(c => c.column_name)
+              },
+              row_counts: rowCounts,
+              fixes_applied: fixes.map(f => f.name)
+            }
+          })
+          
+        } catch (error) {
+          console.error('❌ Verification schema fix failed:', error)
+          return NextResponse.json({
+            error: 'Failed to fix verification schema',
+            details: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString()
+          }, { status: 500 })
+        }
       } else {
         return NextResponse.json({ error: 'Unknown migration type' }, { status: 400 })
       }

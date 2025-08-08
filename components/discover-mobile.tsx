@@ -2,10 +2,9 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { useEnhancedMobile, useSwipeGesture } from "@/hooks/use-enhanced-mobile"
+import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { MobileContainer, MobileSectionWrapper } from "@/components/mobile-container"
 import { SwipeableTabs } from "@/components/ui/swipeable-tabs"
-import { ChallengeCarousel } from "@/components/discover/challenge-carousel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -13,18 +12,12 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { 
   Heart, 
-  X, 
-  Bookmark, 
   Filter,
   Search,
   TrendingUp,
   Users,
   Award,
-  Sparkles,
-  ArrowUp,
-  ArrowLeft,
-  ArrowRight,
-  RefreshCcw
+  Sparkles
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -50,173 +43,23 @@ export function DiscoverMobile({
   const { isMobile } = useEnhancedMobile()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("challenges")
-  const [viewMode, setViewMode] = useState<"swipe" | "browse">("swipe")
-  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0)
 
   if (!isMobile) return null
 
-  // Swipe-to-Action Challenge Stack
-  const SwipeStack = () => {
-    const [stackChallenges, setStackChallenges] = useState(challenges.slice(0, 3))
-    const topChallengeRef = useRef<HTMLDivElement>(null)
-    
-    const { swipeDirection, onTouchStart, onTouchEnd, onTouchMove, clearSwipe } = useSwipeGesture(100, 300)
-
-    const handleSwipeAction = (direction: string, challenge: any) => {
-      switch (direction) {
-        case 'left':
-          onPassChallenge(challenge)
-          break
-        case 'right':
-          onJoinChallenge(challenge)
-          break
-        case 'up':
-          onSaveChallenge(challenge)
-          break
-      }
-      
-      // Remove the top challenge and add a new one
-      setStackChallenges(prev => {
-        const remaining = prev.slice(1)
-        const nextIndex = currentChallengeIndex + prev.length
-        if (nextIndex < challenges.length) {
-          remaining.push(challenges[nextIndex])
-        }
-        return remaining
-      })
-      
-      setCurrentChallengeIndex(prev => prev + 1)
-      clearSwipe()
-    }
-
-    if (stackChallenges.length === 0) {
-      return (
-        <Card className="h-[600px] flex items-center justify-center">
-          <CardContent className="text-center">
-            <RefreshCcw className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No more challenges!</h3>
-            <p className="text-muted-foreground mb-4">You've seen them all for now.</p>
-            <Button onClick={() => {
-              setStackChallenges(challenges.slice(0, 3))
-              setCurrentChallengeIndex(0)
-            }}>
-              Start Over
-            </Button>
-          </CardContent>
-        </Card>
-      )
-    }
-
-    return (
-      <div className="relative h-[600px]">
-        {/* Swipe Instructions */}
-        <div className="text-center mb-4">
-          <div className="flex justify-center gap-6 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <ArrowLeft className="w-4 h-4" />
-              <span>Pass</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <ArrowUp className="w-4 h-4" />
-              <span>Save</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <ArrowRight className="w-4 h-4" />
-              <span>Join</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Challenge Stack */}
-        <div className="relative h-full">
-          {stackChallenges.map((challenge, index) => (
-            <SwipeableCard
-              key={`${challenge.id}-${currentChallengeIndex + index}`}
-              challenge={challenge}
-              index={index}
-              isTop={index === 0}
-              onSwipe={handleSwipeAction}
-              onTouchStart={index === 0 ? onTouchStart : undefined}
-              onTouchEnd={index === 0 ? onTouchEnd : undefined}
-              onTouchMove={index === 0 ? onTouchMove : undefined}
-              swipeDirection={index === 0 ? swipeDirection : null}
-            />
-          ))}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-center gap-4 mt-6">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-12 w-12 rounded-full"
-            onClick={() => handleSwipeAction('left', stackChallenges[0])}
-          >
-            <X className="w-5 h-5 text-red-500" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-12 w-12 rounded-full"
-            onClick={() => handleSwipeAction('up', stackChallenges[0])}
-          >
-            <Bookmark className="w-5 h-5 text-blue-500" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-12 w-12 rounded-full"
-            onClick={() => handleSwipeAction('right', stackChallenges[0])}
-          >
-            <Heart className="w-5 h-5 text-green-500" />
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  // Challenge Content with Toggle
+  // Challenge Content - Simple List for MVP
   const ChallengeContent = () => (
-    <div className="space-y-6">
-      {/* View Mode Toggle */}
-      <div className="flex justify-center">
-        <div className="flex bg-muted p-1 rounded-lg">
-          <Button
-            variant={viewMode === 'swipe' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('swipe')}
-            className="flex items-center gap-2"
-          >
-            <Sparkles className="w-4 h-4" />
-            Swipe Mode
-          </Button>
-          <Button
-            variant={viewMode === 'browse' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('browse')}
-            className="flex items-center gap-2"
-          >
-            <Search className="w-4 h-4" />
-            Browse
-          </Button>
-        </div>
-      </div>
-
-      {/* Content based on view mode */}
-      {viewMode === 'swipe' ? (
-        <SwipeStack />
-      ) : (
-        <ChallengeCarousel
-          challenges={challenges}
-          onJoin={onJoinChallenge}
-          onViewDetails={(challenge) => router.push(`/challenge/${challenge.id}`)}
-          className="w-full"
+    <div className="space-y-4">
+      {challenges.map((challenge, index) => (
+        <ChallengeCard
+          key={challenge.id || index}
+          challenge={challenge}
+          onJoin={() => onJoinChallenge(challenge)}
         />
-      )}
+      ))}
     </div>
   )
 
-  // Creator Content
+  // Creator Content - Mobile-optimized
   const CreatorContent = () => (
     <div className="space-y-4">
       {creators.length === 0 ? (
@@ -226,37 +69,20 @@ export function DiscoverMobile({
           <p className="text-muted-foreground">Be the first to host a challenge!</p>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-4">
           {creators.map((creator) => (
-            <Card key={creator.id}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={creator.avatar} />
-                    <AvatarFallback>{creator.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <h4 className="font-medium">{creator.name}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {creator.challengesHosted} challenges hosted
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => onFollowCreator(creator)}
-                  >
-                    Follow
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CreatorCard
+              key={creator.id}
+              creator={creator}
+              onFollow={() => onFollowCreator(creator)}
+            />
           ))}
         </div>
       )}
     </div>
   )
 
-  // Brand Content
+  // Brand Content - Mobile-optimized
   const BrandContent = () => (
     <div className="space-y-4">
       {brands.length === 0 ? (
@@ -266,21 +92,12 @@ export function DiscoverMobile({
           <p className="text-muted-foreground">Coming soon!</p>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-4">
           {brands.map((brand) => (
-            <Card key={brand.id}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                    <Award className="w-6 h-6" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium">{brand.name}</h4>
-                    <p className="text-sm text-muted-foreground">{brand.description}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <BrandCard
+              key={brand.id}
+              brand={brand}
+            />
           ))}
         </div>
       )}
@@ -341,120 +158,159 @@ export function DiscoverMobile({
   )
 }
 
-// Swipeable Challenge Card Component
-function SwipeableCard({
-  challenge,
-  index,
-  isTop,
-  onSwipe,
-  onTouchStart,
-  onTouchEnd,
-  onTouchMove,
-  swipeDirection
+// Creator Card Component - Thumbnail-driven for Mobile
+function CreatorCard({
+  creator,
+  onFollow
 }: {
-  challenge: any
-  index: number
-  isTop: boolean
-  onSwipe: (direction: string, challenge: any) => void
-  onTouchStart?: (e: React.TouchEvent) => void
-  onTouchEnd?: (e: React.TouchEvent) => void
-  onTouchMove?: (e: React.TouchEvent) => void
-  swipeDirection?: any
+  creator: any
+  onFollow: () => void
 }) {
-  const scale = 1 - (index * 0.05)
-  const yOffset = index * 10
-  const zIndex = 10 - index
-
-  // Calculate rotation based on swipe
-  let rotation = 0
-  let translateX = 0
-  let translateY = 0
-  
-  if (isTop && swipeDirection) {
-    const { direction, distance } = swipeDirection
-    
-    if (direction === 'left') {
-      rotation = -distance / 10
-      translateX = -distance / 2
-    } else if (direction === 'right') {
-      rotation = distance / 10
-      translateX = distance / 2
-    } else if (direction === 'up') {
-      translateY = -distance / 2
-    }
-  }
-
   return (
-    <Card
-      className={cn(
-        "absolute inset-0 transition-all duration-200 cursor-grab active:cursor-grabbing",
-        "shadow-lg border-2",
-        isTop && "border-primary/20"
-      )}
-      style={{
-        transform: `
-          scale(${scale}) 
-          translateY(${yOffset + translateY}px)
-          translateX(${translateX}px)
-          rotate(${rotation}deg)
-        `,
-        zIndex
-      }}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-      onTouchMove={onTouchMove}
-    >
-      <CardContent className="p-6 h-full flex flex-col">
-        {/* Challenge Header */}
-        <div className="mb-4">
-          <div className="flex items-start justify-between mb-3">
-            <Badge variant="secondary" className="mb-2">{challenge.category}</Badge>
-            <Badge variant="outline">{challenge.difficulty}</Badge>
+    <Card className="transition-all duration-200 hover:shadow-lg overflow-hidden">
+      {/* Thumbnail Image */}
+      <div className="relative h-24 bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mb-2">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+            <p className="text-xs text-muted-foreground font-medium">Creator</p>
           </div>
-          <h3 className="text-xl font-bold mb-2 line-clamp-2">{challenge.title}</h3>
-          <p className="text-muted-foreground line-clamp-3">{challenge.description}</p>
+        </div>
+      </div>
+
+      <CardContent className="p-4">
+        {/* Creator Info */}
+        <div className="flex items-center gap-3 mb-3">
+          <Avatar className="w-10 h-10">
+            <AvatarImage src={creator.avatar} />
+            <AvatarFallback>{creator.name[0]}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <h4 className="font-bold text-lg">{creator.name}</h4>
+            <p className="text-sm text-muted-foreground">
+              {creator.challengesHosted} challenges hosted
+            </p>
+          </div>
         </div>
 
-        {/* Challenge Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-          <div className="text-center p-3 bg-muted/50 rounded-lg">
-            <div className="font-bold text-lg">{challenge.duration}</div>
-            <div className="text-muted-foreground">Duration</div>
+        {/* Follow Button */}
+        <Button
+          className="w-full"
+          onClick={onFollow}
+        >
+          Follow Creator
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Brand Card Component - Thumbnail-driven for Mobile
+function BrandCard({
+  brand
+}: {
+  brand: any
+}) {
+  return (
+    <Card className="transition-all duration-200 hover:shadow-lg overflow-hidden">
+      {/* Thumbnail Image */}
+      <div className="relative h-24 bg-gradient-to-br from-orange-500/20 to-yellow-500/20">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center mb-2">
+              <Award className="w-6 h-6 text-orange-600" />
+            </div>
+            <p className="text-xs text-muted-foreground font-medium">Brand</p>
           </div>
-          <div className="text-center p-3 bg-muted/50 rounded-lg">
-            <div className="font-bold text-lg">{challenge.participants_count}</div>
-            <div className="text-muted-foreground">Joined</div>
+        </div>
+      </div>
+
+      <CardContent className="p-4">
+        {/* Brand Info */}
+        <div className="mb-3">
+          <h4 className="font-bold text-lg mb-2">{brand.name}</h4>
+          <p className="text-sm text-muted-foreground line-clamp-2">{brand.description}</p>
+        </div>
+
+        {/* Coming Soon Badge */}
+        <div className="text-center">
+          <Badge variant="outline" className="text-xs">
+            Coming Soon
+          </Badge>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Challenge Card Component - Thumbnail-driven for Mobile
+function ChallengeCard({
+  challenge,
+  onJoin
+}: {
+  challenge: any
+  onJoin: () => void
+}) {
+  return (
+    <Card className="transition-all duration-200 hover:shadow-lg overflow-hidden">
+      {/* Thumbnail Image */}
+      <div className="relative h-32 bg-gradient-to-br from-primary/20 to-secondary/20">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-2">
+              <Sparkles className="w-8 h-8 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground font-medium">Challenge</p>
           </div>
-          <div className="text-center p-3 bg-muted/50 rounded-lg">
-            <div className="font-bold text-lg">${challenge.min_stake}</div>
-            <div className="text-muted-foreground">Min Stake</div>
+        </div>
+        {/* Category Badge */}
+        <div className="absolute top-2 left-2">
+          <Badge variant="secondary" className="text-xs">{challenge.category}</Badge>
+        </div>
+        {/* Difficulty Badge */}
+        <div className="absolute top-2 right-2">
+          <Badge variant="outline" className="text-xs">{challenge.difficulty}</Badge>
+        </div>
+      </div>
+
+      <CardContent className="p-4">
+        {/* Challenge Title */}
+        <h3 className="text-lg font-bold mb-2 line-clamp-2">{challenge.title}</h3>
+        
+        {/* Quick Stats Row */}
+        <div className="flex items-center justify-between mb-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            <span>{challenge.participants_count} joined</span>
           </div>
-          <div className="text-center p-3 bg-muted/50 rounded-lg">
-            <div className="font-bold text-lg">${challenge.total_stake_pool}</div>
-            <div className="text-muted-foreground">Total Pool</div>
+          <div className="flex items-center gap-1">
+            <span>${challenge.min_stake}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span>{challenge.duration}</span>
           </div>
         </div>
 
         {/* Host Info */}
-        <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg mt-auto">
-          <Avatar className="w-10 h-10">
+        <div className="flex items-center gap-2 mb-3">
+          <Avatar className="w-6 h-6">
             <AvatarImage src={challenge.host_avatar_url} />
             <AvatarFallback>{challenge.host_name?.[0]}</AvatarFallback>
           </Avatar>
-          <div>
-            <p className="font-medium text-sm">{challenge.host_name}</p>
-            <p className="text-xs text-muted-foreground">Challenge Host</p>
+          <div className="flex-1">
+            <p className="text-sm font-medium">{challenge.host_name}</p>
           </div>
         </div>
 
-        {/* Swipe hint for top card */}
-        {isTop && (
-          <div className="text-center mt-4">
-            <p className="text-xs text-muted-foreground">
-              👈 Pass • 👆 Save • 👉 Join
-            </p>
-          </div>
-        )}
+        {/* Join Button */}
+        <Button
+          className="w-full"
+          onClick={onJoin}
+        >
+          Join Challenge
+        </Button>
       </CardContent>
     </Card>
   )

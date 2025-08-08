@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { useEnhancedMobile, useSwipeGesture } from "@/hooks/use-enhanced-mobile"
+import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,21 +25,6 @@ export function ChallengeCarousel({
   const { isMobile } = useEnhancedMobile()
   const [currentIndex, setCurrentIndex] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
-  
-  const { swipeDirection, onTouchStart, onTouchEnd, onTouchMove, clearSwipe } = useSwipeGesture(80, 300)
-
-  // Handle swipe navigation
-  useEffect(() => {
-    if (!swipeDirection) return
-
-    if (swipeDirection.direction === 'left' && currentIndex < challenges.length - 1) {
-      setCurrentIndex(prev => prev + 1)
-    } else if (swipeDirection.direction === 'right' && currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1)
-    }
-    
-    clearSwipe()
-  }, [swipeDirection, currentIndex, challenges.length, clearSwipe])
 
   const goToPrevious = () => {
     setCurrentIndex(prev => Math.max(0, prev - 1))
@@ -84,7 +69,7 @@ export function ChallengeCarousel({
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold mb-2">Discover Challenges</h2>
         <p className="text-muted-foreground">
-          Swipe left/right to browse • Tap to join challenges
+          Use arrows to browse • Tap to join challenges
         </p>
       </div>
 
@@ -92,9 +77,6 @@ export function ChallengeCarousel({
       <div
         ref={containerRef}
         className="relative overflow-hidden rounded-xl"
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-        onTouchMove={onTouchMove}
       >
         <div
           className="flex transition-transform duration-300 ease-out"

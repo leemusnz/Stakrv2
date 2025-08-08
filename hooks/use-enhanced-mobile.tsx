@@ -97,11 +97,13 @@ export function useEnhancedMobile(): MobileDetection {
 
 // Swipe gesture detection hook
 export function useSwipeGesture(
-  threshold: number = 50,
-  timeout: number = 300
+  threshold: number = 80, // Increased threshold for more intentional swipes
+  timeout: number = 400   // Increased timeout for better gesture recognition
 ) {
   const [touchStart, setTouchStart] = useState<{ x: number; y: number; time: number } | null>(null)
   const [swipeDirection, setSwipeDirection] = useState<SwipeDirection | null>(null)
+  const [isTracking, setIsTracking] = useState(false)
+  const [hasScrolled, setHasScrolled] = useState(false)
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0]
@@ -111,10 +113,12 @@ export function useSwipeGesture(
       time: Date.now()
     })
     setSwipeDirection(null)
+    setIsTracking(true)
+    setHasScrolled(false)
   }, [])
 
   const onTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!touchStart) return
+    if (!touchStart || !isTracking) return
 
     const touch = e.changedTouches[0]
     const deltaX = touch.clientX - touchStart.x
@@ -122,39 +126,63 @@ export function useSwipeGesture(
     const deltaTime = Date.now() - touchStart.time
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
 
-    // Check if swipe meets threshold and timing requirements
-    if (distance > threshold && deltaTime < timeout) {
+    // Only trigger swipe if it's intentional, meets requirements, and hasn't scrolled
+    if (distance > threshold && deltaTime < timeout && deltaTime > 100 && !hasScrolled) {
       let direction: 'left' | 'right' | 'up' | 'down' | null = null
 
-      // Determine primary direction
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Determine primary direction with better logic
+      const absX = Math.abs(deltaX)
+      const absY = Math.abs(deltaY)
+      
+      // Require significant movement in primary direction
+      if (absX > absY && absX > threshold * 0.7) {
         direction = deltaX > 0 ? 'right' : 'left'
-      } else {
+      } else if (absY > absX && absY > threshold * 0.7) {
         direction = deltaY > 0 ? 'down' : 'up'
       }
 
-      setSwipeDirection({
-        deltaX,
-        deltaY,
-        direction,
-        distance
-      })
+      if (direction) {
+        setSwipeDirection({
+          deltaX,
+          deltaY,
+          direction,
+          distance
+        })
+      }
     }
 
     setTouchStart(null)
-  }, [touchStart, threshold, timeout])
+    setIsTracking(false)
+    setHasScrolled(false)
+  }, [touchStart, isTracking, threshold, timeout, hasScrolled])
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
-    // Prevent default to avoid scrolling during swipe
-    e.preventDefault()
-  }, [])
+    // Track movement without preventing default behavior
+    // This allows normal scrolling while still detecting swipes
+    
+    if (!isTracking || !touchStart) return
+    
+    const touch = e.touches[0]
+    const deltaX = touch.clientX - touchStart.x
+    const deltaY = touch.clientY - touchStart.y
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+    
+    // If the user has scrolled significantly, mark as scrolled to prevent swipe
+    if (Math.abs(deltaY) > 10) {
+      setHasScrolled(true)
+    }
+  }, [isTracking, touchStart])
 
   return {
     swipeDirection,
     onTouchStart,
     onTouchEnd,
     onTouchMove,
-    clearSwipe: () => setSwipeDirection(null)
+    clearSwipe: () => {
+      setSwipeDirection(null)
+      setIsTracking(false)
+      setHasScrolled(false)
+    }
   }
 }
 

@@ -142,7 +142,7 @@ export function MobileBottomNavigation({
       </div>
 
       {/* Floating Action Button for Create Challenge */}
-      <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+      <div className="absolute -top-12 left-1/2 -translate-x-1/2">
         <Button
           onClick={onCreateChallenge || (() => window.location.href = '/create-challenge')}
           className={cn(

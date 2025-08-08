@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect, ReactNode } from "react"
-import { useSwipeGesture, useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
-import { NavigationSwipeIndicators } from "@/components/ui/swipe-indicators"
+import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -40,34 +39,7 @@ export function SwipeableOnboardingLayout({
   className
 }: SwipeableOnboardingLayoutProps) {
   const { isMobile } = useEnhancedMobile()
-  const { swipeDirection, onTouchStart, onTouchEnd, onTouchMove } = useSwipeGesture(100, 400)
   const [isAnimating, setIsAnimating] = useState(false)
-
-  useEffect(() => {
-    if (!swipeDirection || !isMobile) return
-
-    const { direction, distance } = swipeDirection
-    
-    if (distance > 120) {
-      setIsAnimating(true)
-      
-      if (direction === 'left' && canGoNext) {
-        // Swipe left = go to next step
-        setTimeout(() => {
-          onNext()
-          setIsAnimating(false)
-        }, 150)
-      } else if (direction === 'right' && canGoBack && currentStep > 0) {
-        // Swipe right = go to previous step
-        setTimeout(() => {
-          onBack()
-          setIsAnimating(false)
-        }, 150)
-      } else {
-        setIsAnimating(false)
-      }
-    }
-  }, [swipeDirection, isMobile, canGoNext, canGoBack, currentStep, onNext, onBack])
 
   const progressPercentage = ((currentStep + 1) / totalSteps) * 100
 
@@ -97,42 +69,13 @@ export function SwipeableOnboardingLayout({
         </div>
       )}
 
-      {/* Main Content with Swipe Support */}
-      <div 
-        className={cn(
-          "flex-1 relative",
-          isMobile && "touch-manipulation select-none",
-          isAnimating && "pointer-events-none"
-        )}
-        onTouchStart={isMobile ? onTouchStart : undefined}
-        onTouchEnd={isMobile ? onTouchEnd : undefined}
-        onTouchMove={isMobile ? onTouchMove : undefined}
-      >
-        {/* Swipe Indicators for Mobile */}
-        {isMobile && swipeDirection && (
-          <NavigationSwipeIndicators 
-            direction={swipeDirection.direction} 
-            distance={swipeDirection.distance} 
-          />
-        )}
-
-        {/* Content Container */}
-        <div className={cn(
-          "max-w-2xl mx-auto px-4 py-8",
-          isAnimating && "transition-opacity duration-150 opacity-60"
-        )}>
-          {children}
-        </div>
-
-        {/* Mobile Swipe Hint */}
-        {isMobile && currentStep === 0 && (
-          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-30">
-            <div className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm shadow-lg animate-pulse">
-              💡 Swipe left for next step
-            </div>
-          </div>
-        )}
-      </div>
+                        {/* Main Content */}
+                  <div className="flex-1 relative">
+                    {/* Content Container */}
+                    <div className="max-w-2xl mx-auto px-4 py-8">
+                      {children}
+                    </div>
+                  </div>
 
       {/* Navigation Footer */}
       <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t">
@@ -187,14 +130,7 @@ export function SwipeableOnboardingLayout({
             </Button>
           </div>
 
-          {/* Mobile Swipe Instructions */}
-          {isMobile && (
-            <div className="text-center mt-3">
-              <p className="text-xs text-muted-foreground">
-                Swipe left for next • Swipe right for previous
-              </p>
-            </div>
-          )}
+          
         </div>
       </div>
     </div>

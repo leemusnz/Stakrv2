@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from 'react'
-import { useEnhancedMobile, useSwipeGesture } from '@/hooks/use-enhanced-mobile'
+import { useEnhancedMobile } from '@/hooks/use-enhanced-mobile'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,7 @@ interface SwipeCardProps {
   disabled?: boolean
 }
 
-// Individual swipe card component
+// Simple card component
 export function SwipeCard({ 
   children, 
   onSwipeLeft, 
@@ -28,110 +28,12 @@ export function SwipeCard({
   className,
   disabled = false
 }: SwipeCardProps) {
-  const { isMobile, isTouchDevice } = useEnhancedMobile()
-  const { swipeDirection, onTouchStart, onTouchEnd, onTouchMove, clearSwipe } = useSwipeGesture()
-  const [isDragging, setIsDragging] = useState(false)
-  const [transform, setTransform] = useState({ x: 0, y: 0, rotation: 0 })
-  const cardRef = useRef<HTMLDivElement>(null)
-
-  // Handle swipe completion
-  useEffect(() => {
-    if (!swipeDirection || disabled) return
-
-    const { direction, distance } = swipeDirection
-
-    if (distance > 100) { // Minimum distance for action
-      switch (direction) {
-        case 'left':
-          onSwipeLeft?.()
-          break
-        case 'right':
-          onSwipeRight?.()
-          break
-        case 'up':
-          onSwipeUp?.()
-          break
-        case 'down':
-          onSwipeDown?.()
-          break
-      }
-    }
-
-    // Reset position after swipe
-    setTransform({ x: 0, y: 0, rotation: 0 })
-    setIsDragging(false)
-    clearSwipe()
-  }, [swipeDirection, onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, clearSwipe, disabled])
-
-  // Mouse events for desktop testing
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!isMobile && !disabled) {
-      setIsDragging(true)
-    }
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && !disabled) {
-      const rect = cardRef.current?.getBoundingClientRect()
-      if (rect) {
-        const x = e.clientX - rect.left - rect.width / 2
-        const y = e.clientY - rect.top - rect.height / 2
-        const rotation = x * 0.1 // Subtle rotation effect
-        setTransform({ x, y, rotation })
-      }
-    }
-  }
-
-  const handleMouseUp = () => {
-    if (isDragging) {
-      setIsDragging(false)
-      setTransform({ x: 0, y: 0, rotation: 0 })
-    }
-  }
+  const { isMobile } = useEnhancedMobile()
 
   return (
-    <div
-      ref={cardRef}
-      className={cn(
-        "relative select-none transition-transform duration-200",
-        isDragging && "cursor-grabbing",
-        !isDragging && "cursor-grab",
-        className
-      )}
-      style={{
-        transform: `translate(${transform.x}px, ${transform.y}px) rotate(${transform.rotation}deg)`,
-      }}
-      onTouchStart={isTouchDevice ? onTouchStart : undefined}
-      onTouchEnd={isTouchDevice ? onTouchEnd : undefined}
-      onTouchMove={isTouchDevice ? onTouchMove : undefined}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-    >
+    <Card className={cn("transition-all duration-200", className)}>
       {children}
-      
-      {/* Swipe indicators for mobile */}
-      {isMobile && !disabled && (
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Left swipe indicator */}
-          <div className={cn(
-            "absolute left-4 top-1/2 -translate-y-1/2 bg-red-500 text-white p-2 rounded-full opacity-0 transition-opacity",
-            transform.x < -50 && "opacity-100"
-          )}>
-            <X className="w-4 h-4" />
-          </div>
-          
-          {/* Right swipe indicator */}
-          <div className={cn(
-            "absolute right-4 top-1/2 -translate-y-1/2 bg-green-500 text-white p-2 rounded-full opacity-0 transition-opacity",
-            transform.x > 50 && "opacity-100"
-          )}>
-            <Heart className="w-4 h-4" />
-          </div>
-        </div>
-      )}
-    </div>
+    </Card>
   )
 }
 

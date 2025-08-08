@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect, ReactNode } from "react"
-import { useSwipeGesture, useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
+import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 interface SwipeableTab {
   value: string
@@ -34,44 +35,13 @@ export function SwipeableTabs({
   orientation = "horizontal"
 }: SwipeableTabsProps) {
   const { isMobile } = useEnhancedMobile()
-  const { swipeDirection, onTouchStart, onTouchEnd, onTouchMove } = useSwipeGesture(100, 400)
   const [currentTab, setCurrentTab] = useState(value || defaultValue || tabs[0]?.value)
-  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
     if (value !== undefined) {
       setCurrentTab(value)
     }
   }, [value])
-
-  useEffect(() => {
-    if (!swipeDirection || !isMobile || isAnimating) return
-
-    const { direction, distance } = swipeDirection
-    const currentIndex = tabs.findIndex(tab => tab.value === currentTab)
-    
-    if (distance > 120) {
-      setIsAnimating(true)
-      
-      let newIndex = currentIndex
-      
-      if (direction === 'left' && currentIndex < tabs.length - 1) {
-        // Swipe left = next tab
-        newIndex = currentIndex + 1
-      } else if (direction === 'right' && currentIndex > 0) {
-        // Swipe right = previous tab
-        newIndex = currentIndex - 1
-      }
-      
-      if (newIndex !== currentIndex && !tabs[newIndex]?.disabled) {
-        const newValue = tabs[newIndex].value
-        setCurrentTab(newValue)
-        onValueChange?.(newValue)
-      }
-      
-      setTimeout(() => setIsAnimating(false), 300)
-    }
-  }, [swipeDirection, isMobile, currentTab, tabs, onValueChange, isAnimating])
 
   const handleTabChange = (newValue: string) => {
     if (!tabs.find(tab => tab.value === newValue)?.disabled) {
@@ -105,57 +75,17 @@ export function SwipeableTabs({
         ))}
       </TabsList>
 
-      {/* Tab Content with Swipe Support */}
-      <div 
-        className={cn(
-          "relative mt-4",
-          isMobile && "touch-manipulation select-none",
-          isAnimating && "pointer-events-none"
-        )}
-        onTouchStart={isMobile ? onTouchStart : undefined}
-        onTouchEnd={isMobile ? onTouchEnd : undefined}
-        onTouchMove={isMobile ? onTouchMove : undefined}
-      >
+      {/* Tab Content */}
+      <div className="relative mt-4">
         {tabs.map((tab) => (
           <TabsContent 
             key={tab.value} 
             value={tab.value}
-            className={cn(
-              "transition-opacity duration-200",
-              contentClassName,
-              isAnimating && "opacity-60"
-            )}
+            className={cn("transition-opacity duration-200", contentClassName)}
           >
             {tab.content}
           </TabsContent>
         ))}
-
-        {/* Mobile Swipe Indicators */}
-        {isMobile && tabs.length > 1 && (
-          <div className="flex justify-center mt-4 gap-2">
-            {tabs.map((tab, index) => (
-              <button
-                key={tab.value}
-                onClick={() => handleTabChange(tab.value)}
-                disabled={tab.disabled}
-                className={cn(
-                  "w-2 h-2 rounded-full transition-colors",
-                  index === currentIndex ? "bg-primary" : "bg-muted",
-                  tab.disabled && "opacity-50 cursor-not-allowed"
-                )}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Mobile Swipe Hint */}
-        {isMobile && tabs.length > 1 && currentIndex === 0 && (
-          <div className="text-center mt-3">
-            <p className="text-xs text-muted-foreground">
-              💡 Swipe left for next tab • Tap to navigate
-            </p>
-          </div>
-        )}
       </div>
     </Tabs>
   )
