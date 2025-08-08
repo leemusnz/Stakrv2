@@ -141,4 +141,4 @@ describe('Authentication System - Simple Tests', () => {
       expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com')
     })
   })
-}) 
+})

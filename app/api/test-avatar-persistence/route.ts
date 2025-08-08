@@ -94,4 +94,4 @@ export async function GET() {
       description: 'Tests avatar persistence by saving a test avatar URL to the database and then loading it back to verify it was saved correctly'
     }
   })
-} 
+}

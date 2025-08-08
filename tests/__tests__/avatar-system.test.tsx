@@ -475,4 +475,4 @@ describe('Avatar System Tests', () => {
       expect(screen.getByTestId('avatar-placeholder')).toBeInTheDocument()
     })
   })
-}) 
+})

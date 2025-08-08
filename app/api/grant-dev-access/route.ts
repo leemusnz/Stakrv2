@@ -97,4 +97,4 @@ export async function GET() {
     console.error('Failed to check dev access:', error)
     return NextResponse.json({ error: 'Failed to check dev access' }, { status: 500 })
   }
-} 
+}

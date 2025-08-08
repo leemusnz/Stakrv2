@@ -64,7 +64,7 @@ We have successfully implemented a comprehensive test suite for the Stakr applic
 
 ## 🛠️ Test Commands Available
 
-```bash
+\`\`\`bash
 # Basic test commands
 npm test                    # Run all tests
 npm run test:watch         # Run tests in watch mode
@@ -79,7 +79,7 @@ npm run test:e2e          # End-to-end tests (when Playwright is set up)
 # Advanced commands
 npm run test:all          # Run comprehensive test suite
 npm run test:report       # Generate detailed test reports
-```
+\`\`\`
 
 ## 📊 Current Test Coverage
 
@@ -102,26 +102,26 @@ npm run test:report       # Generate detailed test reports
 ## 🔧 Configuration Details
 
 ### Jest Configuration (`jest.config.js`)
-```javascript
+\`\`\`javascript
 - Next.js integration with proper module resolution
 - JSDOM environment for React component testing
 - Coverage thresholds (70% minimum)
 - Proper file extensions and transform patterns
 - Module name mapping for clean imports
-```
+\`\`\`
 
 ### Test Setup (`jest.setup.js`)
-```javascript
+\`\`\`javascript
 - React Testing Library configuration
 - NextAuth mocking
 - AWS SDK mocking
 - Database mocking
 - Global browser API mocks
 - Error suppression for cleaner output
-```
+\`\`\`
 
 ### Package Scripts
-```json
+\`\`\`json
 {
   "test": "jest",
   "test:watch": "jest --watch",
@@ -133,7 +133,7 @@ npm run test:report       # Generate detailed test reports
   "test:all": "node scripts/run-tests.js",
   "test:report": "jest --coverage --json --outputFile=test-reports/coverage.json"
 }
-```
+\`\`\`
 
 ## 🚀 Test Runner Features
 
@@ -146,14 +146,14 @@ npm run test:report       # Generate detailed test reports
 - **Command-line options**: Flexible execution options
 
 ### Available Commands
-```bash
+\`\`\`bash
 node scripts/run-tests.js           # Run all tests
 node scripts/run-tests.js --unit    # Unit tests only
 node scripts/run-tests.js --integration  # Integration tests only
 node scripts/run-tests.js --components   # Component tests only
 node scripts/run-tests.js --e2e     # E2E tests only
 node scripts/run-tests.js --coverage # Generate reports
-```
+\`\`\`
 
 ## 📈 Coverage Targets
 
@@ -219,7 +219,7 @@ node scripts/run-tests.js --coverage # Generate reports
 - **Documentation**: Complete testing guide and setup
 
 ### 📊 Test Results
-```bash
+\`\`\`bash
 # Basic Tests
 Test Suites: 1 passed, 1 total
 Tests: 5 passed, 5 total
@@ -239,7 +239,7 @@ Tests: 6 passed, 6 total
 # Overall
 Test Suites: 4 passed, 4 total
 Tests: 28 passed, 28 total
-```
+\`\`\`
 
 ## 🚀 Ready for Development
 
@@ -254,4 +254,4 @@ The test suite is now ready for active development use:
 ### Next Development Phase
 Based on our roadmap, the next priority is implementing **Avatar System Tests** and **Challenge System Tests** as these are critical user features and core business logic.
 
-The foundation is solid and ready for expansion as the application grows! 
+The foundation is solid and ready for expansion as the application grows!

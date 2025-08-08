@@ -616,4 +616,4 @@ describe('API Endpoints', () => {
       expect(result.error).toBe('Forbidden')
     })
   })
-}) 
+})

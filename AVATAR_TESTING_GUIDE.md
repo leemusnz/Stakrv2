@@ -26,7 +26,7 @@ This guide covers how to test the avatar upload system, including AI moderation,
 4. **Run Tests**: Use the test panel to run individual or all tests
 
 ### Option 2: Direct API Testing
-```bash
+\`\`\`bash
 # Test upload functionality
 curl -X POST http://localhost:3000/api/test-avatar-moderation \
   -H "Content-Type: application/json" \
@@ -41,10 +41,10 @@ curl -X POST http://localhost:3000/api/test-avatar-moderation \
 curl -X POST http://localhost:3000/api/test-avatar-moderation \
   -H "Content-Type: application/json" \
   -d '{"testType": "full_pipeline_test"}'
-```
+\`\`\`
 
 ### Option 3: Browser Console
-```javascript
+\`\`\`javascript
 // Test upload
 fetch('/api/test-avatar-moderation', {
   method: 'POST',
@@ -58,7 +58,7 @@ fetch('/api/test-avatar-moderation', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ testType: 'moderation_test' })
 }).then(r => r.json()).then(console.log)
-```
+\`\`\`
 
 ## Available Tests
 
@@ -207,28 +207,28 @@ fetch('/api/test-avatar-moderation', {
 ### Debug Commands
 
 #### Check Avatar System Status
-```bash
+\`\`\`bash
 curl http://localhost:3000/api/test-avatar-system
-```
+\`\`\`
 
 #### Check Moderation API
-```bash
+\`\`\`bash
 curl -X POST http://localhost:3000/api/moderate/image \
   -H "Content-Type: application/json" \
   -d '{"imageUrl": "https://via.placeholder.com/100x100"}'
-```
+\`\`\`
 
 #### Check Image Proxy
-```bash
+\`\`\`bash
 curl "http://localhost:3000/api/image-proxy?url=YOUR_S3_URL&v=test"
-```
+\`\`\`
 
 #### Check Session State
-```javascript
+\`\`\`javascript
 // In browser console
 console.log('Session:', session)
 console.log('Avatar URL:', session?.user?.image)
-```
+\`\`\`
 
 ## Performance Benchmarks
 
@@ -240,7 +240,7 @@ console.log('Avatar URL:', session?.user?.image)
 - **Full pipeline**: < 10 seconds
 
 ### Performance Monitoring
-```javascript
+\`\`\`javascript
 // Monitor upload performance
 const startTime = Date.now()
 // ... upload code ...
@@ -250,7 +250,7 @@ console.log('Upload time:', Date.now() - startTime)
 const startTime = Date.now()
 // ... moderation code ...
 console.log('Moderation time:', Date.now() - startTime)
-```
+\`\`\`
 
 ## Security Testing
 
@@ -291,7 +291,7 @@ console.log('Moderation time:', Date.now() - startTime)
 ## Continuous Testing
 
 ### Automated Testing Setup
-```javascript
+\`\`\`javascript
 // Example automated test
 async function testAvatarPipeline() {
   const results = await fetch('/api/test-avatar-moderation', {
@@ -306,7 +306,7 @@ async function testAvatarPipeline() {
   
   console.log('✅ Avatar pipeline test passed')
 }
-```
+\`\`\`
 
 ### Monitoring and Alerts
 - Set up monitoring for upload success rates
@@ -324,4 +324,4 @@ The avatar testing system provides comprehensive coverage of:
 5. **Performance** - Response time monitoring
 6. **Security** - File validation and moderation
 
-Regular testing ensures the avatar system remains reliable, secure, and performant for all users. 
+Regular testing ensures the avatar system remains reliable, secure, and performant for all users.

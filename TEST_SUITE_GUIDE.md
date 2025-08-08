@@ -45,7 +45,7 @@ The Stakr test suite provides comprehensive testing coverage for all aspects of 
 ## 🛠️ Setup
 
 ### Prerequisites
-```bash
+\`\`\`bash
 # Install dependencies
 npm install
 
@@ -53,10 +53,10 @@ npm install
 npm install -D @testing-library/react @testing-library/jest-dom @testing-library/user-event
 npm install -D jest jest-environment-jsdom
 npm install -D @playwright/test  # For E2E tests
-```
+\`\`\`
 
 ### Environment Setup
-```bash
+\`\`\`bash
 # Copy environment template
 cp .env.example .env.test
 
@@ -65,21 +65,21 @@ NODE_ENV=test
 DATABASE_URL=postgresql://test:test@localhost:5432/stakr_test
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=test-secret
-```
+\`\`\`
 
 ### Database Setup for Tests
-```bash
+\`\`\`bash
 # Create test database
 createdb stakr_test
 
 # Run migrations for test database
 npm run db:migrate:test
-```
+\`\`\`
 
 ## 🏃‍♂️ Running Tests
 
 ### Quick Start
-```bash
+\`\`\`bash
 # Run all tests
 npm run test:all
 
@@ -88,10 +88,10 @@ npm run test:unit
 npm run test:integration
 npm run test:components
 npm run test:e2e
-```
+\`\`\`
 
 ### Advanced Usage
-```bash
+\`\`\`bash
 # Run tests with coverage
 npm run test:coverage
 
@@ -106,10 +106,10 @@ npm test -- --testNamePattern="should handle login"
 
 # Generate test reports
 npm run test:report
-```
+\`\`\`
 
 ### Test Runner Script
-```bash
+\`\`\`bash
 # Run comprehensive test suite
 node scripts/run-tests.js
 
@@ -123,7 +123,7 @@ node scripts/run-tests.js --security
 
 # Generate coverage reports
 node scripts/run-tests.js --coverage
-```
+\`\`\`
 
 ## 📊 Test Coverage
 
@@ -134,18 +134,18 @@ node scripts/run-tests.js --coverage
 - **Critical Paths**: 95% minimum
 
 ### Coverage Reports
-```bash
+\`\`\`bash
 # Generate coverage report
 npm run test:coverage
 
 # View coverage in browser
 open coverage/lcov-report/index.html
-```
+\`\`\`
 
 ## 🧪 Test Structure
 
 ### File Naming Convention
-```
+\`\`\`
 tests/
 ├── __tests__/
 │   ├── unit/           # Unit tests
@@ -154,10 +154,10 @@ tests/
 ├── fixtures/           # Test data
 ├── mocks/             # Mock implementations
 └── utils/             # Test utilities
-```
+\`\`\`
 
 ### Test File Structure
-```typescript
+\`\`\`typescript
 import { render, screen, fireEvent } from '@testing-library/react'
 import { vi } from 'vitest'
 
@@ -180,12 +180,12 @@ describe('Component/Function Name', () => {
     })
   })
 })
-```
+\`\`\`
 
 ## 🔧 Test Utilities
 
 ### Custom Test Helpers
-```typescript
+\`\`\`typescript
 // tests/utils/test-helpers.ts
 export const createMockSession = (overrides = {}) => ({
   data: {
@@ -207,10 +207,10 @@ export const createMockChallenge = (overrides = {}) => ({
   stake_amount: 50,
   ...overrides,
 })
-```
+\`\`\`
 
 ### Mock Data
-```typescript
+\`\`\`typescript
 // tests/fixtures/mock-data.ts
 export const mockUsers = [
   { id: '1', email: 'user1@example.com', name: 'User 1' },
@@ -221,7 +221,7 @@ export const mockChallenges = [
   { id: '1', title: 'Challenge 1', category: 'fitness' },
   { id: '2', title: 'Challenge 2', category: 'productivity' },
 ]
-```
+\`\`\`
 
 ## 🎯 Testing Best Practices
 
@@ -258,7 +258,7 @@ export const mockChallenges = [
 4. **Environment Variables**: Check test environment configuration
 
 ### Debug Commands
-```bash
+\`\`\`bash
 # Run tests with verbose output
 npm test -- --verbose
 
@@ -267,12 +267,12 @@ npm test -- tests/__tests__/auth.test.ts --verbose
 
 # Run tests with coverage and watch
 npm test -- --coverage --watch
-```
+\`\`\`
 
 ## 📈 Continuous Integration
 
 ### GitHub Actions Example
-```yaml
+\`\`\`yaml
 name: Tests
 on: [push, pull_request]
 jobs:
@@ -286,10 +286,10 @@ jobs:
       - run: npm ci
       - run: npm run test:all
       - run: npm run test:coverage
-```
+\`\`\`
 
 ### Pre-commit Hooks
-```json
+\`\`\`json
 {
   "husky": {
     "hooks": {
@@ -298,7 +298,7 @@ jobs:
     }
   }
 }
-```
+\`\`\`
 
 ## 🚨 Test Maintenance
 
@@ -346,4 +346,4 @@ jobs:
 
 ---
 
-**Remember**: Good tests are an investment in code quality and developer productivity. They help catch bugs early, document expected behavior, and make refactoring safer. 
+**Remember**: Good tests are an investment in code quality and developer productivity. They help catch bugs early, document expected behavior, and make refactoring safer.

@@ -368,4 +368,4 @@ if (command === '--unit') {
   generateTestReport()
 } else {
   main()
-} 
+}
