@@ -7,7 +7,8 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { Camera, Video, FileText, Upload, Shield, Clock, CheckCircle, Lightbulb, Timer, Zap, AlertCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Camera, Video, FileText, Upload, Shield, Clock, CheckCircle, Lightbulb, Timer, Zap, AlertCircle, Watch, Smartphone, Activity } from "lucide-react"
 
 interface ProofSettingsStepProps {
   selectedProofTypes: string[]
@@ -40,6 +41,7 @@ const proofTypes = [
     icon: Camera,
     examples: ["Workout selfie", "Completed meal", "Book page"],
     recommended: true,
+    category: "manual"
   },
   {
     id: "video",
@@ -48,6 +50,7 @@ const proofTypes = [
     icon: Video,
     examples: ["Exercise routine", "Meditation session", "Progress demo"],
     recommended: false,
+    category: "manual"
   },
   {
     id: "text",
@@ -56,6 +59,7 @@ const proofTypes = [
     icon: FileText,
     examples: ["Journal entry", "Learning notes", "Daily reflection"],
     recommended: true,
+    category: "manual"
   },
   {
     id: "file",
@@ -64,6 +68,38 @@ const proofTypes = [
     icon: Upload,
     examples: ["Screenshot", "Document", "Audio recording"],
     recommended: false,
+    category: "manual"
+  },
+  // Integration Verification Methods
+  {
+    id: "wearable",
+    title: "Smart Wearables",
+    description: "Apple Watch, Fitbit, Garmin auto-verification",
+    icon: Watch,
+    examples: ["Workout data", "Heart rate", "Steps", "Sleep tracking"],
+    recommended: true,
+    category: "integration",
+    premium: true
+  },
+  {
+    id: "fitness_apps",
+    title: "Fitness Apps",
+    description: "MyFitnessPal, Strava integration",
+    icon: Activity,
+    examples: ["Nutrition logs", "Running data", "Calorie tracking"],
+    recommended: true,
+    category: "integration",
+    premium: true
+  },
+  {
+    id: "learning_apps",
+    title: "Learning Apps", 
+    description: "Duolingo, Coursera progress tracking",
+    icon: Smartphone,
+    examples: ["Language lessons", "Course completion", "Skill progress"],
+    recommended: false,
+    category: "integration",
+    premium: true
   },
 ]
 
@@ -106,6 +142,8 @@ export function ProofSettingsStep({
   }
 
   const hasPhotoSelected = selectedProofTypes.includes("photo")
+  const manualTypes = proofTypes.filter(type => type.category === "manual")
+  const integrationTypes = proofTypes.filter(type => type.category === "integration")
 
   return (
     <div className="space-y-8">
@@ -119,17 +157,20 @@ export function ProofSettingsStep({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Proof Types */}
+          {/* Manual Proof Types */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Proof Methods * (Select at least one)</Label>
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Camera className="w-4 h-4 text-blue-500" />
+                Manual Verification * (Select at least one)
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Participants can use any of the selected methods to submit their daily proof.
+                Traditional proof methods where participants manually submit evidence.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {proofTypes.map((type) => {
+              {manualTypes.map((type) => {
                 const Icon = type.icon
                 const isSelected = selectedProofTypes.includes(type.id)
 
@@ -153,6 +194,11 @@ export function ProofSettingsStep({
                               {type.recommended && (
                                 <Badge variant="secondary" className="text-xs">
                                   Recommended
+                                </Badge>
+                              )}
+                              {type.premium && (
+                                <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                                  Premium
                                 </Badge>
                               )}
                             </CardTitle>
@@ -179,6 +225,119 @@ export function ProofSettingsStep({
                 )
               })}
             </div>
+          </div>
+
+          {/* Smart Integration Proof Types */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-500" />
+                Smart Verification (Optional)
+                <Badge variant="outline" className="text-xs bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+                  ⭐ Premium
+                </Badge>
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Automatic verification through connected apps and devices. Reduces cheating and manual review.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {integrationTypes.map((type) => {
+                const Icon = type.icon
+                const isSelected = selectedProofTypes.includes(type.id)
+
+                return (
+                  <Card
+                    key={type.id}
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      isSelected ? "ring-2 ring-primary bg-primary/5" : "hover:bg-muted/50"
+                    }`}
+                    onClick={() => toggleProofType(type.id)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${isSelected ? "bg-primary text-white" : "bg-muted"}`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              {type.title}
+                              {type.recommended && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Recommended
+                                </Badge>
+                              )}
+                              {type.premium && (
+                                <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                                  Premium
+                                </Badge>
+                              )}
+                            </CardTitle>
+                            <CardDescription className="text-xs">{type.description}</CardDescription>
+                          </div>
+                        </div>
+                        {isSelected && <CheckCircle className="w-5 h-5 text-primary" />}
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="pt-0">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Examples:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {type.examples.map((example, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {example}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Show connection status or setup button */}
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Connection Status:</span>
+                          <Badge variant="outline" className="text-xs">
+                            Not Connected
+                          </Badge>
+                        </div>
+                        <Button variant="ghost" size="sm" className="mt-2 w-full h-8 text-xs">
+                          Connect in Settings →
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+
+            {/* Integration Setup Help */}
+            {selectedProofTypes.some(type => integrationTypes.find(t => t.id === type)) && (
+              <Card className="bg-blue-50 border-blue-200">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-blue-600" />
+                    <CardTitle className="text-sm text-blue-700">Smart Verification Selected</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="text-sm">
+                  <p className="text-blue-700 mb-3">
+                    You've selected smart verification methods. To use these during your challenge:
+                  </p>
+                  <ol className="text-xs text-blue-600 space-y-1 list-decimal list-inside">
+                    <li>Go to Settings → Integrations after creating this challenge</li>
+                    <li>Connect your devices and apps (Apple Watch, Fitbit, MyFitnessPal, etc.)</li>
+                    <li>Participants will be able to use automatic verification</li>
+                  </ol>
+                  <div className="mt-3 p-2 bg-blue-100 rounded border">
+                    <p className="text-xs text-blue-800">
+                      💡 <strong>Tip:</strong> Smart verification reduces manual review by up to 80% and prevents most cheating attempts.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Proof Instructions */}

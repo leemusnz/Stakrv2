@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
@@ -44,6 +44,8 @@ export function VerificationModal({ isOpen, onOpenChange, challenge, onSubmit }:
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
 
   // Auto-select if only one proof type is available
   const availableProofTypes = challenge.proofRequirements.filter((req) => req.required || req.type)
@@ -99,7 +101,96 @@ export function VerificationModal({ isOpen, onOpenChange, challenge, onSubmit }:
     setPreviewUrl("")
     setDescription("")
     setUploadProgress(0)
+
+    // Clean up camera stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
   }
+
+  // Enhanced live camera capture for camera-only mode
+  const handleLiveCameraCapture = useCallback(async () => {
+    if (!selectedProofType?.cameraOnly) return
+
+    try {
+      // Request camera access with strict constraints
+      const constraints: MediaStreamConstraints = {
+        video: {
+          facingMode: 'environment', // Prefer back camera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: selectedProofType.type === 'video'
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      streamRef.current = stream
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        
+        if (selectedProofType.type === 'photo') {
+          // For photos, auto-capture after a short delay
+          setTimeout(() => capturePhotoFromStream(), 2000)
+        } else if (selectedProofType.type === 'video') {
+          // For videos, start recording immediately
+          startVideoRecording(stream)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to access camera:', error)
+      alert('Camera access is required for this verification. Please allow camera permissions and try again.')
+    }
+  }, [selectedProofType])
+
+  const capturePhotoFromStream = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current || !streamRef.current) return
+
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    const context = canvas.getContext('2d')
+    
+    if (!context) return
+
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    
+    // Draw video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height)
+    
+    // Convert to blob with timestamp metadata
+    canvas.toBlob((blob) => {
+      if (blob) {
+        // Add metadata to prove it's live capture
+        const timestamp = Date.now()
+        const fileName = `live-capture-${timestamp}.jpg`
+        
+        const file = new File([blob], fileName, { 
+          type: 'image/jpeg',
+          lastModified: timestamp
+        })
+        
+        handleFileCapture(file)
+        
+        // Stop camera stream
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop())
+          streamRef.current = null
+        }
+      }
+    }, 'image/jpeg', 0.9)
+  }, [])
+
+  const startVideoRecording = useCallback((stream: MediaStream) => {
+    // Implement video recording from live stream
+    // This would use MediaRecorder API for proper live video capture
+    console.log('Starting live video recording...', stream)
+    
+    // For now, show a placeholder message
+    alert('Live video recording will be implemented. This ensures videos are captured in real-time.')
+  }, [])
 
   const handleClose = () => {
     onOpenChange(false)
@@ -270,14 +361,21 @@ export function VerificationModal({ isOpen, onOpenChange, challenge, onSubmit }:
         </div>
 
         <Button
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => {
+            if (proofType.cameraOnly) {
+              // For camera-only mode, use getUserMedia API for stricter enforcement
+              handleLiveCameraCapture()
+            } else {
+              fileInputRef.current?.click()
+            }
+          }}
           className={`w-full h-32 border-2 border-dashed border-${color}/30 bg-${color}/5 hover:bg-${color}/10 text-${color} flex flex-col items-center gap-2`}
           variant="outline"
         >
           <Icon className="w-8 h-8" />
           <span className="font-medium">
-            {proofType.type === "photo" && "Take Photo"}
-            {proofType.type === "video" && "Record Video"}
+            {proofType.type === "photo" && (proofType.cameraOnly ? "Take Live Photo" : "Take Photo")}
+            {proofType.type === "video" && (proofType.cameraOnly ? "Record Live Video" : "Record Video")}
             {proofType.type === "file" && "Upload File"}
           </span>
           {!proofType.cameraOnly && (
@@ -287,22 +385,44 @@ export function VerificationModal({ isOpen, onOpenChange, challenge, onSubmit }:
               {proofType.type === "file" && "Screenshots, documents, etc."}
             </span>
           )}
+          {proofType.cameraOnly && (
+            <span className="text-xs text-orange-600 font-medium">🔴 LIVE CAMERA REQUIRED</span>
+          )}
         </Button>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={
-            proofType.type === "photo"
-              ? "image/*"
-              : proofType.type === "video"
-                ? "video/*"
-                : "image/*,video/*,.pdf,.doc,.docx"
-          }
-          capture={proofType.cameraOnly ? "environment" : undefined}
-          onChange={handleFileUpload}
-          className="hidden"
-        />
+        {/* Only show file input for non-camera-only modes */}
+        {!proofType.cameraOnly && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={
+              proofType.type === "photo"
+                ? "image/*"
+                : proofType.type === "video"
+                  ? "video/*"
+                  : "image/*,video/*,.pdf,.doc,.docx"
+            }
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        )}
+
+        {/* Live camera interface for camera-only mode */}
+        {proofType.cameraOnly && (
+          <div className="hidden">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-48 bg-black rounded-lg"
+            />
+            <canvas
+              ref={canvasRef}
+              className="hidden"
+            />
+          </div>
+        )}
       </div>
     )
   }

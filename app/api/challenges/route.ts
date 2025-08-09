@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions)
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
-    const status = searchParams.get('status') || 'active'
+    const status = searchParams.get('status') || 'joinable'
     const limit = parseInt(searchParams.get('limit') || '20')
     
     // Check for demo mode (new system) OR demo users (legacy compatibility)
@@ -92,7 +92,10 @@ export async function GET(request: NextRequest) {
       paramIndex++
     }
 
-    if (status !== 'all') {
+    if (status === 'joinable') {
+      // Show challenges that are still accepting participants (pending or recently active)
+      whereClause += ` AND (status = 'pending' OR (status = 'active' AND start_date > NOW() - INTERVAL '2 days'))`
+    } else if (status !== 'all') {
       whereClause += ` AND status = $${paramIndex}`
       queryParams.push(status)
       paramIndex++
@@ -116,6 +119,7 @@ export async function GET(request: NextRequest) {
         c.rules,
         c.created_at,
         c.allow_points_only,
+        c.thumbnail_url,
         COALESCE(
           (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id), 
           0
@@ -130,10 +134,13 @@ export async function GET(request: NextRequest) {
       LEFT JOIN users u ON c.host_id = u.id
       WHERE c.privacy_type = 'public'
       ${category ? sql`AND c.category = ${category}` : sql``}
-      ${status !== 'all' ? sql`AND c.status = ${status}` : sql``}
+      ${status === 'joinable' ? sql`AND (c.status = 'pending' OR (c.status = 'active' AND c.start_date > NOW() - INTERVAL '2 days'))` : 
+        status !== 'all' ? sql`AND c.status = ${status}` : sql``}
       ORDER BY c.created_at DESC
       LIMIT ${limit}
     `
+
+
 
     // Format the challenges for the frontend
     const formattedChallenges = challenges.map((challenge: any) => ({
@@ -154,8 +161,16 @@ export async function GET(request: NextRequest) {
       created_at: challenge.created_at,
       host_name: challenge.host_name,
       host_avatar_url: challenge.host_avatar_url,
-      allow_points_only: challenge.allow_points_only
+      allow_points_only: challenge.allow_points_only,
+      thumbnail_url: challenge.thumbnail_url
     }))
+    
+    // Debug logging for thumbnail URLs
+    console.log('🔍 API Response - Challenges with thumbnails:', formattedChallenges.map(c => ({
+      id: c.id,
+      title: c.title,
+      thumbnail_url: c.thumbnail_url
+    })))
     
     return NextResponse.json({
       success: true,
@@ -237,6 +252,10 @@ export async function POST(request: NextRequest) {
     let startDate, endDate
     if (challengeData.startDateType === 'days') {
       startDate = new Date(Date.now() + challengeData.startDateDays * 24 * 60 * 60 * 1000)
+    } else if (challengeData.startDateType === 'participants') {
+      startDate = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000) // Start next day when full
+    } else if (challengeData.startDateType === 'manual') {
+      startDate = null // No start date set - will be set when manually started
     } else {
       startDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) // Default 2 days
     }
@@ -248,9 +267,11 @@ export async function POST(request: NextRequest) {
       const days = unit === 'day' ? parseInt(amount) : 
                    unit === 'week' ? parseInt(amount) * 7 :
                    parseInt(amount) * 30
-      endDate = new Date(startDate.getTime() + days * 24 * 60 * 60 * 1000)
+      // For manual start challenges, end date will be calculated when challenge starts
+      endDate = startDate ? new Date(startDate.getTime() + days * 24 * 60 * 60 * 1000) : null
     } else {
-      endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000) // Default 30 days
+      // Default 30 days from start, or null if manual start
+      endDate = startDate ? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null
     }
 
     // Generate invite code for private challenges
@@ -276,7 +297,7 @@ export async function POST(request: NextRequest) {
         enable_referral_bonus, referral_bonus_percentage, max_referrals,
         require_timer, timer_min_duration, timer_max_duration,
         random_checkin_enabled, random_checkin_probability,
-        verification_type, proof_requirements
+        verification_type, proof_requirements, ai_analysis
       ) VALUES (
         ${challengeData.title},
         ${challengeData.description},
@@ -287,8 +308,8 @@ export async function POST(request: NextRequest) {
         ${challengeData.allowPointsOnly ? 0 : challengeData.maxStake},
         ${session.user.id},
         ${challengeData.hostContribution || 0},
-        ${startDate.toISOString()},
-        ${endDate.toISOString()},
+        ${startDate ? startDate.toISOString() : null},
+        ${endDate ? endDate.toISOString() : null},
         'pending',
         ${challengeData.rules},
         ${challengeData.dailyInstructions},
@@ -296,7 +317,7 @@ export async function POST(request: NextRequest) {
         ${challengeData.proofInstructions},
         ${challengeData.privacyType},
         ${challengeData.tags || []},
-        ${null}, -- thumbnail_url (TODO: handle file upload)
+        ${challengeData.thumbnailUrl || null},
         ${challengeData.minParticipants},
         ${challengeData.maxParticipants},
         ${challengeData.startDateType},
@@ -334,7 +355,8 @@ export async function POST(request: NextRequest) {
           timer_max: challengeData.timerMaxDuration,
           random_checkins: challengeData.randomCheckinsEnabled,
           checkin_probability: challengeData.randomCheckinProbability
-        })}
+        })},
+        ${challengeData.aiAnalysis ? JSON.stringify(challengeData.aiAnalysis) : null}
       )
       RETURNING id, invite_code, created_at
     `

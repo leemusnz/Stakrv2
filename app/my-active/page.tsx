@@ -21,11 +21,14 @@ import {
   Upload,
   Eye,
   Share2,
-  MessageSquare
+  MessageSquare,
+  RotateCcw
 } from "lucide-react"
+import { usesAutomaticVerification, getChallengeActionText } from "@/lib/challenge-utils"
 import Link from "next/link"
 import { PostCreationModal } from "@/components/post-creation/post-creation-modal"
 import { SocialShareModal } from "@/components/social-sharing/social-share-modal"
+import { toast } from "sonner"
 
 interface ActiveChallenge {
   id: string
@@ -40,6 +43,10 @@ interface ActiveChallenge {
   timerMaxDuration: number
   proofTypes: string[]
   todayInstructions: string
+  // Add verification data for UI detection
+  verificationType?: string
+  verificationRequirements?: any
+  selectedProofTypes?: string[]
   streak: number
   status: 'active' | 'pending' | 'completed'
   priority: 'high' | 'medium' | 'low'
@@ -49,6 +56,7 @@ export default function MyActivePage() {
   const { data: session } = useSession()
   const [activeChallenges, setActiveChallenges] = useState<ActiveChallenge[]>([])
   const [loading, setLoading] = useState(true)
+  const [syncingChallenges, setSyncingChallenges] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const fetchActiveChallenges = async () => {
@@ -117,6 +125,10 @@ export default function MyActivePage() {
                 timerMaxDuration: 60,
                 proofTypes: ["photo"], // Would need challenge details API for this
                 todayInstructions: `Continue your ${challenge.title} journey! Day ${daysCompleted + 1} of ${totalDays}.`,
+                // Add verification data from API response
+                verificationType: challenge.verificationType,
+                verificationRequirements: challenge.verificationRequirements,
+                selectedProofTypes: challenge.verificationRequirements?.types || ["photo"],
                 streak,
                 status,
                 priority
@@ -393,17 +405,84 @@ export default function MyActivePage() {
                             </Button>
                           )}
                           
-                          {!challenge.todayCompleted ? (
-                            <Button variant="outline" className="flex-1">
-                              <Camera className="w-4 h-4 mr-2" />
-                              Submit Proof
-                            </Button>
-                          ) : (
-                            <Button variant="outline" className="flex-1">
-                              <Eye className="w-4 h-4 mr-2" />
-                              View Submission
-                            </Button>
-                          )}
+                          {(() => {
+                            const actionData = getChallengeActionText(challenge, challenge.todayCompleted)
+                            const IconComponent = actionData.icon === 'sync' ? RotateCcw : 
+                                                  actionData.icon === 'eye' ? Eye : Camera
+                            
+                            const handleActionClick = async () => {
+                              if (actionData.icon === 'sync') {
+                                // Trigger synchronization with user feedback
+                                const challengeId = challenge.id
+                                
+                                // Add to syncing set
+                                setSyncingChallenges(prev => new Set(prev.add(challengeId)))
+                                
+                                try {
+                                  toast.loading('Synchronizing your data...', { id: `sync-${challengeId}` })
+                                  
+                                  const response = await fetch('/api/integrations/sync', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ challengeId })
+                                  })
+                                  
+                                  const result = await response.json()
+                                  
+                                  if (response.ok && result.success) {
+                                    const summary = result.summary
+                                    console.log('Sync completed:', result)
+                                    
+                                    // Determine appropriate message based on results
+                                    if (summary.failed > 0 && summary.successful === 0) {
+                                      // All failed
+                                      toast.error(`❌ Sync failed for all providers (${summary.failed} errors)`, { id: `sync-${challengeId}` })
+                                    } else if (summary.failed > 0 && summary.successful > 0) {
+                                      // Mixed results
+                                      toast.warning(`⚠️ Partial sync: ${summary.successful} succeeded, ${summary.failed} failed`, { id: `sync-${challengeId}` })
+                                    } else if (summary.successful > 0) {
+                                      // All succeeded
+                                      toast.success(`✅ Synced data from ${summary.providers.join(', ')}`, { id: `sync-${challengeId}` })
+                                    } else {
+                                      // No data to sync (but no failures)
+                                      toast.success('✅ Sync completed (no new data to sync)', { id: `sync-${challengeId}` })
+                                    }
+                                  } else {
+                                    const errorMsg = result.error || 'Failed to sync data'
+                                    toast.error(`❌ Sync failed: ${errorMsg}`, { id: `sync-${challengeId}` })
+                                    console.error('Sync API error:', result)
+                                  }
+                                } catch (error) {
+                                  toast.error('❌ Network error during sync', { id: `sync-${challengeId}` })
+                                  console.error('Sync network error:', error)
+                                } finally {
+                                  // Remove from syncing set
+                                  setSyncingChallenges(prev => {
+                                    const newSet = new Set(prev)
+                                    newSet.delete(challengeId)
+                                    return newSet
+                                  })
+                                }
+                              } else {
+                                // Handle regular proof submission
+                                console.log('Opening proof submission modal...')
+                              }
+                            }
+                            
+                            const isCurrentlySync = syncingChallenges.has(challenge.id)
+                            
+                            return (
+                              <Button 
+                                variant="outline" 
+                                className="flex-1" 
+                                onClick={handleActionClick}
+                                disabled={isCurrentlySync}
+                              >
+                                <IconComponent className={`w-4 h-4 mr-2 ${isCurrentlySync ? 'animate-spin' : ''}`} />
+                                {isCurrentlySync ? 'Syncing...' : actionData.action}
+                              </Button>
+                            )
+                          })()}
                           
                           <Link href={`/challenge/${challenge.id}`}>
                             <Button variant="ghost" size="sm">

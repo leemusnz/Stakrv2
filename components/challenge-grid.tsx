@@ -25,7 +25,7 @@ export function ChallengeGrid() {
   const loadChallenges = async () => {
     try {
       // Fetch all public challenges from API
-      const response = await fetch("/api/challenges?status=active&limit=12")
+      const response = await fetch("/api/challenges?status=joinable&limit=12")
       if (!response.ok) {
         throw new Error("Failed to fetch challenges")
       }
@@ -48,7 +48,8 @@ export function ChallengeGrid() {
           totalPot: challenge.total_stake_pool || (challenge.participants_count || 100) * challenge.min_stake,
           hostName: challenge.host_name || "Challenge Host",
           hostAvatar: challenge.host_avatar_url || `/avatars/avatar-${(index % 6) + 1}.svg`,
-          thumbnailUrl: `/placeholder.svg?height=200&width=350&query=${encodeURIComponent(challenge.category + " challenge thumbnail")}`,
+          thumbnailUrl: challenge.thumbnail_url || `/placeholder.svg?height=200&width=350&query=${encodeURIComponent(challenge.category + " challenge thumbnail")}`,
+          proofTypes: challenge.proof_types || challenge.selectedProofTypes || ['photo'], // Include verification types
           startDate: challenge.start_date,
           endDate: challenge.end_date,
           views: Math.floor(Math.random() * 1000) + 200,

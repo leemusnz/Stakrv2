@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
 import { DevModeToggle, useDevMode } from "@/components/dev-mode-toggle"
 import { AvatarTestPanel } from "@/components/avatar-test-panel"
+import { AIAnalyzerControls } from "@/components/dev-tools/ai-analyzer-controls"
 import {
   Bug,
   Database,
@@ -31,7 +32,8 @@ import {
   FileText,
   Users,
   Lock,
-  User
+  User,
+  Brain
 } from "lucide-react"
 
 export default function DevToolsPage() {
@@ -195,8 +197,9 @@ export default function DevToolsPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="ai-analyzer">AI Analyzer</TabsTrigger>
             <TabsTrigger value="database">Database</TabsTrigger>
             <TabsTrigger value="api">API Testing</TabsTrigger>
             <TabsTrigger value="system">System</TabsTrigger>
@@ -287,6 +290,52 @@ export default function DevToolsPage() {
                   )}
                 </CardContent>
               </Card>
+              
+              {/* AI Analyzer Quick Access */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="w-5 h-5 text-blue-500" />
+                    AI Analyzer Tools
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Configure and test the AI Challenge Analyzer with different challenge types and settings.
+                    </p>
+                    
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        onClick={() => setActiveTab('ai-analyzer')}
+                        variant="outline"
+                        className="justify-start"
+                      >
+                        <Brain className="w-4 h-4 mr-2" />
+                        Open AI Analyzer Dev Tools
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => window.open('/create-challenge?preset=physical_skills&context=90&skip_obvious=true', '_blank')}
+                        variant="ghost"
+                        size="sm"
+                        className="justify-start text-xs"
+                      >
+                        🤸 Test Physical Skills Mode
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => window.open('/create-challenge?analyzer_debug=true', '_blank')}
+                        variant="ghost"
+                        size="sm"
+                        className="justify-start text-xs"
+                      >
+                        🔍 Test Debug Mode
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* System Status */}
@@ -330,6 +379,88 @@ export default function DevToolsPage() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          {/* AI Analyzer Tools */}
+          <TabsContent value="ai-analyzer" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-blue-500" />
+                  AI Challenge Analyzer Dev Tools
+                </CardTitle>
+                <p className="text-muted-foreground">
+                  Comprehensive testing and tuning controls for the AI Challenge Analyzer. 
+                  Configure behavior, test different challenge types, and fine-tune analysis quality.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <Alert>
+                    <Brain className="h-4 w-4" />
+                    <AlertDescription>
+                      These settings will be applied to all challenge analysis requests when dev mode is active.
+                      Changes are saved to localStorage and can be overridden with URL parameters.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <AIAnalyzerControls
+                    onSettingsChange={(settings) => {
+                      console.log('🛠️ Dev Tools: Analyzer settings updated:', settings)
+                      // Settings are automatically saved to localStorage by the component
+                    }}
+                    onTestAnalyzer={(testInput) => {
+                      console.log('🧪 Dev Tools: Testing analyzer with:', testInput)
+                      // Could trigger a test analysis here
+                    }}
+                    currentChallenge={null}
+                  />
+                  
+                  <div className="mt-8 p-4 bg-muted/50 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-3">Quick Testing URLs</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="font-medium">Physical Skills (Handstands):</Label>
+                          <Input 
+                            readOnly 
+                            value="/create-challenge?preset=physical_skills&context=90&skip_obvious=true"
+                            className="text-xs mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="font-medium">Habits (Daily Tasks):</Label>
+                          <Input 
+                            readOnly 
+                            value="/create-challenge?preset=habits&context=85&verbosity=40"
+                            className="text-xs mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="font-medium">Debug Mode (Verbose):</Label>
+                          <Input 
+                            readOnly 
+                            value="/create-challenge?analyzer_debug=true"
+                            className="text-xs mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="font-medium">Quick Mode (Minimal):</Label>
+                          <Input 
+                            readOnly 
+                            value="/create-challenge?analyzer_quick=true"
+                            className="text-xs mt-1"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Database Tools */}

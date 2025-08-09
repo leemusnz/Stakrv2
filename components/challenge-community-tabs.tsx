@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { PostCreationModal } from "@/components/post-creation/post-creation-modal"
+import { ChallengeStakeSection } from "@/components/challenge-stake-section"
 import { 
   MessageCircle, 
   Heart, 
@@ -654,36 +655,11 @@ export function ChallengeCommunityTabs({
           <div className="space-y-6">
             {/* Join/Participation Status */}
             {!isParticipant && canJoin && (
-              <Card className="border-blue-200 bg-blue-50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-blue-900 flex items-center">
-                    <Trophy className="w-5 h-5 mr-2" />
-                    Ready to Join?
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-sm text-blue-700">
-                      Join {challenge.participants} other participants in this challenge!
-                    </p>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-blue-600">Entry:</span>
-                      <span className="font-medium">
-                        {challenge.allowPointsOnly && (!challenge.minStake || challenge.minStake === 0) 
-                          ? "Free (Points Only)" 
-                          : `$${challenge.minStake} - $${challenge.maxStake}`
-                        }
-                      </span>
-                    </div>
-                    <Button className="w-full" onClick={() => {
-                      // This would trigger the join modal
-                      console.log('Join challenge clicked')
-                    }}>
-                      Join Challenge
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <ChallengeStakeSection 
+                challenge={challenge}
+                canJoin={canJoin}
+                onJoinSuccess={onJoinSuccess}
+              />
             )}
 
             {/* Participation Confirmation */}

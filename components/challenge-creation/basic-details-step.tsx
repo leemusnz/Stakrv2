@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { useImageCompression } from "@/hooks/use-image-compression"
+import { toast } from "sonner"
 import {
   Upload,
   X,
@@ -271,6 +273,7 @@ export function BasicDetailsStep({
   const [newTag, setNewTag] = useState("")
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { compressImageFile, isCompressing, compressionProgress } = useImageCompression()
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -282,7 +285,7 @@ export function BasicDetailsStep({
     }
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
@@ -290,17 +293,41 @@ export function BasicDetailsStep({
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0]
       if (file.type.startsWith("image/")) {
-        onThumbnailImageChange(file)
+        await handleImageUpload(file)
       }
     }
   }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       if (file.type.startsWith("image/")) {
-        onThumbnailImageChange(file)
+        await handleImageUpload(file)
       }
+    }
+  }
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      toast.loading("Optimizing image...", { id: "image-compression" })
+      
+      // Compress the image with thumbnail preset
+      const compressedFile = await compressImageFile(file, 'thumbnail')
+      
+      toast.success(`Image optimized! ${((1 - compressedFile.size / file.size) * 100).toFixed(0)}% smaller`, { 
+        id: "image-compression",
+        duration: 3000 
+      })
+      
+      onThumbnailImageChange(compressedFile)
+    } catch (error) {
+      console.error('Image compression failed:', error)
+      toast.error("Failed to optimize image. Using original.", { 
+        id: "image-compression",
+        duration: 3000 
+      })
+      // Fall back to original file
+      onThumbnailImageChange(file)
     }
   }
 

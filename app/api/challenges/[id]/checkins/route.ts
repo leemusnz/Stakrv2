@@ -19,7 +19,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     //   return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     // }
 
-    const challengeId = params.id
+    const challengeId = (await params).id
     const { 
       submission_type, 
       session_id, 
@@ -226,7 +226,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     //   return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     // }
 
-    const challengeId = params.id
+    const challengeId = (await params).id
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')

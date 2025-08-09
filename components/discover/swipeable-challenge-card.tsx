@@ -18,7 +18,11 @@ import {
   Heart,
   X,
   Bookmark,
-  ArrowRight
+  ArrowRight,
+  Shield,
+  Zap,
+  Watch,
+  Activity
 } from "lucide-react"
 
 interface SwipeableChallengeCardProps {
@@ -43,6 +47,13 @@ export function SwipeableChallengeCard({
   const { isMobile } = useEnhancedMobile()
   const { swipeDirection, onTouchStart, onTouchEnd, onTouchMove } = useSwipeGesture(80, 400)
   const [isAnimating, setIsAnimating] = useState(false)
+
+  console.log('🔍 SwipeableChallengeCard rendering:', {
+    id: challenge.id,
+    title: challenge.title,
+    thumbnail_url: challenge.thumbnail_url,
+    isMobile
+  })
 
   useEffect(() => {
     if (!swipeDirection) return
@@ -87,10 +98,145 @@ export function SwipeableChallengeCard({
     return `$${minStake} - $${maxStake}`
   }
 
+  const getStatusBadge = (challenge: any) => {
+    const now = new Date()
+    const startDate = new Date(challenge.start_date)
+    const status = challenge.status
+    
+    if (status === 'pending') {
+      const daysUntilStart = Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      if (daysUntilStart > 0) {
+        return {
+          text: `Starts in ${daysUntilStart} day${daysUntilStart === 1 ? '' : 's'}`,
+          color: 'bg-amber-50 text-amber-700 border-amber-200',
+          icon: Clock
+        }
+      }
+    }
+    
+    if (status === 'active') {
+      const daysSinceStart = Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      if (daysSinceStart <= 2) {
+        return {
+          text: `Started ${daysSinceStart} day${daysSinceStart === 1 ? '' : 's'} ago`,
+          color: 'bg-green-50 text-green-700 border-green-200',
+          icon: CheckCircle
+        }
+      }
+    }
+    
+    return null
+  }
+
+  const getVerificationBadges = (proofTypes: string[] = []) => {
+    const badges = []
+    
+    // Count smart verification methods
+    const smartMethods = proofTypes.filter(type => 
+      ['wearable', 'fitness_apps', 'learning_apps'].includes(type)
+    ).length
+    
+    // Count manual verification methods
+    const manualMethods = proofTypes.filter(type => 
+      ['photo', 'video', 'text', 'file'].includes(type)
+    ).length
+    
+    // If multiple smart methods, show combined badge
+    if (smartMethods >= 2) {
+      badges.push({
+        text: `${smartMethods} Smart Methods`,
+        icon: Zap,
+        color: 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border-blue-200'
+      })
+    } else {
+      // Show individual smart method badges
+      if (proofTypes.includes('wearable')) {
+        badges.push({
+          text: 'Apple Watch + Wearables',
+          icon: Watch,
+          color: 'bg-blue-50 text-blue-700 border-blue-200'
+        })
+      }
+      
+      if (proofTypes.includes('fitness_apps')) {
+        badges.push({
+          text: 'MyFitnessPal + Fitness',
+          icon: Activity,
+          color: 'bg-green-50 text-green-700 border-green-200'
+        })
+      }
+      
+      if (proofTypes.includes('learning_apps')) {
+        badges.push({
+          text: 'Duolingo + Learning',
+          icon: Zap,
+          color: 'bg-purple-50 text-purple-700 border-purple-200'
+        })
+      }
+    }
+    
+    // Add manual verification indicator
+    if (manualMethods > 0 && smartMethods > 0) {
+      badges.push({
+        text: 'Manual + Smart Verification',
+        icon: Shield,
+        color: 'bg-amber-50 text-amber-700 border-amber-200'
+      })
+    } else if (manualMethods > 0 && smartMethods === 0) {
+      badges.push({
+        text: 'Manual Verification',
+        icon: Shield,
+        color: 'bg-gray-50 text-gray-700 border-gray-200'
+      })
+    }
+
+    // If no verification methods specified, default to manual
+    if (badges.length === 0) {
+      badges.push({
+        text: 'Manual Verification',
+        icon: Shield,
+        color: 'bg-gray-50 text-gray-700 border-gray-200'
+      })
+    }
+
+    return badges
+  }
+
   if (!isMobile) {
     // Desktop version - regular challenge card
     return (
-      <Card className={cn("h-full hover:shadow-lg transition-shadow", className)} style={style}>
+      <Card className={cn("h-full hover:shadow-lg transition-shadow overflow-hidden", className)} style={style}>
+        {/* Thumbnail Image */}
+        {challenge.thumbnail_url ? (
+          <div className="relative w-full h-48 bg-gradient-to-br from-blue-50 to-purple-50">
+            <img
+              src={challenge.thumbnail_url.includes('stakr-verification-files.s3') 
+                ? `/api/image-proxy?url=${encodeURIComponent(challenge.thumbnail_url)}&v=${challenge.thumbnail_url.split('/').pop()?.split('-')[0] || 'default'}`
+                : challenge.thumbnail_url
+              }
+              alt={challenge.title}
+              className="w-full h-full object-cover"
+              onLoad={() => {
+                console.log('✅ Desktop thumbnail loaded successfully:', challenge.thumbnail_url)
+              }}
+              onError={(e) => {
+                console.log('❌ Desktop thumbnail failed to load:', challenge.thumbnail_url)
+                // Hide image if it fails to load
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+          </div>
+        ) : (
+          <div className="relative w-full h-48 bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+            <div className="text-center text-gray-500">
+              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-2 mx-auto">
+                <Activity className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-sm">No thumbnail</p>
+            </div>
+          </div>
+        )}
+        
         <CardContent className="p-6 h-full flex flex-col">
           {/* Challenge Header */}
           <div className="flex items-start justify-between mb-4">
@@ -98,13 +244,49 @@ export function SwipeableChallengeCard({
               <h3 className="text-xl font-bold text-foreground mb-2 line-clamp-2">
                 {challenge.title}
               </h3>
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
                 <Badge variant="outline" className={getDifficultyColor(challenge.difficulty)}>
                   {challenge.difficulty}
                 </Badge>
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                   {challenge.category}
                 </Badge>
+              </div>
+              
+              {/* Status Badge */}
+              {getStatusBadge(challenge) && (
+                <div className="flex items-center mb-3">
+                  {(() => {
+                    const statusBadge = getStatusBadge(challenge)
+                    const Icon = statusBadge!.icon
+                    return (
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs flex items-center gap-1 ${statusBadge!.color}`}
+                      >
+                        <Icon className="w-3 h-3" />
+                        {statusBadge!.text}
+                      </Badge>
+                    )
+                  })()}
+                </div>
+              )}
+              
+              {/* Verification Methods */}
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                {getVerificationBadges(challenge.proof_types || challenge.selectedProofTypes).map((badge, index) => {
+                  const Icon = badge.icon
+                  return (
+                    <Badge 
+                      key={index}
+                      variant="outline" 
+                      className={`text-xs flex items-center gap-1 ${badge.color}`}
+                    >
+                      <Icon className="w-3 h-3" />
+                      {badge.text}
+                    </Badge>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -169,7 +351,29 @@ export function SwipeableChallengeCard({
       onTouchEnd={onTouchEnd}
       onTouchMove={onTouchMove}
     >
-      <Card className="w-full h-full shadow-xl border-2">
+      <Card className="w-full h-full shadow-xl border-2 overflow-hidden">
+        {/* Thumbnail Image */}
+        {challenge.thumbnail_url && (
+          <div className="relative w-full h-48 bg-gradient-to-br from-blue-50 to-purple-50">
+            <img
+              src={challenge.thumbnail_url.includes('stakr-verification-files.s3') 
+                ? `/api/image-proxy?url=${encodeURIComponent(challenge.thumbnail_url)}&v=${challenge.thumbnail_url.split('/').pop()?.split('-')[0] || 'default'}`
+                : challenge.thumbnail_url
+              }
+              alt={challenge.title}
+              className="w-full h-full object-cover"
+              onLoad={() => {
+                console.log('✅ Mobile swipe thumbnail loaded successfully:', challenge.thumbnail_url)
+              }}
+              onError={(e) => {
+                console.log('❌ Mobile swipe thumbnail failed to load:', challenge.thumbnail_url)
+                // Hide image if it fails to load
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+          </div>
+        )}
+        
         <CardContent className="p-6 h-full flex flex-col relative overflow-hidden">
           {/* Swipe Indicators */}
           {swipeDirection && (
@@ -184,13 +388,49 @@ export function SwipeableChallengeCard({
             <h2 className="text-2xl font-bold text-foreground mb-3 line-clamp-2">
               {challenge.title}
             </h2>
-            <div className="flex justify-center gap-2 mb-3">
+            <div className="flex justify-center gap-2 mb-3 flex-wrap">
               <Badge variant="outline" className={getDifficultyColor(challenge.difficulty)}>
                 {challenge.difficulty}
               </Badge>
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                 {challenge.category}
               </Badge>
+            </div>
+            
+            {/* Status Badge */}
+            {getStatusBadge(challenge) && (
+              <div className="flex justify-center mb-3">
+                {(() => {
+                  const statusBadge = getStatusBadge(challenge)
+                  const Icon = statusBadge!.icon
+                  return (
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs flex items-center gap-1 ${statusBadge!.color}`}
+                    >
+                      <Icon className="w-3 h-3" />
+                      {statusBadge!.text}
+                    </Badge>
+                  )
+                })()}
+              </div>
+            )}
+            
+            {/* Verification Methods */}
+            <div className="flex justify-center gap-2 mb-3 flex-wrap">
+              {getVerificationBadges(challenge.proof_types || challenge.selectedProofTypes).map((badge, index) => {
+                const Icon = badge.icon
+                return (
+                  <Badge 
+                    key={index}
+                    variant="outline" 
+                    className={`text-xs flex items-center gap-1 ${badge.color}`}
+                  >
+                    <Icon className="w-3 h-3" />
+                    {badge.text}
+                  </Badge>
+                )
+              })}
             </div>
           </div>
 

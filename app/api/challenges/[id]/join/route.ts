@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
+import { triggerAutoSync, SYNC_TRIGGERS } from '@/lib/auto-sync-service'
 
 import { calculatePotentialReward } from '@/lib/reward-calculation'
 
@@ -206,6 +207,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     
     // Calculate potential rewards using enhanced calculation
     const potentialReward = await calculatePotentialReward(challengeId, stake, pointsOnly)
+    
+    // Trigger automatic sync for challenges with integrations (don't wait for result)
+    triggerAutoSync(challengeId, session.user.id, SYNC_TRIGGERS.CHALLENGE_JOIN).catch(err => {
+      console.error('Auto-sync failed after challenge join:', err)
+    })
     
     return NextResponse.json({
       success: true,

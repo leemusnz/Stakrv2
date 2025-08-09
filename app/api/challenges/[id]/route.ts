@@ -46,11 +46,42 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       
       const challengeData = challenge[0]
       
+      // Transform proof_requirements JSONB to proper ProofRequirement objects
+      if (challengeData.proof_requirements) {
+        const proofReqs = challengeData.proof_requirements
+        
+        // Create ProofRequirement objects from stored proof types and settings
+        challengeData.proofRequirements = (challengeData.selected_proof_types || []).map((type: string) => ({
+          type: type as "photo" | "video" | "file" | "text" | "auto_sync",
+          required: true,
+          cameraOnly: proofReqs.camera_only || false, // Map global camera_only to individual requirements
+          instructions: proofReqs.description || challengeData.proof_instructions || '',
+          aiVerificationEnabled: challengeData.verification_type === 'ai'
+        }))
+      } else {
+        // Fallback for challenges without proof_requirements JSONB
+        challengeData.proofRequirements = (challengeData.selected_proof_types || ['photo']).map((type: string) => ({
+          type: type as "photo" | "video" | "file" | "text" | "auto_sync",
+          required: true,
+          cameraOnly: challengeData.camera_only || false,
+          instructions: challengeData.proof_instructions || '',
+          aiVerificationEnabled: challengeData.verification_type === 'ai'
+        }))
+      }
+      
       // Debug: Log what we're returning for host data
       console.log('🔍 API returning host data:', {
         host_name: challengeData.host_name,
         host_id: challengeData.host_id,
         host_avatar_url: challengeData.host_avatar_url
+      })
+      
+      // Debug: Log proof requirements transformation
+      console.log('🔍 API transforming proof requirements:', {
+        original_proof_requirements: challengeData.proof_requirements,
+        selected_proof_types: challengeData.selected_proof_types,
+        camera_only: challengeData.camera_only,
+        transformed_proofRequirements: challengeData.proofRequirements
       })
       
       return NextResponse.json({
@@ -74,6 +105,29 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       
       const challengeData = challenge[0]
       challengeData.current_participants = 0 // Default value
+      
+      // Transform proof_requirements JSONB to proper ProofRequirement objects (fallback)
+      if (challengeData.proof_requirements) {
+        const proofReqs = challengeData.proof_requirements
+        
+        // Create ProofRequirement objects from stored proof types and settings
+        challengeData.proofRequirements = (challengeData.selected_proof_types || []).map((type: string) => ({
+          type: type as "photo" | "video" | "file" | "text" | "auto_sync",
+          required: true,
+          cameraOnly: proofReqs.camera_only || false, // Map global camera_only to individual requirements
+          instructions: proofReqs.description || challengeData.proof_instructions || '',
+          aiVerificationEnabled: challengeData.verification_type === 'ai'
+        }))
+      } else {
+        // Fallback for challenges without proof_requirements JSONB
+        challengeData.proofRequirements = (challengeData.selected_proof_types || ['photo']).map((type: string) => ({
+          type: type as "photo" | "video" | "file" | "text" | "auto_sync",
+          required: true,
+          cameraOnly: challengeData.camera_only || false,
+          instructions: challengeData.proof_instructions || '',
+          aiVerificationEnabled: challengeData.verification_type === 'ai'
+        }))
+      }
       
       return NextResponse.json({
         success: true,
@@ -136,11 +190,34 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     
     // Handle different update types
     if (updateData.action === 'start') {
-      // Manual start functionality
+      // Manual start functionality - calculate end date based on duration
+      const challengeDetails = await sql`
+        SELECT duration FROM challenges WHERE id = ${challengeId}
+      `
+      
+      if (challengeDetails.length === 0) {
+        return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
+      }
+      
+      const duration = challengeDetails[0].duration
+      const durationMatch = duration.match(/(\d+)\s*(day|week|month)s?/)
+      let endDate = new Date()
+      
+      if (durationMatch) {
+        const [, amount, unit] = durationMatch
+        const days = unit === 'day' ? parseInt(amount) : 
+                     unit === 'week' ? parseInt(amount) * 7 :
+                     parseInt(amount) * 30
+        endDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+      } else {
+        endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // Default 30 days
+      }
+      
       await sql`
         UPDATE challenges 
         SET status = 'active', 
             start_date = NOW(),
+            end_date = ${endDate.toISOString()},
             updated_at = NOW()
         WHERE id = ${challengeId}
       `
@@ -148,7 +225,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({
         success: true,
         message: 'Challenge started successfully!',
-        challenge: { id: challengeId, status: 'active' }
+        challenge: { id: challengeId, status: 'active', start_date: new Date().toISOString(), end_date: endDate.toISOString() }
       })
     } else {
       // Regular edit functionality - for now just return success

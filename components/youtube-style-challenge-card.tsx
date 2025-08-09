@@ -22,6 +22,9 @@ import {
   Zap,
   Target,
   TrendingUp,
+  Shield,
+  Watch,
+  Activity,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -49,6 +52,7 @@ interface YouTubeStyleChallengeCardProps {
   isSaved?: boolean
   startDate?: string
   endDate?: string
+  proofTypes?: string[]
   className?: string
 }
 
@@ -76,11 +80,87 @@ export function YouTubeStyleChallengeCard({
   isSaved = false,
   startDate,
   endDate,
+  proofTypes = [],
   className,
 }: YouTubeStyleChallengeCardProps) {
   const [liked, setLiked] = useState(isLiked)
   const [saved, setSaved] = useState(isSaved)
   const [likeCount, setLikeCount] = useState(likes)
+
+  // Verification badges function
+  const getVerificationBadges = (proofTypes: string[] = []) => {
+    const badges = []
+    
+    // Count smart verification methods
+    const smartMethods = proofTypes.filter(type => 
+      ['wearable', 'fitness_apps', 'learning_apps'].includes(type)
+    ).length
+    
+    // Count manual verification methods
+    const manualMethods = proofTypes.filter(type => 
+      ['photo', 'video', 'text', 'file'].includes(type)
+    ).length
+    
+    // If multiple smart methods, show combined badge
+    if (smartMethods >= 2) {
+      badges.push({
+        text: `${smartMethods} Smart Methods`,
+        icon: Zap,
+        color: 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border-blue-200'
+      })
+    } else {
+      // Show individual smart method badges
+      if (proofTypes.includes('wearable')) {
+        badges.push({
+          text: 'Apple Watch + Wearables',
+          icon: Watch,
+          color: 'bg-blue-50 text-blue-700 border-blue-200'
+        })
+      }
+      
+      if (proofTypes.includes('fitness_apps')) {
+        badges.push({
+          text: 'MyFitnessPal + Fitness',
+          icon: Activity,
+          color: 'bg-green-50 text-green-700 border-green-200'
+        })
+      }
+      
+      if (proofTypes.includes('learning_apps')) {
+        badges.push({
+          text: 'Duolingo + Learning',
+          icon: Zap,
+          color: 'bg-purple-50 text-purple-700 border-purple-200'
+        })
+      }
+    }
+    
+    // Add manual verification indicator
+    if (manualMethods > 0 && smartMethods > 0) {
+      badges.push({
+        text: 'Manual + Smart',
+        icon: Shield,
+        color: 'bg-amber-50 text-amber-700 border-amber-200'
+      })
+    } else if (manualMethods > 0 && smartMethods === 0) {
+      badges.push({
+        text: 'Manual Verification',
+        icon: Shield,
+        color: 'bg-gray-50 text-gray-700 border-gray-200'
+      })
+    }
+
+    // If no verification methods specified, default to manual
+    if (badges.length === 0) {
+      badges.push({
+        text: 'Manual Verification',
+        icon: Shield,
+        color: 'bg-gray-50 text-gray-700 border-gray-200'
+      })
+    }
+
+    return badges
+  }
 
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -159,9 +239,18 @@ export function YouTubeStyleChallengeCard({
           <div className={cn("absolute inset-0 bg-gradient-to-br", getCategoryGradient(category))}>
             {thumbnailUrl ? (
               <img
-                src={thumbnailUrl || "/placeholder.svg"}
+                src={thumbnailUrl.includes('stakr-verification-files.s3') 
+                  ? `/api/image-proxy?url=${encodeURIComponent(thumbnailUrl)}&v=${thumbnailUrl.split('/').pop()?.split('-')[0] || 'default'}`
+                  : thumbnailUrl
+                }
                 alt={title}
                 className="w-full h-full object-cover mix-blend-overlay"
+                onLoad={() => {
+                  console.log('✅ YouTube-style thumbnail loaded successfully:', thumbnailUrl)
+                }}
+                onError={(e) => {
+                  console.log('❌ YouTube-style thumbnail failed to load:', thumbnailUrl)
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -179,6 +268,31 @@ export function YouTubeStyleChallengeCard({
                 <div className={cn("w-3 h-3 rounded-full", getDifficultyColor(difficulty))} />
                 {isJoined && <Badge className="bg-success text-white font-bold text-xs">JOINED</Badge>}
               </div>
+            </div>
+
+            {/* Verification Methods - Bottom Left */}
+            <div className="absolute bottom-3 left-3 flex gap-1 flex-wrap max-w-[60%]">
+              {getVerificationBadges(proofTypes).slice(0, 2).map((badge, index) => {
+                const Icon = badge.icon
+                return (
+                  <Badge 
+                    key={index}
+                    variant="outline" 
+                    className={`text-xs flex items-center gap-1 bg-white/90 text-black border-white/50 ${badge.color}`}
+                  >
+                    <Icon className="w-3 h-3" />
+                    {badge.text}
+                  </Badge>
+                )
+              })}
+              {getVerificationBadges(proofTypes).length > 2 && (
+                <Badge 
+                  variant="outline" 
+                  className="text-xs bg-white/90 text-black border-white/50"
+                >
+                  +{getVerificationBadges(proofTypes).length - 2}
+                </Badge>
+              )}
             </div>
 
             {/* Center - Play Button (on hover) */}

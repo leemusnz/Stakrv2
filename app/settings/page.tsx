@@ -14,7 +14,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { DevModeToggle } from "@/components/dev-mode-toggle"
 import { ProfilePictureUpload } from "@/components/profile-picture-upload"
-import { User, Bell, Shield, SettingsIcon, Camera, Save, Trash2, Eye, EyeOff } from "lucide-react"
+import { IntegrationManager } from "@/components/integrations/integration-manager"
+import { User, Bell, Shield, SettingsIcon, Camera, Save, Trash2, Eye, EyeOff, Link } from "lucide-react"
 
 export default function SettingsPage() {
   const { data: session, status, update } = useSession()
@@ -279,10 +280,14 @@ export default function SettingsPage() {
 
         {/* Settings Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profile
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <Link className="w-4 h-4" />
+              Integrations
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="w-4 h-4" />
@@ -393,6 +398,21 @@ export default function SettingsPage() {
                   <Save className="w-4 h-4 mr-2" />
                   {isLoading ? "Saving..." : "Save Changes"}
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Integrations Settings */}
+          <TabsContent value="integrations" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Device & App Integrations</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Connect your wearable devices and apps for automatic challenge verification
+                </p>
+              </CardHeader>
+              <CardContent>
+                <IntegrationManager />
               </CardContent>
             </Card>
           </TabsContent>

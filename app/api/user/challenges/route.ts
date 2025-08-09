@@ -55,6 +55,8 @@ export async function GET(request: NextRequest) {
           cp.joined_at,
           cp.completed_at,
           NULL as failed_at,
+          c.proof_requirements as verification_requirements,
+          c.verification_type as primary_verification_type,
           (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id) as total_participants,
           (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id AND completion_status = 'completed') as successful_participants
         FROM challenges c
@@ -85,6 +87,8 @@ export async function GET(request: NextRequest) {
           cp.joined_at,
           cp.completed_at,
           NULL as failed_at,
+          c.proof_requirements as verification_requirements,
+          c.verification_type as primary_verification_type,
           (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id) as total_participants,
           (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id AND completion_status = 'completed') as successful_participants
         FROM challenges c
@@ -149,7 +153,10 @@ export async function GET(request: NextRequest) {
           joinedAt: challenge.joined_at,
           completedAt: challenge.completed_at,
           failedAt: challenge.failed_at,
-          rejectedVerification: challenge.rejectedVerification || null
+          rejectedVerification: challenge.rejectedVerification || null,
+          // Add verification data for UI detection
+          verificationType: challenge.primary_verification_type,
+          verificationRequirements: challenge.verification_requirements
         }
       })
     )

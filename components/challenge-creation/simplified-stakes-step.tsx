@@ -16,11 +16,14 @@ interface SimplifiedStakesStepProps {
   hostContribution: number
   bonusRewards: string[]
   rewardDistribution: string
+  onAllowPointsOnlyChange: (allowPoints: boolean) => void
   onMinStakeChange: (amount: number) => void
   onMaxStakeChange: (amount: number) => void
   onHostContributionChange: (amount: number) => void
   onBonusRewardsChange: (rewards: string[]) => void
   onRewardDistributionChange: (distribution: string) => void
+  isEditing?: boolean
+  hasParticipants?: boolean
 }
 
 const rewardDistributionOptions = [
@@ -64,11 +67,14 @@ export function SimplifiedStakesStep({
   hostContribution,
   bonusRewards,
   rewardDistribution,
+  onAllowPointsOnlyChange,
   onMinStakeChange,
   onMaxStakeChange,
   onHostContributionChange,
   onBonusRewardsChange,
   onRewardDistributionChange,
+  isEditing = false,
+  hasParticipants = false,
 }: SimplifiedStakesStepProps) {
   const [newBonusReward, setNewBonusReward] = useState("")
 
@@ -232,6 +238,7 @@ export function SimplifiedStakesStep({
                   className="pl-10"
                   min="1"
                   max="1000"
+                  disabled={isEditing && hasParticipants}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
@@ -251,6 +258,7 @@ export function SimplifiedStakesStep({
                   className="pl-10"
                   min={minStake}
                   max="1000"
+                  disabled={isEditing && hasParticipants}
                 />
               </div>
               <p className="text-xs text-muted-foreground">

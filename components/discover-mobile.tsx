@@ -44,6 +44,8 @@ export function DiscoverMobile({
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("challenges")
 
+
+
   if (!isMobile) return null
 
   // Challenge Content - Simple List for MVP
@@ -253,18 +255,43 @@ function ChallengeCard({
   challenge: any
   onJoin: () => void
 }) {
+  console.log('🔍 ChallengeCard rendering:', {
+    id: challenge.id,
+    title: challenge.title,
+    thumbnail_url: challenge.thumbnail_url
+  })
+
   return (
     <Card className="transition-all duration-200 hover:shadow-lg overflow-hidden">
       {/* Thumbnail Image */}
       <div className="relative h-32 bg-gradient-to-br from-primary/20 to-secondary/20">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-2">
-              <Sparkles className="w-8 h-8 text-primary" />
+        {challenge.thumbnail_url ? (
+          <img
+            src={challenge.thumbnail_url.includes('stakr-verification-files.s3') 
+              ? `/api/image-proxy?url=${encodeURIComponent(challenge.thumbnail_url)}&v=${challenge.thumbnail_url.split('/').pop()?.split('-')[0] || 'default'}`
+              : challenge.thumbnail_url
+            }
+            alt={challenge.title}
+            className="w-full h-full object-cover"
+            onLoad={() => {
+              console.log('✅ Mobile thumbnail loaded successfully:', challenge.thumbnail_url)
+            }}
+            onError={(e) => {
+              console.log('❌ Mobile thumbnail failed to load:', challenge.thumbnail_url)
+              // Fall back to placeholder if image fails
+              e.currentTarget.style.display = 'none'
+            }}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-2">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+              <p className="text-xs text-muted-foreground font-medium">Challenge</p>
             </div>
-            <p className="text-xs text-muted-foreground font-medium">Challenge</p>
           </div>
-        </div>
+        )}
         {/* Category Badge */}
         <div className="absolute top-2 left-2">
           <Badge variant="secondary" className="text-xs">{challenge.category}</Badge>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { ChevronLeft, ChevronRight, Users, DollarSign, Calendar, Trophy } from "lucide-react"
+import { ChevronLeft, ChevronRight, Users, DollarSign, Calendar, Trophy, Shield, Watch, Activity, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface ChallengeCarouselProps {
@@ -157,19 +157,94 @@ function ChallengeCard({
   onViewDetails: (challenge: any) => void
   isFocused?: boolean
 }) {
+  const getVerificationBadges = (proofTypes: string[] = []) => {
+    const badges = []
+    
+    // Check for smart integrations
+    if (proofTypes.includes('wearable')) {
+      badges.push({
+        text: 'Smart Wearables',
+        icon: Watch,
+        color: 'bg-blue-50 text-blue-700 border-blue-200'
+      })
+    }
+    
+    if (proofTypes.includes('fitness_apps')) {
+      badges.push({
+        text: 'Fitness Apps',
+        icon: Activity,
+        color: 'bg-green-50 text-green-700 border-green-200'
+      })
+    }
+    
+    if (proofTypes.includes('learning_apps')) {
+      badges.push({
+        text: 'Learning Apps',
+        icon: Zap,
+        color: 'bg-purple-50 text-purple-700 border-purple-200'
+      })
+    }
+    
+    // If any smart verification exists
+    if (badges.length > 0) {
+      return badges.slice(0, 1) // Show only one badge to save space
+    }
+    
+    // Fall back to manual verification indicator
+    return [{
+      text: 'Manual',
+      icon: Shield,
+      color: 'bg-gray-50 text-gray-700 border-gray-200'
+    }]
+  }
   return (
     <Card className={cn(
-      "h-[500px] transition-all duration-200",
+      "h-[500px] transition-all duration-200 overflow-hidden",
       isFocused && "ring-2 ring-primary/20 shadow-lg scale-[1.02]"
     )}>
+      {/* Thumbnail Image */}
+      {challenge.thumbnail_url && (
+        <div className="relative w-full h-48 bg-gradient-to-br from-blue-50 to-purple-50">
+          <img
+            src={challenge.thumbnail_url.includes('stakr-verification-files.s3') 
+              ? `/api/image-proxy?url=${encodeURIComponent(challenge.thumbnail_url)}&v=${challenge.thumbnail_url.split('/').pop()?.split('-')[0] || 'default'}`
+              : challenge.thumbnail_url
+            }
+            alt={challenge.title}
+            className="w-full h-full object-cover"
+            onLoad={() => {
+              console.log('✅ Carousel thumbnail loaded successfully:', challenge.thumbnail_url)
+            }}
+            onError={(e) => {
+              console.log('❌ Carousel thumbnail failed to load:', challenge.thumbnail_url)
+              // Hide image if it fails to load
+              e.currentTarget.style.display = 'none'
+            }}
+          />
+        </div>
+      )}
+      
       <CardContent className="p-6 flex flex-col h-full">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <h3 className="text-xl font-bold mb-2 line-clamp-2">{challenge.title}</h3>
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
               <Badge variant="secondary">{challenge.category}</Badge>
               <Badge variant="outline">{challenge.difficulty}</Badge>
+              {getVerificationBadges(challenge.proof_types || challenge.selectedProofTypes).map((badge, index) => {
+                const Icon = badge.icon
+                return (
+                  <Badge 
+                    key={index}
+                    variant="outline" 
+                    className={`text-xs flex items-center gap-1 ${badge.color}`}
+                  >
+                    <Icon className="w-3 h-3" />
+                    {badge.text}
+                  </Badge>
+                )
+              })}
             </div>
           </div>
         </div>

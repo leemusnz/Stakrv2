@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,6 +18,7 @@ import { toast } from "sonner"
 export default function MyChallengesPage() {
   const { isMobile } = useEnhancedMobile()
   const { data: session, status } = useSession()
+  const router = useRouter()
   const [selectedTab, setSelectedTab] = useState("active")
   const [loading, setLoading] = useState(true)
   const [allChallenges, setAllChallenges] = useState<any[]>([])
@@ -100,8 +102,7 @@ export default function MyChallengesPage() {
   }
 
   const handleEditChallenge = (challengeId: string) => {
-    // For now, show a notification that editing will be available soon
-    toast.info('Edit functionality coming soon! You\'ll be able to modify challenge details before it starts.')
+    router.push(`/edit-challenge/${challengeId}`)
   }
 
   const handleDeleteChallenge = async (challengeId: string, challengeTitle: string) => {

@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Calendar, Camera, CheckCircle, Clock, Flag } from "lucide-react"
+import { Calendar, Camera, CheckCircle, Clock, Flag, RotateCcw } from "lucide-react"
+import { getChallengeActionText } from "@/lib/challenge-utils"
 
 interface Challenge {
   title: string
@@ -77,12 +78,18 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
 
         {/* Quick Actions */}
         <div className="space-y-3">
-          {!progress.todayCompleted && (
-            <Button className="w-full font-bold">
-              <Camera className="w-4 h-4 mr-2" />
-              Submit Today's Proof
-            </Button>
-          )}
+          {!progress.todayCompleted && (() => {
+            const actionData = getChallengeActionText(challenge, false)
+            const IconComponent = actionData.icon === 'sync' ? RotateCcw : 
+                                  actionData.icon === 'eye' ? CheckCircle : Camera
+            
+            return (
+              <Button className="w-full font-bold">
+                <IconComponent className="w-4 h-4 mr-2" />
+                {actionData.action}
+              </Button>
+            )
+          })()}
 
           <div className="grid grid-cols-2 gap-3">
             <Button variant="outline" size="sm" className="bg-transparent">

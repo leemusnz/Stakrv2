@@ -13,12 +13,14 @@ import { ProofSettingsStep } from "@/components/challenge-creation/proof-setting
 import { SimplifiedStakesStep } from "@/components/challenge-creation/simplified-stakes-step"
 import { PreviewPublishStep } from "@/components/challenge-creation/preview-publish-step"
 import { CategorySelectionStep } from "@/components/challenge-creation/category-selection-step"
+import { AiChallengeSummary } from "@/components/challenge-creation/ai-challenge-summary"
 
 export default function CreateChallengePage() {
   const { isMobile } = useEnhancedMobile()
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [isPublishing, setIsPublishing] = useState(false)
+  const [aiAnalysis, setAiAnalysis] = useState(null)
 
   // Challenge data state
   const [challengeData, setChallengeData] = useState({
@@ -84,7 +86,7 @@ export default function CreateChallengePage() {
     rewardDistribution: "equal-split", // Default value for money challenges
   })
 
-  const totalSteps = 8
+  const totalSteps = 9
 
   const canProceed = () => {
     switch (currentStep) {
@@ -106,6 +108,8 @@ export default function CreateChallengePage() {
       case 6:
         return challengeData.selectedProofTypes.length > 0 && challengeData.proofInstructions.trim() !== ""
       case 7:
+        return aiAnalysis !== null // AI analysis must be completed
+      case 8:
         // For points-only challenges, we don't need stake validation
         if (challengeData.allowPointsOnly) {
           return true
@@ -117,7 +121,7 @@ export default function CreateChallengePage() {
           challengeData.maxStake >= challengeData.minStake &&
           challengeData.rewardDistribution !== ""
         )
-      case 8:
+      case 9:
         return isReadyToPublish()
       default:
         return false
@@ -237,13 +241,69 @@ export default function CreateChallengePage() {
     setIsPublishing(true)
 
     try {
-      // Create challenge via API
+      let thumbnailUrl = null
+
+      // Upload thumbnail image if provided
+      if (challengeData.thumbnailImage) {
+        try {
+          // Step 1: Get presigned URL for thumbnail upload
+          const presignedResponse = await fetch('/api/upload/presigned-url', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              fileName: challengeData.thumbnailImage.name,
+              fileType: challengeData.thumbnailImage.type,
+              fileSize: challengeData.thumbnailImage.size,
+              uploadType: 'challenge-thumbnail',
+              challengeId: 'temp-' + Date.now() // Temporary ID for S3 path
+            })
+          })
+
+          if (!presignedResponse.ok) {
+            throw new Error('Failed to get upload URL for thumbnail')
+          }
+
+          const { uploadUrl, fileKey } = await presignedResponse.json()
+
+          // Step 2: Upload file to S3
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'PUT',
+            body: challengeData.thumbnailImage,
+            headers: {
+              'Content-Type': challengeData.thumbnailImage.type,
+            },
+          })
+
+          if (!uploadResponse.ok) {
+            throw new Error('Failed to upload thumbnail image')
+          }
+
+          // Step 3: Construct final URL
+          thumbnailUrl = `https://stakr-verification-files.s3.ap-southeast-2.amazonaws.com/${fileKey}`
+          console.log('✅ Thumbnail uploaded successfully:', thumbnailUrl)
+        } catch (uploadError) {
+          console.error('❌ Thumbnail upload failed:', uploadError)
+          // Continue without thumbnail rather than failing the entire challenge creation
+          alert('Warning: Failed to upload thumbnail image. Challenge will be created without thumbnail.')
+        }
+      }
+
+      // Create challenge with thumbnail URL (excluding File object)
+      const challengePayload = {
+        ...challengeData,
+        thumbnailUrl, // Add the uploaded URL
+        thumbnailImage: undefined, // Remove File object from payload
+        aiAnalysis: aiAnalysis // Include AI analysis for enhanced verification
+      }
+
       const response = await fetch('/api/challenges', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(challengeData)
+        body: JSON.stringify(challengePayload)
       })
 
       const result = await response.json()
@@ -395,6 +455,24 @@ export default function CreateChallengePage() {
         )
       case 7:
         return (
+          <AiChallengeSummary
+            challengeData={challengeData} // Pass the complete challenge data
+            onConfirm={(analysis, confirmedRequirements) => {
+              setAiAnalysis(analysis)
+              // Optionally update challenge data with confirmed requirements
+              if (confirmedRequirements) {
+                setChallengeData({ 
+                  ...challengeData, 
+                  dailyInstructions: confirmedRequirements 
+                })
+              }
+              setCurrentStep(currentStep + 1)
+            }}
+            onEdit={() => setCurrentStep(3)} // Go back to basic info step
+          />
+        )
+      case 8:
+        return (
           <SimplifiedStakesStep
             allowPointsOnly={challengeData.allowPointsOnly}
             minStake={challengeData.minStake}
@@ -402,6 +480,7 @@ export default function CreateChallengePage() {
             hostContribution={challengeData.hostContribution}
             bonusRewards={challengeData.bonusRewards}
             rewardDistribution={challengeData.rewardDistribution}
+            onAllowPointsOnlyChange={(allowPoints) => setChallengeData({ ...challengeData, allowPointsOnly: allowPoints })}
             onMinStakeChange={(amount) => setChallengeData({ ...challengeData, minStake: amount })}
             onMaxStakeChange={(amount) => setChallengeData({ ...challengeData, maxStake: amount })}
             onHostContributionChange={(amount) => setChallengeData({ ...challengeData, hostContribution: amount })}
@@ -411,7 +490,7 @@ export default function CreateChallengePage() {
             }
           />
         )
-      case 8:
+      case 9:
         return (
           <PreviewPublishStep
             challengeData={challengeData}
@@ -419,6 +498,7 @@ export default function CreateChallengePage() {
             onPublish={handlePublish}
             isPublishing={isPublishing}
             missingFields={getMissingFields()}
+            aiAnalysis={aiAnalysis}
           />
         )
       default:

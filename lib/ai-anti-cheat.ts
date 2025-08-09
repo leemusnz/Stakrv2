@@ -175,8 +175,15 @@ export class AIAntiCheatEngine {
 
   // Layer 1: Proof Validation AI
   private async validateProof(submission: ProofSubmission): Promise<number> {
-    // Placeholder implementation - replace with actual AI models
     console.log('🔍 Layer 1: Validating proof authenticity...')
+    
+    // CRITICAL: Get challenge analysis data for context-aware validation
+    const challengeContext = await this.getChallengeAnalysisContext(submission.challengeId)
+    console.log('📊 Retrieved challenge analysis context:', {
+      hasAnalysis: !!challengeContext,
+      dailyRequirement: challengeContext?.dailyRequirement,
+      validationMethod: challengeContext?.validationMethod
+    })
     
     const checks = {
       // Metadata validation
@@ -184,10 +191,13 @@ export class AIAntiCheatEngine {
       hasReasonableFileSize: this.validateFileSize(submission),
       hasValidFormat: this.validateFormat(submission),
       
-      // Content validation (placeholder)
+      // Content validation with challenge context
       isNotStockPhoto: await this.checkStockPhoto(submission),
       isNotAIGenerated: await this.checkAIGenerated(submission),
       isNotDuplicate: await this.checkDuplicateSubmission(submission),
+      
+      // Context-aware validation using challenge analysis
+      meetsActivityRequirements: await this.validateAgainstChallengeContext(submission, challengeContext),
     }
     
     // Calculate confidence based on checks
@@ -312,6 +322,127 @@ export class AIAntiCheatEngine {
         rejected: 1,
         flagged: 0
       }
+    }
+  }
+
+  // Get challenge analysis context for intelligent verification
+  private async getChallengeAnalysisContext(challengeId: string): Promise<any> {
+    try {
+      const { createDbConnection } = await import('./db')
+      const sql = await createDbConnection()
+      
+      const challenges = await sql`
+        SELECT 
+          title, 
+          description, 
+          proof_requirements, 
+          verification_type, 
+          ai_analysis,
+          selected_proof_types,
+          proof_instructions
+        FROM challenges 
+        WHERE id = ${challengeId}
+      `
+      
+      if (challenges.length === 0) {
+        console.warn('⚠️ Challenge not found for AI verification context:', challengeId)
+        return null
+      }
+      
+      const challenge = challenges[0]
+      let aiAnalysis = null
+      
+      // Parse AI analysis if it exists
+      if (challenge.ai_analysis) {
+        try {
+          aiAnalysis = typeof challenge.ai_analysis === 'string' 
+            ? JSON.parse(challenge.ai_analysis) 
+            : challenge.ai_analysis
+        } catch (e) {
+          console.warn('⚠️ Failed to parse AI analysis JSON:', e)
+        }
+      }
+      
+      return {
+        title: challenge.title,
+        description: challenge.description,
+        verificationType: challenge.verification_type,
+        proofRequirements: challenge.proof_requirements,
+        selectedProofTypes: challenge.selected_proof_types,
+        proofInstructions: challenge.proof_instructions,
+        // AI Analysis data from challenge creation
+        dailyRequirement: aiAnalysis?.dailyRequirement,
+        evidenceRequirements: aiAnalysis?.evidenceRequirements || [],
+        validationMethod: aiAnalysis?.validationMethod,
+        activityType: aiAnalysis?.activityType || [],
+        measurementType: aiAnalysis?.measurementType,
+        minimumValue: aiAnalysis?.minimumValue,
+        unit: aiAnalysis?.unit,
+        confidence: aiAnalysis?.confidence,
+        interpretation: aiAnalysis?.interpretation,
+        // Full analysis for advanced verification
+        fullAnalysis: aiAnalysis
+      }
+    } catch (error) {
+      console.error('❌ Failed to get challenge analysis context:', error)
+      return null
+    }
+  }
+
+  // Context-aware validation using AI challenge analysis
+  private async validateAgainstChallengeContext(
+    submission: ProofSubmission, 
+    challengeContext: any
+  ): Promise<boolean> {
+    if (!challengeContext) {
+      console.log('⚠️ No challenge context available - using basic validation')
+      return true // Fallback to basic validation
+    }
+
+    console.log('🎯 Validating submission against challenge context:', {
+      dailyRequirement: challengeContext.dailyRequirement,
+      validationMethod: challengeContext.validationMethod,
+      activityType: challengeContext.activityType
+    })
+
+    // Use Enhanced AI Verification system with challenge context
+    try {
+      const { EnhancedAIVerification } = await import('./enhanced-ai-verification')
+      
+      const enhancedRequest = {
+        challengeId: submission.challengeId,
+        challengeText: `${challengeContext.title}: ${challengeContext.description}`,
+        submissionType: 'manual' as const,
+        aiChallengeAnalysis: {
+          dailyRequirement: challengeContext.dailyRequirement,
+          activityType: challengeContext.activityType,
+          measurementType: challengeContext.measurementType,
+          minimumValue: challengeContext.minimumValue,
+          unit: challengeContext.unit,
+          validationMethod: challengeContext.validationMethod,
+          evidenceRequirements: challengeContext.evidenceRequirements,
+          interpretation: challengeContext.interpretation,
+          confidence: challengeContext.confidence
+        },
+        manualData: {
+          type: submission.type as 'photo' | 'video' | 'text',
+          content: submission.content,
+          fileUrl: submission.metadata?.fileUrl,
+          metadata: submission.metadata
+        }
+      }
+
+      const result = await EnhancedAIVerification.verify(enhancedRequest)
+      console.log('🧠 Enhanced AI verification result:', {
+        approved: result.approved,
+        confidence: result.confidence,
+        reasoning: result.reasoning
+      })
+
+      return result.approved
+    } catch (error) {
+      console.error('❌ Enhanced AI verification failed:', error)
+      return true // Fallback to approve if verification system fails
     }
   }
 

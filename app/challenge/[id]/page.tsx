@@ -89,6 +89,7 @@ export default function ChallengePage() {
           daily_instructions: challengeData.daily_instructions,
           proof_instructions: challengeData.proof_instructions,
           selected_proof_types: challengeData.selected_proof_types || ["photo"],
+          proofRequirements: challengeData.proofRequirements || [], // Use the transformed ProofRequirement objects from API
           general_instructions: challengeData.general_instructions,
           require_timer: challengeData.require_timer,
           timer_min_duration: challengeData.timer_min_duration,

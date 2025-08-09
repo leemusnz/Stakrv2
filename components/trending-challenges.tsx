@@ -19,7 +19,7 @@ export function TrendingChallenges() {
   const loadTrendingChallenges = async () => {
     try {
       // Fetch trending challenges from API
-      const response = await fetch('/api/challenges?status=active&limit=3')
+      const response = await fetch('/api/challenges?status=joinable&limit=3')
       if (!response.ok) {
         throw new Error('Failed to fetch challenges')
       }
@@ -93,7 +93,29 @@ export function TrendingChallenges() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {challenges.map((challenge) => (
-            <Card key={challenge.id} className="hover:shadow-lg transition-all duration-300 cursor-pointer group">
+            <Card key={challenge.id} className="hover:shadow-lg transition-all duration-300 cursor-pointer group overflow-hidden">
+              {/* Thumbnail Image */}
+              {challenge.thumbnail_url && (
+                <div className="relative w-full h-32 bg-gradient-to-br from-blue-50 to-purple-50">
+                  <img
+                    src={challenge.thumbnail_url.includes('stakr-verification-files.s3') 
+                      ? `/api/image-proxy?url=${encodeURIComponent(challenge.thumbnail_url)}&v=${challenge.thumbnail_url.split('/').pop()?.split('-')[0] || 'default'}`
+                      : challenge.thumbnail_url
+                    }
+                    alt={challenge.title}
+                    className="w-full h-full object-cover"
+                    onLoad={() => {
+                      console.log('✅ Trending thumbnail loaded successfully:', challenge.thumbnail_url)
+                    }}
+                    onError={(e) => {
+                      console.log('❌ Trending thumbnail failed to load:', challenge.thumbnail_url)
+                      // Hide image if it fails to load
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                </div>
+              )}
+              
               <CardContent className="p-4">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between">

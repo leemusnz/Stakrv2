@@ -50,7 +50,7 @@ export default function Discover() {
 
         // Fetch challenges, creators, and brands in parallel
         const [challengesRes, creatorsRes, brandsRes] = await Promise.all([
-          fetch("/api/challenges"),
+          fetch("/api/challenges?status=joinable"),
           fetch("/api/creators"),
           fetch("/api/brands"),
         ])

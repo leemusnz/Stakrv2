@@ -31,6 +31,8 @@ interface PreviewPublishStepProps {
   onPublish: () => void
   isPublishing: boolean
   missingFields: string[]
+  isEditing?: boolean
+  aiAnalysis?: any
 }
 
 const proofTypeIcons = {
@@ -53,6 +55,8 @@ export function PreviewPublishStep({
   onPublish,
   isPublishing,
   missingFields,
+  isEditing = false,
+  aiAnalysis,
 }: PreviewPublishStepProps) {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -179,6 +183,67 @@ export function PreviewPublishStep({
             </CardContent>
           </Card>
 
+          {/* AI Analysis Summary */}
+          {aiAnalysis && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg flex items-center gap-2 text-blue-800">
+                      🤖 AI Challenge Analysis
+                      <Badge className="bg-blue-100 text-blue-700">
+                        {aiAnalysis.confidence}% confident
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-blue-700 mt-2">
+                      {aiAnalysis.interpretation}
+                    </CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => onEdit(7)} className="flex items-center gap-2">
+                    <Edit className="w-4 h-4" />
+                    Modify
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong className="text-blue-800">Daily Requirement:</strong>
+                    <p className="text-blue-700">{aiAnalysis.dailyRequirement}</p>
+                  </div>
+                  <div>
+                    <strong className="text-blue-800">Validation Method:</strong>
+                    <p className="text-blue-700 capitalize">{aiAnalysis.validationMethod}</p>
+                  </div>
+                  {aiAnalysis.minimumValue && (
+                    <div>
+                      <strong className="text-blue-800">Minimum Requirement:</strong>
+                      <p className="text-blue-700">{aiAnalysis.minimumValue} {aiAnalysis.unit}</p>
+                    </div>
+                  )}
+                  <div>
+                    <strong className="text-blue-800">Activity Types:</strong>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {aiAnalysis.activityType.map((type: string, index: number) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {type}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {aiAnalysis.potentialAmbiguities.length > 0 && (
+                  <Alert className="mt-3 border-yellow-200 bg-yellow-50">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    <AlertDescription className="text-yellow-800">
+                      <strong>Note:</strong> {aiAnalysis.potentialAmbiguities.join('; ')}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Rules & Instructions */}
           <Card>
             <CardHeader className="pb-4">
@@ -255,8 +320,8 @@ export function PreviewPublishStep({
                 {challengeData.selectedProofTypes.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {challengeData.selectedProofTypes.map((type: string) => {
-                      const Icon = proofTypeIcons[type as keyof typeof proofTypeIcons]
-                      const label = proofTypeLabels[type as keyof typeof proofTypeLabels]
+                      const Icon = proofTypeIcons[type as keyof typeof proofTypeIcons] || Camera
+                      const label = proofTypeLabels[type as keyof typeof proofTypeLabels] || type
                       return (
                         <Badge key={type} variant="outline" className="flex items-center gap-1">
                           <Icon className="w-3 h-3" />
@@ -372,7 +437,7 @@ export function PreviewPublishStep({
                 {isReadyToPublish ? (
                   <>
                     <Rocket className="w-5 h-5" />
-                    Ready to Publish!
+                    {isEditing ? 'Ready to Save Changes!' : 'Ready to Publish!'}
                   </>
                 ) : (
                   <>
@@ -399,12 +464,12 @@ export function PreviewPublishStep({
                     {isPublishing ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                        Publishing...
+                        {isEditing ? 'Saving Changes...' : 'Publishing...'}
                       </>
                     ) : (
                       <>
                         <Rocket className="w-4 h-4 mr-2" />
-                        Publish Challenge
+                        {isEditing ? 'Save Changes' : 'Publish Challenge'}
                       </>
                     )}
                   </Button>

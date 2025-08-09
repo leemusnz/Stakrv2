@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Camera, Clock, Video, FileText, Upload } from "lucide-react"
+import { Camera, Clock, Video, FileText, Upload, RotateCcw } from "lucide-react"
+import { getChallengeActionText } from "@/lib/challenge-utils"
 import { VerificationModal } from "./verification-modal"
 
 interface ProofRequirement {
@@ -105,15 +106,23 @@ export function VerificationTrigger({
             </div>
           </div>
 
-          <Button
-            size="sm"
-            className={`w-full mt-3 ${
-              challenge.isOverdue ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
-            }`}
-          >
-            <div className="flex items-center gap-1 mr-2">{getRequiredProofIcons()}</div>
-            Submit Proof Now
-          </Button>
+                      {(() => {
+              const actionData = getChallengeActionText(challenge, false)
+              const IconComponent = actionData.icon === 'sync' ? RotateCcw : 
+                                    actionData.icon === 'eye' ? Upload : Camera
+              
+              return (
+                <Button
+                  size="sm"
+                  className={`w-full mt-3 ${
+                    challenge.isOverdue ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4 mr-2" />
+                  {actionData.action}
+                </Button>
+              )
+            })()}
         </div>
 
         <VerificationModal
@@ -146,14 +155,22 @@ export function VerificationTrigger({
                 </p>
               </div>
             </div>
-            <Button
-              size="sm"
-              onClick={() => setIsModalOpen(true)}
-              className={challenge.isOverdue ? "bg-destructive hover:bg-destructive/90" : ""}
-            >
-              <div className="flex items-center gap-1 mr-1">{getRequiredProofIcons()}</div>
-              Submit
-            </Button>
+            {(() => {
+              const actionData = getChallengeActionText(challenge, false)
+              const IconComponent = actionData.icon === 'sync' ? RotateCcw : 
+                                    actionData.icon === 'eye' ? Upload : Camera
+              
+              return (
+                <Button
+                  size="sm"
+                  onClick={() => setIsModalOpen(true)}
+                  className={challenge.isOverdue ? "bg-destructive hover:bg-destructive/90" : ""}
+                >
+                  <IconComponent className="w-4 h-4 mr-1" />
+                  {actionData.action.split(' ')[0]} {/* Show first word like "Submit" or "Synchronize" */}
+                </Button>
+              )
+            })()}
           </div>
         </div>
 
