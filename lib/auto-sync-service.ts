@@ -115,18 +115,61 @@ export async function syncStravaData(credentials: any, challengeId: string, user
       return { success: false, error: 'No access token available', provider: 'strava' }
     }
     
-    // Get recent activities from Strava (last 30 days)
-    const thirtyDaysAgo = Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)
-    console.log('🌐 Calling Strava API for recent activities...')
-    const response = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=50&after=${thirtyDaysAgo}`, {
-      headers: {
-        'Authorization': `Bearer ${credentials.access_token}`
+    // Helper to call Strava API with a given access token
+    const fetchActivities = async (accessToken: string) => {
+      const thirtyDaysAgo = Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)
+      console.log('🌐 Calling Strava API for recent activities...')
+      return fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=50&after=${thirtyDaysAgo}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      })
+    }
+    
+    // First attempt with existing access token
+    let response = await fetchActivities(credentials.access_token)
+    
+    // If unauthorized, attempt token refresh once
+    if (response.status === 401 || response.status === 403) {
+      try {
+        console.log('🔄 Access token expired/invalid. Attempting Strava token refresh...')
+        const refreshRes = await fetch('https://www.strava.com/oauth/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            client_id: process.env.STRAVA_CLIENT_ID,
+            client_secret: process.env.STRAVA_CLIENT_SECRET,
+            grant_type: 'refresh_token',
+            refresh_token: credentials.refresh_token
+          })
+        })
+        const refreshData = await refreshRes.json()
+        if (!refreshRes.ok) {
+          console.error('❌ Strava token refresh failed:', refreshData)
+          return { success: false, error: 'Strava token expired and refresh failed', provider: 'strava' }
+        }
+        // Persist new tokens
+        const sqlUpdate = await createDbConnection()
+        await sqlUpdate`
+          UPDATE wearable_integrations
+          SET api_credentials = ${JSON.stringify({
+            access_token: refreshData.access_token,
+            refresh_token: refreshData.refresh_token || credentials.refresh_token,
+            expires_at: refreshData.expires_at,
+            athlete: credentials.athlete
+          })}, updated_at = NOW(), last_sync = NOW()
+          WHERE user_id = ${userId} AND device_type = 'strava'
+        `
+        // Retry activities with new token
+        response = await fetchActivities(refreshData.access_token)
+      } catch (refreshError) {
+        console.error('❌ Error during Strava token refresh:', refreshError)
+        return { success: false, error: 'Failed during Strava token refresh', provider: 'strava' }
       }
-    })
+    }
     
     if (!response.ok) {
+      const msg = `Failed to fetch Strava data (${response.status} ${response.statusText})`
       console.error(`❌ Strava API error: ${response.status} ${response.statusText}`)
-      return { success: false, error: 'Failed to fetch Strava data', provider: 'strava' }
+      return { success: false, error: msg, provider: 'strava' }
     }
     
     const activities = await response.json()
