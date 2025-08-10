@@ -19,7 +19,7 @@ SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
 # ================================
 # Get from: https://developers.strava.com/
 # 1. Create app at developers.strava.com
-# 2. Add redirect URI: http://localhost:3000/api/auth/callback/strava
+# 2. Add redirect URI: http://localhost:3000/api/integrations/callback/strava
 STRAVA_CLIENT_ID=your_strava_client_id
 STRAVA_CLIENT_SECRET=your_strava_client_secret
 
@@ -83,7 +83,8 @@ MYFITNESSPAL_CLIENT_SECRET=your_myfitnesspal_client_secret
 1. Go to [Strava Developers](https://developers.strava.com/)
 2. Click "Create & Manage Your App"
 3. Set Authorization Callback Domain: `localhost:3000`
-4. Copy Client ID and Client Secret
+4. Add Redirect URI: `http://localhost:3000/api/integrations/callback/strava`
+5. Copy Client ID and Client Secret
 
 ### 3. GitHub OAuth Setup
 1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
@@ -107,7 +108,8 @@ MYFITNESSPAL_CLIENT_SECRET=your_myfitnesspal_client_secret
 ## 🚨 Production Setup
 
 For production, replace `localhost:3000` with your actual domain:
-- `https://yourdomain.com/api/auth/callback/[provider]`
+- `https://yourdomain.com/api/integrations/callback/strava` (Strava)
+- `https://yourdomain.com/api/auth/callback/[provider]` (others)
 
 ## 🧪 Testing OAuth Flows
 

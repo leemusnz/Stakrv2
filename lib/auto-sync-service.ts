@@ -495,7 +495,13 @@ export async function syncChallengeData(
           : wearable.api_credentials
           
         if (wearable.device_type === 'strava') {
-          const result = await syncStravaData(credentials, challengeId, userId)
+          const result = await syncStravaData(
+            credentials,
+            challengeId,
+            userId,
+            challenge.aiAnalysis || null,
+            `${challenge.title}: ${challenge.description}`
+          )
           results.push(result)
         }
         // Add more wearable sync logic here

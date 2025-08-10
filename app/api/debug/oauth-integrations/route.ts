@@ -69,11 +69,18 @@ export async function GET(request: NextRequest) {
       .filter(([_, config]) => !config.configured)
       .map(([service, _]) => service)
 
-    const callbackUrls = Object.keys(oauthConfig).map(service => ({
-      service,
-      callback_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/auth/callback/${service === 'google_fit' ? 'google-fit' : service}`,
-      status: oauthConfig[service as keyof typeof oauthConfig].configured ? '✅ Ready' : '❌ Missing credentials'
-    }))
+    const callbackUrls = Object.keys(oauthConfig).map(service => {
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+      // Strava now uses a dedicated integrations callback route
+      const path = service === 'strava'
+        ? '/api/integrations/callback/strava'
+        : `/api/auth/callback/${service === 'google_fit' ? 'google-fit' : service}`
+      return {
+        service,
+        callback_url: `${baseUrl}${path}`,
+        status: oauthConfig[service as keyof typeof oauthConfig].configured ? '✅ Ready' : '❌ Missing credentials'
+      }
+    })
 
     // Generate test URLs for configured services
     const testUrls = Object.entries(oauthConfig)
@@ -123,7 +130,10 @@ export async function GET(request: NextRequest) {
 
 function getAuthorizeUrl(service: string, clientId: string, baseUrl: string): string {
   const state = `debug-${Date.now()}`
-  const redirectUri = `${baseUrl}/api/auth/callback/${service === 'google_fit' ? 'google-fit' : service}`
+  // Strava uses the dedicated integrations callback route
+  const redirectUri = service === 'strava'
+    ? `${baseUrl}/api/integrations/callback/strava`
+    : `${baseUrl}/api/auth/callback/${service === 'google_fit' ? 'google-fit' : service}`
 
   switch (service) {
     case 'spotify':
