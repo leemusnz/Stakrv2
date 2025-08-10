@@ -31,10 +31,11 @@ export async function POST(request: NextRequest) {
         break
 
       case 'strava':
+        // Use a dedicated integrations callback to avoid interference with NextAuth dynamic routes
         authUrl = `https://www.strava.com/oauth/authorize?` +
           `client_id=${process.env.STRAVA_CLIENT_ID}&` +
           `response_type=code&` +
-          `redirect_uri=${encodeURIComponent(`${baseUrl}/api/auth/callback/strava`)}&` +
+          `redirect_uri=${encodeURIComponent(`${baseUrl}/api/integrations/callback/strava`)}&` +
           `approval_prompt=force&` +
           `scope=read,activity:read&` +
           `state=${state}`
