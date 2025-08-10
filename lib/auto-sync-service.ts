@@ -100,7 +100,13 @@ export async function getUserIntegrations(userId: string, challengeTypes: string
 /**
  * Syncs data from Strava for fitness challenges
  */
-export async function syncStravaData(credentials: any, challengeId: string, userId: string): Promise<SyncResult> {
+export async function syncStravaData(
+  credentials: any,
+  challengeId: string,
+  userId: string,
+  aiAnalysis: any | null,
+  challengeTextForAI: string
+): Promise<SyncResult> {
   try {
     console.log('🔍 Strava sync debug:', {
       challengeId,
@@ -180,11 +186,16 @@ export async function syncStravaData(credentials: any, challengeId: string, user
     
     // Get challenge details for smart filtering
     const challengeDetails = await sql`
-      SELECT title, description FROM challenges WHERE id = ${challengeId}
+      SELECT title, description, ai_analysis FROM challenges WHERE id = ${challengeId}
     `
     
     const challengeTitle = challengeDetails[0]?.title || ''
     const challengeDesc = challengeDetails[0]?.description || ''
+    const aiAnalysis = challengeDetails[0]?.ai_analysis
+      ? (typeof challengeDetails[0].ai_analysis === 'string' 
+        ? JSON.parse(challengeDetails[0].ai_analysis) 
+        : challengeDetails[0].ai_analysis)
+      : null
     
     console.log('🏃 Processing Strava activities for challenge:', challengeTitle)
     console.log(`📊 Total activities retrieved from Strava: ${activities.length}`)
@@ -219,9 +230,9 @@ export async function syncStravaData(credentials: any, challengeId: string, user
       try {
         const aiVerification = await EnhancedAIVerification.verify({
           challengeId,
-          challengeText: `${challengeText}\n\nCHALLENGE CONTEXT: This is a daily progress challenge where users complete the same activity each day. Today's submission should be evaluated independently for whether it meets the daily requirement.`,
+          challengeText: `${challengeTitle}: ${challengeDesc}\n\nCHALLENGE CONTEXT: This is a daily progress challenge where users complete the same activity each day. Today's submission should be evaluated independently for whether it meets the daily requirement.`,
           submissionType: 'auto_sync',
-          aiChallengeAnalysis: challenge.aiAnalysis, // Pass AI analysis for enhanced validation
+          aiChallengeAnalysis: aiAnalysis || undefined,
           autoSyncData: {
             provider: 'strava',
             activity: {
@@ -280,7 +291,7 @@ export async function syncStravaData(credentials: any, challengeId: string, user
             'approved',
             ${activity.start_date},
             ${aiVerification.reasoning},
-            'auto_sync',
+            'document',
             ${JSON.stringify({
               activity_summary: `${activity.type}: ${Math.round(activity.distance)}m in ${Math.round(activity.moving_time / 60)}min`,
               strava_activity_id: activity.id,
@@ -318,7 +329,7 @@ export async function syncStravaData(credentials: any, challengeId: string, user
             'pending',
             ${activity.start_date},
             'AI verification failed - requires manual review',
-            'auto_sync',
+            'document',
             ${JSON.stringify({
               activity_summary: `${activity.type}: ${Math.round(activity.distance)}m in ${Math.round(activity.moving_time / 60)}min`,
               strava_activity_id: activity.id,
