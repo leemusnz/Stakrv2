@@ -1,5 +1,7 @@
 import { createDbConnection } from '@/lib/db'
 
+type SqlTag = (strings: TemplateStringsArray, ...values: any[]) => Promise<any[]>
+
 export type RewardDistributionMethod = 'winner-takes-all' | 'equal-split' | 'proportional'
 
 export interface ChallengeStats {
@@ -111,8 +113,11 @@ export async function calculatePotentialReward(
 /**
  * Calculate actual rewards for a completed challenge
  */
-export async function calculateChallengeRewards(challengeId: string): Promise<RewardDistributionResult> {
-  const sql = await createDbConnection()
+export async function calculateChallengeRewards(
+  challengeId: string,
+  sqlOverride?: SqlTag
+): Promise<RewardDistributionResult> {
+  const sql = sqlOverride || (await createDbConnection())
 
   // Get challenge data with participant statistics
   const challengeData = await sql`
@@ -363,15 +368,26 @@ function calculateProportional(
 /**
  * Distribute calculated rewards to participants
  */
-export async function distributeRewards(challengeId: string): Promise<RewardDistributionResult> {
+export async function distributeRewards(
+  challengeId: string,
+  sqlOverride?: SqlTag
+): Promise<RewardDistributionResult> {
   console.log(`💰 Starting reward distribution for challenge: ${challengeId}`)
   
   // Calculate the rewards
-  const rewardResult = await calculateChallengeRewards(challengeId)
-  
-  const sql = await createDbConnection()
+  const sql = sqlOverride || (await createDbConnection())
+  const rewardResult = await calculateChallengeRewards(challengeId, sql)
 
   try {
+    // Idempotency: if already distributed, return current calculation without changes
+    const statusRows = await sql`
+      SELECT status FROM challenges WHERE id = ${challengeId}
+    `
+    if (statusRows.length > 0 && statusRows[0].status === 'rewards_distributed') {
+      console.log('ℹ️ Rewards already distributed – idempotent return')
+      return rewardResult
+    }
+
     // Update each participant's reward and user credits
     for (const reward of rewardResult.participant_rewards) {
       // Update participant reward amount
@@ -432,6 +448,33 @@ export async function distributeRewards(challengeId: string): Promise<RewardDist
           NOW()
         )
       `
+    }
+
+    // Create a settlements record if table exists
+    try {
+      await sql`
+        INSERT INTO settlements (
+          challenge_id,
+          total_distributed,
+          platform_revenue_total,
+          revenue_entry_fees,
+          revenue_failed_stakes_cut,
+          participants_rewarded,
+          reward_distribution_method,
+          created_at
+        ) VALUES (
+          ${challengeId},
+          ${rewardResult.summary.total_distributed},
+          ${rewardResult.platform_revenue.total},
+          ${rewardResult.platform_revenue.entry_fees},
+          ${rewardResult.platform_revenue.failed_stake_cut},
+          ${rewardResult.participant_rewards.length},
+          ${rewardResult.challenge_stats.reward_distribution},
+          NOW()
+        )
+      `
+    } catch (e) {
+      console.warn('ℹ️ settlements table not found; skipping settlements record')
     }
 
     // Mark challenge as rewards distributed

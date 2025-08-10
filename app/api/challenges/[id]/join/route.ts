@@ -111,15 +111,54 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }, { status: 400 })
     }
     
-    // Validate stake amount
+    // Validate stake amount (range check)
     let stake = 0
     if (!challengeData.allow_points_only || !pointsOnly) {
       stake = parseFloat(stakeAmount)
+      if (isNaN(stake)) {
+        return NextResponse.json({ error: 'Invalid stake amount' }, { status: 400 })
+      }
       if (stake < challengeData.min_stake || stake > challengeData.max_stake) {
         return NextResponse.json({
           error: `Stake amount must be between $${challengeData.min_stake} and $${challengeData.max_stake}`
         }, { status: 400 })
       }
+    }
+
+    // Enforce tiers if present; branch CASH flow even without tiers
+    try {
+      const proofReq = typeof challengeData.proof_requirements === 'string'
+        ? JSON.parse(challengeData.proof_requirements)
+        : challengeData.proof_requirements
+      const configuredTiers: number[] | undefined = proofReq?.stake_tiers
+      const currency: 'CREDITS' | 'CASH' = (proofReq?.currency || 'CREDITS')
+
+      if (configuredTiers && configuredTiers.length > 0) {
+        const isTier = configuredTiers.includes(Number(stake))
+        if (!isTier) {
+          return NextResponse.json({
+            error: `Invalid stake. Allowed tiers: ${configuredTiers.join(', ')}`
+          }, { status: 400 })
+        }
+      }
+
+      // If configured as CASH and not points-only, go to payments checkout flow
+      if (!pointsOnly && currency === 'CASH') {
+        const origin = (() => { try { return new URL(request.url).origin } catch { return '' } })()
+        const checkoutRes = await fetch(`${origin}/api/payments/checkout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ challengeId, stakeAmount: stake })
+        })
+        const checkoutData = await checkoutRes.json()
+        return NextResponse.json({
+          success: checkoutRes.ok,
+          requires_payment: true,
+          payment: checkoutData
+        }, { status: checkoutRes.status })
+      }
+    } catch (e) {
+      // ignore metadata parsing issues
     }
     
     // Calculate fees
@@ -177,21 +216,29 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     
     // Deduct credits for money challenges
     if (!pointsOnly) {
-      await sql`
+      // Atomic debit to avoid negative balances
+      const debit = await sql`
         UPDATE users 
         SET credits = credits - ${totalCost}
-        WHERE id = ${session.user.id}
+        WHERE id = ${session.user.id} AND credits >= ${totalCost}
+        RETURNING credits
       `
-      
-      // Record transaction
+      if (debit.length === 0) {
+        return NextResponse.json({ error: 'Insufficient credits' }, { status: 400 })
+      }
+      // Record ledger rows: stake lock, entry fee, insurance fee
       await sql`
-        INSERT INTO credit_transactions (
-          user_id, amount, transaction_type, related_challenge_id, description, created_at
-        ) VALUES (
-          ${session.user.id}, ${-totalCost}, 'challenge_join', ${challengeId},
-          'Joined challenge: ${challengeData.title}', NOW()
-        )
+        INSERT INTO credit_transactions (user_id, amount, transaction_type, related_challenge_id, description, created_at)
+        VALUES 
+          (${session.user.id}, ${-stake}, 'stake_lock', ${challengeId}, 'Stake locked for challenge: ${challengeData.title}', NOW()),
+          (${session.user.id}, ${-entryFee}, 'entry_fee', ${challengeId}, 'Entry fee for challenge: ${challengeData.title}', NOW())
       `
+      if (insuranceFee > 0) {
+        await sql`
+          INSERT INTO credit_transactions (user_id, amount, transaction_type, related_challenge_id, description, created_at)
+          VALUES (${session.user.id}, ${-insuranceFee}, 'insurance_fee', ${challengeId}, 'Insurance fee for challenge: ${challengeData.title}', NOW())
+        `
+      }
     }
     
     // Create referral record if applicable
@@ -230,7 +277,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         entry_fee: entryFee,
         insurance_fee: insuranceFee,
         total_cost: totalCost,
-        remaining_credits: userData[0].credits - totalCost,
+        remaining_credits: (!pointsOnly ? (userData[0].credits - totalCost) : userData[0].credits),
         potential_reward: potentialReward
       },
       challenge_info: {

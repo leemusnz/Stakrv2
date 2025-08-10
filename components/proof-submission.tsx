@@ -25,6 +25,7 @@ interface ProofSubmissionProps {
     random_checkins?: boolean
     min_duration?: number
     max_duration?: number
+    camera_only?: boolean
   }
   sessionData?: any
   onSubmissionComplete?: (data: any) => void
@@ -370,24 +371,26 @@ export function ProofSubmission({
                     >
                       Remove
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      Replace
-                    </Button>
+                    {!proofRequirements.camera_only && (
+                      <Button
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Replace
+                      </Button>
+                    )}
                   </div>
                 </div>
               ) : (
                 <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                   <Camera className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">Upload Photo Proof</h3>
+                  <h3 className="text-lg font-medium mb-2">{proofRequirements.camera_only ? 'Capture Photo' : 'Upload Photo Proof'}</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Take or upload a photo that clearly shows your progress
+                    {proofRequirements.camera_only ? 'Camera-only security is enabled. Please use your device camera to capture a live photo.' : 'Take or upload a photo that clearly shows your progress'}
                   </p>
                   <Button onClick={() => fileInputRef.current?.click()}>
                     <Camera className="h-4 w-4 mr-2" />
-                    Choose Photo
+                    {proofRequirements.camera_only ? 'Open Camera' : 'Choose Photo'}
                   </Button>
                 </div>
               )}
@@ -395,8 +398,64 @@ export function ProofSubmission({
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                // If camera-only is required, hint to use the camera
+                capture={proofRequirements?.['camera_only'] ? 'environment' : undefined as any}
                 onChange={handleFileChange}
                 className="hidden"
+                disabled={proofRequirements.camera_only}
+              />
+            </TabsContent>
+
+            {/* Video Proof */}
+            <TabsContent value="video" className="space-y-4">
+              {mediaPreview ? (
+                <div className="space-y-2">
+                  <video 
+                    src={mediaPreview} 
+                    controls
+                    className="w-full h-64 object-cover rounded-lg border"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setMediaFile(null)
+                        setMediaPreview(null)
+                      }}
+                    >
+                      Remove
+                    </Button>
+                    {!proofRequirements.camera_only && (
+                      <Button
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Replace
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+                  <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">{proofRequirements.camera_only ? 'Capture Video' : 'Upload Video Proof'}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {proofRequirements.camera_only ? 'Camera-only security is enabled. Please use your device camera to capture a live video.' : 'Record or upload a video that clearly shows your progress'}
+                  </p>
+                  <Button onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    {proofRequirements.camera_only ? 'Open Camera' : 'Choose Video'}
+                  </Button>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="video/*"
+                capture={proofRequirements?.['camera_only'] ? 'environment' : undefined as any}
+                onChange={handleFileChange}
+                className="hidden"
+                disabled={proofRequirements.camera_only}
               />
             </TabsContent>
 

@@ -79,6 +79,8 @@ export default function CreateChallengePage() {
     randomCheckinProbability: 30, // percentage chance
 
     // Step 7: Stakes & Rewards (simplified)
+    currency: 'CREDITS' as 'CREDITS' | 'CASH',
+    stakeTiers: [] as number[],
     minStake: 25,
     maxStake: 200,
     hostContribution: 0,
@@ -115,10 +117,10 @@ export default function CreateChallengePage() {
           return true
         }
         // For money challenges, validate stakes and distribution
+        const hasTiers = Array.isArray(challengeData.stakeTiers) && challengeData.stakeTiers.length > 0
+        const hasRange = challengeData.minStake > 0 && challengeData.maxStake > 0 && challengeData.maxStake >= challengeData.minStake
         return (
-          challengeData.minStake > 0 &&
-          challengeData.maxStake > 0 &&
-          challengeData.maxStake >= challengeData.minStake &&
+          (hasTiers || hasRange) &&
           challengeData.rewardDistribution !== ""
         )
       case 9:
@@ -174,11 +176,12 @@ export default function CreateChallengePage() {
     }
 
     // For money challenges, also validate stakes
-    const stakesValid =
+    const hasTiers = Array.isArray(challengeData.stakeTiers) && challengeData.stakeTiers.length > 0
+    const hasRange =
       challengeData.minStake > 0 &&
       challengeData.maxStake > 0 &&
-      challengeData.maxStake >= challengeData.minStake &&
-      challengeData.rewardDistribution !== ""
+      challengeData.maxStake >= challengeData.minStake
+    const stakesValid = (hasTiers || hasRange) && challengeData.rewardDistribution !== ""
 
     if (process.env.NODE_ENV === 'development') {
       console.log('💰 Money challenge validation:', {
@@ -212,9 +215,12 @@ export default function CreateChallengePage() {
 
     // Only check stakes if not points-only
     if (!challengeData.allowPointsOnly) {
-      if (challengeData.minStake <= 0) missing.push("Minimum stake")
-      if (challengeData.maxStake <= 0) missing.push("Maximum stake")
-      if (challengeData.maxStake < challengeData.minStake) missing.push("Max stake must be >= min stake")
+      const hasTiers = Array.isArray(challengeData.stakeTiers) && challengeData.stakeTiers.length > 0
+      if (!hasTiers) {
+        if (challengeData.minStake <= 0) missing.push("Minimum stake")
+        if (challengeData.maxStake <= 0) missing.push("Maximum stake")
+        if (challengeData.maxStake < challengeData.minStake) missing.push("Max stake must be >= min stake")
+      }
       if (!challengeData.rewardDistribution) missing.push("Reward distribution")
     }
 
@@ -475,6 +481,8 @@ export default function CreateChallengePage() {
         return (
           <SimplifiedStakesStep
             allowPointsOnly={challengeData.allowPointsOnly}
+            currency={challengeData.currency}
+            stakeTiers={challengeData.stakeTiers}
             minStake={challengeData.minStake}
             maxStake={challengeData.maxStake}
             hostContribution={challengeData.hostContribution}
@@ -488,6 +496,8 @@ export default function CreateChallengePage() {
             onRewardDistributionChange={(distribution) =>
               setChallengeData({ ...challengeData, rewardDistribution: distribution })
             }
+            onCurrencyChange={(currency) => setChallengeData({ ...challengeData, currency })}
+            onStakeTiersChange={(tiers) => setChallengeData({ ...challengeData, stakeTiers: tiers })}
           />
         )
       case 9:

@@ -45,6 +45,36 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
       
       const challengeData = challenge[0]
+
+      // Expose currency and stake tiers from proof_requirements JSON
+      try {
+        const proofReq = typeof challengeData.proof_requirements === 'string'
+          ? JSON.parse(challengeData.proof_requirements)
+          : challengeData.proof_requirements
+        challengeData.currency = proofReq?.currency || 'CREDITS'
+        challengeData.stake_tiers = Array.isArray(proofReq?.stake_tiers) ? proofReq.stake_tiers : []
+      } catch {}
+
+      // Attach latest settlement summary if available
+      try {
+        const settlements = await sql`
+          SELECT 
+            total_distributed,
+            platform_revenue_total,
+            revenue_entry_fees,
+            revenue_failed_stakes_cut,
+            participants_rewarded,
+            reward_distribution_method,
+            created_at
+          FROM settlements
+          WHERE challenge_id = ${challengeId}
+          ORDER BY created_at DESC
+          LIMIT 1
+        `
+        if (settlements.length > 0) {
+          challengeData.settlement_summary = settlements[0]
+        }
+      } catch {}
       
       // Transform proof_requirements JSONB to proper ProofRequirement objects
       if (challengeData.proof_requirements) {

@@ -30,6 +30,8 @@ interface Challenge {
   minStake: number
   maxStake: number
   allowPointsOnly?: boolean
+  currency?: 'CREDITS' | 'CASH'
+  stakeTiers?: number[]
   isJoined: boolean
   totalPot: number
   participants: number
@@ -140,6 +142,11 @@ export function ChallengeStakeSection({
       }
 
       if (result.success) {
+        // If CASH flow requires payment, redirect to checkout
+        if (result.requires_payment && result.payment?.checkoutUrl) {
+          window.location.href = result.payment.checkoutUrl
+          return
+        }
         addNotification({
           type: "challenge",
           title: "Successfully joined!",
@@ -356,8 +363,8 @@ export function ChallengeStakeSection({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Points vs Money Toggle - Only show if challenge supports both modes */}
-        {challenge.allowPointsOnly && challenge.minStake > 0 && challenge.maxStake > 0 && (
+        {/* Points vs Money Toggle - Only show if challenge supports both modes and currency is CREDITS */}
+        {challenge.allowPointsOnly && challenge.minStake > 0 && challenge.maxStake > 0 && (challenge.currency ?? 'CREDITS') === 'CREDITS' && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
@@ -394,8 +401,28 @@ export function ChallengeStakeSection({
           </div>
         )}
 
-        {/* Stake Amount Selector (if not points-only) */}
-        {!pointsOnly && challenge.minStake && challenge.maxStake && (
+        {/* Stake tier buttons for fixed tiers (no custom entry) */}
+        {!pointsOnly && Array.isArray(challenge.stakeTiers) && challenge.stakeTiers.length > 0 && (
+          <div className="space-y-4">
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground">Choose your stake</p>
+              <div className="flex gap-2 justify-center flex-wrap">
+                {challenge.stakeTiers.map((tier) => (
+                  <Button
+                    key={tier}
+                    variant={Number(stakeAmount) === Number(tier) ? 'default' : 'outline'}
+                    onClick={() => setStakeAmount(Number(tier))}
+                  >
+                    ${tier}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Stake Amount Selector (if not points-only and no fixed tiers) */}
+        {!pointsOnly && challenge.minStake && challenge.maxStake && (!challenge.stakeTiers || challenge.stakeTiers.length === 0) && (
           <div className="space-y-4">
             <div className="text-center space-y-2">
               <p className="text-sm text-muted-foreground">Your stake amount</p>
@@ -561,7 +588,7 @@ export function ChallengeStakeSection({
           ) : (
             <>
               <DollarSign className="w-5 h-5 mr-2" />
-              STAKE ${Number(totalCost).toFixed(2)} & JOIN
+              {(challenge.currency ?? 'CREDITS') === 'CASH' ? 'CONTINUE TO CHECKOUT' : `STAKE $${Number(totalCost).toFixed(2)} & JOIN`}
             </>
           )}
         </Button>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -23,7 +23,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 
-// Mock wallet data
+// Default mock wallet data (fallback)
 const mockWalletData = {
   balance: 250,
   totalEarned: 1250,
@@ -162,6 +162,81 @@ export default function WalletPage() {
   const [depositAmount, setDepositAmount] = useState("")
   const [withdrawAmount, setWithdrawAmount] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [wallet, setWallet] = useState<typeof mockWalletData | null>(null)
+  const data = wallet ?? mockWalletData
+  const [txTypes, setTxTypes] = useState<string[]>([])
+  const [fromDate, setFromDate] = useState<string>("")
+  const [toDate, setToDate] = useState<string>("")
+  const [page, setPage] = useState<number>(1)
+  const [pagination, setPagination] = useState<{ page: number; pageSize: number; total: number; totalPages: number; hasNext: boolean } | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    const load = async (nextPage = 1) => {
+      try {
+        // Prefer dedicated credits endpoint; fallback to dashboard
+        const params = new URLSearchParams({ page: String(nextPage), pageSize: '20' })
+        if (txTypes.length) params.set('type', txTypes.join(','))
+        if (fromDate) params.set('from', new Date(fromDate).toISOString())
+        if (toDate) params.set('to', new Date(toDate).toISOString())
+        let res = await fetch(`/api/user/credits?${params.toString()}`, { cache: 'no-store' })
+        if (!res.ok) throw new Error('Failed to load dashboard')
+        const data = await res.json()
+        if (data?.success && data.wallet) {
+          if (mounted) {
+            setWallet({ ...mockWalletData, ...data.wallet })
+            setPagination(data.pagination || null)
+            setPage(nextPage)
+          }
+        } else {
+          // Fallback
+          res = await fetch('/api/user/dashboard', { cache: 'no-store' })
+          if (!res.ok) throw new Error('Failed to load dashboard')
+          const dash = await res.json()
+          const balance = Number(dash.dashboard?.user?.credits || 0)
+          const txs = (dash.dashboard?.recentTransactions || []).map((t: any) => ({
+            id: t.id,
+            type: t.type.includes('reward') ? 'reward' : (t.type.includes('stake') ? 'stake' : 'deposit'),
+            amount: Number(t.amount),
+            description: t.type,
+            date: t.createdAt,
+            status: t.status,
+            challengeId: t.challengeId
+          }))
+          const activeStakes = (dash.dashboard?.activeChallenges || []).map((c: any) => ({
+            id: c.id,
+            challengeTitle: c.title,
+            amount: Number(c.stakeAmount || 0),
+            progress: 0,
+            daysLeft: Math.max(0, Math.ceil((new Date(c.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))),
+            potentialReward: 0,
+            status: c.status
+          }))
+          if (mounted) {
+            setWallet({
+              ...mockWalletData,
+              balance,
+              transactions: txs,
+              activeStakes
+            })
+            setPagination(null)
+            setPage(1)
+          }
+        }
+      } catch (_) {
+        if (mounted) setWallet(mockWalletData)
+      }
+    }
+    load(1)
+    return () => { mounted = false }
+  }, [txTypes, fromDate, toDate])
+
+  const toggleType = (type: string) => {
+    setTxTypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type])
+  }
+
+  const canPrev = useMemo(() => page > 1, [page])
+  const canNext = useMemo(() => !!pagination?.hasNext, [pagination])
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -184,6 +259,26 @@ export default function WalletPage() {
     if (amount > 0) return "text-green-600"
     if (type === "forfeit") return "text-red-600"
     return "text-gray-900"
+  }
+
+  const exportCsv = () => {
+    const header = ['id','type','amount','description','date','status','challengeId','paymentMethod']
+    const rows = (data.transactions || []).map((t:any)=>[
+      t.id, t.type, t.amount, (t.description||'').replace(/\n|\r/g,' '), t.date, t.status, t.challengeId || '', t.paymentMethod || ''
+    ])
+    const csv = [header, ...rows]
+      .map(r => r.map(v => {
+        const s = String(v ?? '')
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}` : s
+      }).join(','))
+      .join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `transactions_${new Date().toISOString().slice(0,10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   const formatDate = (dateString: string) => {
@@ -221,55 +316,71 @@ export default function WalletPage() {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Wallet</h1>
-          <p className="text-muted-foreground">Manage your credits, stakes, and transactions</p>
+          <p className="text-muted-foreground">Manage your credits, cash account, stakes, and transactions</p>
         </div>
 
         {/* Balance Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Credits Balance */}
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Available Balance</p>
-                  <p className="text-3xl font-bold text-primary">${mockWalletData.balance}</p>
+                  <p className="text-3xl font-bold text-primary">${data.balance}</p>
                 </div>
                 <Wallet className="w-8 h-8 text-primary" />
               </div>
             </CardContent>
           </Card>
 
+          {/* Total Earned */}
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Earned</p>
-                  <p className="text-3xl font-bold text-green-600">${mockWalletData.totalEarned}</p>
+                  <p className="text-3xl font-bold text-green-600">${data.totalEarned ?? 0}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
 
+          {/* Active Stakes */}
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Active Stakes</p>
-                  <p className="text-3xl font-bold text-orange-600">${mockWalletData.totalStaked}</p>
+                  <p className="text-3xl font-bold text-orange-600">${data.totalStaked ?? 0}</p>
                 </div>
                 <Target className="w-8 h-8 text-orange-600" />
               </div>
             </CardContent>
           </Card>
 
+          {/* Pending Rewards and Cash Account */}
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Pending Rewards</p>
-                  <p className="text-3xl font-bold text-secondary">${mockWalletData.pendingRewards}</p>
+                  <p className="text-3xl font-bold text-secondary">${data.pendingRewards ?? 0}</p>
                 </div>
                 <Gift className="w-8 h-8 text-secondary" />
+              </div>
+              <div className="mt-4 p-3 rounded-md border bg-muted/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Cash Account</p>
+                    <p className="text-xl font-semibold">${(data as any).cashAccount?.balance ?? 0}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(data as any).cashAccount?.connected ? 'Connected' : 'Not connected'}{(data as any).cashAccount?.lastSync ? ` • Last sync ${(data as any).cashAccount?.lastSync}` : ''}
+                    </p>
+                  </div>
+                  <CreditCard className="w-6 h-6 text-muted-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -317,7 +428,7 @@ export default function WalletPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {mockWalletData.transactions.slice(0, 5).map((transaction) => (
+                   {(data.transactions).slice(0, 5).map((transaction) => (
                       <div key={transaction.id} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           {getTransactionIcon(transaction.type)}
@@ -339,13 +450,49 @@ export default function WalletPage() {
 
           {/* Transactions Tab */}
           <TabsContent value="transactions" className="space-y-6">
+            {/* Filters */}
             <Card>
-              <CardHeader>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Filter by type:</span>
+                  {["reward","stake","fee","deposit","withdrawal"].map((t) => (
+                    <Button
+                      key={t}
+                      variant={txTypes.includes(t) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleType(t)}
+                    >
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="from-date" className="text-xs">From</Label>
+                    <Input id="from-date" type="date" value={fromDate} onChange={(e)=>setFromDate(e.target.value)} className="h-8 w-40" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="to-date" className="text-xs">To</Label>
+                    <Input id="to-date" type="date" value={toDate} onChange={(e)=>setToDate(e.target.value)} className="h-8 w-40" />
+                  </div>
+                  <Button variant="outline" size="sm" onClick={()=>{ setTxTypes([]); setFromDate(""); setToDate(""); }}>Clear</Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex items-center justify-between flex-row">
                 <CardTitle>Transaction History</CardTitle>
+                <Button variant="outline" size="sm" onClick={exportCsv} className="bg-transparent">Export CSV</Button>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockWalletData.transactions.map((transaction) => (
+                   {data.transactions.length === 0 && (
+                     <div className="p-6 text-center text-sm text-muted-foreground border rounded-lg">
+                       No transactions to display. Adjust filters or check back later.
+                     </div>
+                   )}
+                   {(data.transactions).map((transaction) => (
                     <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center gap-4">
                         {getTransactionIcon(transaction.type)}
@@ -381,6 +528,62 @@ export default function WalletPage() {
                       </div>
                     </div>
                   ))}
+                  {data.transactions.length > 0 && (
+                    <div className="flex items-center justify-end gap-8 pt-2 border-t">
+                      <div className="text-sm">
+                        <span className="text-muted-foreground mr-2">Total In:</span>
+                        <span className="font-bold text-green-600">
+                          ${data.transactions.filter(t=>t.amount>0).reduce((s,t)=>s+Math.abs(Number(t.amount||0)),0)}
+                        </span>
+                      </div>
+                      <div className="text-sm">
+                        <span className="text-muted-foreground mr-2">Total Out:</span>
+                        <span className="font-bold text-red-600">
+                          ${data.transactions.filter(t=>t.amount<0).reduce((s,t)=>s+Math.abs(Number(t.amount||0)),0)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {/* Pagination */}
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-xs text-muted-foreground">
+                      Page {page}{pagination?.totalPages ? ` of ${pagination.totalPages}` : ''}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" disabled={!canPrev} onClick={async()=>{
+                        const next = Math.max(1, page - 1)
+                        const params = new URLSearchParams({ page: String(next), pageSize: '20' })
+                        if (txTypes.length) params.set('type', txTypes.join(','))
+                        if (fromDate) params.set('from', new Date(fromDate).toISOString())
+                        if (toDate) params.set('to', new Date(toDate).toISOString())
+                        const res = await fetch(`/api/user/credits?${params.toString()}`, { cache: 'no-store' })
+                        if (res.ok) {
+                          const payload = await res.json()
+                          if (payload?.success) {
+                            setWallet({ ...mockWalletData, ...payload.wallet })
+                            setPagination(payload.pagination || null)
+                            setPage(next)
+                          }
+                        }
+                      }}>Prev</Button>
+                      <Button variant="outline" size="sm" disabled={!canNext} onClick={async()=>{
+                        const next = page + 1
+                        const params = new URLSearchParams({ page: String(next), pageSize: '20' })
+                        if (txTypes.length) params.set('type', txTypes.join(','))
+                        if (fromDate) params.set('from', new Date(fromDate).toISOString())
+                        if (toDate) params.set('to', new Date(toDate).toISOString())
+                        const res = await fetch(`/api/user/credits?${params.toString()}`, { cache: 'no-store' })
+                        if (res.ok) {
+                          const payload = await res.json()
+                          if (payload?.success) {
+                            setWallet({ ...mockWalletData, ...payload.wallet })
+                            setPagination(payload.pagination || null)
+                            setPage(next)
+                          }
+                        }
+                      }}>Next</Button>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -394,7 +597,7 @@ export default function WalletPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockWalletData.activeStakes.map((stake) => (
+                   {(data.activeStakes).map((stake) => (
                     <div key={stake.id} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold">{stake.challengeTitle}</h3>
@@ -493,7 +696,7 @@ export default function WalletPage() {
                     />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Available for withdrawal: ${mockWalletData.balance - mockWalletData.totalStaked}
+                    Available for withdrawal: {(data.balance) - (data.totalStaked ?? 0)}
                   </p>
                   <Button
                     variant="outline"

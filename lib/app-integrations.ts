@@ -853,7 +853,9 @@ export class AppIntegrationManager {
     // Check for realistic values based on data type
     if (data.dataType === 'meditation_session') {
       const duration = data.value.duration
-      if (duration > 120) score -= 20 // More than 2 hours is suspicious
+      // Tighten penalty so clearly impossible values meaningfully lower confidence
+      if (duration > 180) score -= 25 // >3 hours highly suspicious
+      else if (duration > 120) score -= 20 // 2-3 hours suspicious
       if (duration < 1) score -= 30 // Less than 1 minute is suspicious
     }
 

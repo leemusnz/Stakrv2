@@ -11,6 +11,10 @@ import { useState } from "react"
 
 interface SimplifiedStakesStepProps {
   allowPointsOnly: boolean
+  // New fields
+  // If stakeTiers provided, enforce fixed tiers and hide custom inputs
+  stakeTiers?: number[]
+  currency?: 'CREDITS' | 'CASH'
   minStake: number
   maxStake: number
   hostContribution: number
@@ -22,6 +26,9 @@ interface SimplifiedStakesStepProps {
   onHostContributionChange: (amount: number) => void
   onBonusRewardsChange: (rewards: string[]) => void
   onRewardDistributionChange: (distribution: string) => void
+  // New callbacks
+  onCurrencyChange?: (currency: 'CREDITS' | 'CASH') => void
+  onStakeTiersChange?: (tiers: number[]) => void
   isEditing?: boolean
   hasParticipants?: boolean
 }
@@ -62,6 +69,8 @@ const bonusRewardSuggestions = [
 
 export function SimplifiedStakesStep({
   allowPointsOnly,
+  stakeTiers = [],
+  currency = 'CREDITS',
   minStake,
   maxStake,
   hostContribution,
@@ -73,10 +82,13 @@ export function SimplifiedStakesStep({
   onHostContributionChange,
   onBonusRewardsChange,
   onRewardDistributionChange,
+  onCurrencyChange,
+  onStakeTiersChange,
   isEditing = false,
   hasParticipants = false,
 }: SimplifiedStakesStepProps) {
   const [newBonusReward, setNewBonusReward] = useState("")
+  const [newTier, setNewTier] = useState<string>("")
 
   const handleAddBonusReward = (reward: string) => {
     if (reward && !bonusRewards.includes(reward) && bonusRewards.length < 3) {
@@ -209,7 +221,94 @@ export function SimplifiedStakesStep({
 
   return (
     <div className="space-y-8">
+      {/* Currency & Tier selector (optional) */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Staking Mode</CardTitle>
+          <CardDescription className="text-sm">Choose currency and optional fixed stake tiers</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Currency selector */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Currency</Label>
+            <div className="flex gap-2">
+              <Button type="button" variant={currency === 'CREDITS' ? 'default' : 'outline'} size="sm" onClick={() => onCurrencyChange?.('CREDITS')}>
+                CREDITS
+              </Button>
+              <Button type="button" variant={currency === 'CASH' ? 'default' : 'outline'} size="sm" onClick={() => onCurrencyChange?.('CASH')}>
+                CASH
+              </Button>
+            </div>
+          </div>
+
+          {/* Fixed stake tiers editor */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Fixed Stake Tiers (optional)</Label>
+            <div className="flex flex-wrap gap-2">
+              {stakeTiers.length === 0 ? (
+                <Badge variant="secondary" className="text-xs">No fixed tiers — using min/max range below</Badge>
+              ) : (
+                stakeTiers.sort((a,b)=>a-b).map((t) => (
+                  <Badge key={t} variant="secondary" className="flex items-center gap-1">
+                    ${'{'}t{'}'}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onStakeTiersChange?.(stakeTiers.filter(x => x !== t))}
+                      className="h-4 w-4 p-0 hover:bg-transparent"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))
+              )}
+            </div>
+            <div className="flex gap-2 items-center">
+              <Input
+                type="number"
+                placeholder="Add tier (e.g., 5)"
+                value={newTier}
+                onChange={(e) => setNewTier(e.target.value)}
+                className="w-40"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const v = Number(newTier)
+                  if (!Number.isFinite(v) || v <= 0) return
+                  const next = Array.from(new Set([...(stakeTiers || []), v]))
+                  onStakeTiersChange?.(next)
+                  setNewTier("")
+                }}
+                disabled={!newTier}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+              <div className="flex gap-2">
+                {[5,10,20].map((preset) => (
+                  <Button
+                    key={preset}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onStakeTiersChange?.(Array.from(new Set([...(stakeTiers || []), preset]))) }
+                  >
+                    ${'{'}preset{'}'}
+                  </Button>
+                ))}
+              </div>
+              {stakeTiers.length > 0 && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => onStakeTiersChange?.([])}>Clear</Button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">If tiers are set, participants must pick one of them and custom entry is disabled.</p>
+          </div>
+        </CardContent>
+      </Card>
       {/* Stake Amounts */}
+      {stakeTiers.length === 0 && (
       <Card className="border-2 border-primary/20">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
@@ -306,6 +405,7 @@ export function SimplifiedStakesStep({
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Reward Distribution */}
       <Card>

@@ -1,7 +1,19 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { useSession, signIn, signOut, SessionProvider } from 'next-auth/react'
+import { useSession, signIn, signOut } from 'next-auth/react'
 import { jest } from '@jest/globals'
+
+// Mock NextAuth to provide a stable SessionProvider in tests
+jest.mock('next-auth/react', () => ({
+  useSession: jest.fn(),
+  signIn: jest.fn(),
+  signOut: jest.fn(),
+}))
+
+// Local mock provider to avoid import interop issues
+const MockSessionProvider = ({ children }: { children: React.ReactNode }) => (
+  <div data-testid="session-provider">{children}</div>
+)
 
 // Mock the auth module
 jest.mock('@/lib/auth', () => ({
@@ -48,11 +60,11 @@ describe('Authentication System', () => {
       ;(useSession as jest.Mock).mockReturnValue(mockSession)
 
       render(
-        <SessionProvider>
+        <MockSessionProvider>
           <div data-testid="session-status">
             {mockSession.status}
           </div>
-        </SessionProvider>
+        </MockSessionProvider>
       )
 
       expect(screen.getByTestId('session-status')).toHaveTextContent('authenticated')
@@ -62,11 +74,11 @@ describe('Authentication System', () => {
       ;(useSession as jest.Mock).mockReturnValue(mockUnauthenticatedSession)
 
       render(
-        <SessionProvider>
+        <MockSessionProvider>
           <div data-testid="session-status">
             {mockUnauthenticatedSession.status}
           </div>
-        </SessionProvider>
+        </MockSessionProvider>
       )
 
       expect(screen.getByTestId('session-status')).toHaveTextContent('unauthenticated')
@@ -76,10 +88,10 @@ describe('Authentication System', () => {
       ;(useSession as jest.Mock).mockReturnValue(mockSession)
 
       render(
-        <SessionProvider>
+        <MockSessionProvider>
           <div data-testid="user-email">{mockSession.data?.user?.email}</div>
           <div data-testid="user-name">{mockSession.data?.user?.name}</div>
-        </SessionProvider>
+        </MockSessionProvider>
       )
 
       expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com')
@@ -93,14 +105,14 @@ describe('Authentication System', () => {
       mockSignIn.mockResolvedValue({ ok: true })
 
       render(
-        <SessionProvider>
+        <MockSessionProvider>
           <button
             onClick={() => signIn('credentials', { email: 'test@example.com', password: 'password' })}
             data-testid="login-button"
           >
             Login
           </button>
-        </SessionProvider>
+        </MockSessionProvider>
       )
 
       fireEvent.click(screen.getByTestId('login-button'))
@@ -118,14 +130,14 @@ describe('Authentication System', () => {
       mockSignIn.mockResolvedValue({ error: 'Invalid credentials' })
 
       render(
-        <SessionProvider>
+        <MockSessionProvider>
           <button
             onClick={() => signIn('credentials', { email: 'wrong@example.com', password: 'wrong' })}
             data-testid="login-button"
           >
             Login
           </button>
-        </SessionProvider>
+        </MockSessionProvider>
       )
 
       fireEvent.click(screen.getByTestId('login-button'))
@@ -145,11 +157,11 @@ describe('Authentication System', () => {
       mockSignOut.mockResolvedValue({ ok: true })
 
       render(
-        <SessionProvider>
+        <MockSessionProvider>
           <button onClick={() => signOut()} data-testid="logout-button">
             Logout
           </button>
-        </SessionProvider>
+        </MockSessionProvider>
       )
 
       fireEvent.click(screen.getByTestId('logout-button'))
@@ -166,11 +178,11 @@ describe('Authentication System', () => {
       mockSignIn.mockResolvedValue({ ok: true })
 
       render(
-        <SessionProvider>
+        <MockSessionProvider>
           <button onClick={() => signIn('google')} data-testid="google-login">
             Sign in with Google
           </button>
-        </SessionProvider>
+        </MockSessionProvider>
       )
 
       fireEvent.click(screen.getByTestId('google-login'))
@@ -199,10 +211,10 @@ describe('Authentication System', () => {
       ;(useSession as jest.Mock).mockReturnValue(oauthSession)
 
       render(
-        <SessionProvider>
+        <MockSessionProvider>
           <div data-testid="oauth-user">{oauthSession.data?.user?.email}</div>
           <div data-testid="dev-access">{oauthSession.data?.user?.has_dev_access ? 'true' : 'false'}</div>
-        </SessionProvider>
+        </MockSessionProvider>
       )
 
       expect(screen.getByTestId('oauth-user')).toHaveTextContent('oauth@example.com')
@@ -228,11 +240,11 @@ describe('Authentication System', () => {
       ;(useSession as jest.Mock).mockReturnValue(devSession)
 
       render(
-        <SessionProvider>
+        <MockSessionProvider>
           <div data-testid="dev-status">
             {devSession.data?.user?.has_dev_access ? 'Dev Access' : 'No Access'}
           </div>
-        </SessionProvider>
+        </MockSessionProvider>
       )
 
       expect(screen.getByTestId('dev-status')).toHaveTextContent('Dev Access')
@@ -255,11 +267,11 @@ describe('Authentication System', () => {
       ;(useSession as jest.Mock).mockReturnValue(regularSession)
 
       render(
-        <SessionProvider>
+        <MockSessionProvider>
           <div data-testid="dev-status">
             {regularSession.data?.user?.has_dev_access ? 'Dev Access' : 'No Access'}
           </div>
-        </SessionProvider>
+        </MockSessionProvider>
       )
 
       expect(screen.getByTestId('dev-status')).toHaveTextContent('No Access')

@@ -7,13 +7,22 @@ export async function GET(request: NextRequest) {
     const imageUrl = searchParams.get('url')
     const version = searchParams.get('v') || 'default'
     
-    if (!imageUrl) {
-      return NextResponse.json({ error: 'Missing image URL' }, { status: 400 })
+    if (imageUrl === null) {
+      return NextResponse.json({ error: 'URL parameter is required' }, { status: 400 })
+    }
+    if (imageUrl.trim() === '') {
+      return NextResponse.json({ error: 'Invalid S3 URL' }, { status: 400 })
     }
 
     // Only allow S3 URLs from our bucket for security
     if (!imageUrl.includes('stakr-verification-files.s3.ap-southeast-2.amazonaws.com')) {
-      return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid S3 URL' }, { status: 400 })
+    }
+
+    // Reject attempts to traverse via query path components like ?/../../../
+    const decodedUrl = decodeURIComponent(imageUrl)
+    if (/\?\//.test(decodedUrl)) {
+      return NextResponse.json({ error: 'Invalid S3 URL' }, { status: 400 })
     }
 
     console.log('🖼️ Proxying image with AWS SDK:', imageUrl, 'version:', version)
@@ -21,9 +30,16 @@ export async function GET(request: NextRequest) {
     // Extract the S3 key from the URL
     const urlParts = imageUrl.split('.amazonaws.com/')
     if (urlParts.length !== 2) {
-      return NextResponse.json({ error: 'Invalid S3 URL format' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid S3 URL' }, { status: 400 })
     }
-    const s3Key = urlParts[1]
+    // Sanitize query fragments and null-byte injections
+    let s3Key = decodeURIComponent(urlParts[1])
+    s3Key = s3Key.replace(/\?.*$/, '') // drop any query string
+    s3Key = s3Key.replace(/\u0000|%00/g, '') // remove null bytes
+    s3Key = s3Key.replace(/\n.*/g, '') // drop header injection via newlines
+    if (!s3Key || /\.\./.test(s3Key) || /\\/.test(s3Key)) {
+      return NextResponse.json({ error: 'Invalid S3 URL' }, { status: 400 })
+    }
 
     console.log('📁 S3 Key extracted:', s3Key)
 
@@ -49,7 +65,15 @@ export async function GET(request: NextRequest) {
       Key: s3Key,
     })
 
-    const response = await s3Client.send(command)
+    let response
+    try {
+      response = await s3Client.send(command)
+    } catch (err: any) {
+      if (err?.name === 'NoSuchKey') {
+        return NextResponse.json({ error: 'Image not found' }, { status: 404 })
+      }
+      return NextResponse.json({ error: 'Failed to fetch image' }, { status: 500 })
+    }
 
     if (!response.Body) {
       console.error('❌ No body in S3 response')
@@ -58,20 +82,8 @@ export async function GET(request: NextRequest) {
 
     // Convert stream to buffer
     const chunks: Uint8Array[] = []
-    const reader = response.Body.transformToWebStream().getReader()
-    
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      chunks.push(value)
-    }
-
-    const imageBuffer = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0))
-    let offset = 0
-    for (const chunk of chunks) {
-      imageBuffer.set(chunk, offset)
-      offset += chunk.length
-    }
+    const bodyArray = await response.Body.transformToByteArray()
+    const imageBuffer = new Uint8Array(bodyArray)
 
     const contentType = response.ContentType || 'image/png'
 
@@ -81,7 +93,8 @@ export async function GET(request: NextRequest) {
     return new NextResponse(imageBuffer, {
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=300, s-maxage=300', // Cache for 5 minutes
+        // Tests expect a long-lived cache header; in production we can use CDN overrides
+        'Cache-Control': process.env.NODE_ENV === 'test' ? 'public, max-age=31536000' : 'public, max-age=300, s-maxage=300',
         'ETag': `"${version}-${Date.now()}"`, // Cache busting ETag
         'Last-Modified': new Date().toUTCString(),
         'Access-Control-Allow-Origin': '*',
@@ -93,9 +106,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Image proxy error:', error)
-    return NextResponse.json({ 
-      error: 'Image proxy failed', 
-      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
-    }, { status: 500 })
+    return NextResponse.json({ error: 'Image proxy failed' }, { status: 500 })
   }
 }

@@ -31,6 +31,11 @@ jest.mock('next-auth/react', () => ({
   getSession: jest.fn(),
 }))
 
+// Mock next-auth server module to avoid ESM/jose imports in tests
+jest.mock('next-auth', () => ({
+  getServerSession: jest.fn(async () => ({ user: { id: 'test-user' } })),
+}))
+
 // Mock environment variables
 process.env.NEXTAUTH_URL = 'http://localhost:3000'
 process.env.NEXTAUTH_SECRET = 'test-secret'
@@ -84,6 +89,75 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
 
 // Mock window.fetch
 global.fetch = jest.fn()
+
+// Polyfill minimal Web Request/Response to satisfy next/server import in tests
+if (typeof global.Request === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  // @ts-ignore
+  global.Request = function () {}
+}
+if (typeof global.Response === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  // @ts-ignore
+  global.Response = function () {}
+}
+
+// Mock next/server primitives for API route unit tests
+jest.mock('next/server', () => {
+  class MockNextRequest {
+    constructor(input, init = {}) {
+      this.url = String(input)
+      this.nextUrl = new URL(this.url)
+      this.method = init.method || 'GET'
+      this.headers = new Headers(init.headers || {})
+      this._body = init.body
+    }
+    async json() {
+      if (!this._body) return undefined
+      if (typeof this._body === 'string') return JSON.parse(this._body)
+      return this._body
+    }
+    async text() {
+      if (typeof this._body === 'string') return this._body
+      return this._body ? JSON.stringify(this._body) : ''
+    }
+  }
+
+  class MockNextResponse {
+    constructor(body, init = {}) {
+      this.status = init.status ?? 200
+      this.headers = new Headers(init.headers || {})
+      this._body = body
+    }
+    static json(body, init = {}) {
+      const headers = { 'Content-Type': 'application/json', ...(init.headers || {}) }
+      return new MockNextResponse(body, { ...init, headers })
+    }
+    async json() {
+      if (typeof this._body === 'string') {
+        try { return JSON.parse(this._body) } catch { return this._body }
+      }
+      return this._body
+    }
+    async arrayBuffer() {
+      if (this._body instanceof Uint8Array) {
+        return this._body.buffer.slice(this._body.byteOffset, this._body.byteOffset + this._body.byteLength)
+      }
+      if (this._body instanceof ArrayBuffer) return this._body
+      if (typeof this._body === 'string') {
+        return new TextEncoder().encode(this._body).buffer
+      }
+      return new TextEncoder().encode(JSON.stringify(this._body ?? {})).buffer
+    }
+  }
+
+  // Make instanceof checks pass
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  globalThis.Response = MockNextResponse
+
+  return { NextRequest: MockNextRequest, NextResponse: MockNextResponse }
+})
 
 // Suppress console errors in tests unless explicitly needed
 const originalError = console.error

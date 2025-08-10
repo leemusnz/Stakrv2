@@ -77,6 +77,8 @@ export default function ChallengePage() {
           min_stake: challengeData.min_stake,
           max_stake: challengeData.max_stake,
           allow_points_only: challengeData.allow_points_only,
+          currency: challengeData.currency || 'CREDITS',
+          stakeTiers: Array.isArray(challengeData.stake_tiers) ? challengeData.stake_tiers : [],
           start_date: challengeData.start_date,
           end_date: challengeData.end_date,
           status: challengeData.status,
@@ -95,7 +97,8 @@ export default function ChallengePage() {
           timer_min_duration: challengeData.timer_min_duration,
           timer_max_duration: challengeData.timer_max_duration,
           random_checkin_enabled: challengeData.random_checkin_enabled,
-          random_checkin_probability: challengeData.random_checkin_probability
+          random_checkin_probability: challengeData.random_checkin_probability,
+          settlement_summary: challengeData.settlement_summary || null
         }
         
         setChallenge(transformedChallenge)
@@ -221,6 +224,8 @@ export default function ChallengePage() {
     minStake: challenge.min_stake,
     maxStake: challenge.max_stake,
     allowPointsOnly: challenge.allow_points_only,
+    currency: challenge.currency,
+    stakeTiers: challenge.stakeTiers,
     totalPot: challenge.current_participants * 50, // Mock calculation
     startDate: challenge.start_date,
     endDate: challenge.end_date,
@@ -344,6 +349,87 @@ export default function ChallengePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Currency & Stake Configuration */}
+      {(challenge.currency || (Array.isArray(challenge.stakeTiers) && challenge.stakeTiers.length > 0)) && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              {challenge.currency && (
+                <div>
+                  <p className="text-muted-foreground">Currency</p>
+                  <p className="font-bold">{challenge.currency}</p>
+                </div>
+              )}
+              {Array.isArray(challenge.stakeTiers) && challenge.stakeTiers.length > 0 && (
+                <div className="md:col-span-3">
+                  <p className="text-muted-foreground">Stake Tiers</p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {challenge.stakeTiers.sort((a:number,b:number)=>a-b).map((t:number) => (
+                      <Badge key={t} variant="secondary">${String(t)}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Settlement Summary */}
+      {challenge.settlement_summary && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-green-600" />
+                <span className="font-semibold">Settlement Summary</span>
+              </div>
+              <Badge variant="secondary">{challenge.settlement_summary.reward_distribution_method}</Badge>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">Total Distributed</p>
+                <p className="font-bold text-green-700">${Number(challenge.settlement_summary.total_distributed || 0).toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Platform Revenue</p>
+                <p className="font-bold">${Number(challenge.settlement_summary.platform_revenue_total || 0).toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Entry Fees</p>
+                <p className="font-bold">${Number(challenge.settlement_summary.revenue_entry_fees || 0).toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Failed Stakes Cut</p>
+                <p className="font-bold">${Number(challenge.settlement_summary.revenue_failed_stakes_cut || 0).toFixed(2)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isHost && challenge.status !== 'rewards_distributed' && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                const res = await fetch(`/api/challenges/${challengeId}/settle`, { method: 'POST' })
+                if (res.ok) {
+                  window.location.reload()
+                } else {
+                  console.error('Settlement failed')
+                }
+              } catch (e) {
+                console.error('Settlement error', e)
+              }
+            }}
+          >
+            Run Settlement
+          </Button>
+        </div>
+      )}
 
       {/* Community Tabs Interface */}
       <ChallengeCommunityTabs 

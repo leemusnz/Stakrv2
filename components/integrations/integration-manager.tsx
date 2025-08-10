@@ -260,16 +260,15 @@ export function IntegrationManager() {
       const response = await fetch('/api/integrations/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          forceSync: true
-        })
+        body: JSON.stringify({ trigger: 'manual_sync' })
       })
 
       const data = await response.json()
 
       if (response.ok) {
-        setSyncData(data.data)
-        toast.success(`Sync completed! ${data.data.wearableDataPoints + data.data.appDataPoints} data points synced`)
+        const total = data?.summary?.total ?? 0
+        setSyncData({ wearableDataPoints: 0, appDataPoints: 0, verificationResults: 0, verified: data?.summary?.successful ?? 0, failed: data?.summary?.failed ?? 0, errors: data?.summary?.failed ?? 0 })
+        toast.success(`Sync completed! ${total} provider result(s)`)        
         loadIntegrations()
       } else {
         toast.error(data.error || 'Sync failed')
@@ -278,6 +277,29 @@ export function IntegrationManager() {
     } catch (error) {
       console.error('Sync failed:', error)
       toast.error('Sync failed')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
+  const syncSingle = async (opts: { type: 'wearable' | 'app'; provider: string }) => {
+    try {
+      setIsSyncing(true)
+      const res = await fetch('/api/integrations/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trigger: 'manual_sync', provider: opts.provider, type: opts.type })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        const total = data?.summary?.total ?? 0
+        toast.success(`Synced ${opts.provider}: ${total} result(s)`) 
+        loadIntegrations()
+      } else {
+        toast.error(data.error || `Sync failed for ${opts.provider}`)
+      }
+    } catch (e) {
+      toast.error(`Sync failed for ${opts.provider}`)
     } finally {
       setIsSyncing(false)
     }
@@ -475,15 +497,26 @@ export function IntegrationManager() {
                       </span>
                     </div>
                   )}
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removeIntegration('wearable', integration.device!)}
-                    className="w-full gap-2"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Remove
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => syncSingle({ type: 'wearable', provider: integration.device! })}
+                      className="w-full gap-2 bg-transparent"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Sync now
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeIntegration('wearable', integration.device!)}
+                      className="w-full gap-2"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Remove
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -627,15 +660,26 @@ export function IntegrationManager() {
                       </span>
                     </div>
                   )}
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removeIntegration('app', integration.app!)}
-                    className="w-full gap-2"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Remove
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => syncSingle({ type: 'app', provider: integration.app! })}
+                      className="w-full gap-2 bg-transparent"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Sync now
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeIntegration('app', integration.app!)}
+                      className="w-full gap-2"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Remove
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
