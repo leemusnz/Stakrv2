@@ -6,9 +6,9 @@
 ## 🧪 Quick Test Instructions
 
 ### 1. Start Development Server
-```bash
+\`\`\`bash
 npm run dev
-```
+\`\`\`
 
 ### 2. Open Mobile Testing
 - Open browser to `http://localhost:3000`

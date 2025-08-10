@@ -513,6 +513,3 @@ describe('Challenges API Thumbnail Tests', () => {
     })
   })
 })
-
-
-

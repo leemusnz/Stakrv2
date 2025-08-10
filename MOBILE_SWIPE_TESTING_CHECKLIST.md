@@ -184,9 +184,9 @@
 ## 🎯 **Quick Test Commands**
 
 ### **Start Development Server**
-```bash
+\`\`\`bash
 npm run dev
-```
+\`\`\`
 
 ### **Open Mobile View**
 1. Open browser dev tools
@@ -205,4 +205,3 @@ npm run dev
 3. **Button Test**: Use buttons instead of swipes
 4. **Visual Test**: Check for visual indicators
 5. **Performance Test**: Check for smooth animations
-

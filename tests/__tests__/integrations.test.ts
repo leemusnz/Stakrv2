@@ -475,4 +475,3 @@ describe('Integration Data Types', () => {
     expect(appDataTypes).toContain('code_commit')
   })
 })
-

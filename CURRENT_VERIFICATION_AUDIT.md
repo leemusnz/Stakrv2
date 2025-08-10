@@ -9,7 +9,7 @@ Based on the codebase analysis, Stakr has a **substantial verification infrastru
 ## 🗃️ **Database Schema (Production Ready)**
 
 ### **Primary Tables:**
-```sql
+\`\`\`sql
 ✅ proof_submissions table
   - id, participant_id, challenge_id, user_id
   - submission_type ('photo', 'video', 'text', 'auto_sync')
@@ -27,7 +27,7 @@ Based on the codebase analysis, Stakr has a **substantial verification infrastru
   - verification_status field
   - proof_submitted boolean
   - completion_status tracking
-```
+\`\`\`
 
 ### **Missing Columns (Database Errors):**
 ❌ `ps.submission_type` column is missing from live database
@@ -41,12 +41,12 @@ Based on the codebase analysis, Stakr has a **substantial verification infrastru
 ## 🎛️ **Admin Dashboard (Partial)**
 
 ### **Existing Admin APIs:**
-```
+\`\`\`
 ✅ /api/admin/verifications - Verification review system
 ✅ /api/admin/appeals - Appeals management
 ✅ /api/admin/analytics - Verification analytics
 ❌ Currently failing due to missing database columns
-```
+\`\`\`
 
 ### **Admin Features Built:**
 - Verification queue management
@@ -60,12 +60,12 @@ Based on the codebase analysis, Stakr has a **substantial verification infrastru
 ## 📱 **User-Facing Components (Comprehensive)**
 
 ### **Proof Submission UI:**
-```
+\`\`\`
 ✅ VerificationModal - Modal for proof capture
 ✅ VerificationTrigger - Button/card to initiate proof
 ✅ ProofSubmission - Full-featured submission form
 ✅ MobileProofSubmission - Mobile-optimized interface
-```
+\`\`\`
 
 ### **Features Available:**
 - **Live camera capture** (already implemented!)
@@ -81,7 +81,7 @@ Based on the codebase analysis, Stakr has a **substantial verification infrastru
 ## 🤖 **AI & Security Systems (Advanced)**
 
 ### **AI Anti-Cheat Engine:**
-```
+\`\`\`
 ✅ lib/ai-anti-cheat.ts - 5-layer detection system
   Layer 1: Proof validation (metadata, timestamps, duplicates)
   Layer 2: Behavioral analysis (timing patterns, completion patterns)
@@ -93,20 +93,20 @@ Based on the codebase analysis, Stakr has a **substantial verification infrastru
 ✅ Action determination (approve/review/reject/ban)
 ✅ User risk profiling
 ✅ Processing time tracking
-```
+\`\`\`
 
 ### **Content Moderation:**
-```
+\`\`\`
 ✅ lib/content-moderation.ts - OpenAI + custom filters
 ✅ lib/moderation.ts - Secondary moderation system
 ✅ Text, image, and video moderation
 ✅ Profile name validation
 ✅ Profanity filtering
 ✅ AI-generated content detection (placeholder)
-```
+\`\`\`
 
 ### **File Security:**
-```
+\`\`\`
 ✅ lib/enhanced-file-validation.ts - Comprehensive validation
 ✅ File signature verification
 ✅ EXIF metadata analysis
@@ -114,36 +114,36 @@ Based on the codebase analysis, Stakr has a **substantial verification infrastru
 ✅ Stock photo detection patterns
 ✅ AI-generated content flags
 ✅ Duplicate detection framework
-```
+\`\`\`
 
 ---
 
 ## 🔗 **API Endpoints (Active)**
 
 ### **Proof Submission:**
-```
+\`\`\`
 ✅ POST /api/challenges/[id]/checkins
   - Handles all proof types
   - AI validation integration
   - File upload to S3
   - Location and timer support
   - Returns AI analysis results
-```
+\`\`\`
 
 ### **Appeals System:**
-```
+\`\`\`
 ✅ POST /api/user/appeals
   - User appeal submission
   - Evidence attachment
   - Admin review queue
-```
+\`\`\`
 
 ### **File Management:**
-```
+\`\`\`
 ✅ POST /api/upload/presigned-url - S3 upload
 ✅ POST /api/upload/confirm - Upload confirmation
 ✅ File validation and security checks
-```
+\`\`\`
 
 ---
 
@@ -159,7 +159,7 @@ Based on the codebase analysis, Stakr has a **substantial verification infrastru
 7. **Appeal rejected verifications**
 
 ### **Example Verification Flow:**
-```
+\`\`\`
 User clicks "Submit Proof" 
 → VerificationModal opens
 → Choose proof type (photo/video/text)
@@ -169,35 +169,35 @@ User clicks "Submit Proof"
 → AI analysis runs (5-layer validation)
 → Result shown with confidence score
 → Admin review if flagged
-```
+\`\`\`
 
 ---
 
 ## 🚨 **Immediate Issues**
 
 ### **Database Schema Mismatch:**
-```
+\`\`\`
 ❌ Missing columns causing 500 errors:
   - proof_submissions.submission_type
   - proof_submissions.admin_notes  
   - proof_submissions.submitted_at
-```
+\`\`\`
 
 ### **Incomplete AI Integration:**
-```
+\`\`\`
 ⚠️ AI systems are built but not fully integrated:
   - Detection layers are placeholders
   - ML models not loaded
   - Risk profiling not connected to database
-```
+\`\`\`
 
 ### **Missing Live Camera Enforcement:**
-```
+\`\`\`
 ⚠️ Components support live camera but:
   - Gallery uploads may still be possible
   - Timestamp validation needs strengthening
   - Device fingerprinting not implemented
-```
+\`\`\`
 
 ---
 

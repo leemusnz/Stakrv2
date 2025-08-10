@@ -170,4 +170,3 @@ module.exports = {
   testMobileSwipe,
   printManualTestInstructions
 };
-

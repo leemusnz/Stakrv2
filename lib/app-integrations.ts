@@ -962,4 +962,3 @@ export function getAppName(app: IntegratedApp): string {
   }
   return names[app] || app
 }
-

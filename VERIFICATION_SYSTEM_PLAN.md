@@ -130,7 +130,7 @@ Stakr needs a robust, scalable verification system that builds trust while preve
 
 ### **Database Schema Updates**
 
-```sql
+\`\`\`sql
 -- Enhanced verification system tables
 CREATE TABLE verification_methods (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -180,11 +180,11 @@ CREATE TABLE verification_appeals (
   reviewed_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW()
 );
-```
+\`\`\`
 
 ### **API Endpoints**
 
-```typescript
+\`\`\`typescript
 // Verification system API endpoints
 interface VerificationAPI {
   // Submit proof for verification
@@ -205,11 +205,11 @@ interface VerificationAPI {
   // Community review endpoints
   voteOnSubmission: (submissionId: string, vote: 'approve' | 'reject') => Promise<void>
 }
-```
+\`\`\`
 
 ### **AI Verification Engine**
 
-```typescript
+\`\`\`typescript
 interface AIVerificationEngine {
   // Analyze photo/video authenticity
   analyzeMedia: (file: File, requirements: MediaRequirements) => Promise<MediaAnalysis>
@@ -226,7 +226,7 @@ interface AIVerificationEngine {
   // Calculate confidence score
   calculateConfidence: (analysis: VerificationAnalysis) => Promise<number>
 }
-```
+\`\`\`
 
 ## 🛡️ Anti-Fraud Measures
 

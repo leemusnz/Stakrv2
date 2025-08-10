@@ -6,7 +6,7 @@
 
 Create the migration file:
 
-```sql
+\`\`\`sql
 -- File: migrations/verification-system-v1.sql
 -- Run this in your Neon SQL Editor
 
@@ -73,11 +73,11 @@ CREATE TABLE IF NOT EXISTS verification_submissions (
 CREATE INDEX IF NOT EXISTS idx_verification_submissions_status ON verification_submissions(final_status);
 CREATE INDEX IF NOT EXISTS idx_verification_submissions_challenge ON verification_submissions(challenge_id);
 CREATE INDEX IF NOT EXISTS idx_verification_submissions_user ON verification_submissions(user_id);
-```
+\`\`\`
 
 ### **Step 2: TypeScript Types**
 
-```typescript
+\`\`\`typescript
 // File: types/verification.ts
 
 export interface VerificationMethod {
@@ -135,11 +135,11 @@ export interface VerificationResult {
   estimatedReviewTime?: string
   nextSteps?: string[]
 }
-```
+\`\`\`
 
 ### **Step 3: Core Verification Engine**
 
-```typescript
+\`\`\`typescript
 // File: lib/verification/engine.ts
 
 import { createDbConnection } from '@/lib/db'
@@ -268,11 +268,11 @@ function getNextSteps(status: string, methodType: string): string[] {
       return ['Processing your submission...']
   }
 }
-```
+\`\`\`
 
 ### **Step 4: API Endpoint**
 
-```typescript
+\`\`\`typescript
 // File: app/api/verification/submit/route.ts
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -325,11 +325,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-```
+\`\`\`
 
 ### **Step 5: Frontend Component**
 
-```typescript
+\`\`\`typescript
 // File: components/verification-submission.tsx
 
 'use client'
@@ -474,7 +474,7 @@ export function VerificationSubmission({
     </Card>
   )
 }
-```
+\`\`\`
 
 ## 🎯 Next Steps
 
@@ -510,7 +510,7 @@ export function VerificationSubmission({
 ## 🔧 Testing Strategy
 
 ### **Unit Tests**
-```typescript
+\`\`\`typescript
 // File: tests/verification.test.ts
 import { processVerification } from '@/lib/verification/engine'
 
@@ -529,10 +529,10 @@ describe('Verification Engine', () => {
     expect(result.confidenceScore).toBeGreaterThan(0)
   })
 })
-```
+\`\`\`
 
 ### **Integration Tests**
-```typescript
+\`\`\`typescript
 // File: tests/api/verification.test.ts
 import { POST } from '@/app/api/verification/submit/route'
 
@@ -555,6 +555,6 @@ describe('Verification API', () => {
     expect(result.submissionId).toBeDefined()
   })
 })
-```
+\`\`\`
 
 This implementation guide provides a solid foundation for building the verification system. Start with Phase 1 and gradually add more sophisticated features as you progress through the phases.

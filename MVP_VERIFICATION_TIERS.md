@@ -15,7 +15,7 @@ Our hierarchical verification system balances **user experience**, **fraud preve
 - **Verification Level**: Light but meaningful
 
 ### **Requirements**:
-```
+\`\`\`
 ✅ Photo Evidence (Weekly)
   - Simple progress photos
   - Timestamp verification
@@ -35,7 +35,7 @@ Our hierarchical verification system balances **user experience**, **fraud preve
   - Extra photo verification request
   - Brief video confirmation
   - GPS location check (if applicable)
-```
+\`\`\`
 
 ### **Example Challenge**: "*Meditate 10 minutes daily for 30 days - $25 stake*"
 **Verification Process**:
@@ -60,7 +60,7 @@ Our hierarchical verification system balances **user experience**, **fraud preve
 - **Verification Level**: Multi-layered automated + human review
 
 ### **Requirements**:
-```
+\`\`\`
 ✅ Smart Device Integration (Required)
   - Apple Watch, Fitbit, Garmin, etc.
   - Real-time data streaming
@@ -80,7 +80,7 @@ Our hierarchical verification system balances **user experience**, **fraud preve
   - 20% of submissions reviewed by other users
   - Expert validators for specialized challenges
   - Incentivized accuracy (earn credits for correct reviews)
-```
+\`\`\`
 
 ### **Example Challenge**: "*Run 5K every day for 30 days - $200 stake*"
 **Verification Process**:
@@ -106,7 +106,7 @@ Our hierarchical verification system balances **user experience**, **fraud preve
 - **Verification Level**: Human-involved comprehensive verification
 
 ### **Requirements**:
-```
+\`\`\`
 ✅ Pre-Challenge Verification
   - Identity verification (government ID)
   - Baseline capability assessment
@@ -126,7 +126,7 @@ Our hierarchical verification system balances **user experience**, **fraud preve
   - Certified professionals in challenge domain
   - Detailed submission analysis
   - Final approval required
-```
+\`\`\`
 
 ### **Example Challenge**: "*Train for and complete a marathon in 6 months - $1000 stake*"
 **Verification Process**:

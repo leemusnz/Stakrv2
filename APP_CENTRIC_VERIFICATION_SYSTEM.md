@@ -11,7 +11,7 @@ Your insight is **spot-on** - verification needs to be **app-native**, **real-ti
 ### 📸 **Pillar 1: In-App Photo/Video Capture**
 **Philosophy**: "*Show, don't tell*"
 
-```
+\`\`\`
 ✅ Live Camera Only (No gallery uploads)
   - Prevents pre-recorded/fake content
   - Timestamp + GPS automatically embedded
@@ -26,7 +26,7 @@ Your insight is **spot-on** - verification needs to be **app-native**, **real-ti
   - Daily photos build a story
   - Impossible to fake consistent progression
   - AI detects pattern breaks
-```
+\`\`\`
 
 **Examples**:
 - **Workout Challenge**: Live video of you exercising + heart rate visible on watch
@@ -38,7 +38,7 @@ Your insight is **spot-on** - verification needs to be **app-native**, **real-ti
 ### ⏰ **Pillar 2: Timed In-App Activities**
 **Philosophy**: "*Real effort takes real time*"
 
-```
+\`\`\`
 ✅ Live Activity Tracking
   - Must complete activity while app is open
   - Screen recording detection (prevents faking)
@@ -53,7 +53,7 @@ Your insight is **spot-on** - verification needs to be **app-native**, **real-ti
   - Can't minimize app during timed activities
   - Random attention checks during session
   - Biometric consistency (heart rate patterns)
-```
+\`\`\`
 
 **Examples**:
 - **Meditation**: 20-minute guided session, periodic mindfulness prompts
@@ -65,7 +65,7 @@ Your insight is **spot-on** - verification needs to be **app-native**, **real-ti
 ### 🎯 **Pillar 3: Smart Photo + Timer Combos**
 **Philosophy**: "*Best of both worlds verification*"
 
-```
+\`\`\`
 ✅ Bookend Evidence
   - Start photo + timed activity + end photo
   - Creates unbreakable verification chain
@@ -80,14 +80,14 @@ Your insight is **spot-on** - verification needs to be **app-native**, **real-ti
   - 10% of sessions get "bonus verification"
   - Mid-activity photo request
   - Increases trust score significantly
-```
+\`\`\`
 
 ---
 
 ### 🔍 **Pillar 4: Random Spot Checks**
 **Philosophy**: "*Trust but verify unexpectedly*"
 
-```
+\`\`\`
 ✅ Intelligent Randomization
   - Higher stakes = more frequent checks
   - New users = more verification required
@@ -102,7 +102,7 @@ Your insight is **spot-on** - verification needs to be **app-native**, **real-ti
   - Warning → Extra verification → Human review → Account action
   - Clear appeals process
   - Transparent enforcement
-```
+\`\`\`
 
 ---
 
@@ -111,35 +111,35 @@ Your insight is **spot-on** - verification needs to be **app-native**, **real-ti
 ### 🥇 **Tier 1: Fully Integrated Smart Devices**
 **Examples**: Apple Watch, Fitbit, Smart Toothbrush, Connected Scale
 
-```
+\`\`\`
 Verification Level: AUTOMATIC ✅
 - Real-time data streaming
 - Impossible to fake device signatures
 - Cross-reference with other data sources
 - Minimal additional verification needed
-```
+\`\`\`
 
 ### 🥈 **Tier 2: App-Connected Devices**
 **Examples**: Strava, MyFitnessPal, Headspace, Duolingo
 
-```
+\`\`\`
 Verification Level: SEMI-AUTOMATIC 🔄
 - API integration validates activity
 - Still require in-app photo confirmation
 - Cross-reference app data with photos
 - Spot checks for consistency
-```
+\`\`\`
 
 ### 🥉 **Tier 3: No Smart Device**
 **Examples**: Home workouts, cooking, reading, manual activities
 
-```
+\`\`\`
 Verification Level: MANUAL INTENSIVE 📸
 - Heavy reliance on in-app photo/video
 - Frequent timed activities
 - Higher random spot check frequency
 - Community verification for high stakes
-```
+\`\`\`
 
 ---
 
@@ -156,51 +156,51 @@ This is **genius** because it creates:
 ### 🎯 **Challenge Trust Score (1-5 ⭐)**
 
 **5 ⭐ "Bulletproof"**
-```
+\`\`\`
 - Smart device integration required
 - Live video verification
 - Expert review included
 - < 0.1% fraud rate historically
-```
+\`\`\`
 
 **4 ⭐ "Highly Trusted"**
-```
+\`\`\`
 - Multiple verification methods
 - Random spot checks
 - AI analysis included
 - < 1% fraud rate historically
-```
+\`\`\`
 
 **3 ⭐ "Standard Trust"**
-```
+\`\`\`
 - In-app photo/video required
 - Basic time validation
 - Community flagging
 - < 5% fraud rate historically
-```
+\`\`\`
 
 **2 ⭐ "Basic Trust"**
-```
+\`\`\`
 - Self-reporting + photos
 - Spot checks only
 - Honor system heavy
 - 5-15% fraud rate historically
-```
+\`\`\`
 
 **1 ⭐ "Honor System"**
-```
+\`\`\`
 - Minimal verification
 - Self-reporting focus
 - Community trust based
 - >15% fraud rate (but low stakes)
-```
+\`\`\`
 
 ---
 
 ## 🎪 **User Experience Flow**
 
 ### **Challenge Creation**:
-```
+\`\`\`
 Creator sets challenge → System suggests verification tier based on:
 ├── Challenge type (fitness = higher tier)
 ├── Stakes amount (higher $ = higher tier)  
@@ -208,10 +208,10 @@ Creator sets challenge → System suggests verification tier based on:
 └── User feedback (community wants higher trust)
 
 Users see: "This challenge has 4⭐ verification (Highly Trusted)"
-```
+\`\`\`
 
 ### **Challenge Joining**:
-```
+\`\`\`
 User views challenge → Sees verification requirements:
 "📸 Daily progress photos required"
 "⏰ 30-minute timed sessions"
@@ -219,22 +219,22 @@ User views challenge → Sees verification requirements:
 "⭐ 4.2/5 trust rating from 147 previous participants"
 
 User decides: "Worth it for $200 stakes"
-```
+\`\`\`
 
 ### **During Challenge**:
-```
+\`\`\`
 Day 1: "Take your 'before' photo now" → Live camera opens
 Day 5: "Random spot check! Take a video of your current activity"
 Day 10: "⭐ Rate this challenge's verification fairness (1-5 stars)"
 Day 30: "Success! Your verification score: 98% trusted"
-```
+\`\`\`
 
 ---
 
 ## 💰 **Economics of App-Centric Verification**
 
 ### **Cost Structure**:
-```
+\`\`\`
 Smart Device Integration: $0.10 per verification
 In-App Photo/Video: $0.25 per verification
 Timed Activities: $0.15 per verification
@@ -242,52 +242,52 @@ Random Spot Checks: $0.50 per verification
 Community Rating System: $0.05 per verification
 
 Total Range: $0.15 - $1.05 per verification
-```
+\`\`\`
 
 ### **Revenue Impact**:
-```
+\`\`\`
 Higher Trust Challenges → Higher Stakes → Higher Revenue
 1⭐ Challenge: $25 average stake → $1.25 revenue (5%)
 5⭐ Challenge: $500 average stake → $25 revenue (5%)
 
 Trust Rating drives 20x revenue difference!
-```
+\`\`\`
 
 ---
 
 ## 🚀 **MVP Implementation Priority**
 
 ### **Week 1-2: In-App Camera Foundation**
-```
+\`\`\`
 ✅ Live photo/video capture
 ✅ Timestamp + GPS embedding
 ✅ Basic AI content moderation
 ✅ No gallery upload option
-```
+\`\`\`
 
 ### **Week 3-4: Timed Activities**
-```
+\`\`\`
 ✅ Session timers with validation
 ✅ App focus detection
 ✅ Basic accelerometer integration
 ✅ Random attention checks
-```
+\`\`\`
 
 ### **Week 5-6: Smart Device Integration**
-```
+\`\`\`
 ✅ Apple Health / Google Fit APIs
 ✅ Fitbit / Garmin connections
 ✅ Basic data cross-validation
 ✅ Device signature verification
-```
+\`\`\`
 
 ### **Week 7-8: Trust Rating System**
-```
+\`\`\`
 ✅ User rating interface
 ✅ Historical trust score calculation
 ✅ Challenge verification previews
 ✅ Community feedback integration
-```
+\`\`\`
 
 ---
 

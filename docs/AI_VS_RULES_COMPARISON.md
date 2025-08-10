@@ -3,7 +3,7 @@
 ## The Complexity Problem
 
 ### Without AI: Creator Experience
-```
+\`\`\`
 Challenge: "Walk to the coffee shop and back"
 
 Creator must configure:
@@ -14,13 +14,13 @@ Creator must configure:
 □ Time Limit: ??? (shopping vs speed walking?)
 □ Outdoor Only: ??? (what about indoor mall?)
 □ Round Trip Required: ??? (or one-way counts?)
-```
+\`\`\`
 
 ### With AI: Creator Experience  
-```
+\`\`\`
 Challenge: "Walk to the coffee shop and back"
 ✅ Done! AI understands automatically.
-```
+\`\`\`
 
 ## Real Challenge Examples
 
@@ -49,7 +49,7 @@ Challenge: "Walk to the coffee shop and back"
 ## Code Complexity Comparison
 
 ### Without AI: Validation Function
-```typescript
+\`\`\`typescript
 function validateChallenge(challenge: Challenge, activity: Activity): boolean {
   // 500+ lines of nested if/else statements
   if (challenge.activityType === 'walking') {
@@ -78,15 +78,15 @@ function validateChallenge(challenge: Challenge, activity: Activity): boolean {
   }
   // ... repeat for 20+ activity types
 }
-```
+\`\`\`
 
 ### With AI: Validation Function
-```typescript
+\`\`\`typescript
 async function validateChallenge(challenge: Challenge, activity: Activity): Promise<boolean> {
   const result = await ai.validate(challenge.description, activity)
   return result.isValid
 }
-```
+\`\`\`
 
 ## The Scaling Problem
 
@@ -107,14 +107,14 @@ async function validateChallenge(challenge: Challenge, activity: Activity): Prom
 ### Handling Edge Cases
 
 **Without AI:**
-```typescript
+\`\`\`typescript
 // Someone always thinks of new edge cases:
 if (challenge.requiresGPS && !activity.hasGPS) return false
 if (challenge.weatherDependent && weather.isRaining && challenge.outdoorOnly) return false  
 if (challenge.equipmentRequired.includes('heartMonitor') && !activity.heartRate) return false
 if (challenge.timeOfDay === 'morning' && activity.startTime > '12:00') return false
 // ... infinite edge cases
-```
+\`\`\`
 
 **With AI:**
 Creator: "Only count if it's sunny and you use a heart monitor"
@@ -135,5 +135,3 @@ With AI:
 - ⚡ New challenge types work immediately (fast iteration)
 
 **The choice is obvious: AI makes the platform scalable and user-friendly.**
-
-

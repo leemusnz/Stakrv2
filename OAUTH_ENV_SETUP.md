@@ -4,7 +4,7 @@
 
 Add these to your `.env.local` file:
 
-```bash
+\`\`\`bash
 # ================================
 # 🎵 SPOTIFY INTEGRATION
 # ================================
@@ -68,7 +68,7 @@ GOOGLE_FIT_CLIENT_SECRET=your_google_fit_client_secret
 # 2. MyFitnessPal uses Under Armour's platform
 MYFITNESSPAL_CLIENT_ID=your_myfitnesspal_client_id
 MYFITNESSPAL_CLIENT_SECRET=your_myfitnesspal_client_secret
-```
+\`\`\`
 
 ## 🔧 Quick Setup Instructions
 
@@ -146,5 +146,3 @@ For production, replace `localhost:3000` with your actual domain:
 2. **"Invalid client"**: Check client ID/secret are correct
 3. **"Access denied"**: User declined authorization
 4. **Token expired**: Implement refresh token logic (future enhancement)
-
-

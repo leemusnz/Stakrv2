@@ -157,4 +157,3 @@ console.log('   - Try different screen sizes and orientations');
 console.log('   - Test with different touch sensitivity settings');
 console.log('   - Verify haptic feedback works on supported devices');
 console.log('');
-

@@ -384,6 +384,3 @@ export function IntegrationSetupWizard({
     </div>
   )
 }
-
-
-

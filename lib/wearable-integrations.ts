@@ -599,4 +599,3 @@ export function getDeviceName(device: WearableDevice): string {
   }
   return names[device] || device
 }
-

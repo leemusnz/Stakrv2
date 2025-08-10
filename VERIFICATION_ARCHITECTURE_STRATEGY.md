@@ -18,7 +18,7 @@ Every challenge type requires different verification approaches:
 ### **Approach**: Pre-defined verification tiers based on challenge category and stakes
 
 ### **Structure**:
-```
+\`\`\`
 Level 1: Honor System ($10-50 stakes)
 ├── Self-reporting + spot checks
 ├── Basic photo verification
@@ -35,7 +35,7 @@ Level 3: Full Verification ($200+ stakes)
 ├── Biometric analysis
 ├── Expert review
 └── Multi-source validation
-```
+\`\`\`
 
 ### **Pros**:
 - ✅ Predictable verification requirements
@@ -56,7 +56,7 @@ Level 3: Full Verification ($200+ stakes)
 ### **Approach**: Users verify each other with incentive structures
 
 ### **Structure**:
-```
+\`\`\`
 Verification Roles:
 ├── Peer Reviewers (earn credits for reviewing)
 ├── Expert Validators (certified in specific domains)
@@ -68,7 +68,7 @@ Incentive Structure:
 ├── Lose reputation for wrong decisions
 ├── Build expert status in specific categories
 └── Unlock higher-stake challenges through good verification
-```
+\`\`\`
 
 ### **Pros**:
 - ✅ Scales naturally with user growth
@@ -90,7 +90,7 @@ Incentive Structure:
 ### **Approach**: Machine learning that adapts verification requirements dynamically
 
 ### **Structure**:
-```
+\`\`\`
 AI Risk Assessment:
 ├── Analyzes challenge type + user history + stakes
 ├── Assigns dynamic verification requirements
@@ -103,7 +103,7 @@ Example:
 
 "Trusted user + $50 meditation + consistent history"
 → Requires: App integration + spot check (5% chance)
-```
+\`\`\`
 
 ### **Pros**:
 - ✅ Maximally efficient - only verify what's needed
@@ -124,25 +124,25 @@ Example:
 ### **"Smart Hierarchy with Community Backup"**
 
 **Phase 1: Start with Simple Hierarchy**
-```
+\`\`\`
 Tier 1 ($10-100): Basic verification + community flagging
 Tier 2 ($100-500): Smart device + AI analysis
 Tier 3 ($500+): Full verification suite
-```
+\`\`\`
 
 **Phase 2: Add Community Layer**
-```
+\`\`\`
 - Community reviewers earn micro-rewards
 - Expert validators for specialized challenges
 - Appeals process with human oversight
-```
+\`\`\`
 
 **Phase 3: AI Enhancement**
-```
+\`\`\`
 - Risk-based dynamic requirements
 - Pattern recognition for new fraud types
 - Predictive verification (prevent fraud before it happens)
-```
+\`\`\`
 
 ---
 

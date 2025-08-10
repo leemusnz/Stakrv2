@@ -14,7 +14,7 @@ Comprehensive development tools for fine-tuning and testing the AI Challenge Ana
 ### 2. URL Parameter Overrides
 Quick testing without UI interaction:
 
-```
+\`\`\`
 # Quick modes
 /create-challenge?analyzer_quick=true       # Fast, minimal analysis
 /create-challenge?analyzer_debug=true       # Detailed, verbose analysis
@@ -26,7 +26,7 @@ Quick testing without UI interaction:
 
 # Fine-tuning parameters
 /create-challenge?context=95&verbosity=30&critical=80&format=minimal
-```
+\`\`\`
 
 ### 3. Challenge Type Presets
 
@@ -73,24 +73,24 @@ Quick testing without UI interaction:
 ## Quick Testing Examples
 
 ### For Handstand Challenge
-```
+\`\`\`
 /create-challenge?preset=physical_skills&context=90&skip_obvious=true
-```
+\`\`\`
 
 ### For Habit Tracking
-```
+\`\`\`
 /create-challenge?preset=habits&context=85&verbosity=40
-```
+\`\`\`
 
 ### Minimal Analysis Mode
-```
+\`\`\`
 /create-challenge?format=minimal&context=100&skip_obvious=true
-```
+\`\`\`
 
 ### Debug Mode (Verbose Everything)
-```
+\`\`\`
 /create-challenge?analyzer_debug=true
-```
+\`\`\`
 
 ## Implementation Notes
 
@@ -107,4 +107,3 @@ Quick testing without UI interaction:
 3. **Use URL params** for quick iteration testing
 4. **Check console logs** to verify settings are applied
 5. **Test edge cases** with different parameter combinations
-

@@ -202,4 +202,3 @@ export const ANALYZER_PRESETS = {
   supportive: '?critical=20&verbosity=60&format=standard',
   strict: '?critical=95&verbosity=80&format=detailed'
 } as const
-

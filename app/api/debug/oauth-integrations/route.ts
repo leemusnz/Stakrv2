@@ -145,5 +145,3 @@ function getAuthorizeUrl(service: string, clientId: string, baseUrl: string): st
       return `# OAuth URL not configured for ${service}`
   }
 }
-
-

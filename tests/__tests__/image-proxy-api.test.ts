@@ -387,6 +387,3 @@ describe('Image Proxy API Tests', () => {
     })
   })
 })
-
-
-

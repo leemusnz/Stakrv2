@@ -6,10 +6,10 @@ Stakr uses a comprehensive AI system for challenge analysis and verification, cr
 
 ## System Architecture
 
-```
+\`\`\`
 Challenge Creation → AI Analysis → Database Storage → AI Verification → Decision
       ✅               ✅              ✅               ✅            ✅
-```
+\`\`\`
 
 ## 🎯 AI Challenge Analyzer
 
@@ -43,7 +43,7 @@ Analyzes challenge descriptions during creation to:
 
 ### API Usage
 
-```typescript
+\`\`\`typescript
 import { AIChallengeAnalyzer } from '@/lib/ai-challenge-analyzer'
 
 const analysis = await AIChallengeAnalyzer.analyzeChallengeDescription({
@@ -60,11 +60,11 @@ const analysis = await AIChallengeAnalyzer.analyzeChallengeDescription({
     skipObviousQuestions: true
   }
 })
-```
+\`\`\`
 
 ### Response Format
 
-```typescript
+\`\`\`typescript
 interface ChallengeAnalysis {
   dailyRequirement: string           // "Walk 10 meters on hands"
   confidence: number                 // 0-100 confidence score
@@ -80,7 +80,7 @@ interface ChallengeAnalysis {
   designRecommendations: string[]    // Suggestions for improvement
   interpretation: string             // AI's understanding of the challenge
 }
-```
+\`\`\`
 
 ## 🔐 AI Verification System
 
@@ -90,13 +90,13 @@ Validates proof submissions using challenge analysis context to make intelligent
 ### Architecture
 
 #### 1. Context Retrieval
-```typescript
+\`\`\`typescript
 // Retrieves stored challenge analysis from database
 const challengeContext = await getChallengeAnalysisContext(challengeId)
-```
+\`\`\`
 
 #### 2. Enhanced Verification
-```typescript
+\`\`\`typescript
 // Uses Enhanced AI Verification with full context
 const result = await EnhancedAIVerification.verify({
   challengeId,
@@ -114,10 +114,10 @@ const result = await EnhancedAIVerification.verify({
     metadata: submissionMetadata
   }
 })
-```
+\`\`\`
 
 #### 3. Intelligent Decision Making
-```typescript
+\`\`\`typescript
 interface VerificationResponse {
   approved: boolean                  // Final decision
   confidence: number                 // 0-100 confidence
@@ -126,7 +126,7 @@ interface VerificationResponse {
   flags: string[]                    // Any concerns identified
   suggestions: string[]              // Improvement suggestions
 }
-```
+\`\`\`
 
 ### Verification Flow
 
@@ -190,13 +190,13 @@ Allows fine-tuning of AI analyzer behavior for optimal results across different 
 ### Usage
 
 #### URL Parameters
-```
+\`\`\`
 /create-challenge?preset=physical_skills&context=90&skip_obvious=true
 /create-challenge?preset=habits&verbosity=40&format=minimal
-```
+\`\`\`
 
 #### Programmatic Control
-```typescript
+\`\`\`typescript
 const devSettings = {
   challengeTypePreset: 'physical_skills',
   contextAwareness: 85,
@@ -204,17 +204,17 @@ const devSettings = {
   skipObviousQuestions: true,
   customPromptAdditions: "Focus on measurement precision"
 }
-```
+\`\`\`
 
 #### Global Application
-```typescript
+\`\`\`typescript
 // Apply tested settings globally
 localStorage.setItem('stakr-analyzer-global-settings', JSON.stringify({
   ...settings,
   enabled: true,
   timestamp: Date.now()
 }))
-```
+\`\`\`
 
 ## 🔄 Data Flow
 
@@ -239,7 +239,7 @@ localStorage.setItem('stakr-analyzer-global-settings', JSON.stringify({
 
 ### Database Schema
 
-```sql
+\`\`\`sql
 -- Challenges table stores AI analysis
 CREATE TABLE challenges (
   ...
@@ -256,7 +256,7 @@ CREATE TABLE proof_submissions (
   ai_reasons TEXT[],                    -- Reasoning array
   ...
 )
-```
+\`\`\`
 
 ## 🧪 Testing
 
@@ -273,11 +273,11 @@ CREATE TABLE proof_submissions (
 5. **Reasoning Quality**: Decisions include actionable explanations
 
 ### Running Tests
-```bash
+\`\`\`bash
 npm test ai-challenge-analyzer
 npm test ai-verification-integration
 npm run test:ai-systems
-```
+\`\`\`
 
 ## 🚀 Performance
 
@@ -296,22 +296,21 @@ npm run test:ai-systems
 ## 🔧 Configuration
 
 ### Environment Variables
-```env
+\`\`\`env
 OPENAI_API_KEY=your_openai_key
 AI_ANALYZER_DEFAULT_MODEL=gpt-4
 AI_VERIFICATION_TIMEOUT=30000
 ENABLE_AI_DEV_TOOLS=true
-```
+\`\`\`
 
 ### Feature Flags
-```typescript
+\`\`\`typescript
 const config = {
   enableContextAwareVerification: true,
   enableDevTools: process.env.NODE_ENV === 'development',
   enableAnalyzerCaching: true,
   enableFallbackVerification: true
 }
-```
+\`\`\`
 
 This documentation covers the complete AI system architecture and usage patterns for Stakr's intelligent challenge analysis and verification pipeline.
-

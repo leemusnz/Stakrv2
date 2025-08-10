@@ -178,4 +178,3 @@ COMMENT ON COLUMN wearable_data.verification_confidence IS 'AI verification conf
 
 COMMENT ON COLUMN app_data.value IS 'Flexible JSON storage for different app data structures';
 COMMENT ON COLUMN app_data.verification_confidence IS 'AI verification confidence score (0-100)';
-

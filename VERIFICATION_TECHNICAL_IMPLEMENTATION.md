@@ -4,7 +4,7 @@
 
 ### **1. Enhanced Verification Tables**
 
-```sql
+\`\`\`sql
 -- Migration: Add comprehensive verification system tables
 -- File: migrations/verification-system-v1.sql
 
@@ -90,11 +90,11 @@ CREATE INDEX idx_verification_submissions_user ON verification_submissions(user_
 CREATE INDEX idx_verification_submissions_method ON verification_submissions(verification_method_id);
 CREATE INDEX idx_verification_appeals_status ON verification_appeals(status);
 CREATE INDEX idx_verification_appeals_submission ON verification_appeals(submission_id);
-```
+\`\`\`
 
 ### **2. TypeScript Interfaces**
 
-```typescript
+\`\`\`typescript
 // File: types/verification.ts
 
 export interface VerificationMethod {
@@ -177,13 +177,13 @@ export interface VerificationResult {
   estimatedReviewTime?: string
   nextSteps?: string[]
 }
-```
+\`\`\`
 
 ## 🔌 API Implementation
 
 ### **1. Verification API Routes**
 
-```typescript
+\`\`\`typescript
 // File: app/api/verification/submit/route.ts
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -237,11 +237,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-```
+\`\`\`
 
 ### **2. Verification Engine**
 
-```typescript
+\`\`\`typescript
 // File: lib/verification/engine.ts
 
 import { createDbConnection } from '@/lib/db'
@@ -358,11 +358,11 @@ function getNextSteps(status: string, methodType: string): string[] {
       return ['Processing your submission...']
   }
 }
-```
+\`\`\`
 
 ### **3. AI Verification Engine**
 
-```typescript
+\`\`\`typescript
 // File: lib/verification/ai.ts
 
 import OpenAI from 'openai'
@@ -494,7 +494,7 @@ export async function verifyWearableData(data: any, requirements: any): Promise<
     analysis
   }
 }
-```
+\`\`\`
 
 ## 🎯 Implementation Priority
 
