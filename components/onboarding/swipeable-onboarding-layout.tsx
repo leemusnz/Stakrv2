@@ -44,7 +44,13 @@ export function SwipeableOnboardingLayout({
   const progressPercentage = ((currentStep + 1) / totalSteps) * 100
 
   return (
-    <div className={cn("min-h-screen bg-background", className)}>
+    <div
+      className={cn("min-h-screen bg-background flex flex-col", className)}
+      style={{
+        paddingBottom: "calc(var(--bottom-nav-safe-space, 0px) + var(--bottom-cta-height, 72px))",
+        ['--bottom-cta-height' as any]: '72px',
+      }}
+    >
       {/* Progress Header */}
       {showProgress && (
         <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
@@ -78,7 +84,19 @@ export function SwipeableOnboardingLayout({
                   </div>
 
       {/* Navigation Footer */}
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t">
+      <div
+        className="bg-background/95 backdrop-blur border-t"
+        style={{
+          position: isMobile ? 'fixed' as const : 'sticky' as const,
+          left: isMobile ? 0 : undefined,
+          right: isMobile ? 0 : undefined,
+          bottom: 'var(--bottom-nav-safe-space, 0px)',
+          marginTop: isMobile ? undefined : 'auto',
+          zIndex: 60,
+          borderTopLeftRadius: '12px',
+          borderTopRightRadius: '12px',
+        }}
+      >
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
             {/* Back Button */}

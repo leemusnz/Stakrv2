@@ -1,6 +1,7 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import { useEffect } from "react"
 import Link from "next/link"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { cn } from "@/lib/utils"
@@ -38,11 +39,25 @@ export function MobileBottomNavigation({
   const { isMobile } = useEnhancedMobile()
   const pathname = usePathname()
 
-  // Don't show on desktop or certain pages
-  if (!isMobile) return null
-  
-  // Hide on onboarding and auth pages
-  if (pathname.includes('/onboarding') || pathname.includes('/auth')) return null
+  // Expose a CSS variable for pages with their own sticky/CTA footers
+  useEffect(() => {
+    const root = document.documentElement
+    // Apply only when nav would be visible; otherwise reset
+    const shouldApply = isMobile && !pathname.includes('/onboarding') && !pathname.includes('/auth')
+    const navHeight = 64 // base nav bar height (excludes safe-area)
+    const base = shouldApply ? navHeight : 0
+    // Two variables: total clearance for main padding, and spacer height
+    root.style.setProperty('--bottom-nav-safe-space', `calc(${base}px + env(safe-area-inset-bottom))`)
+    root.style.setProperty('--bottom-content-clearance', `calc(${base}px + env(safe-area-inset-bottom))`)
+    return () => {
+      root.style.setProperty('--bottom-nav-safe-space', '0px')
+      root.style.setProperty('--bottom-content-clearance', '0px')
+    }
+  }, [isMobile, pathname])
+
+  // Visibility check after all hooks are declared
+  const isVisible = isMobile && !pathname.includes('/onboarding') && !pathname.includes('/auth')
+  if (!isVisible) return null
 
   const navigationItems: NavigationItem[] = [
     { 
@@ -141,20 +156,7 @@ export function MobileBottomNavigation({
         })}
       </div>
 
-      {/* Floating Action Button for Create Challenge */}
-      <div className="absolute -top-12 left-1/2 -translate-x-1/2">
-        <Button
-          onClick={onCreateChallenge || (() => window.location.href = '/create-challenge')}
-          className={cn(
-            "h-12 w-12 rounded-full shadow-lg",
-            "bg-primary hover:bg-primary/90 text-primary-foreground",
-            "touch-manipulation active:scale-95",
-            "transition-all duration-200 ease-out"
-          )}
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      </div>
+      {/* Floating Action Button removed; create now in top navigation */}
 
       {/* Notification Indicator */}
       {notificationCount > 0 && (
@@ -178,9 +180,6 @@ export function MobileBottomNavigation({
           </Link>
         </div>
       )}
-      
-      {/* Safe area padding for devices with home indicators */}
-      <div className="h-[env(safe-area-inset-bottom)] bg-background/95" />
     </div>
   )
 }

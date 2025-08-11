@@ -24,3 +24,5 @@ WHERE privacy_type = 'public'; -- This ensures the default is applied
 
 -- Comment for documentation
 COMMENT ON COLUMN challenges.privacy_type IS 'Challenge visibility: public (discoverable) or private (invite only)';
+
+

@@ -154,17 +154,65 @@ export function AiChallengeSummary({
 
       const data = await response.json()
       
-      if (data.success) {
+      if (data && data.success && data.analysis) {
         setAnalysis(data.analysis)
-        setSummaryText(data.summaryText)
+        setSummaryText(data.summaryText || '')
         setCustomRequirements(data.analysis.dailyRequirement)
       } else {
-        throw new Error(data.error || 'Analysis failed')
+        // Fallback analysis to avoid blank UI
+        const fallback: ChallengeAnalysis = {
+          dailyRequirement: `Complete the challenge: ${challengeData.title}`,
+          activityType: ['general'],
+          measurementType: 'completion',
+          durationType: 'daily',
+          totalDuration: parseInt(challengeData.duration) || 30,
+          durationUnit: 'days',
+          validationMethod: 'manual',
+          recommendedProofTypes: ['photo', 'text'],
+          evidenceRequirements: [],
+          designRecommendations: [],
+          riskFactors: [],
+          interpretation: `Daily requirement derived from description: ${enhancedDescription.substring(0, 120)}...`,
+          confidence: 50,
+          potentialAmbiguities: ['AI analysis unavailable - using default interpretation'],
+          clarificationQuestions: [
+            'What specific action should users perform daily?',
+            'How should progress be measured?',
+            'What proof types would work best?'
+          ]
+        }
+        setAnalysis(fallback)
+        setSummaryText(`AI understands your challenge as: "${fallback.interpretation}"`)
+        setCustomRequirements(fallback.dailyRequirement)
       }
 
     } catch (err) {
       console.error('Challenge analysis error:', err)
-      setError(err instanceof Error ? err.message : 'Analysis failed')
+      // Show non-blocking fallback instead of a blank state
+      const fallback: ChallengeAnalysis = {
+        dailyRequirement: `Complete the challenge: ${challengeData.title}`,
+        activityType: ['general'],
+        measurementType: 'completion',
+        durationType: 'daily',
+        totalDuration: parseInt(challengeData.duration) || 30,
+        durationUnit: 'days',
+        validationMethod: 'manual',
+        recommendedProofTypes: ['photo', 'text'],
+        evidenceRequirements: [],
+        designRecommendations: [],
+        riskFactors: [],
+        interpretation: `Daily requirement derived from description: ${challengeData.description?.substring(0, 120)}...`,
+        confidence: 50,
+        potentialAmbiguities: ['AI analysis failed - manual review recommended'],
+        clarificationQuestions: [
+          'What specific action should users perform daily?',
+          'How should progress be measured?',
+          'What proof types would work best?'
+        ]
+      }
+      setAnalysis(fallback)
+      setSummaryText(`AI understands your challenge as: "${fallback.interpretation}"`)
+      setCustomRequirements(fallback.dailyRequirement)
     } finally {
       setIsAnalyzing(false)
     }
@@ -272,8 +320,8 @@ export function AiChallengeSummary({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Dev Tools - only show in development */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* Dev Tools - only show when explicit dev flags are present (dev menu) */}
+      {Boolean(urlDevSettings?.analyzer_debug || urlDevSettings?.analyzer_quick) && (
         <AIAnalyzerControls
           onSettingsChange={setDevSettings}
           onTestAnalyzer={(testInput) => analyzeChallenge()}

@@ -331,13 +331,20 @@ function ChallengeCard({
           </div>
         </div>
 
-        {/* Join Button */}
-        <Button
-          className="w-full"
-          onClick={onJoin}
-        >
-          Join Challenge
-        </Button>
+        {/* Join/View Button depending on started state */}
+        {(() => {
+          const now = new Date()
+          const started = (challenge.status === 'active') || (challenge.start_date && new Date(challenge.start_date) <= now)
+          return started ? (
+            <Button className="w-full" variant="outline" onClick={onJoin}>
+              View Challenge
+            </Button>
+          ) : (
+            <Button className="w-full" onClick={onJoin}>
+              Join Challenge
+            </Button>
+          )
+        })()}
       </CardContent>
     </Card>
   )

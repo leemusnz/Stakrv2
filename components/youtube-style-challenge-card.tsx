@@ -406,10 +406,10 @@ export function YouTubeStyleChallengeCard({
           )}
 
           {/* Action Button */}
-          {!isJoined ? (
+          {/* CTA reflects started state */}
+          {!isJoined && startDate && new Date(startDate) > new Date() ? (
             <Button className="w-full font-bold" size="lg">
-              <Eye className="w-4 h-4 mr-2" />
-              View Challenge
+              Join Challenge
             </Button>
           ) : progress === 100 ? (
             <Button className="w-full font-bold bg-success hover:bg-success/90" size="lg">
@@ -422,8 +422,8 @@ export function YouTubeStyleChallengeCard({
               className="w-full font-bold border-2 border-success text-success hover:bg-success/10 bg-transparent"
               size="lg"
             >
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Continue Challenge
+              <Eye className="w-4 h-4 mr-2" />
+              View Challenge
             </Button>
           )}
         </CardContent>

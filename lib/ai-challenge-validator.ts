@@ -193,3 +193,5 @@ function fallbackValidation(request: AIValidationRequest): AIValidationResponse 
     suggestions: ["Manual verification recommended"]
   }
 }
+
+

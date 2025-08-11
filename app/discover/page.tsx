@@ -49,23 +49,44 @@ export default function Discover() {
         setIsLoading(true)
 
         // Fetch challenges, creators, and brands in parallel
-        const [challengesRes, creatorsRes, brandsRes] = await Promise.all([
+        const [pendingRes, activeRes, creatorsRes, brandsRes] = await Promise.all([
           fetch("/api/challenges?status=joinable"),
+          fetch("/api/challenges?status=active"),
           fetch("/api/creators"),
           fetch("/api/brands"),
         ])
 
-        if (challengesRes.ok) {
-          const challengesData = await challengesRes.json()
-          const challengesList = challengesData.challenges || []
-          setChallenges(challengesList)
+        if (pendingRes.ok) {
+          const pendingData = await pendingRes.json()
+          const pendingList = pendingData.challenges || []
+          const activeList = activeRes.ok ? ((await activeRes.json()).challenges || []) : []
+          // Merge with pending first, then active; de-duplicate by id
+          const seen = new Set<string>()
+          const merged: any[] = []
+          // Merge with pending first, then active
+          for (const c of [...pendingList, ...activeList]) {
+            if (c && !seen.has(c.id)) {
+              seen.add(c.id)
+              merged.push(c)
+            }
+          }
+          // Sort so pending appear before active
+          merged.sort((a: any, b: any) => {
+            const aJoinable = a.status === 'pending' && (!a.start_date || new Date(a.start_date) > new Date())
+            const bJoinable = b.status === 'pending' && (!b.start_date || new Date(b.start_date) > new Date())
+            if (aJoinable !== bJoinable) return aJoinable ? -1 : 1
+            const at = new Date(a.start_date || 0).getTime()
+            const bt = new Date(b.start_date || 0).getTime()
+            return at - bt
+          })
+          setChallenges(merged)
 
           // Calculate stats
           setStats({
-            totalChallenges: challengesList.length,
-            activeChallenges: challengesList.filter((c: any) => c.status === "active").length,
-            totalParticipants: challengesList.reduce((sum: number, c: any) => sum + (c.participants_count || 0), 0),
-            totalRewards: challengesList.reduce((sum: number, c: any) => sum + (c.total_stake_pool || 0), 0),
+            totalChallenges: merged.length,
+            activeChallenges: merged.filter((c: any) => c.status === "active").length,
+            totalParticipants: merged.reduce((sum: number, c: any) => sum + (c.participants_count || 0), 0),
+            totalRewards: merged.reduce((sum: number, c: any) => sum + (c.total_stake_pool || 0), 0),
           })
         }
 
@@ -128,7 +149,11 @@ export default function Discover() {
 
   // Challenge action handlers
   const handleJoinChallenge = (challenge: any) => {
-    console.log("Joining challenge:", challenge.title)
+    // Guard: prevent joining already-started challenges from Discover
+    if (challenge.status === 'active') {
+      window.location.href = `/challenge/${challenge.id}`
+      return
+    }
     window.location.href = `/challenge/${challenge.id}`
   }
 

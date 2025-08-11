@@ -70,7 +70,7 @@ export function Navigation({ user, onLogout }: NavigationProps) {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="relative flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <Logo variant="full" className="h-8" />
@@ -99,17 +99,30 @@ export function Navigation({ user, onLogout }: NavigationProps) {
             })}
           </div>
 
-          {/* Right Side */}
-          <div className="flex items-center gap-3">
-            {/* Create Challenge Button */}
-            <Link href="/create-challenge">
+          {/* Mobile-only centered Create CTA */}
+          <div className="md:hidden absolute left-1/2 -translate-x-1/2">
+            <Link href="/create-challenge" aria-label="Create challenge">
               <Button
                 size="sm"
-                className="hidden sm:flex items-center gap-2 bg-secondary hover:bg-secondary/90 text-white font-bold"
-                title="Host your own challenge"
+                className="h-9 px-3 rounded-full flex items-center gap-1 bg-primary hover:bg-primary/90 text-white font-medium"
+                title="Create a challenge"
               >
                 <Plus className="w-4 h-4" />
-                HOST CHALLENGE
+              </Button>
+            </Link>
+          </div>
+
+          {/* Right Side: credits, notifications, avatar */}
+          <div className="flex items-center gap-3 justify-end">
+            {/* Desktop create button (restored) */}
+            <Link href="/create-challenge" className="hidden md:block" aria-label="Create challenge (desktop)">
+              <Button
+                size="sm"
+                className="flex items-center gap-2 bg-secondary hover:bg-secondary/90 text-white font-semibold"
+                title="Create a challenge"
+              >
+                <Plus className="w-4 h-4" />
+                Host Challenge
               </Button>
             </Link>
 
@@ -213,16 +226,7 @@ export function Navigation({ user, onLogout }: NavigationProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+            {/* Mobile menu button removed per design request */}
           </div>
         </div>
 

@@ -40,7 +40,10 @@ export function CreationLayout({
   const progress = (currentStep / totalSteps) * 100
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div
+      className="min-h-screen bg-muted/30 flex flex-col has-bottom-cta"
+      style={{ ['--bottom-cta-height' as any]: '80px' }}
+    >
       {/* Header */}
       <div className="bg-background border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -71,7 +74,7 @@ export function CreationLayout({
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-8 flex-1">
         <Card className="shadow-lg">
           <CardHeader className="pb-6">
             <div className="flex items-center justify-between">
@@ -92,8 +95,19 @@ export function CreationLayout({
           <CardContent className="pb-8">{children}</CardContent>
         </Card>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-8">
+        {/* Navigation - sticks just above bottom nav */}
+        <div
+          className="flex items-center justify-between mt-8 bg-background/95 backdrop-blur border-t"
+          style={{
+            position: 'fixed',
+            left: 0,
+            right: 0,
+            bottom: 'var(--bottom-nav-safe-space, 0px)',
+            zIndex: 60,
+            borderTopLeftRadius: '12px',
+            borderTopRightRadius: '12px',
+          }}
+        >
           <Button
             variant="outline"
             onClick={onPrevious}

@@ -135,3 +135,5 @@ With AI:
 - ⚡ New challenge types work immediately (fast iteration)
 
 **The choice is obvious: AI makes the platform scalable and user-friendly.**
+
+

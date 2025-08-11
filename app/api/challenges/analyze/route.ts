@@ -5,11 +5,8 @@ import { AIChallengeAnalyzer, type ChallengeAnalysisRequest } from '@/lib/ai-cha
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
+    // Soft-auth: analysis is allowed without a session to avoid blocking creation UX
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
 
     // Parse request body
     const body: ChallengeAnalysisRequest = await request.json()

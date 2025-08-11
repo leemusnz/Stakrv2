@@ -148,6 +148,39 @@ export class AIChallengeAnalyzer {
    */
   private static buildAnalysisPrompt(request: ChallengeAnalysisRequest): string {
     const lines: string[] = []
+    lines.push(
+      [
+        'You are Stakr\'s Challenge Analyzer. Return ONLY a single JSON object that adheres to this schema.',
+        '{',
+        '  "dailyRequirement": string,',
+        '  "activityType": string[],',
+        '  "measurementType": "distance" | "duration" | "count" | "frequency" | "completion",',
+        '  "minimumValue"?: number,',
+        '  "maximumValue"?: number,',
+        '  "unit"?: string,',
+        '  "durationType": "daily" | "weekly" | "one-time" | "custom",',
+        '  "totalDuration"?: number,',
+        '  "durationUnit"?: "days" | "weeks" | "months",',
+        '  "validationMethod": "automatic" | "manual" | "hybrid",',
+        '  "recommendedProofTypes": string[],',
+        '  "evidenceRequirements": string[],',
+        '  "designRecommendations": string[],',
+        '  "riskFactors": string[],',
+        '  "interpretation": string,',
+        '  "confidence": number,',
+        '  "potentialAmbiguities": string[],',
+        '  "clarificationQuestions": string[]',
+        '}',
+        '',
+        'Rules:',
+        '- Do not wrap JSON in code fences.',
+        '- Populate all fields; if not applicable, choose sensible defaults (e.g., measurementType = "completion").',
+        '- Arrays must include rich content: evidenceRequirements >= 3, designRecommendations >= 2, riskFactors >= 2, potentialAmbiguities >= 2, clarificationQuestions >= 2.',
+        '- dailyRequirement must be a concise imperative sentence users can understand at a glance.',
+        '- Choose measurementType and unit appropriately; include minimumValue and unit when relevant (e.g., count/minutes/meters).',
+        '- If suggested proof types enable automation (app logs, wearable, fitness_apps, learning_apps), prefer validationMethod = "automatic"; otherwise use "manual" or "hybrid".',
+      ].join('\n')
+    )
     // Inject dev settings quickly for tests
     if (request.devSettings?.customPromptAdditions) {
       lines.push(request.devSettings.customPromptAdditions)
@@ -167,6 +200,32 @@ export class AIChallengeAnalyzer {
       lines.push('Camera Only = Yes')
       lines.push('HIGH SECURITY')
     }
+    // Structured context block to guide the model
+    const context: Record<string, any> = {
+      duration: request.duration,
+      difficulty: request.difficulty,
+      category: request.category,
+      tags: request.tags,
+      allowPointsOnly: request.allowPointsOnly,
+      minStake: request.minStake,
+      maxStake: request.maxStake,
+      verificationType: request.verificationType,
+      selectedProofTypes: request.selectedProofTypes,
+      cameraOnly: request.cameraOnly,
+      requireTimer: request.requireTimer,
+      timerMinDuration: request.timerMinDuration,
+      timerMaxDuration: request.timerMaxDuration,
+      randomCheckinsEnabled: request.randomCheckinsEnabled,
+      randomCheckinProbability: request.randomCheckinProbability,
+      startDateType: request.startDateType,
+      startDateDays: request.startDateDays,
+    }
+    lines.push('Context:')
+    Object.entries(context).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && `${v}`.length > 0) {
+        lines.push(`- ${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+      }
+    })
     // Minimal prompt that still produces deterministic structure in tests
     lines.push(`Title: ${request.title || ''}`)
     lines.push(`Description: ${request.description || ''}`)
@@ -179,14 +238,17 @@ export class AIChallengeAnalyzer {
   private static async callAIService(prompt: string): Promise<string> {
     // Use internal client so tests can mock '@/lib/openai-client'
     const { openai } = await import('@/lib/openai-client')
-    const resp = await openai.chat.completions.create({
+    const args: any = {
       model: 'gpt-4o-mini',
       messages: [
+        { role: 'system', content: 'You output only JSON. No prose, no explanations. Respond with a single JSON object.' },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.3,
+      temperature: 0.4,
       max_tokens: 1000,
-    })
+      response_format: { type: 'json_object' },
+    }
+    const resp = await openai.chat.completions.create(args)
     return resp.choices?.[0]?.message?.content || ''
   }
   
@@ -197,11 +259,29 @@ export class AIChallengeAnalyzer {
     try {
       // Clean up the response (remove any markdown code blocks)
       const cleanResponse = response.replace(/```json\n?|\n?```/g, '').trim()
-      const parsed = JSON.parse(cleanResponse)
+      let parsed: any
+      try {
+        parsed = JSON.parse(cleanResponse)
+      } catch {
+        // Attempt to extract JSON object from mixed content
+        const start = cleanResponse.indexOf('{')
+        const end = cleanResponse.lastIndexOf('}')
+        if (start !== -1 && end !== -1 && end > start) {
+          const candidate = cleanResponse.slice(start, end + 1)
+          parsed = JSON.parse(candidate)
+        } else {
+          throw new Error('No JSON object found in response')
+        }
+      }
       
-      // Validate required fields (be permissive for tests: only require dailyRequirement)
+      // Validate/repair required fields (be permissive at runtime)
       if (!parsed.dailyRequirement) {
-        throw new Error('Missing required fields in AI response')
+        // Try to derive from interpretation or a generic fallback
+        if (typeof parsed.interpretation === 'string' && parsed.interpretation.trim().length > 0) {
+          parsed.dailyRequirement = parsed.interpretation
+        } else {
+          parsed.dailyRequirement = 'Complete the described daily task'
+        }
       }
 
       // Fill sensible defaults if not provided by the model/mocks
@@ -209,6 +289,12 @@ export class AIChallengeAnalyzer {
         parsed.interpretation = `Daily requirement: ${parsed.dailyRequirement}`
       }
       parsed.durationType = parsed.durationType || 'daily'
+      // Provide defaults commonly missing in lightweight responses
+      parsed.measurementType = parsed.measurementType || 'completion'
+      if (parsed.totalDuration == null && parsed.durationUnit == null) {
+        parsed.totalDuration = typeof (parsed.totalDuration) === 'number' ? parsed.totalDuration : 30
+        parsed.durationUnit = parsed.durationUnit || 'days'
+      }
       parsed.validationMethod = parsed.validationMethod || 'manual'
       parsed.activityType = parsed.activityType || ['general']
       parsed.recommendedProofTypes = parsed.recommendedProofTypes || ['photo', 'text']

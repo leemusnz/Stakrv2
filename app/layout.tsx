@@ -4,6 +4,7 @@ import { Montserrat, Inter } from "next/font/google"
 import { cn } from "@/lib/utils"
 import "./globals.css"
 import { NavigationWrapper } from "@/components/navigation-wrapper"
+import { MobileContentSpacer } from "@/components/mobile-content-spacer"
 import { Toaster } from "@/components/ui/sonner"
 import { Providers } from "@/components/providers"
 
@@ -41,7 +42,11 @@ export default function RootLayout({
       <body className={cn("bg-background font-sans antialiased", montserrat.className)}>
         <Providers>
           <NavigationWrapper />
-          <main>{children}</main>
+          <main style={{ paddingBottom: "var(--bottom-nav-safe-space, 0px)" }}>
+            {children}
+            {/* Spacer to prevent content from being hidden behind bottom nav on mobile */}
+            <MobileContentSpacer />
+          </main>
           <Toaster />
         </Providers>
       </body>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -76,6 +77,7 @@ export function IntegrationSetupWizard({
   const [currentStep, setCurrentStep] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [connectedDevices, setConnectedDevices] = useState<string[]>([])
+  const { isMobile } = useEnhancedMobile()
 
   const steps = [
     "Choose Category",
@@ -118,7 +120,13 @@ export function IntegrationSetupWizard({
   const selectedCategoryData = INTEGRATION_CATEGORIES.find(cat => cat.id === selectedCategory)
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div
+      className="max-w-2xl mx-auto flex flex-col"
+      style={{
+        paddingBottom: "calc(var(--bottom-nav-safe-space, 0px) + var(--bottom-cta-height, 72px))",
+        ['--bottom-cta-height' as any]: '72px',
+      }}
+    >
       {/* Progress Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -250,8 +258,17 @@ export function IntegrationSetupWizard({
               })}
             </div>
 
-            <div className="flex justify-between">
-              <Button variant="outline" onClick={handleBack}>
+            <div
+              className="flex items-center justify-between bg-background/95 backdrop-blur border-t px-4 py-4"
+              style={{
+                position: isMobile ? 'fixed' : 'static',
+                left: isMobile ? 0 : undefined,
+                right: isMobile ? 0 : undefined,
+                bottom: 'var(--bottom-nav-safe-space, 0px)',
+                zIndex: 60,
+              }}
+            >
+              <Button variant="outline" onClick={handleBack} className="mr-4">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
@@ -331,8 +348,17 @@ export function IntegrationSetupWizard({
               </Card>
             </div>
 
-            <div className="flex justify-between">
-              <Button variant="outline" onClick={handleBack}>
+            <div
+              className="flex items-center justify-between bg-background/95 backdrop-blur border-t px-4 py-4"
+              style={{
+                position: isMobile ? 'fixed' : 'static',
+                left: isMobile ? 0 : undefined,
+                right: isMobile ? 0 : undefined,
+                bottom: 'var(--bottom-nav-safe-space, 0px)',
+                zIndex: 60,
+              }}
+            >
+              <Button variant="outline" onClick={handleBack} className="mr-4">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
@@ -384,3 +410,5 @@ export function IntegrationSetupWizard({
     </div>
   )
 }
+
+

@@ -107,7 +107,8 @@ describe('Challenges API Thumbnail Tests', () => {
 
     it('should handle different status filters correctly', async () => {
       const testCases = [
-        { status: 'joinable', expectedWhereClause: /\(c\.status = 'pending' OR \(c\.status = 'active'/ },
+        // Joinable now strictly means not-yet-started pending challenges. Be tolerant to legacy pattern too.
+        { status: 'joinable', expectedWhereClause: /(c\.status = 'pending' AND \(c\.start_date IS NULL OR c\.start_date > NOW\(\)\))|\(c\.status = 'pending' OR \(c\.status = 'active'/ },
         { status: 'active', expectedWhereClause: /c\.status = 'active'/ },
         { status: 'pending', expectedWhereClause: /c\.status = 'pending'/ },
         { status: 'completed', expectedWhereClause: /c\.status = 'completed'/ }
@@ -513,3 +514,5 @@ describe('Challenges API Thumbnail Tests', () => {
     })
   })
 })
+
+

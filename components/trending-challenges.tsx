@@ -20,9 +20,7 @@ export function TrendingChallenges() {
     try {
       // Fetch trending challenges from API
       const response = await fetch('/api/challenges?status=joinable&limit=3')
-      if (!response.ok) {
-        throw new Error('Failed to fetch challenges')
-      }
+      if (!response.ok) throw new Error('Failed to fetch challenges')
       
       const data = await response.json()
       
@@ -35,6 +33,7 @@ export function TrendingChallenges() {
           duration: challenge.duration,
           participants: challenge.participants_count,
           minStake: challenge.min_stake,
+          thumbnail_url: challenge.thumbnail_url,
           hot: challenge.participants_count > 50, // Mark as hot if many participants
           trend: `+${Math.floor(Math.random() * 20 + 10)}% this week` // Mock trend data
         }))

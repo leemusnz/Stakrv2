@@ -22,7 +22,8 @@ import {
   Shield,
   Zap,
   Watch,
-  Activity
+  Activity,
+  CheckCircle
 } from "lucide-react"
 
 interface SwipeableChallengeCardProps {
@@ -122,6 +123,11 @@ export function SwipeableChallengeCard({
           color: 'bg-green-50 text-green-700 border-green-200',
           icon: CheckCircle
         }
+      }
+      return {
+        text: 'Already started',
+        color: 'bg-gray-100 text-gray-700 border-gray-200',
+        icon: CheckCircle
       }
     }
     
@@ -329,10 +335,17 @@ export function SwipeableChallengeCard({
           </div>
 
           {/* Action Button */}
-          <Button onClick={() => onJoin(challenge)} className="w-full">
-            Join Challenge
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+          {challenge.status === 'active' ? (
+            <Button onClick={() => onJoin(challenge)} variant="outline" className="w-full">
+              View Challenge
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button onClick={() => onJoin(challenge)} className="w-full">
+              Join Challenge
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          )}
         </CardContent>
       </Card>
     )

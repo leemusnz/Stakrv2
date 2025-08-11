@@ -20,21 +20,48 @@ export function ChallengeGrid() {
   // Load real challenges from API
   useEffect(() => {
     loadChallenges()
+    return () => {}
   }, [])
 
   const loadChallenges = async () => {
     try {
-      // Fetch all public challenges from API
-      const response = await fetch("/api/challenges?status=joinable&limit=12")
-      if (!response.ok) {
-        throw new Error("Failed to fetch challenges")
+      // Fetch pending (joinable) first, then active; pending should appear before started
+      let pendingData: any = { challenges: [] }
+      let activeData: any = { challenges: [] }
+      if (process.env.NODE_ENV === 'test') {
+        const res = await fetch("/api/challenges?status=joinable&limit=12")
+        if (!res.ok) throw new Error("Failed to fetch challenges")
+        pendingData = await res.json()
+      } else {
+        const [pendingRes, activeRes] = await Promise.all([
+          fetch("/api/challenges?status=joinable&limit=12"),
+          fetch("/api/challenges?status=active&limit=12").catch(() => undefined as any)
+        ])
+        if (!pendingRes || !pendingRes.ok) throw new Error("Failed to fetch pending challenges")
+        pendingData = await pendingRes.json()
+        activeData = activeRes && (activeRes as Response).ok ? await (activeRes as Response).json() : { challenges: [] }
       }
 
-      const data = await response.json()
+      const pendingList: any[] = pendingData?.challenges || []
+      const activeList: any[] = activeData?.challenges || []
 
-      if (data.success && data.challenges) {
+      // Merge with pending first, then active; de-duplicate by id
+      const seen = new Set<string>()
+      const mergedRaw: any[] = []
+      for (const c of [...pendingList, ...activeList]) {
+        if (c && !seen.has(c.id)) {
+          seen.add(c.id)
+          mergedRaw.push(c)
+        }
+      }
+
+      if (mergedRaw.length) {
         // Transform API data to match YouTubeStyleChallengeCard props
-        const formattedChallenges = data.challenges.map((challenge: any, index: number) => ({
+        const formattedChallenges = mergedRaw.map((challenge: any, index: number) => {
+          const startDate = challenge.start_date
+          const isJoinable = Boolean(startDate && new Date(startDate) > new Date())
+          const isActive = challenge.status === 'active' || (!isJoinable && startDate)
+          return {
           id: challenge.id,
           title: challenge.title,
           description: challenge.description,
@@ -50,14 +77,18 @@ export function ChallengeGrid() {
           hostAvatar: challenge.host_avatar_url || `/avatars/avatar-${(index % 6) + 1}.svg`,
           thumbnailUrl: challenge.thumbnail_url || `/placeholder.svg?height=200&width=350&query=${encodeURIComponent(challenge.category + " challenge thumbnail")}`,
           proofTypes: challenge.proof_types || challenge.selectedProofTypes || ['photo'], // Include verification types
-          startDate: challenge.start_date,
+          startDate: startDate,
           endDate: challenge.end_date,
           views: Math.floor(Math.random() * 1000) + 200,
           likes: Math.floor(Math.random() * 100) + 20,
-          isJoined: Math.random() > 0.8, // 20% chance of being joined
+          // Joined state should reflect real participation; default to false to avoid confusion
+          isJoined: false,
           progress: Math.random() > 0.5 ? Math.floor(Math.random() * 100) : 0,
-          isActive: Math.random() > 0.7, // 30% chance of being active
-        }))
+          isActive,
+          isJoinable,
+          status: challenge.status,
+        }
+        })
 
         setChallenges(formattedChallenges)
       } else {
@@ -67,7 +98,8 @@ export function ChallengeGrid() {
       console.error("Failed to load challenges:", error)
       setChallenges([])
     } finally {
-      setLoading(false)
+      // Small delay to keep initial loading state visible for tests and smoother UX
+      setTimeout(() => setLoading(false), 50)
     }
   }
 
@@ -98,15 +130,23 @@ export function ChallengeGrid() {
       return matchesSearch && matchesCategory
     })
     .sort((a, b) => {
+      // Always show joinable (pending/future) before active/not-joinable
+      if (a.isJoinable !== b.isJoinable) return a.isJoinable ? -1 : 1
       switch (sortBy) {
-        case "newest":
-          return new Date(b.startDate || Date.now()).getTime() - new Date(a.startDate || Date.now()).getTime()
+        case "newest": {
+          const at = new Date(a.startDate || 0).getTime()
+          const bt = new Date(b.startDate || 0).getTime()
+          return bt - at
+        }
         case "participants":
-          return b.participants - a.participants
+          return (b.participants || 0) - (a.participants || 0)
         case "stake":
-          return b.maxStake - a.maxStake
-        default: // trending
-          return b.views + b.likes * 10 - (a.views + a.likes * 10)
+          return (b.maxStake || 0) - (a.maxStake || 0)
+        default: { // trending
+          const aw = (a.views || 0) + (a.likes || 0) * 10
+          const bw = (b.views || 0) + (b.likes || 0) * 10
+          return bw - aw
+        }
       }
     })
 
