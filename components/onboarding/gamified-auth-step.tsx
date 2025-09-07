@@ -66,23 +66,12 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
         return
       }
 
-      // Account created, now sign in
-      const signInResult = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (signInResult?.error) {
-        setError("Account created but login failed. Please try signing in.")
-        return
-      }
-
-      // Success! Show level up animation
-      setShowLevelUp(true)
-      setTimeout(() => {
-        handleCompleteOnboarding()
-      }, 2000)
+      // Account created successfully! Redirect to email verification
+      console.log("✅ Account created successfully! Redirecting to email verification...")
+      
+      // Redirect to email verification page
+      const verifyUrl = `/auth/verify-email?email=${encodeURIComponent(email)}&from=onboarding`
+      window.location.href = verifyUrl
     } catch (error) {
       console.error("❌ Error creating account:", error)
       setError("Failed to create account. Please try again.")
@@ -101,7 +90,7 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: name || data.name || "New Champion",
+          name: session?.user?.name || data.name || "New Champion",
           avatar: data.avatar,
           goals: data.goals,
           interests: data.interests,
@@ -265,27 +254,16 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
             </p>
           </div>
           
-          <form onSubmit={handleCompleteOnboarding} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-lg font-bold flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Your Name
-              </Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Enter your first name or nickname"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="text-lg p-4 h-14"
-                required
-                disabled={isLoading}
-              />
+          <div className="space-y-4">
+            <div className="text-center space-y-2">
+              <p className="text-muted-foreground">
+                Welcome, {session.user.name || session.user.email}! You're all set to join the Champions Circle.
+              </p>
             </div>
 
             <Button
-              type="submit"
-              disabled={!name.trim() || isLoading}
+              onClick={handleCompleteOnboarding}
+              disabled={isLoading}
               size="lg"
               className="text-lg font-bold px-12 py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group"
             >
@@ -309,7 +287,7 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
                 <p className="text-sm text-red-500">{error}</p>
               </div>
             )}
-          </form>
+          </div>
         </div>
       ) : (
         // New users - show account creation form
