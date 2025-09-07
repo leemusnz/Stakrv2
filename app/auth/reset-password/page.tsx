@@ -22,6 +22,7 @@ function ResetPasswordContent() {
   const [error, setError] = useState("")
   const [email, setEmail] = useState("")
   const [token, setToken] = useState("")
+  const [shouldRedirect, setShouldRedirect] = useState(false)
 
   useEffect(() => {
     const tokenParam = searchParams.get('token')
@@ -34,6 +35,18 @@ function ResetPasswordContent() {
     setToken(tokenParam)
     validateToken(tokenParam)
   }, [searchParams])
+
+  // Handle redirect after successful password reset
+  useEffect(() => {
+    if (shouldRedirect) {
+      const timer = setTimeout(() => {
+        const signinUrl = `/auth/signin?email=${encodeURIComponent(email)}&message=${encodeURIComponent('Password reset successful! Please sign in with your new password.')}`
+        router.push(signinUrl)
+      }, 3000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [shouldRedirect, router, email])
 
   const validateToken = async (token: string) => {
     try {
@@ -87,6 +100,7 @@ function ResetPasswordContent() {
 
       if (response.ok) {
         setIsSuccess(true)
+        setShouldRedirect(true)
       } else {
         setError(result.message || 'Failed to reset password')
       }
@@ -163,16 +177,6 @@ function ResetPasswordContent() {
   }
 
   if (isSuccess) {
-    // Auto-redirect to signin page after 3 seconds
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        const signinUrl = `/auth/signin?email=${encodeURIComponent(email)}&message=${encodeURIComponent('Password reset successful! Please sign in with your new password.')}`
-        router.push(signinUrl)
-      }, 3000)
-
-      return () => clearTimeout(timer)
-    }, [router, email])
-
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -239,6 +243,7 @@ function ResetPasswordContent() {
                   required
                   className="h-12 pl-10 pr-10"
                   disabled={isLoading}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -282,6 +287,7 @@ function ResetPasswordContent() {
                   required
                   className="h-12 pl-10 pr-10"
                   disabled={isLoading}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
