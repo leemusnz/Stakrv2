@@ -98,6 +98,15 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
   // Check if user is already authenticated (OAuth users)
   const isAuthenticated = session?.user
   
+  // Auto-complete profile for OAuth users
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      console.log("🔄 OAuth user detected, auto-completing profile...")
+      // Automatically complete the profile for OAuth users
+      onNext()
+    }
+  }, [isAuthenticated, isLoading, onNext])
+  
   // Always show the account creation form in onboarding
   const canCreateAccount = email.trim() && password.length >= 6 && name.trim()
 
