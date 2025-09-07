@@ -83,14 +83,82 @@ export async function POST(request: NextRequest) {
 
     const sql = await createDbConnection()
     
-    // Update user profile with onboarding data including XP and level
+    // First, check if user has already completed onboarding to prevent duplicate XP
+    const existingUser = await sql`
+      SELECT id, email, name, avatar_url, credits, trust_score, verification_tier, 
+             xp, level, onboarding_completed, created_at
+      FROM users 
+      WHERE id = ${session.user.id}
+      LIMIT 1
+    `
+    
+    if (existingUser.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'User not found',
+        message: 'User profile could not be found'
+      }, { status: 404 })
+    }
+    
+    const user = existingUser[0]
+    
+    // Check if onboarding was already completed
+    if (user.onboarding_completed) {
+      console.log('⚠️ User already completed onboarding, skipping XP award:', user.email)
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar_url,
+          credits: parseFloat(user.credits),
+          trustScore: user.trust_score,
+          verificationTier: user.verification_tier,
+          xp: user.xp || 0,
+          level: user.level || 1,
+          onboardingCompleted: user.onboarding_completed,
+          updatedAt: user.created_at
+        },
+        message: 'Onboarding already completed - no XP awarded to prevent duplicates'
+      })
+    }
+    
+    // Calculate XP to award (only if user hasn't completed onboarding)
+    const xpToAward = xp || 300 // Default to full onboarding XP (50 + 100 + 150)
+    
+    console.log('🎯 Awarding XP for onboarding completion:', {
+      userId: user.id,
+      email: user.email,
+      currentXP: user.xp || 0,
+      xpToAward,
+      xpBreakdown: 'Full onboarding completion (Welcome: 50 + Goals: 100 + Auth: 150 = 300 XP)',
+      expectedLevel: Math.floor(((user.xp || 0) + xpToAward) / 200) + 1
+    })
+    
+    // Use the safe XP awarding function to prevent duplicates
+    const xpAwardResult = await sql`
+      SELECT award_xp(
+        ${session.user.id}::UUID,
+        ${xpToAward}::INTEGER,
+        'onboarding'::VARCHAR(50),
+        NULL::UUID,
+        'Onboarding completion reward'::TEXT
+      ) as success
+    `
+    
+    const xpAwarded = xpAwardResult[0]?.success
+    
+    if (!xpAwarded) {
+      console.log('⚠️ XP already awarded for onboarding, skipping XP award')
+    }
+    
+    // Update user profile with onboarding data (XP is handled by the function)
     const updatedUsers = await sql`
       UPDATE users 
       SET 
         name = ${name},
         avatar_url = ${avatar || null},
-        xp = ${xp || 0},
-        level = ${level || 1},
         onboarding_completed = true,
         updated_at = NOW()
       WHERE id = ${session.user.id}
@@ -128,13 +196,16 @@ export async function POST(request: NextRequest) {
         credits: parseFloat(updatedUser.credits),
         trustScore: updatedUser.trust_score,
         verificationTier: updatedUser.verification_tier,
-        xp: updatedUser.xp || 0,
-        level: updatedUser.level || 1,
+        xp: updatedUser.xp,
+        level: updatedUser.level,
         onboardingCompleted: updatedUser.onboarding_completed,
         updatedAt: updatedUser.updated_at
       },
       onboardingData,
-      message: 'Onboarding completed successfully! Welcome to Stakr!'
+      xpAwarded: xpAwarded ? xpToAward : 0,
+      message: xpAwarded 
+        ? `Onboarding completed successfully! Welcome to Stakr! +${xpToAward} XP earned!`
+        : 'Onboarding completed successfully! Welcome to Stakr! (XP already awarded)'
     })
 
   } catch (error) {

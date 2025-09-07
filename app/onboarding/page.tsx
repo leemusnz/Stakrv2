@@ -73,9 +73,10 @@ export default function OnboardingPage() {
       setOnboardingData((prev) => ({ ...prev, ...stepData }))
     }
 
-    // Award XP for completing step
+    // Award XP for completing step (only for non-OAuth users who go through all steps)
     const currentStepData = steps[currentStep]
-    if (currentStepData) {
+    if (currentStepData && !session?.user) {
+      // Only award step XP for unauthenticated users going through all steps
       const newXP = (onboardingData.xp || 0) + currentStepData.xpReward
       const newLevel = Math.floor(newXP / 200) + 1
       setOnboardingData((prev) => ({ ...prev, xp: newXP, level: newLevel }))
@@ -84,6 +85,29 @@ export default function OnboardingPage() {
     // If this is the last step, complete onboarding
     if (currentStep === steps.length - 1) {
       try {
+        // Calculate XP to award - both OAuth and email users get the same total XP
+        let xpToAward = 300 // Full onboarding completion XP
+        let xpBreakdown = ""
+        
+        if (session?.user) {
+          // OAuth users: Get full onboarding XP (equivalent to completing all steps)
+          xpToAward = 300
+          xpBreakdown = "Full onboarding completion (300 XP)"
+          console.log('🎯 OAuth user completing onboarding - awarding full onboarding XP:', xpToAward)
+        } else {
+          // Email users: Get accumulated XP from steps
+          xpToAward = onboardingData.xp || 300
+          xpBreakdown = `Step-by-step completion (${onboardingData.xp || 300} XP)`
+          console.log('🎯 Email user completing onboarding - awarding accumulated XP:', xpToAward)
+        }
+        
+        console.log('📊 XP Award Summary:', {
+          userType: session?.user ? 'OAuth' : 'Email',
+          xpToAward,
+          xpBreakdown,
+          finalLevel: Math.floor(xpToAward / 200) + 1
+        })
+        
         // Complete onboarding profile
         const response = await fetch('/api/onboarding/complete-profile', {
           method: 'POST',
@@ -98,8 +122,7 @@ export default function OnboardingPage() {
             experience: onboardingData.experience,
             motivation: onboardingData.motivation,
             preferredStakeRange: onboardingData.preferredStakeRange,
-            xp: onboardingData.xp || 300, // Use accumulated XP from steps (50 + 100 + 150 = 300)
-            level: Math.floor((onboardingData.xp || 300) / 200) + 1,
+            xp: xpToAward, // Let the API handle XP calculation and duplicate prevention
           }),
         })
 
