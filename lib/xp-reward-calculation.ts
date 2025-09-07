@@ -1,4 +1,4 @@
-import { createDbConnection } from './db/connection'
+import { createDbConnection } from '@/lib/db'
 import type { SqlTag } from 'drizzle-orm/neon-http'
 
 export interface XPChallengeStats {
