@@ -27,7 +27,7 @@ export interface OnboardingData {
 }
 
 export default function OnboardingPage() {
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const router = useRouter()
   const { isMobile } = useEnhancedMobile()
   const [currentStep, setCurrentStep] = useState(0)

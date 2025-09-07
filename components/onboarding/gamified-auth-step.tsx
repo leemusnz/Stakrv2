@@ -21,7 +21,7 @@ interface GamefiedAuthStepProps {
   onSkip: () => void
 }
 
-export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
+export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
   const { data: session, update } = useSession()
   const [showConfetti, setShowConfetti] = useState(false)
   const [name, setName] = useState(data.name || "")
