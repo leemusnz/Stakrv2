@@ -98,8 +98,8 @@ export default function OnboardingPage() {
             experience: onboardingData.experience,
             motivation: onboardingData.motivation,
             preferredStakeRange: onboardingData.preferredStakeRange,
-            xp: (onboardingData.xp || 0) + 300, // Full onboarding XP (50 + 100 + 150)
-            level: Math.floor(((onboardingData.xp || 0) + 300) / 200) + 1,
+            xp: onboardingData.xp || 300, // Use accumulated XP from steps (50 + 100 + 150 = 300)
+            level: Math.floor((onboardingData.xp || 300) / 200) + 1,
           }),
         })
 
