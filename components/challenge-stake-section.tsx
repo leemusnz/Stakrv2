@@ -83,6 +83,16 @@ export function ChallengeStakeSection({
       effectiveStake,
   ) || 0
 
+  // For XP challenges, show estimated XP reward
+  const estimatedXPReward = pointsOnly ? Math.round(
+    (challenge.difficulty === 'easy' ? 100 : 
+     challenge.difficulty === 'medium' ? 150 : 
+     challenge.difficulty === 'hard' ? 200 : 250) * 
+    (challenge.duration === '7' ? 1 : 
+     challenge.duration === '14' ? 1.3 : 
+     challenge.duration === '21' ? 1.6 : 2.0)
+  ) : 0
+
   const handleJoinChallenge = async () => {
     if (!session?.user) {
       addNotification({
@@ -280,8 +290,8 @@ export function ChallengeStakeSection({
             {pointsOnly && (
               <div className="text-center">
                 <Star className="w-8 h-8 mx-auto text-yellow-500 mb-2" />
-                <p className="font-medium">Points-Only Challenge</p>
-                <p className="text-sm text-muted-foreground">No money at stake - play for points and achievements!</p>
+                <p className="font-medium">XP Challenge</p>
+                <p className="text-sm text-muted-foreground">No money at stake - play for XP and achievements!</p>
               </div>
             )}
           </div>
@@ -326,7 +336,7 @@ export function ChallengeStakeSection({
               ) : (
                 <>
                   <Zap className="w-4 h-4 mr-2" />
-                  {pointsOnly ? 'JOIN FOR POINTS!' : `COMMIT $${Number(totalCost).toFixed(2)} & JOIN`}
+                  {pointsOnly ? 'JOIN FOR XP!' : `COMMIT $${Number(totalCost).toFixed(2)} & JOIN`}
                 </>
               )}
             </Button>
@@ -370,7 +380,7 @@ export function ChallengeStakeSection({
               <div className="space-y-1">
                 <Label className="text-sm font-medium">Challenge Type</Label>
                 <p className="text-xs text-muted-foreground">
-                  {pointsOnly ? 'Play for points and achievements' : 'Stake money for real rewards'}
+                  {pointsOnly ? 'Play for XP and achievements' : 'Stake money for real rewards'}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -392,9 +402,9 @@ export function ChallengeStakeSection({
           <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
             <div className="flex items-center gap-2 mb-2">
               <Star className="w-4 h-4 text-yellow-600" />
-              <span className="text-sm font-medium text-yellow-700">Points-Only Challenge</span>
+              <span className="text-sm font-medium text-yellow-700">XP Challenge</span>
             </div>
-            <p className="text-sm text-yellow-700">This challenge is for points and achievements only!</p>
+            <p className="text-sm text-yellow-700">This challenge is for XP and achievements only!</p>
             <p className="text-xs text-yellow-600 mt-1">
               No money required - focus on building the habit and having fun
             </p>
@@ -477,12 +487,23 @@ export function ChallengeStakeSection({
           </div>
         )}
 
-        {/* Points-Only Benefits */}
+        {/* XP Challenge Benefits */}
         {pointsOnly && (
           <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
             <div className="flex items-center gap-2 mb-2">
               <Star className="w-4 h-4 text-yellow-600" />
-              <span className="text-sm font-medium text-yellow-700">Points & Achievements</span>
+              <span className="text-sm font-medium text-yellow-700">XP & Achievements</span>
+            </div>
+            <div className="mb-2">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-700">
+                  Estimated XP Reward: {estimatedXPReward} XP
+                </span>
+              </div>
+              <p className="text-xs text-yellow-600 mt-1">
+                Based on difficulty ({challenge.difficulty}) and duration ({challenge.duration} days)
+              </p>
             </div>
             <p className="text-sm text-yellow-700">Earn XP, badges, and climb the leaderboard!</p>
             <p className="text-xs text-yellow-600 mt-1">

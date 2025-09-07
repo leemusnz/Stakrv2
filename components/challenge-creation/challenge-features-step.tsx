@@ -242,7 +242,7 @@ export function ChallengeFeaturesStep({
                 </div>
                 <div>
                   <CardTitle className="text-base">Challenge Type</CardTitle>
-                  <CardDescription className="text-sm">Choose between points-only or real money stakes</CardDescription>
+                  <CardDescription className="text-sm">Choose between XP challenges or real money stakes</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -253,9 +253,9 @@ export function ChallengeFeaturesStep({
                     <Coins className="w-5 h-5 text-secondary" />
                   </div>
                   <div>
-                    <Label className="text-base font-medium">Points-Only Challenge</Label>
+                    <Label className="text-base font-medium">XP Challenge</Label>
                     <p className="text-sm text-muted-foreground">
-                      Free to join, earn experience points and leaderboard rankings
+                      Free to join, earn experience points and achievements
                     </p>
                   </div>
                 </div>

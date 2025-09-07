@@ -260,7 +260,7 @@ export function ChallengeCommunityTabs({
                     <span className="text-blue-600">Entry:</span>
                     <span className="font-medium">
                       {challenge.allowPointsOnly && (!challenge.minStake || challenge.minStake === 0) 
-                        ? "Free (Points Only)" 
+                        ? "Free (XP Only)" 
                         : `$${challenge.minStake} - $${challenge.maxStake}`
                       }
                     </span>

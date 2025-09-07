@@ -403,7 +403,7 @@ export default function MyChallengesPage() {
                                             Starts {new Date(challenge.start_date).toLocaleDateString()}
                                           </span>
                                           {challenge.allow_points_only ? (
-                                            <Badge variant="outline" className="text-yellow-600">Points Only</Badge>
+                                            <Badge variant="outline" className="text-yellow-600">XP Only</Badge>
                                           ) : (
                                             <span className="flex items-center gap-1">
                                               <DollarSign className="w-4 h-4" />
@@ -802,7 +802,7 @@ export default function MyChallengesPage() {
                                     Starts {new Date(challenge.start_date).toLocaleDateString()}
                                   </span>
                                   {challenge.allow_points_only ? (
-                                    <Badge variant="outline" className="text-yellow-600">Points Only</Badge>
+                                    <Badge variant="outline" className="text-yellow-600">XP Only</Badge>
                                   ) : (
                                     <span className="flex items-center gap-1">
                                       <DollarSign className="w-4 h-4" />

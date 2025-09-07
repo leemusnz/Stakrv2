@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { calculateChallengeRewards, distributeRewards } from '@/lib/reward-calculation'
+import { calculateXPChallengeRewards, distributeXPRewards } from '@/lib/xp-reward-calculation'
 import { systemLogger } from '@/lib/system-logger'
 
 interface RouteParams {
@@ -34,13 +35,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Check if challenge exists and is eligible for completion
     const challengeCheck = await sql`
       SELECT 
-        id, title, status, end_date,
+        id, title, status, end_date, allow_points_only,
         COUNT(cp.id) as total_participants,
         COUNT(CASE WHEN cp.completion_status = 'completed' THEN 1 END) as completed_count
       FROM challenges c
       LEFT JOIN challenge_participants cp ON c.id = cp.challenge_id
       WHERE c.id = ${challengeId}
-      GROUP BY c.id, c.title, c.status, c.end_date
+      GROUP BY c.id, c.title, c.status, c.end_date, c.allow_points_only
     `
 
     if (challengeCheck.length === 0) {
@@ -67,32 +68,49 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }, { status: 400 })
     }
 
-    // Distribute rewards
+    // Distribute rewards based on challenge type
     console.log(`🏁 Completing challenge: ${challenge.title} (${challengeId})`)
     console.log(`📊 Stats: ${challenge.completed_count}/${challenge.total_participants} completed`)
+    console.log(`🎯 Challenge type: ${challenge.allow_points_only ? 'XP Challenge' : 'Cash Challenge'}`)
 
-    const rewardResult = await distributeRewards(challengeId)
+    let rewardResult
+    if (challenge.allow_points_only) {
+      // XP Challenge - distribute XP rewards
+      rewardResult = await distributeXPRewards(challengeId)
+    } else {
+      // Cash Challenge - distribute money rewards
+      rewardResult = await distributeRewards(challengeId)
+    }
 
     systemLogger.info('Challenge completed with reward distribution', 'admin', {
       challengeId,
       challengeTitle: challenge.title,
+      challengeType: challenge.allow_points_only ? 'XP Challenge' : 'Cash Challenge',
       totalParticipants: rewardResult.challenge_stats.total_participants,
       completedParticipants: rewardResult.challenge_stats.completed_participants,
-      totalDistributed: rewardResult.summary.total_distributed,
-      platformRevenue: rewardResult.platform_revenue.total,
-      distributionMethod: rewardResult.challenge_stats.reward_distribution
+      totalDistributed: challenge.allow_points_only 
+        ? rewardResult.summary.total_xp_awarded 
+        : rewardResult.summary.total_distributed,
+      platformRevenue: challenge.allow_points_only ? 0 : rewardResult.platform_revenue?.total || 0,
+      distributionMethod: challenge.allow_points_only ? 'XP-based' : rewardResult.challenge_stats.reward_distribution
     })
 
     return NextResponse.json({
       success: true,
       message: 'Challenge completed and rewards distributed',
       challengeId,
+      challenge_type: challenge.allow_points_only ? 'XP Challenge' : 'Cash Challenge',
       reward_summary: {
-        total_distributed: rewardResult.summary.total_distributed,
-        platform_revenue: rewardResult.platform_revenue.total,
+        total_distributed: challenge.allow_points_only 
+          ? rewardResult.summary.total_xp_awarded 
+          : rewardResult.summary.total_distributed,
+        platform_revenue: challenge.allow_points_only ? 0 : rewardResult.platform_revenue?.total || 0,
         participants_rewarded: rewardResult.participant_rewards.length,
-        distribution_method: rewardResult.challenge_stats.reward_distribution,
-        completion_rate: `${rewardResult.challenge_stats.completed_participants}/${rewardResult.challenge_stats.total_participants} (${rewardResult.challenge_stats.completion_rate.toFixed(1)}%)`
+        distribution_method: challenge.allow_points_only ? 'XP-based' : rewardResult.challenge_stats.reward_distribution,
+        completion_rate: `${rewardResult.challenge_stats.completed_participants}/${rewardResult.challenge_stats.total_participants} (${rewardResult.challenge_stats.completion_rate.toFixed(1)}%)`,
+        average_reward: challenge.allow_points_only 
+          ? rewardResult.summary.average_xp_per_participant 
+          : rewardResult.summary.average_reward
       }
     })
 
@@ -126,9 +144,29 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const { id: challengeId } = await params
+    const sql = await createDbConnection()
+
+    // Check challenge type first
+    const challengeType = await sql`
+      SELECT allow_points_only FROM challenges WHERE id = ${challengeId}
+    `
+
+    if (challengeType.length === 0) {
+      return NextResponse.json({
+        error: 'Challenge not found',
+        challengeId
+      }, { status: 404 })
+    }
 
     // Calculate rewards without distributing them
-    const rewardResult = await calculateChallengeRewards(challengeId)
+    let rewardResult
+    if (challengeType[0].allow_points_only) {
+      // XP Challenge
+      rewardResult = await calculateXPChallengeRewards(challengeId)
+    } else {
+      // Cash Challenge
+      rewardResult = await calculateChallengeRewards(challengeId)
+    }
 
     return NextResponse.json({
       success: true,

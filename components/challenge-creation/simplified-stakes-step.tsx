@@ -112,7 +112,7 @@ export function SimplifiedStakesStep({
                 <Gift className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <CardTitle className="text-base text-green-800">Points-Only Challenge</CardTitle>
+                <CardTitle className="text-base text-green-800">XP Challenge</CardTitle>
                 <CardDescription className="text-sm text-green-600">
                   This challenge is free to join and rewards experience points
                 </CardDescription>
@@ -124,9 +124,10 @@ export function SimplifiedStakesStep({
               <div className="flex items-start gap-3">
                 <Info className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm">
-                  <p className="font-medium text-green-700 mb-2">Points Challenge Rewards:</p>
+                  <p className="font-medium text-green-700 mb-2">XP Challenge Rewards:</p>
                   <ul className="text-green-600 space-y-1 text-xs">
-                    <li>• Participants earn experience points for completing the challenge</li>
+                    <li>• Earn XP based on challenge difficulty and duration</li>
+                    <li>• Get completion bonuses for challenging goals</li>
                     <li>• Climb the global leaderboards and earn recognition</li>
                     <li>• Unlock badges and achievements for your profile</li>
                     <li>• Build your reputation in the Stakr community</li>

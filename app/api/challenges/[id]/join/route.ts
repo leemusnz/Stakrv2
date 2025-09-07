@@ -5,6 +5,7 @@ import { createDbConnection } from '@/lib/db'
 import { triggerAutoSync, SYNC_TRIGGERS } from '@/lib/auto-sync-service'
 
 import { calculatePotentialReward } from '@/lib/reward-calculation'
+import { calculatePotentialXPReward } from '@/lib/xp-reward-calculation'
 
 interface RouteParams {
   params: Promise<{
@@ -253,7 +254,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
     
     // Calculate potential rewards using enhanced calculation
-    const potentialReward = await calculatePotentialReward(challengeId, stake, pointsOnly)
+    // Calculate potential reward based on challenge type
+    let potentialReward = 0
+    if (pointsOnly) {
+      potentialReward = await calculatePotentialXPReward(challengeId, session.user.id)
+    } else {
+      potentialReward = await calculatePotentialReward(challengeId, stake, pointsOnly)
+    }
     
     // Trigger automatic sync for challenges with integrations (don't wait for result)
     triggerAutoSync(challengeId, session.user.id, SYNC_TRIGGERS.CHALLENGE_JOIN).catch(err => {
@@ -278,7 +285,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         insurance_fee: insuranceFee,
         total_cost: totalCost,
         remaining_credits: (!pointsOnly ? (userData[0].credits - totalCost) : userData[0].credits),
-        potential_reward: potentialReward
+        potential_reward: potentialReward,
+        reward_type: pointsOnly ? 'XP' : 'CREDITS'
       },
       challenge_info: {
         title: challengeData.title,
