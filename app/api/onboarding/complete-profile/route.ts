@@ -83,16 +83,18 @@ export async function POST(request: NextRequest) {
 
     const sql = await createDbConnection()
     
-    // Update user profile with onboarding data
+    // Update user profile with onboarding data including XP and level
     const updatedUsers = await sql`
       UPDATE users 
       SET 
         name = ${name},
         avatar_url = ${avatar || null},
+        xp = ${xp || 0},
+        level = ${level || 1},
         onboarding_completed = true,
         updated_at = NOW()
       WHERE id = ${session.user.id}
-      RETURNING id, email, name, avatar_url, credits, trust_score, verification_tier, onboarding_completed, updated_at
+      RETURNING id, email, name, avatar_url, credits, trust_score, verification_tier, xp, level, onboarding_completed, updated_at
     `
 
     if (updatedUsers.length === 0) {
@@ -126,6 +128,8 @@ export async function POST(request: NextRequest) {
         credits: parseFloat(updatedUser.credits),
         trustScore: updatedUser.trust_score,
         verificationTier: updatedUser.verification_tier,
+        xp: updatedUser.xp || 0,
+        level: updatedUser.level || 1,
         onboardingCompleted: updatedUser.onboarding_completed,
         updatedAt: updatedUser.updated_at
       },

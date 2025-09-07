@@ -60,6 +60,8 @@ export async function GET(request: NextRequest) {
           premium_expires_at,
           is_dev,
           dev_mode_enabled,
+          xp,
+          level,
           created_at
         FROM users 
         WHERE id = ${session.user.id}
@@ -88,6 +90,8 @@ export async function GET(request: NextRequest) {
             premium_expires_at,
             is_dev,
             dev_mode_enabled,
+            xp,
+            level,
             created_at
           FROM users 
           WHERE email = ${session.user.email}
@@ -242,7 +246,9 @@ export async function GET(request: NextRequest) {
           premiumExpiresAt: user.premium_expires_at,
           memberSince: user.created_at,
           isDev: user.is_dev || false,
-          devModeEnabled: user.dev_mode_enabled || false
+          devModeEnabled: user.dev_mode_enabled || false,
+          xp: user.xp || 0,
+          level: user.level || 1
         },
         stats: {
           totalEarnings,

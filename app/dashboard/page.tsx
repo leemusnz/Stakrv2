@@ -36,6 +36,8 @@ interface DashboardData {
     longestStreak: number
     premiumSubscription: boolean
     memberSince: string
+    xp: number
+    level: number
   }
   stats: {
     totalEarnings: number
@@ -242,13 +244,26 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Experience Points</CardTitle>
+            <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.successRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              {user.challengesCompleted} challenges completed
+            <div className="text-2xl font-bold">{user.xp} XP</div>
+            <div className="flex items-center space-x-2 mt-2">
+              <div className="flex-1 h-2 bg-gray-200 rounded">
+                <div 
+                  className="h-2 bg-primary rounded transition-all duration-300"
+                  style={{ 
+                    width: `${((user.xp % 200) / 200) * 100}%` 
+                  }}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Level {user.level}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {200 - (user.xp % 200)} XP to next level
             </p>
           </CardContent>
         </Card>
