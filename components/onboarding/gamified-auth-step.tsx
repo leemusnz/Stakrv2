@@ -100,12 +100,15 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
   
   // Auto-complete profile for OAuth users
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    if (isAuthenticated && !isLoading && session?.user?.id) {
       console.log("🔄 OAuth user detected, auto-completing profile...")
-      // Automatically complete the profile for OAuth users
-      onNext()
+      // Add small delay to ensure session is fully loaded
+      const timer = setTimeout(() => {
+        onNext()
+      }, 100)
+      return () => clearTimeout(timer)
     }
-  }, [isAuthenticated, isLoading, onNext])
+  }, [isAuthenticated, isLoading, session?.user?.id, onNext])
   
   // Always show the account creation form in onboarding
   const canCreateAccount = email.trim() && password.length >= 6 && name.trim()
