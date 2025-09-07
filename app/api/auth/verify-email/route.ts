@@ -38,11 +38,12 @@ export async function GET(request: NextRequest) {
     console.log('✅ Email verified successfully for:', result.email)
     systemLogger.info(`Email verified successfully for user: ${result.email}`, 'auth')
 
-    // Return success response
+    // Return success response with user ID for automatic sign-in
     return NextResponse.json({
       success: true,
-      message: 'Email verified successfully! You can now sign in to your account.',
-      email: result.email
+      message: 'Email verified successfully! You are now signed in.',
+      email: result.email,
+      userId: result.user_id
     }, { status: 200 })
 
   } catch (error) {
@@ -95,11 +96,12 @@ export async function POST(request: NextRequest) {
     console.log('✅ Email verified successfully for:', result.email)
     systemLogger.info(`Email verified successfully for user: ${result.email}`, 'auth')
 
-    // Return success response
+    // Return success response with user ID for automatic sign-in
     return NextResponse.json({
       success: true,
-      message: 'Email verified successfully! You can now sign in to your account.',
-      email: result.email
+      message: 'Email verified successfully! You are now signed in.',
+      email: result.email,
+      userId: result.user_id
     }, { status: 200 })
 
   } catch (error) {

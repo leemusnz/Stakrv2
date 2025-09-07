@@ -50,13 +50,34 @@ function VerifyEmailContent() {
       const result = await response.json()
       setVerificationResult(result)
 
-      // If successful, redirect to signin with email pre-filled
+      // If successful, automatically sign in the user
       if (result.success) {
         console.log('✅ Email verified successfully!')
         
-        // Use window.location.href for full page reload to refresh session
-        const signinUrl = `/auth/signin?email=${encodeURIComponent(result.email || email || '')}&message=${encodeURIComponent('Email verified! Please sign in to continue.')}`
-        window.location.href = signinUrl
+        // Automatically sign in the user using verification provider
+        try {
+          const signInResult = await signIn('verification', {
+            email: result.email,
+            userId: result.userId,
+            redirect: false,
+          })
+
+          if (signInResult?.ok) {
+            console.log('✅ Auto sign-in successful!')
+            // Redirect to dashboard
+            window.location.href = '/dashboard'
+          } else {
+            console.log('❌ Auto sign-in failed, redirecting to signin page')
+            // Fallback to signin page if auto sign-in fails
+            const signinUrl = `/auth/signin?email=${encodeURIComponent(result.email || email || '')}&message=${encodeURIComponent('Email verified! Please sign in to continue.')}`
+            window.location.href = signinUrl
+          }
+        } catch (signInError) {
+          console.error('❌ Auto sign-in failed:', signInError)
+          // Fallback to signin page
+          const signinUrl = `/auth/signin?email=${encodeURIComponent(result.email || email || '')}&message=${encodeURIComponent('Email verified! Please sign in to continue.')}`
+          window.location.href = signinUrl
+        }
       }
     } catch (error) {
       setVerificationResult({
@@ -144,11 +165,11 @@ function VerifyEmailContent() {
                 )}
                 <div className="text-center space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Redirecting to sign in with your email pre-filled...
+                    Automatically signing you in...
                   </p>
                   <div className="flex items-center justify-center space-x-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                    <span className="text-sm text-muted-foreground">Redirecting...</span>
+                    <span className="text-sm text-muted-foreground">Signing in...</span>
                   </div>
                 </div>
               </>

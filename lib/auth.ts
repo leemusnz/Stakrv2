@@ -241,6 +241,57 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+    CredentialsProvider({
+      name: "verification",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        userId: { label: "User ID", type: "text" },
+      },
+      async authorize(credentials) {
+        try {
+          console.log("🔐 Verification sign-in attempt:", {
+            email: credentials?.email,
+            userId: credentials?.userId,
+          })
+
+          if (!credentials?.email || !credentials?.userId) {
+            console.log("❌ Missing verification credentials")
+            return null
+          }
+
+          // Find user in database
+          const dbUser = await findUserInDatabase(credentials.email)
+          
+          if (dbUser && dbUser.id === credentials.userId && dbUser.email_verified) {
+            console.log("✅ Verification sign-in successful for:", dbUser.email)
+            return {
+              id: dbUser.id,
+              email: dbUser.email,
+              name: dbUser.name,
+              avatar: dbUser.avatar_url,
+              emailVerified: dbUser.email_verified,
+              onboardingCompleted: dbUser.onboarding_completed,
+              credits: parseFloat(dbUser.credits) || 0,
+              trustScore: dbUser.trust_score || 50,
+              verificationTier: dbUser.verification_tier || 'manual',
+              challengesCompleted: dbUser.challenges_completed || 0,
+              currentStreak: dbUser.current_streak || 0,
+              longestStreak: dbUser.longest_streak || 0,
+              premiumSubscription: dbUser.premium_subscription || false,
+              isAdmin: dbUser.is_dev || dbUser.has_dev_access || dbUser.email === 'alex@stakr.app',
+              isDev: dbUser.is_dev || false,
+              devModeEnabled: dbUser.dev_mode_enabled || false
+            }
+          }
+
+          console.log("❌ Verification sign-in failed")
+          return null
+        } catch (error) {
+          console.error("❌ Error in verification authorize:", error)
+          return null
+        }
+      },
+    }),
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [
           GoogleProvider({
