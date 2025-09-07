@@ -58,7 +58,7 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
     setIsLoading(true)
     try {
       await signIn(provider, {
-        callbackUrl: "/",
+        callbackUrl: "/onboarding", // Redirect back to onboarding to complete profile
       })
     } catch (error) {
       setError(`${provider} authentication failed`)
