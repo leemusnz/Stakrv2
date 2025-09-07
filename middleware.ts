@@ -94,10 +94,10 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET 
   })
 
-  // Redirect authenticated users who have completed onboarding away from onboarding to dashboard
+  // Redirect authenticated users who have completed onboarding away from onboarding to home page
   if (pathname.startsWith('/onboarding') && token && token.onboardingCompleted) {
-    console.log('🚀 Authenticated user with completed onboarding accessing onboarding, redirecting to dashboard')
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    console.log('🚀 Authenticated user with completed onboarding accessing onboarding, redirecting to home page')
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   if (!isProtectedRoute) {

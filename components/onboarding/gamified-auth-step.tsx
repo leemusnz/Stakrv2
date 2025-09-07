@@ -80,59 +80,8 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
     }
   }
 
-  const handleCompleteOnboarding = async () => {
-    setIsLoading(true)
-
-    try {
-      const response = await fetch("/api/onboarding/complete-profile", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: session?.user?.name || data.name || "New Champion",
-          avatar: data.avatar,
-          goals: data.goals,
-          interests: data.interests,
-          experience: data.experience,
-          motivation: data.motivation,
-          preferredStakeRange: data.preferredStakeRange,
-          xp: (data.xp || 0) + 150,
-          level: data.level || 1,
-        }),
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        console.log("✅ Onboarding completed successfully!")
-        
-        // Update session to reflect onboarding completion
-        try {
-          await update({
-            user: {
-              ...session?.user,
-              onboardingCompleted: true
-            }
-          })
-          console.log("✅ Session updated with onboarding completion")
-        } catch (updateError) {
-          console.error("❌ Failed to update session:", updateError)
-        }
-        
-        // Redirect to home page which will handle proper routing
-        window.location.href = "/"
-      } else {
-        console.error("❌ Failed to complete onboarding:", result.error)
-        setError(result.message || "Failed to complete onboarding")
-      }
-    } catch (error) {
-      console.error("❌ Error completing onboarding:", error)
-      setError("An error occurred while completing onboarding")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // Onboarding completion is now handled by the parent page.tsx
+  // This function is no longer needed
 
   const handleSocialSignIn = async (provider: "google" | "apple" | "facebook") => {
     setIsCreatingAccount(true)
@@ -262,7 +211,7 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
             </div>
 
             <Button
-              onClick={handleCompleteOnboarding}
+              onClick={() => onNext()}
               disabled={isLoading}
               size="lg"
               className="text-lg font-bold px-12 py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group"

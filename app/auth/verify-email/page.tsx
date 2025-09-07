@@ -64,8 +64,8 @@ function VerifyEmailContent() {
 
           if (signInResult?.ok) {
             console.log('✅ Auto sign-in successful!')
-            // Redirect to dashboard
-            window.location.href = '/dashboard'
+            // Redirect to home page which will handle proper routing based on onboarding status
+            window.location.href = '/'
           } else {
             console.log('❌ Auto sign-in failed, redirecting to signin page')
             // Fallback to signin page if auto sign-in fails

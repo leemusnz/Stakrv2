@@ -498,6 +498,10 @@ export const authOptions: NextAuthOptions = {
           if (session?.user?.name) token.name = session.user.name
           if (session?.user?.credits !== undefined) token.credits = session.user.credits
           if (session?.user?.trustScore !== undefined) token.trustScore = session.user.trustScore
+          if (session?.user?.onboardingCompleted !== undefined) {
+            token.onboardingCompleted = session.user.onboardingCompleted
+            console.log("🔄 Updated onboardingCompleted in token:", session.user.onboardingCompleted)
+          }
         }
 
         return token

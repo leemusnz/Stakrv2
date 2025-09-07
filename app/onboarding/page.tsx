@@ -66,7 +66,7 @@ export default function OnboardingPage() {
     { id: "auth", component: GamefiedAuthStep, xpReward: 150 },
   ]
 
-  const handleNext = (stepData?: Partial<OnboardingData>) => {
+  const handleNext = async (stepData?: Partial<OnboardingData>) => {
     if (stepData) {
       setOnboardingData((prev) => ({ ...prev, ...stepData }))
     }
@@ -79,9 +79,56 @@ export default function OnboardingPage() {
       setOnboardingData((prev) => ({ ...prev, xp: newXP, level: newLevel }))
     }
 
-    // If this is the last step, redirect to home page which will handle proper routing
+    // If this is the last step, complete onboarding
     if (currentStep === steps.length - 1) {
-      window.location.href = "/"
+      try {
+        // Complete onboarding profile
+        const response = await fetch('/api/onboarding/complete-profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: onboardingData.name || session?.user?.name || "New Champion",
+            avatar: onboardingData.avatar,
+            goals: onboardingData.goals,
+            interests: onboardingData.interests,
+            experience: onboardingData.experience,
+            motivation: onboardingData.motivation,
+            preferredStakeRange: onboardingData.preferredStakeRange,
+            xp: (onboardingData.xp || 0) + 150,
+            level: onboardingData.level || 1,
+          }),
+        })
+
+        if (response.ok) {
+          console.log("✅ Onboarding completed successfully!")
+          
+          // Update session to reflect onboarding completion
+          try {
+            await update({
+              user: {
+                ...session?.user,
+                onboardingCompleted: true
+              }
+            })
+            console.log("✅ Session updated with onboarding completion")
+            
+            // Wait a moment for session to propagate, then redirect
+            setTimeout(() => {
+              window.location.href = "/"
+            }, 500)
+          } catch (updateError) {
+            console.error("❌ Failed to update session:", updateError)
+            // Still redirect even if session update fails
+            window.location.href = "/"
+          }
+        } else {
+          console.error("❌ Failed to complete onboarding")
+        }
+      } catch (error) {
+        console.error("❌ Error completing onboarding:", error)
+      }
       return
     }
 
