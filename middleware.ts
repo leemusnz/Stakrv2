@@ -88,15 +88,21 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   )
 
-  if (!isProtectedRoute) {
-    return NextResponse.next()
-  }
-
-  // Get the user's session token
+  // Get the user's session token for all routes (needed for onboarding redirect)
   const token = await getToken({ 
     req: request, 
     secret: process.env.NEXTAUTH_SECRET 
   })
+
+  // Redirect authenticated users away from onboarding to dashboard
+  if (pathname.startsWith('/onboarding') && token) {
+    console.log('🚀 Authenticated user accessing onboarding, redirecting to dashboard')
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
+  if (!isProtectedRoute) {
+    return NextResponse.next()
+  }
 
   // If no token, redirect to sign in
   if (!token) {

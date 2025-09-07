@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { OnboardingLayout } from "@/components/onboarding/onboarding-layout"
 import { SwipeableOnboardingLayout } from "@/components/onboarding/swipeable-onboarding-layout"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
@@ -25,6 +27,8 @@ export interface OnboardingData {
 }
 
 export default function OnboardingPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const { isMobile } = useEnhancedMobile()
   const [currentStep, setCurrentStep] = useState(0)
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
@@ -37,6 +41,17 @@ export default function OnboardingPage() {
     xp: 0,
     level: 1,
   })
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (status === "loading") return // Still loading session
+
+    if (session?.user) {
+      console.log("🚀 User already authenticated, redirecting to dashboard")
+      router.push("/dashboard")
+      return
+    }
+  }, [session, status, router])
 
   // Gamified 3-step onboarding
   const steps = [
@@ -91,6 +106,19 @@ export default function OnboardingPage() {
 
   const handleToggleVariant = (variant: string) => {
     console.log("Toggle variant:", variant)
+  }
+
+  // Don't render onboarding if user is authenticated (will redirect)
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (session?.user) {
+    return null // Will redirect via useEffect
   }
 
   const CurrentStepComponent = steps[currentStep].component
