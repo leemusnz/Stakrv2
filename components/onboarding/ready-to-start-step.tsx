@@ -91,7 +91,7 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
     setIsCreatingAccount(true)
     try {
       await signIn(provider, { 
-        callbackUrl: '/dashboard' // Will complete onboarding after social auth
+        callbackUrl: '/' // Redirect to home page which will handle proper routing
       })
     } catch (error) {
       setError(`${provider} authentication failed`)

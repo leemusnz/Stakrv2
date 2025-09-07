@@ -117,7 +117,8 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
 
       if (result.success) {
         console.log("✅ Onboarding completed successfully!")
-        window.location.href = "/dashboard"
+        // Use router.push for proper Next.js routing
+        window.location.href = "/" // Redirect to home page which will handle proper routing
       } else {
         console.error("❌ Failed to complete onboarding:", result.error)
         setError(result.message || "Failed to complete onboarding")
@@ -134,7 +135,7 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
     setIsCreatingAccount(true)
     try {
       await signIn(provider, { 
-        callbackUrl: '/dashboard' // Will complete onboarding after social auth
+        callbackUrl: '/' // Redirect to home page which will handle proper routing
       })
     } catch (error) {
       setError(`${provider} authentication failed`)

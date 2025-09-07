@@ -42,14 +42,20 @@ export default function OnboardingPage() {
     level: 1,
   })
 
-  // Redirect authenticated users to dashboard
+  // Redirect authenticated users who have completed onboarding to dashboard
   useEffect(() => {
     if (status === "loading") return // Still loading session
 
     if (session?.user) {
-      console.log("🚀 User already authenticated, redirecting to dashboard")
-      router.push("/dashboard")
-      return
+      // Check if user has completed onboarding
+      if (session.user.onboardingCompleted) {
+        console.log("🚀 User already completed onboarding, redirecting to dashboard")
+        router.push("/dashboard")
+        return
+      } else {
+        console.log("🎯 User authenticated but hasn't completed onboarding, staying in onboarding flow")
+        // User is authenticated but hasn't completed onboarding - let them continue
+      }
     }
   }, [session, status, router])
 
@@ -73,9 +79,9 @@ export default function OnboardingPage() {
       setOnboardingData((prev) => ({ ...prev, xp: newXP, level: newLevel }))
     }
 
-    // If this is the last step, redirect to dashboard
+    // If this is the last step, redirect to home page which will handle proper routing
     if (currentStep === steps.length - 1) {
-      window.location.href = "/dashboard"
+      window.location.href = "/"
       return
     }
 
@@ -117,7 +123,7 @@ export default function OnboardingPage() {
     )
   }
 
-  if (session?.user) {
+  if (session?.user && session.user.onboardingCompleted) {
     return null // Will redirect via useEffect
   }
 

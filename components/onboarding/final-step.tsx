@@ -45,7 +45,7 @@ export function FinalStep({ data }: FinalStepProps) {
       })
 
       if (response.ok) {
-        router.push("/dashboard")
+        router.push("/") // Redirect to home page which will handle proper routing
       }
     } catch (error) {
       console.error("Failed to complete onboarding:", error)

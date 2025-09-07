@@ -149,7 +149,7 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
     setIsLoading(true)
     try {
       await signIn('google', { 
-        callbackUrl: '/' // Continue to dashboard after Google auth
+        callbackUrl: '/' // Redirect to home page which will handle proper routing
       })
     } catch (error) {
       setError('Google authentication failed')
