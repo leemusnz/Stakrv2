@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { ArrowRight, Sparkles, Gift, CheckCircle, Mail, Lock, Loader2, Trophy, Star, Crown, Target } from "lucide-react"
+import { ArrowRight, Sparkles, Gift, CheckCircle, Mail, Lock, Loader2, Trophy, Star, Crown, Target, User } from "lucide-react"
 import type { OnboardingData } from "@/app/onboarding/page"
 
 interface GamefiedAuthStepProps {
@@ -24,6 +24,7 @@ interface GamefiedAuthStepProps {
 export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
   const { data: session } = useSession()
   const [showConfetti, setShowConfetti] = useState(false)
+  const [name, setName] = useState(data.name || "")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isCreatingAccount, setIsCreatingAccount] = useState(false)
@@ -53,7 +54,7 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
         body: JSON.stringify({
           email,
           password,
-          name: data.name || "New Champion",
+          name: name || "New Champion",
           confirmPassword: password,
         }),
       })
@@ -112,7 +113,7 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: data.name,
+          name: name || data.name || "New Champion",
           avatar: data.avatar,
           goals: data.goals,
           interests: data.interests,
@@ -511,6 +512,23 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
 
           {/* Email/Password Form */}
           <form onSubmit={handleCreateAccount} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-lg font-bold flex items-center gap-2">
+                <User className="w-5 h-5" />
+                Your Name
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Enter your first name or nickname"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="text-lg p-4 h-14"
+                required
+                disabled={isCreatingAccount}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-lg font-bold flex items-center gap-2">
                 <Mail className="w-5 h-5" />

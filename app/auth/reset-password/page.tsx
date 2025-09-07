@@ -163,6 +163,16 @@ function ResetPasswordContent() {
   }
 
   if (isSuccess) {
+    // Auto-redirect to signin page after 3 seconds
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        const signinUrl = `/auth/signin?email=${encodeURIComponent(email)}&message=${encodeURIComponent('Password reset successful! Please sign in with your new password.')}`
+        router.push(signinUrl)
+      }, 3000)
+
+      return () => clearTimeout(timer)
+    }, [router, email])
+
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -179,11 +189,11 @@ function ResetPasswordContent() {
             <Alert className="border-green-200 bg-green-50">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
-                You can now sign in with your new password.
+                You can now sign in with your new password. Redirecting to sign in page...
               </AlertDescription>
             </Alert>
 
-            <Link href="/auth/signin">
+            <Link href={`/auth/signin?email=${encodeURIComponent(email)}&message=${encodeURIComponent('Password reset successful! Please sign in with your new password.')}`}>
               <Button className="w-full" size="lg">
                 Sign In Now
               </Button>

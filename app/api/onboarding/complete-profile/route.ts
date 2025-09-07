@@ -14,7 +14,9 @@ const onboardingProfileSchema = z.object({
   interests: z.array(z.string()).optional(),
   experience: z.string().optional(),
   motivation: z.string().optional(),
-  preferredStakeRange: z.string().optional()
+  preferredStakeRange: z.string().optional(),
+  xp: z.number().optional(),
+  level: z.number().optional()
 }).refine((data) => {
   if (data.avatar && !isValidAvatarUrl(data.avatar)) {
     return false
@@ -39,9 +41,23 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     
+    // Log the received data for debugging
+    console.log('📊 Onboarding completion request data:', {
+      name: body.name,
+      hasAvatar: !!body.avatar,
+      goalsCount: body.goals?.length || 0,
+      interestsCount: body.interests?.length || 0,
+      hasExperience: !!body.experience,
+      hasMotivation: !!body.motivation,
+      hasStakeRange: !!body.preferredStakeRange,
+      xp: body.xp,
+      level: body.level
+    })
+    
     // Validate input
     const validationResult = onboardingProfileSchema.safeParse(body)
     if (!validationResult.success) {
+      console.error('❌ Onboarding validation failed:', validationResult.error.issues)
       return NextResponse.json({
         success: false,
         error: 'Validation failed',
@@ -49,7 +65,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const { name, avatar, goals, interests, experience, motivation, preferredStakeRange } = validationResult.data
+    const { name, avatar, goals, interests, experience, motivation, preferredStakeRange, xp, level } = validationResult.data
 
     // Validate name with moderation service
     try {
