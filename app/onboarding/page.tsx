@@ -54,7 +54,9 @@ export default function OnboardingPage() {
         return
       } else {
         console.log("🎯 User authenticated but hasn't completed onboarding, staying in onboarding flow")
-        // User is authenticated but hasn't completed onboarding - let them continue
+        // User is authenticated but hasn't completed onboarding - skip to auth step
+        console.log("🔄 OAuth user detected, skipping to auth step (step 2)")
+        setCurrentStep(2) // Skip to the auth step where they can complete their profile
       }
     }
   }, [session, status, router])
