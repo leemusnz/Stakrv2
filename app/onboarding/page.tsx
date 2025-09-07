@@ -53,13 +53,44 @@ export default function OnboardingPage() {
         router.push("/dashboard")
         return
       } else {
-        console.log("🎯 User authenticated but hasn't completed onboarding, staying in onboarding flow")
-        // User is authenticated but hasn't completed onboarding - skip to auth step
-        console.log("🔄 OAuth user detected, skipping to auth step (step 2)")
+        console.log("🎯 User authenticated but hasn't completed onboarding, checking for saved progress...")
+        
+        // Check if user has any onboarding progress stored (for email users who were interrupted by verification)
+        const savedProgress = localStorage.getItem('onboardingProgress')
+        if (savedProgress) {
+          try {
+            const progress = JSON.parse(savedProgress)
+            console.log('📊 Found saved onboarding progress:', progress)
+            
+            // Restore the progress
+            setOnboardingData(progress.data)
+            setCurrentStep(progress.currentStep)
+            
+            console.log('✅ Restored onboarding progress - step:', progress.currentStep, 'XP:', progress.data.xp)
+            return
+          } catch (error) {
+            console.error('❌ Failed to parse saved onboarding progress:', error)
+            // Fallback to step 2 for OAuth users
+          }
+        }
+        
+        // No saved progress - OAuth users go to step 2, email users start from step 0
+        console.log("🔄 No saved progress, setting step based on user type")
         setCurrentStep(2) // Skip to the auth step where they can complete their profile
       }
     }
   }, [session, status, router])
+
+  // Cleanup effect to remove old progress data
+  useEffect(() => {
+    return () => {
+      // Only clean up if user has completed onboarding
+      if (session?.user?.onboardingCompleted) {
+        localStorage.removeItem('onboardingProgress')
+        console.log('🗑️ Cleaned up onboarding progress on unmount')
+      }
+    }
+  }, [session?.user?.onboardingCompleted])
 
   // Gamified 3-step onboarding
   const steps = [
@@ -70,7 +101,17 @@ export default function OnboardingPage() {
 
   const handleNext = async (stepData?: Partial<OnboardingData>) => {
     if (stepData) {
-      setOnboardingData((prev) => ({ ...prev, ...stepData }))
+      const newData = { ...onboardingData, ...stepData }
+      setOnboardingData(newData)
+      
+      // Save progress to localStorage for email users who might get interrupted by verification
+      const progressToSave = {
+        currentStep: currentStep + 1,
+        data: newData,
+        timestamp: Date.now()
+      }
+      localStorage.setItem('onboardingProgress', JSON.stringify(progressToSave))
+      console.log('💾 Saved onboarding progress:', progressToSave)
     }
 
     // Award XP for completing step (only for non-OAuth users who go through all steps)
@@ -129,6 +170,10 @@ export default function OnboardingPage() {
         if (response.ok) {
           console.log("✅ Onboarding completed successfully!")
           
+          // Clear saved progress since onboarding is now complete
+          localStorage.removeItem('onboardingProgress')
+          console.log('🗑️ Cleared saved onboarding progress')
+          
           // Update session to reflect onboarding completion
           try {
             await update({
@@ -158,7 +203,17 @@ export default function OnboardingPage() {
     }
 
     if (currentStep < steps.length - 1) {
-      setCurrentStep((prev) => prev + 1)
+      const nextStep = currentStep + 1
+      setCurrentStep(nextStep)
+      
+      // Save progress to localStorage for email users who might get interrupted by verification
+      const progressToSave = {
+        currentStep: nextStep,
+        data: onboardingData,
+        timestamp: Date.now()
+      }
+      localStorage.setItem('onboardingProgress', JSON.stringify(progressToSave))
+      console.log('💾 Saved onboarding progress (step progression):', progressToSave)
     }
   }
 
