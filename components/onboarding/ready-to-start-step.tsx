@@ -21,7 +21,7 @@ interface ReadyToStartStepProps {
 }
 
 export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
   const [showConfetti, setShowConfetti] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -123,7 +123,22 @@ export function ReadyToStartStep({ data }: ReadyToStartStepProps) {
 
       if (result.success) {
         console.log('✅ Onboarding completed successfully!')
-        window.location.href = '/dashboard'
+        
+        // Update session to reflect onboarding completion
+        try {
+          await update({
+            user: {
+              ...session?.user,
+              onboardingCompleted: true
+            }
+          })
+          console.log("✅ Session updated with onboarding completion")
+        } catch (updateError) {
+          console.error("❌ Failed to update session:", updateError)
+        }
+        
+        // Redirect to home page which will handle proper routing
+        window.location.href = '/'
       } else {
         console.error('❌ Failed to complete onboarding:', result.error)
         setError(result.message || 'Failed to complete onboarding')

@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ArrowRight, Sparkles, Gift, Trophy, Zap } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import type { OnboardingData } from "@/app/onboarding/page"
 
 interface FinalStepProps {
@@ -17,6 +18,7 @@ interface FinalStepProps {
 }
 
 export function FinalStep({ data }: FinalStepProps) {
+  const { data: session, update } = useSession()
   const [showConfetti, setShowConfetti] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const router = useRouter()
@@ -45,6 +47,19 @@ export function FinalStep({ data }: FinalStepProps) {
       })
 
       if (response.ok) {
+        // Update session to reflect onboarding completion
+        try {
+          await update({
+            user: {
+              ...session?.user,
+              onboardingCompleted: true
+            }
+          })
+          console.log("✅ Session updated with onboarding completion")
+        } catch (updateError) {
+          console.error("❌ Failed to update session:", updateError)
+        }
+        
         router.push("/") // Redirect to home page which will handle proper routing
       }
     } catch (error) {

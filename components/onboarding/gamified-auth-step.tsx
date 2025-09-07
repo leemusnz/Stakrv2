@@ -22,7 +22,7 @@ interface GamefiedAuthStepProps {
 }
 
 export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
   const [showConfetti, setShowConfetti] = useState(false)
   const [name, setName] = useState(data.name || "")
   const [email, setEmail] = useState("")
@@ -117,8 +117,22 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
 
       if (result.success) {
         console.log("✅ Onboarding completed successfully!")
-        // Use router.push for proper Next.js routing
-        window.location.href = "/" // Redirect to home page which will handle proper routing
+        
+        // Update session to reflect onboarding completion
+        try {
+          await update({
+            user: {
+              ...session?.user,
+              onboardingCompleted: true
+            }
+          })
+          console.log("✅ Session updated with onboarding completion")
+        } catch (updateError) {
+          console.error("❌ Failed to update session:", updateError)
+        }
+        
+        // Redirect to home page which will handle proper routing
+        window.location.href = "/"
       } else {
         console.error("❌ Failed to complete onboarding:", result.error)
         setError(result.message || "Failed to complete onboarding")
@@ -143,6 +157,9 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
     }
   }
 
+  // Check if user is already authenticated (OAuth users)
+  const isAuthenticated = session?.user
+  
   // Always show the account creation form in onboarding
   const canCreateAccount = email.trim() && password.length >= 6 && name.trim()
 
@@ -234,8 +251,69 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
         </div>
       </div>
 
-      {/* Email/Password Form */}
-      <form onSubmit={handleCreateAccount} className="space-y-4">
+      {/* Email/Password Form or OAuth Completion */}
+      {isAuthenticated ? (
+        // OAuth users - show completion form
+        <div className="space-y-4">
+          <div className="text-center space-y-2">
+            <h3 className="text-2xl font-bold flex items-center justify-center gap-2">
+              <Crown className="w-6 h-6 text-primary" />
+              Complete Your Profile
+            </h3>
+            <p className="text-muted-foreground">
+              You're signed in! Just complete your profile to finish onboarding.
+            </p>
+          </div>
+          
+          <form onSubmit={handleCompleteOnboarding} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-lg font-bold flex items-center gap-2">
+                <User className="w-5 h-5" />
+                Your Name
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Enter your first name or nickname"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="text-lg p-4 h-14"
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={!name.trim() || isLoading}
+              size="lg"
+              className="text-lg font-bold px-12 py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Completing Profile...
+                </>
+              ) : (
+                <>
+                  <Crown className="w-5 h-5 mr-2" />
+                  Complete Profile & Join Champions Circle (+150 XP)
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </>
+              )}
+            </Button>
+
+            {error && (
+              <div className="text-center">
+                <p className="text-sm text-red-500">{error}</p>
+              </div>
+            )}
+          </form>
+        </div>
+      ) : (
+        // New users - show account creation form
+        <form onSubmit={handleCreateAccount} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="text-lg font-bold flex items-center gap-2">
             <User className="w-5 h-5" />
@@ -316,6 +394,7 @@ export function GamefiedAuthStep({ data }: GamefiedAuthStepProps) {
           </div>
         )}
       </form>
+      )}
     </div>
   )
 }
