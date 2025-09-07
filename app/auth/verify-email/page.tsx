@@ -54,11 +54,9 @@ function VerifyEmailContent() {
       if (result.success) {
         console.log('✅ Email verified successfully!')
         
-        // Redirect to signin page with email pre-filled and success message
-        setTimeout(() => {
-          const signinUrl = `/auth/signin?email=${encodeURIComponent(result.email || email || '')}&message=${encodeURIComponent('Email verified! Please sign in to continue.')}`
-          router.push(signinUrl)
-        }, 2000)
+        // Use window.location.href for full page reload to refresh session
+        const signinUrl = `/auth/signin?email=${encodeURIComponent(result.email || email || '')}&message=${encodeURIComponent('Email verified! Please sign in to continue.')}`
+        window.location.href = signinUrl
       }
     } catch (error) {
       setVerificationResult({
@@ -148,9 +146,10 @@ function VerifyEmailContent() {
                   <p className="text-sm text-muted-foreground">
                     Redirecting to sign in with your email pre-filled...
                   </p>
-                  <Link href={`/auth/signin?email=${encodeURIComponent(verificationResult.email || email || '')}&message=${encodeURIComponent('Email verified! Please sign in to continue.')}`}>
-                    <Button>Sign In Now</Button>
-                  </Link>
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    <span className="text-sm text-muted-foreground">Redirecting...</span>
+                  </div>
                 </div>
               </>
             ) : (
