@@ -19,6 +19,7 @@ function SignInContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
+  const [isOAuthAccount, setIsOAuthAccount] = useState(false)
 
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
   const errorParam = searchParams.get('error')
@@ -37,6 +38,10 @@ function SignInContent() {
           break
         case 'suspended':
           setError('Your account has been suspended')
+          break
+        case 'oauth_account_exists':
+          setError('This account was created with Google. Please sign in with Google instead.')
+          setIsOAuthAccount(true)
           break
         default:
           setError('Sign in failed. Please try again.')
@@ -64,6 +69,7 @@ function SignInContent() {
     e.preventDefault()
     setIsLoading(true)
     setError("")
+    setIsOAuthAccount(false)
 
     console.log('🔐 Attempting sign in with:', { email, hasPassword: !!password })
 
@@ -95,6 +101,10 @@ function SignInContent() {
           case 'error=suspended':
             setError('Your account has been suspended')
             router.push('/auth/suspended')
+            break
+          case 'error=oauth_account_exists':
+            setError('This account was created with Google. Please sign in with Google instead.')
+            setIsOAuthAccount(true)
             break
           default:
             setError('Invalid email or password')
@@ -141,9 +151,23 @@ function SignInContent() {
           )}
 
           {error && (
-            <Alert variant="destructive">
+            <Alert variant={isOAuthAccount ? "default" : "destructive"}>
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>
+                {error}
+                {isOAuthAccount && (
+                  <div className="mt-3">
+                    <Button
+                      onClick={() => handleSocialSignIn("google")}
+                      className="w-full"
+                      disabled={isLoading}
+                    >
+                      <img src="/logos/google-icon.svg" alt="Google" className="w-5 h-5 mr-2" />
+                      Sign in with Google
+                    </Button>
+                  </div>
+                )}
+              </AlertDescription>
             </Alert>
           )}
 

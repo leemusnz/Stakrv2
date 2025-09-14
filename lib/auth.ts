@@ -168,6 +168,13 @@ export const authOptions: NextAuthOptions = {
           if (dbUser) {
             console.log("👤 Database user found:", dbUser.email)
             
+            // Check if this is an OAuth-only account (no password_hash)
+            if (!dbUser.password_hash) {
+              console.log("🔍 Account exists but has no password - likely OAuth account")
+              // Return a special error to indicate OAuth account
+              throw new Error("OAUTH_ACCOUNT_EXISTS")
+            }
+            
             // Verify password (assuming bcrypt hashing)
             let isValidPassword = false
             try {
@@ -247,6 +254,13 @@ export const authOptions: NextAuthOptions = {
           }
         } catch (error) {
           console.error("❌ Error in authorize callback:", error)
+          
+          // Handle OAuth account exists error
+          if (error instanceof Error && error.message === "OAUTH_ACCOUNT_EXISTS") {
+            console.log("🔍 OAuth account detected, throwing special error")
+            throw error // Re-throw to be caught by NextAuth
+          }
+          
           return null
         }
       },
@@ -515,6 +529,14 @@ export const authOptions: NextAuthOptions = {
         return true
       } catch (error) {
         console.error("❌ Error in signIn callback:", error)
+        
+        // Handle OAuth account exists error
+        if (error instanceof Error && error.message === "OAUTH_ACCOUNT_EXISTS") {
+          console.log("🔍 OAuth account conflict detected")
+          // Return a special error URL parameter
+          return `/auth/signin?error=oauth_account_exists&email=${encodeURIComponent(user?.email || '')}`
+        }
+        
         return false
       }
     },
