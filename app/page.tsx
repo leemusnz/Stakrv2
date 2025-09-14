@@ -30,9 +30,9 @@ export default function HomePage() {
       router.push('/dashboard')
       return
     } else {
-      // If not authenticated, redirect to onboarding (which will handle auth)
-      console.log('🔒 No session, redirecting to onboarding...')
-      router.push('/onboarding')
+      // If not authenticated, redirect to alpha gate (which will handle auth flow)
+      console.log('🔒 No session, redirecting to alpha gate...')
+      router.push('/alpha-gate')
       return
     }
   }, [session, status, router])
