@@ -266,14 +266,6 @@ function SignInContent() {
             </div>
           </div>
 
-          {/* Trust Signals */}
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-              <span>🔒 Secure</span>
-              <span>📧 No spam</span>
-              <span>❌ Cancel anytime</span>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
