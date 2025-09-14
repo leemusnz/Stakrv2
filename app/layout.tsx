@@ -7,6 +7,8 @@ import { NavigationWrapper } from "@/components/navigation-wrapper"
 import { MobileContentSpacer } from "@/components/mobile-content-spacer"
 import { Toaster } from "@/components/ui/sonner"
 import { Providers } from "@/components/providers"
+import { AppleSplashScreen } from "./apple-splash-screen"
+import { MobileAppOptimizer, mobileAppStyles } from "@/components/mobile-app-optimizer"
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] })
 const inter = Inter({ subsets: ["latin"] })
@@ -20,6 +22,18 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: 'Stakr'
+  },
+  // Apple-specific icons and splash screens
+  icons: {
+    apple: [
+      { url: '/logos/stakr-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/logos/stakr-icon.png', sizes: '152x152', type: 'image/png' },
+      { url: '/logos/stakr-icon.png', sizes: '120x120', type: 'image/png' }
+    ],
+    icon: [
+      { url: '/logos/stakr-icon.png', sizes: '192x192', type: 'image/png' },
+      { url: '/logos/stakr-icon.png', sizes: '512x512', type: 'image/png' }
+    ]
   },
   generator: "v0.dev",
 }
@@ -39,7 +53,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <AppleSplashScreen />
+        <style dangerouslySetInnerHTML={{ __html: mobileAppStyles }} />
+      </head>
       <body className={cn("bg-background font-sans antialiased", montserrat.className)}>
+        <MobileAppOptimizer />
         <Providers>
           <NavigationWrapper />
           <main style={{ paddingBottom: "var(--bottom-nav-safe-space, 0px)" }}>

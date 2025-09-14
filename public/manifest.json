@@ -8,21 +8,61 @@
   "theme_color": "#F46036",
   "orientation": "portrait",
   "scope": "/",
-  "categories": ["lifestyle", "health-and-fitness", "productivity"],
+  "categories": [
+    "lifestyle",
+    "health-and-fitness",
+    "productivity"
+  ],
   "lang": "en",
   "dir": "ltr",
   "icons": [
     {
       "src": "/logos/stakr-icon.png",
-      "sizes": "192x192",
+      "sizes": "72x72",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/logos/stakr-icon.png",
-      "sizes": "512x512", 
+      "sizes": "96x96",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/logos/stakr-icon.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logos/stakr-icon.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logos/stakr-icon.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logos/stakr-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logos/stakr-icon.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logos/stakr-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -31,14 +71,24 @@
       "short_name": "Discover",
       "description": "Browse new challenges to join",
       "url": "/discover",
-      "icons": [{ "src": "/logos/stakr-icon.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/logos/stakr-icon.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "My Profile",
-      "short_name": "Profile", 
+      "short_name": "Profile",
       "description": "View your profile and progress",
       "url": "/profile",
-      "icons": [{ "src": "/logos/stakr-icon.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/logos/stakr-icon.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }

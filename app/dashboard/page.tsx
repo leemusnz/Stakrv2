@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useState, Suspense } from "react"
+import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { DashboardMobile } from "@/components/dashboard-mobile"
 import { MobileContainer } from "@/components/mobile-container"
+import { LoadingScreen } from "@/components/loading-screen"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Trophy, Bell, Plus } from "lucide-react"
@@ -21,7 +22,6 @@ import {
   DollarSign, 
   Shield
 } from 'lucide-react'
-import { XPLevelAnimation } from '@/components/xp-level-animation'
 
 interface DashboardData {
   user: {
@@ -73,7 +73,7 @@ interface DashboardData {
   }>
 }
 
-function DashboardContent() {
+export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { isMobile } = useEnhancedMobile()
@@ -81,19 +81,6 @@ function DashboardContent() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [showXPAnimation, setShowXPAnimation] = useState(false)
-  const [initialXP, setInitialXP] = useState(0)
-  const [initialLevel, setInitialLevel] = useState(1)
-  const [fromOnboarding, setFromOnboarding] = useState(false)
-
-  // Handle search params separately to avoid SSR issues
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const from = urlParams.get('from')
-      setFromOnboarding(from === 'onboarding')
-    }
-  }, [])
 
   useEffect(() => {
     // Don't do anything during loading
@@ -103,14 +90,6 @@ function DashboardContent() {
     if (session?.user) {
       console.log('📊 Dashboard page - User authenticated:', session.user.email)
       console.log('🎯 Onboarding completed:', session.user.onboardingCompleted)
-      
-      // Check if user just completed onboarding
-      if (fromOnboarding && session.user.xp && session.user.xp >= 350) {
-        console.log('🎉 User just completed onboarding, showing XP animation')
-        setInitialXP(50) // Start from verification XP
-        setInitialLevel(1) // Start from level 1
-        setShowXPAnimation(true)
-      }
       
       // Load dashboard data regardless of onboarding status
       // If they haven't completed onboarding, we'll show a different view
@@ -122,7 +101,7 @@ function DashboardContent() {
       router.push('/onboarding')
       return
     }
-  }, [session, status, router, fromOnboarding])
+  }, [session, status, router])
 
   const loadDashboardData = async () => {
     try {
@@ -146,12 +125,7 @@ function DashboardContent() {
   // Show loading while checking session/loading data
   if (status === "loading" || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
-      </div>
+      <LoadingScreen message="Loading your dashboard..." />
     )
   }
 
@@ -264,41 +238,31 @@ function DashboardContent() {
           </CardContent>
         </Card>
 
-        {showXPAnimation ? (
-          <XPLevelAnimation
-            initialXP={initialXP}
-            initialLevel={initialLevel}
-            finalXP={user.xp}
-            finalLevel={user.level}
-            onComplete={() => setShowXPAnimation(false)}
-          />
-        ) : (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Experience Points</CardTitle>
-              <Trophy className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{user.xp} XP</div>
-              <div className="flex items-center space-x-2 mt-2">
-                <div className="flex-1 h-2 bg-gray-200 rounded">
-                  <div 
-                    className="h-2 bg-primary rounded transition-all duration-300"
-                    style={{ 
-                      width: `${((user.xp % 200) / 200) * 100}%` 
-                    }}
-                  />
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  Level {user.level}
-                </span>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Experience Points</CardTitle>
+            <Trophy className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{user.xp} XP</div>
+            <div className="flex items-center space-x-2 mt-2">
+              <div className="flex-1 h-2 bg-gray-200 rounded">
+                <div 
+                  className="h-2 bg-primary rounded transition-all duration-300"
+                  style={{ 
+                    width: `${((user.xp % 200) / 200) * 100}%` 
+                  }}
+                />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {200 - (user.xp % 200)} XP to next level
-              </p>
-            </CardContent>
-          </Card>
-        )}
+              <span className="text-xs text-muted-foreground">
+                Level {user.level}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {200 - (user.xp % 200)} XP to next level
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Active Challenges */}
@@ -433,13 +397,5 @@ function DashboardContent() {
         </Card>
       </div>
     </div>
-  )
-}
-
-export default function DashboardPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <DashboardContent />
-    </Suspense>
   )
 }
