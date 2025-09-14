@@ -252,6 +252,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     CredentialsProvider({
+      id: "verification",
       name: "verification",
       credentials: {
         email: { label: "Email", type: "email" },
