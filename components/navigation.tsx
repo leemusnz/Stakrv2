@@ -63,7 +63,7 @@ export function Navigation({ user, onLogout }: NavigationProps) {
     } else {
       // Fallback for when no logout handler is provided
       console.log("Logging out...")
-      router.push("/")
+      router.push("/alpha-gate")
     }
   }
 

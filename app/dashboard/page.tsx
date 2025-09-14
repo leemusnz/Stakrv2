@@ -96,9 +96,9 @@ export default function DashboardPage() {
       console.log('✅ Loading dashboard data')
       loadDashboardData()
     } else {
-      // If not authenticated, redirect to onboarding
-      console.log('🔒 No session, redirecting to onboarding...')
-      router.push('/onboarding')
+      // If not authenticated, redirect to alpha gate
+      console.log('🔒 No session, redirecting to alpha gate...')
+      router.push('/alpha-gate')
       return
     }
   }, [session, status, router])
