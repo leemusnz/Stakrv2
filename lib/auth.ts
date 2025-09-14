@@ -260,28 +260,61 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         console.log("🚨 VERIFICATION PROVIDER CALLED! 🚨")
-        console.log("🔐 Credentials:", credentials)
-        
-        // Simple test - just return a user object
-        return {
-          id: "test-user-id",
-          email: credentials?.email || "test@example.com",
-          name: "Test User",
-          avatar: null,
-          emailVerified: true,
-          onboardingCompleted: false,
-          credits: 0,
-          trustScore: 50,
-          verificationTier: 'manual',
-          challengesCompleted: 0,
-          currentStreak: 0,
-          longestStreak: 0,
-          premiumSubscription: false,
-          isAdmin: false,
-          isDev: false,
-          devModeEnabled: false,
-          xp: 0,
-          level: 1,
+        try {
+          console.log("🔐 Verification sign-in attempt:", {
+            email: credentials?.email,
+            userId: credentials?.userId,
+          })
+          console.log("🔐 All credentials received:", credentials)
+
+          if (!credentials?.email || !credentials?.userId) {
+            console.log("❌ Missing verification credentials")
+            console.log("❌ Email provided:", !!credentials?.email)
+            console.log("❌ UserId provided:", !!credentials?.userId)
+            return null
+          }
+
+          // Find user in database
+          const dbUser = await findUserInDatabase(credentials.email)
+          
+          console.log("🔐 Database user lookup result:", {
+            found: !!dbUser,
+            email: dbUser?.email,
+            userId: dbUser?.id,
+            emailVerified: dbUser?.email_verified,
+            expectedUserId: credentials.userId,
+            userIdMatch: dbUser?.id === credentials.userId
+          })
+          
+          if (dbUser && dbUser.id === credentials.userId && dbUser.email_verified) {
+            console.log("✅ Verification sign-in successful for:", dbUser.email)
+            return {
+              id: dbUser.id,
+              email: dbUser.email,
+              name: dbUser.name,
+              avatar: dbUser.avatar_url,
+              emailVerified: dbUser.email_verified,
+              onboardingCompleted: dbUser.onboarding_completed,
+              credits: parseFloat(dbUser.credits) || 0,
+              trustScore: dbUser.trust_score || 50,
+              verificationTier: dbUser.verification_tier || 'manual',
+              challengesCompleted: dbUser.challenges_completed || 0,
+              currentStreak: dbUser.current_streak || 0,
+              longestStreak: dbUser.longest_streak || 0,
+              premiumSubscription: dbUser.premium_subscription || false,
+              isAdmin: dbUser.is_dev || dbUser.has_dev_access || dbUser.email === 'alex@stakr.app',
+              isDev: dbUser.is_dev || false,
+              devModeEnabled: dbUser.dev_mode_enabled || false,
+              xp: dbUser.xp || 0,
+              level: dbUser.level || 1,
+            }
+          }
+
+          console.log("❌ Verification sign-in failed")
+          return null
+        } catch (error) {
+          console.error("❌ Error in verification authorize:", error)
+          return null
         }
       },
     }),
