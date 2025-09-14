@@ -64,8 +64,10 @@ function VerifyEmailContent() {
 
           if (signInResult?.ok) {
             console.log('✅ Auto sign-in successful!')
-            // Redirect to home page which will handle proper routing based on onboarding status
-            window.location.href = '/'
+            console.log('🎯 User onboarding status after sign-in:', signInResult?.user?.onboardingCompleted)
+            // Redirect to onboarding instead of home page to ensure they complete the flow
+            console.log('🚀 Redirecting to onboarding page...')
+            window.location.href = '/onboarding'
           } else {
             console.log('❌ Auto sign-in failed, redirecting to signin page')
             // Fallback to signin page if auto sign-in fails

@@ -47,6 +47,14 @@ export default function OnboardingPage() {
     if (status === "loading") return // Still loading session
 
     if (session?.user) {
+      console.log("🔍 Onboarding page - User session:", {
+        email: session.user.email,
+        onboardingCompleted: session.user.onboardingCompleted,
+        emailVerified: session.user.emailVerified,
+        xp: session.user.xp,
+        level: session.user.level
+      })
+      
       // Check if user has completed onboarding
       if (session.user.onboardingCompleted) {
         console.log("🚀 User already completed onboarding, redirecting to dashboard")

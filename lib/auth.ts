@@ -21,6 +21,8 @@ declare module "next-auth" {
     isDev?: boolean
     devModeEnabled?: boolean
     emailVerified?: boolean
+    xp?: number
+    level?: number
   }
 
   interface Session {
@@ -42,6 +44,8 @@ declare module "next-auth" {
       isDev?: boolean
       devModeEnabled?: boolean
       emailVerified?: boolean
+      xp?: number
+      level?: number
     }
   }
 }
@@ -61,6 +65,8 @@ declare module "next-auth/jwt" {
     isDev?: boolean
     devModeEnabled?: boolean
     emailVerified?: boolean
+    xp?: number
+    level?: number
   }
 }
 
@@ -112,6 +118,8 @@ async function findUserInDatabase(email: string) {
         premium_subscription,
         email_verified,
         onboarding_completed,
+        xp,
+        level,
         is_dev,
         dev_mode_enabled
       FROM users 
@@ -197,6 +205,8 @@ export const authOptions: NextAuthOptions = {
               isDev: dbUser.is_dev || false,
               devModeEnabled: dbUser.dev_mode_enabled || false,
               emailVerified: dbUser.email_verified || false,
+              xp: dbUser.xp || 0,
+              level: dbUser.level || 1,
             }
           }
 
@@ -280,7 +290,9 @@ export const authOptions: NextAuthOptions = {
               premiumSubscription: dbUser.premium_subscription || false,
               isAdmin: dbUser.is_dev || dbUser.has_dev_access || dbUser.email === 'alex@stakr.app',
               isDev: dbUser.is_dev || false,
-              devModeEnabled: dbUser.dev_mode_enabled || false
+              devModeEnabled: dbUser.dev_mode_enabled || false,
+              xp: dbUser.xp || 0,
+              level: dbUser.level || 1,
             }
           }
 
@@ -440,6 +452,8 @@ export const authOptions: NextAuthOptions = {
                 premium_subscription,
                 email_verified,
                 onboarding_completed,
+                xp,
+                level,
                 is_dev,
                 dev_mode_enabled,
                 has_dev_access
@@ -465,6 +479,8 @@ export const authOptions: NextAuthOptions = {
               user.isDev = dbUser.is_dev || false
               user.devModeEnabled = dbUser.dev_mode_enabled || false
               user.emailVerified = dbUser.email_verified || false
+              user.xp = dbUser.xp || 0
+              user.level = dbUser.level || 1
               
               console.log("✅ Full user data loaded for OAuth:", {
                 isDev: user.isDev,
@@ -504,6 +520,8 @@ export const authOptions: NextAuthOptions = {
           token.onboardingCompleted = user.onboardingCompleted
           token.isDev = user.isDev
           token.devModeEnabled = user.devModeEnabled
+          token.xp = user.xp
+          token.level = user.level
           // For OAuth users, emailVerified is set to true in signIn callback
           token.emailVerified = Boolean(user.emailVerified)
         }
@@ -550,6 +568,8 @@ export const authOptions: NextAuthOptions = {
           session.user.isDev = token.isDev || false
           session.user.devModeEnabled = token.devModeEnabled || false
           session.user.emailVerified = token.emailVerified || false
+          session.user.xp = token.xp || 0
+          session.user.level = token.level || 1
         }
         return session
       } catch (error) {
