@@ -10,7 +10,7 @@ import Link from "next/link"
 
 export default function SuspendedPage() {
   const handleSignOut = () => {
-    signOut({ callbackUrl: '/' })
+    signOut({ callbackUrl: '/alpha-gate' })
   }
 
   return (

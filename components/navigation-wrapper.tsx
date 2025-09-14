@@ -99,7 +99,7 @@ export function NavigationWrapper() {
   // Enhanced logout handler
   const handleLogout = async () => {
     await signOut({ 
-      callbackUrl: '/',
+      callbackUrl: '/alpha-gate',
       redirect: true 
     })
   }
