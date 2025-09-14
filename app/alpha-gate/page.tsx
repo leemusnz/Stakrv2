@@ -86,6 +86,8 @@ export default function AlphaGatePage() {
       }
 
       console.log("📝 Alpha access response:", data)
+      console.log("🌐 Current URL:", window.location.href)
+      console.log("🍪 Cookies before processing:", document.cookie)
 
       if (data.success) {
         console.log("✅ Alpha access granted")
@@ -108,8 +110,17 @@ export default function AlphaGatePage() {
         // Use window.location for a full page reload to ensure cookie is processed
         setTimeout(() => {
           console.log("🔄 Redirecting to home page...")
-          window.location.href = "/" // Redirect to home page which will handle proper routing
-        }, 1000)
+          console.log("🍪 Current cookies before redirect:", document.cookie)
+          
+          try {
+            // Try multiple redirect methods for better compatibility
+            window.location.href = "/"
+          } catch (redirectError) {
+            console.error("❌ Redirect failed:", redirectError)
+            // Fallback: try to reload the current page
+            window.location.reload()
+          }
+        }, 2000) // Increased delay to ensure cookie is set
       } else {
         console.log("❌ Alpha access denied:", data.error)
         setError(data.error || "Access denied")
@@ -183,6 +194,8 @@ export default function AlphaGatePage() {
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-[#F46036] mx-auto mb-4" />
           <p className="text-white text-lg">Access granted! Redirecting...</p>
+          <p className="text-gray-400 text-sm mt-2">Cookies: {document.cookie}</p>
+          <p className="text-gray-400 text-sm">URL: {window.location.href}</p>
         </div>
       </div>
     )

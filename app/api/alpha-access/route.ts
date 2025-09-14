@@ -54,6 +54,15 @@ export async function POST(request: NextRequest) {
       })
 
       console.log("✅ Cookie set, returning success response")
+      console.log("🍪 Cookie details:", {
+        name: "alpha_access",
+        value: "true",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60,
+        secure: isProduction && isHttps,
+        sameSite: isProduction && isHttps ? "none" : "lax",
+        httpOnly: false
+      })
       return response
     } else {
       console.log("❌ Password incorrect")
