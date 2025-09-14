@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { DashboardMobile } from "@/components/dashboard-mobile"
 import { MobileContainer } from "@/components/mobile-container"
@@ -21,6 +21,7 @@ import {
   DollarSign, 
   Shield
 } from 'lucide-react'
+import { XPLevelAnimation } from '@/components/xp-level-animation'
 
 interface DashboardData {
   user: {
@@ -75,11 +76,15 @@ interface DashboardData {
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { isMobile } = useEnhancedMobile()
   const { avatarUrl } = useUserAvatar() // Use unified avatar system
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showXPAnimation, setShowXPAnimation] = useState(false)
+  const [initialXP, setInitialXP] = useState(0)
+  const [initialLevel, setInitialLevel] = useState(1)
 
   useEffect(() => {
     // Don't do anything during loading
@@ -89,6 +94,15 @@ export default function DashboardPage() {
     if (session?.user) {
       console.log('📊 Dashboard page - User authenticated:', session.user.email)
       console.log('🎯 Onboarding completed:', session.user.onboardingCompleted)
+      
+      // Check if user just completed onboarding
+      const fromOnboarding = searchParams.get('from') === 'onboarding'
+      if (fromOnboarding && session.user.xp && session.user.xp >= 350) {
+        console.log('🎉 User just completed onboarding, showing XP animation')
+        setInitialXP(50) // Start from verification XP
+        setInitialLevel(1) // Start from level 1
+        setShowXPAnimation(true)
+      }
       
       // Load dashboard data regardless of onboarding status
       // If they haven't completed onboarding, we'll show a different view
@@ -100,7 +114,7 @@ export default function DashboardPage() {
       router.push('/onboarding')
       return
     }
-  }, [session, status, router])
+  }, [session, status, router, searchParams])
 
   const loadDashboardData = async () => {
     try {
@@ -242,31 +256,41 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Experience Points</CardTitle>
-            <Trophy className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{user.xp} XP</div>
-            <div className="flex items-center space-x-2 mt-2">
-              <div className="flex-1 h-2 bg-gray-200 rounded">
-                <div 
-                  className="h-2 bg-primary rounded transition-all duration-300"
-                  style={{ 
-                    width: `${((user.xp % 200) / 200) * 100}%` 
-                  }}
-                />
+        {showXPAnimation ? (
+          <XPLevelAnimation
+            initialXP={initialXP}
+            initialLevel={initialLevel}
+            finalXP={user.xp}
+            finalLevel={user.level}
+            onComplete={() => setShowXPAnimation(false)}
+          />
+        ) : (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Experience Points</CardTitle>
+              <Trophy className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{user.xp} XP</div>
+              <div className="flex items-center space-x-2 mt-2">
+                <div className="flex-1 h-2 bg-gray-200 rounded">
+                  <div 
+                    className="h-2 bg-primary rounded transition-all duration-300"
+                    style={{ 
+                      width: `${((user.xp % 200) / 200) * 100}%` 
+                    }}
+                  />
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  Level {user.level}
+                </span>
               </div>
-              <span className="text-xs text-muted-foreground">
-                Level {user.level}
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {200 - (user.xp % 200)} XP to next level
-            </p>
-          </CardContent>
-        </Card>
+              <p className="text-xs text-muted-foreground mt-1">
+                {200 - (user.xp % 200)} XP to next level
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Active Challenges */}

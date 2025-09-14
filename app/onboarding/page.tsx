@@ -194,12 +194,12 @@ export default function OnboardingPage() {
             
             // Wait a moment for session to propagate, then redirect
             setTimeout(() => {
-              window.location.href = "/"
+              window.location.href = "/dashboard?from=onboarding"
             }, 500)
           } catch (updateError) {
             console.error("❌ Failed to update session:", updateError)
             // Still redirect even if session update fails
-            window.location.href = "/"
+            window.location.href = "/dashboard?from=onboarding"
           }
         } else {
           console.error("❌ Failed to complete onboarding")
