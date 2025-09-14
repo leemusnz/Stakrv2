@@ -95,6 +95,73 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
     }
   }
 
+  // Handle OAuth user profile completion
+  const handleCompleteProfile = async () => {
+    if (!session?.user) return
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      console.log("🔄 Completing OAuth user profile...")
+      
+      // Call the onboarding completion API
+      const response = await fetch('/api/onboarding/complete-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          goals: data.goals || [],
+          interests: data.interests || [],
+          experience: data.experience || 'beginner',
+          motivation: data.motivation || 'personal_growth',
+          name: session.user.name || 'New User',
+          avatar: session.user.image || null,
+          preferredStakeRange: data.preferredStakeRange || '10-25',
+          commitmentType: 'money'
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        console.log("✅ OAuth user profile completed successfully!")
+        console.log("🎯 XP awarded:", result.xpAwarded)
+        
+        // Update session to reflect onboarding completion
+        try {
+          await update({
+            user: {
+              ...session.user,
+              onboardingCompleted: true,
+              xp: result.user?.xp || session.user.xp,
+              level: result.user?.level || session.user.level
+            }
+          })
+          console.log("✅ Session updated with onboarding completion")
+          
+          // Wait a moment for session to propagate, then redirect
+          setTimeout(() => {
+            window.location.href = "/dashboard?from=onboarding"
+          }, 500)
+        } catch (updateError) {
+          console.error("❌ Failed to update session:", updateError)
+          // Still redirect even if session update fails
+          window.location.href = "/dashboard?from=onboarding"
+        }
+      } else {
+        console.error("❌ Failed to complete OAuth user profile:", result.message)
+        setError(result.message || "Failed to complete profile")
+      }
+    } catch (error) {
+      console.error("❌ Error completing OAuth user profile:", error)
+      setError("Failed to complete profile. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Check if user is already authenticated (OAuth users)
   const isAuthenticated = session?.user
   
@@ -104,11 +171,13 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
       console.log("🔄 OAuth user detected, auto-completing profile...")
       // Add small delay to ensure session is fully loaded
       const timer = setTimeout(() => {
-        onNext()
+        // For OAuth users, we need to complete the full onboarding process
+        // This will trigger the proper XP award and redirect with ?from=onboarding
+        handleCompleteProfile()
       }, 100)
       return () => clearTimeout(timer)
     }
-  }, [isAuthenticated, isLoading, session?.user?.id, onNext])
+  }, [isAuthenticated, isLoading, session?.user?.id])
   
   // Always show the account creation form in onboarding
   const canCreateAccount = email.trim() && password.length >= 6 && name.trim()
