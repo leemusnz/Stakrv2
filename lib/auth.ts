@@ -258,6 +258,7 @@ export const authOptions: NextAuthOptions = {
         userId: { label: "User ID", type: "text" },
       },
       async authorize(credentials) {
+        console.log("🚨 VERIFICATION PROVIDER CALLED! 🚨")
         try {
           console.log("🔐 Verification sign-in attempt:", {
             email: credentials?.email,
