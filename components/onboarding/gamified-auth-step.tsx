@@ -118,8 +118,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
           motivation: data.motivation || 'personal_growth',
           name: session.user.name || 'New User',
           avatar: session.user.image || null,
-          preferredStakeRange: data.preferredStakeRange || '10-25',
-          commitmentType: 'money'
+          preferredStakeRange: data.preferredStakeRange || '10-25'
         }),
       })
 
@@ -292,7 +291,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
             </div>
 
             <Button
-              onClick={() => onNext()}
+              onClick={handleCompleteProfile}
               disabled={isLoading}
               size="lg"
               className="text-lg font-bold px-12 py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group"
