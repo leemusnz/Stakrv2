@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   ArrowRight,
+  ArrowLeft,
   Target,
   Zap,
   Heart,
@@ -319,15 +320,38 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
         </CardContent>
       </Card>
 
-      {/* Selection Status - Mobile Optimized */}
-      {!canProceed && (
-        <div className="text-center">
+      {/* Gamified CTA - Mobile Optimized */}
+      <div className="text-center space-y-3 md:space-y-4">
+        <div className="flex flex-col md:flex-row gap-3 md:gap-4 justify-center items-center">
+          <Button
+            onClick={onBack}
+            variant="outline"
+            size="lg"
+            className="w-full md:w-auto text-sm md:text-base font-bold px-6 md:px-8 py-3 md:py-4 bg-transparent hover:bg-primary/10 border-2 border-primary/20 touch-target mobile-button"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          
+          <Button
+            onClick={handleNext}
+            disabled={!canProceed}
+            size="lg"
+            className="w-full md:w-auto text-base md:text-lg font-bold px-8 md:px-12 py-4 md:py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group touch-target mobile-button"
+          >
+            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+            Continue Quest (+300 XP)
+            <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
+          </Button>
+        </div>
+
+        {!canProceed && (
           <p className="text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1 md:gap-2">
             <Target className="w-3 h-3 md:w-4 md:h-4" />
             Select at least one goal to continue your quest
           </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

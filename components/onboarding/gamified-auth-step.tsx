@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react"
+import { useState, useEffect } from "react"
 import { useSession, signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -21,12 +21,7 @@ interface GamefiedAuthStepProps {
   onSkip: () => void
 }
 
-export interface GamefiedAuthStepRef {
-  canProceed: boolean
-  createAccount: () => Promise<void>
-}
-
-export const GamefiedAuthStep = forwardRef<GamefiedAuthStepRef, GamefiedAuthStepProps>(({ data, onNext }, ref) => {
+export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
   const { data: session, update } = useSession()
   const [name, setName] = useState(data.name || "")
   const [email, setEmail] = useState("")
@@ -36,27 +31,8 @@ export const GamefiedAuthStep = forwardRef<GamefiedAuthStepRef, GamefiedAuthStep
   const [error, setError] = useState<string | null>(null)
   const [showLevelUp, setShowLevelUp] = useState(false)
 
-  // Expose form validation state to parent component
-  const canCreateAccount = email.trim() && password.length >= 6 && name.trim()
-
-  // Expose methods to parent component
-  useImperativeHandle(ref, () => ({
-    canProceed: isAuthenticated || canCreateAccount,
-    createAccount: handleCreateAccount
-  }), [isAuthenticated, canCreateAccount])
-
-  const handleCreateAccount = async () => {
-    if (isAuthenticated) {
-      // OAuth user - just proceed
-      onNext()
-      return
-    }
-
-    if (!canCreateAccount) {
-      setError("Please fill in all required fields")
-      return
-    }
-
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault()
     setIsCreatingAccount(true)
     setError(null)
 
@@ -84,7 +60,7 @@ export const GamefiedAuthStep = forwardRef<GamefiedAuthStepRef, GamefiedAuthStep
 
       // Account created successfully! Redirect to email verification
       console.log("✅ Account created successfully! Redirecting to email verification...")
-
+      
       // Redirect to email verification page
       const verifyUrl = `/auth/verify-email?email=${encodeURIComponent(email)}&from=onboarding`
       window.location.href = verifyUrl
@@ -126,6 +102,9 @@ export const GamefiedAuthStep = forwardRef<GamefiedAuthStepRef, GamefiedAuthStep
     }
   }, [isAuthenticated, isLoading, session?.user?.id, onNext])
   
+  // Always show the account creation form in onboarding
+  const canCreateAccount = email.trim() && password.length >= 6 && name.trim()
+
   return (
     <div className="space-y-4 md:space-y-6 max-w-2xl mx-auto relative px-4">
       {/* Character Illustration - Mobile Optimized */}
@@ -207,7 +186,26 @@ export const GamefiedAuthStep = forwardRef<GamefiedAuthStepRef, GamefiedAuthStep
               </p>
             </div>
 
-            {/* OAuth completion is handled by the unified footer button */}
+            <Button
+              onClick={() => onNext()}
+              disabled={isLoading}
+              size="lg"
+              className="text-base md:text-lg font-bold px-8 md:px-12 py-4 md:py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-white mr-2"></div>
+                  Completing Profile...
+                </>
+              ) : (
+                <>
+                  <Crown className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                  Complete Profile (+300 XP)
+                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
+                </>
+              )}
+            </Button>
 
             {error && (
               <div className="text-center">
@@ -218,7 +216,7 @@ export const GamefiedAuthStep = forwardRef<GamefiedAuthStepRef, GamefiedAuthStep
         </div>
       ) : (
         // New users - show account creation form
-        <div className="space-y-3 md:space-y-4">
+        <form onSubmit={handleCreateAccount} className="space-y-3 md:space-y-4">
         <div className="space-y-1 md:space-y-2">
           <Label htmlFor="name" className="text-sm md:text-base font-bold flex items-center gap-1 md:gap-2">
             <User className="w-4 h-4 md:w-5 md:h-5" />
@@ -272,15 +270,34 @@ export const GamefiedAuthStep = forwardRef<GamefiedAuthStepRef, GamefiedAuthStep
           <p className="text-xs md:text-sm text-muted-foreground">Must be at least 6 characters long</p>
         </div>
 
-        {/* Form submission is handled by the unified footer button */}
+        <Button
+          type="submit"
+          disabled={!canCreateAccount || isCreatingAccount}
+          size="lg"
+          className="text-sm md:text-base lg:text-lg font-bold px-8 md:px-12 py-4 md:py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group touch-target mobile-button"
+        >
+          <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+          {isCreatingAccount ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-white mr-2"></div>
+              Creating Account...
+            </>
+          ) : (
+            <>
+              <Crown className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+              Create Account (+300 XP)
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
+            </>
+          )}
+        </Button>
 
         {error && (
           <div className="text-center">
             <p className="text-xs md:text-sm text-red-500">{error}</p>
           </div>
         )}
-      </div>
+      </form>
       )}
     </div>
   )
-})
+}
