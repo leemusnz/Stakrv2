@@ -45,14 +45,14 @@ BEGIN
   
   -- Delete any existing tokens for this user and type
   DELETE FROM verification_tokens 
-  WHERE user_id = found_user_id AND token_type = p_type;
+  WHERE user_id = found_user_id AND type = p_type;
   
   -- Insert new token
   INSERT INTO verification_tokens (
     user_id,
     email,
     token,
-    token_type,
+    type,
     expires_at,
     created_at
   ) VALUES (
@@ -93,7 +93,7 @@ BEGIN
   INTO token_record
   FROM verification_tokens vt
   WHERE vt.token = p_token 
-    AND vt.token_type = p_type 
+    AND vt.type = p_type 
     AND vt.expires_at > NOW()
   LIMIT 1;
   

@@ -48,13 +48,13 @@ export async function POST(request: NextRequest) {
     const tokens = await sql`
       SELECT 
         token,
-        token_type,
+        type,
         expires_at,
         created_at,
         used_at
       FROM verification_tokens 
       WHERE email = ${email} 
-      AND token_type = 'email_verification'
+      AND type = 'email_verification'
       ORDER BY created_at DESC
       LIMIT 5
     `
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       },
       verificationTokens: tokens.map(token => ({
         token: token.token.substring(0, 8) + '...',
-        type: token.token_type,
+        type: token.type,
         expiresAt: token.expires_at,
         createdAt: token.created_at,
         usedAt: token.used_at,
