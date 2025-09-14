@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { ArrowRight, Sparkles, Gift, CheckCircle, Mail, Lock, Loader2, Trophy, Star, Crown, Target, User } from "lucide-react"
+import { ArrowRight, Mail, Lock, Crown, User } from "lucide-react"
 import type { OnboardingData } from "@/app/onboarding/page"
 
 interface GamefiedAuthStepProps {
@@ -23,7 +23,6 @@ interface GamefiedAuthStepProps {
 
 export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
   const { data: session, update } = useSession()
-  const [showConfetti, setShowConfetti] = useState(false)
   const [name, setName] = useState(data.name || "")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -31,13 +30,6 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showLevelUp, setShowLevelUp] = useState(false)
-
-  useEffect(() => {
-    // Trigger confetti animation when component mounts
-    setShowConfetti(true)
-    const timer = setTimeout(() => setShowConfetti(false), 3000)
-    return () => clearTimeout(timer)
-  }, [])
 
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,34 +107,6 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
 
   return (
     <div className="space-y-4 md:space-y-6 max-w-2xl mx-auto relative px-4">
-      {/* Confetti Animation */}
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-          {[...Array(15)].map((_, i) => (
-            <div
-              key={i}
-              className={`absolute animate-bounce`}
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
-              }}
-            >
-              {i % 4 === 0 ? (
-                <Star className="w-4 h-4 md:w-6 md:h-6 text-primary" />
-              ) : i % 4 === 1 ? (
-                <Trophy className="w-4 h-4 md:w-6 md:h-6 text-secondary" />
-              ) : i % 4 === 2 ? (
-                <Sparkles className="w-4 h-4 md:w-6 md:h-6 text-success" />
-              ) : (
-                <Gift className="w-4 h-4 md:w-6 md:h-6 text-primary" />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Character Illustration - Mobile Optimized */}
       <div className="text-center">
         <div className="w-20 h-20 md:w-28 md:h-28 mx-auto mb-3 md:mb-4 relative">
@@ -237,7 +201,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
               ) : (
                 <>
                   <Crown className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-                  Complete Profile & Join Champions Circle (+300 XP)
+                  Complete Profile (+300 XP)
                   <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
                 </>
               )}
@@ -321,7 +285,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
           ) : (
             <>
               <Crown className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-              Create Account & Join Champions Circle (+300 XP)
+              Create Account (+300 XP)
               <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
             </>
           )}
