@@ -116,7 +116,7 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
           >
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             <Zap className="w-5 h-5 mr-2" />
-            Start Your Journey (+50 XP)
+            Start Your Journey (+350 XP)
           </Button>
 
           <Button

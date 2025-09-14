@@ -142,16 +142,6 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
         </div>
       )}
 
-      {/* Goal XP Animations */}
-      {goalXPAnimations.map((goal, index) => (
-        <div
-          key={goal}
-          className="fixed top-1/2 left-1/2 pointer-events-none z-40 animate-bounce"
-          style={{ transform: `translate(-50%, -50%) translateY(${index * -20}px)` }}
-        >
-          <div className="bg-success text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">+5 XP!</div>
-        </div>
-      ))}
 
       {/* Character Illustration */}
       <div className="text-center">
@@ -172,7 +162,7 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
       {/* Header */}
       <div className="text-center space-y-4">
         <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-          Step 2 of 3 • +100 XP Available
+          Step 2 of 3 • +300 XP Available
         </Badge>
         <h1 className="text-4xl font-bold">
           Choose Your <span className="text-primary">Quest</span> Categories
@@ -204,9 +194,6 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
             <span className="font-medium text-foreground flex items-center gap-2">
               <Trophy className="w-4 h-4 text-primary" />
               {selectedGoals.length} goal{selectedGoals.length !== 1 ? "s" : ""} selected
-              <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                +{selectedGoals.length * 5} XP
-              </Badge>
             </span>
           )}
         </div>
@@ -260,7 +247,7 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
                         {hasSelectedGoals && <Sparkles className="w-4 h-4 text-primary" />}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {selectedCount} selected • +{selectedCount * 5} XP
+                        {selectedCount} selected
                       </p>
                     </div>
                   </div>
@@ -282,11 +269,6 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
                         >
                           <div className="flex items-center justify-between">
                             <span>{goal}</span>
-                            {selectedGoals.includes(goal) && (
-                              <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs">
-                                +5 XP
-                              </Badge>
-                            )}
                           </div>
                         </button>
                       ))}
@@ -306,7 +288,6 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
             <h3 className="font-bold mb-3 flex items-center gap-2">
               <Trophy className="w-5 h-5 text-primary" />
               Your Quest Goals
-              <Badge className="bg-primary/10 text-primary border-primary/20">+{selectedGoals.length * 5} XP</Badge>
             </h3>
             <div className="flex flex-wrap gap-2">
               {selectedGoals.map((goal) => (
@@ -348,7 +329,7 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
           className="text-lg font-bold px-12 py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group"
         >
           <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-          Continue Quest (+100 XP)
+          Continue Quest (+300 XP)
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
 

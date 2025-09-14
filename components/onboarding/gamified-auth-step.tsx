@@ -237,7 +237,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
               ) : (
                 <>
                   <Crown className="w-5 h-5 mr-2" />
-                  Complete Profile & Join Champions Circle (+150 XP)
+                  Complete Profile & Join Champions Circle (+300 XP)
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </>
               )}
@@ -321,7 +321,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
           ) : (
             <>
               <Crown className="w-5 h-5 mr-2" />
-              Create Account & Join Champions Circle (+150 XP)
+              Create Account & Join Champions Circle (+300 XP)
               <ArrowRight className="w-5 h-5 ml-2" />
             </>
           )}
