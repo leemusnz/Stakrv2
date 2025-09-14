@@ -387,6 +387,28 @@ export const authOptions: NextAuthOptions = {
               
               console.log("✅ OAuth user created:", newUsers[0].email)
               user.id = newUsers[0].id
+              
+              // Award XP for OAuth signup (equivalent to email verification)
+              try {
+                const xpAwardResult = await sql`
+                  SELECT award_xp(
+                    ${user.id}::UUID,
+                    50,
+                    'oauth_signup',
+                    NULL,
+                    'OAuth signup completed - Welcome to Stakr!'
+                  )
+                `
+                
+                if (xpAwardResult[0]?.award_xp) {
+                  console.log('🎯 Awarded 50 XP for OAuth signup to user:', user.email)
+                } else {
+                  console.log('⚠️ XP already awarded for OAuth signup to user:', user.email)
+                }
+              } catch (xpError) {
+                console.error('❌ Failed to award XP for OAuth signup:', xpError)
+                // Don't fail signup if XP award fails
+              }
             } else {
               console.log("✅ OAuth user exists:", existingUsers[0].email)
               user.id = existingUsers[0].id

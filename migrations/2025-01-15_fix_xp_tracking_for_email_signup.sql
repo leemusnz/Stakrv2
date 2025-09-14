@@ -1,28 +1,8 @@
--- Add XP tracking system to prevent duplicate awards
--- Run this in your Neon SQL Editor to add XP tracking
+-- Fix XP tracking for email signup vs OAuth signup
+-- This migration adds XP awards for email verification and OAuth signup
+-- and prevents duplicate XP awards between different auth methods
 
 BEGIN;
-
--- Create XP transactions table to track all XP awards
-CREATE TABLE IF NOT EXISTS xp_transactions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  amount INTEGER NOT NULL,
-  source VARCHAR(50) NOT NULL, -- 'onboarding', 'challenge_completion', 'hosting', 'achievement', etc.
-  source_id UUID, -- Reference to the source (challenge_id, achievement_id, etc.)
-  description TEXT,
-  created_at TIMESTAMP DEFAULT NOW() NOT NULL
-);
-
--- Create indexes for XP transactions
-CREATE INDEX IF NOT EXISTS idx_xp_transactions_user ON xp_transactions(user_id);
-CREATE INDEX IF NOT EXISTS idx_xp_transactions_source ON xp_transactions(source);
-CREATE INDEX IF NOT EXISTS idx_xp_transactions_created_at ON xp_transactions(created_at);
-
--- Add unique constraint to prevent duplicate onboarding XP
-CREATE UNIQUE INDEX IF NOT EXISTS idx_xp_transactions_onboarding_unique 
-ON xp_transactions(user_id, source) 
-WHERE source = 'onboarding';
 
 -- Add unique constraint to prevent duplicate email verification XP
 CREATE UNIQUE INDEX IF NOT EXISTS idx_xp_transactions_email_verification_unique 
@@ -34,7 +14,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_xp_transactions_oauth_signup_unique
 ON xp_transactions(user_id, source) 
 WHERE source = 'oauth_signup';
 
--- Function to safely award XP with duplicate prevention
+-- Update the award_xp function to handle email verification and OAuth signup
 CREATE OR REPLACE FUNCTION award_xp(
   p_user_id UUID,
   p_amount INTEGER,
@@ -50,7 +30,7 @@ BEGIN
   -- Get current XP
   SELECT COALESCE(xp, 0) INTO current_xp FROM users WHERE id = p_user_id;
   
-  -- Check for duplicate awards (especially for onboarding and email verification)
+  -- Check for duplicate awards (especially for onboarding, email verification, and OAuth signup)
   IF p_source = 'onboarding' THEN
     IF EXISTS (
       SELECT 1 FROM xp_transactions 
@@ -128,33 +108,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to get user's XP history
-CREATE OR REPLACE FUNCTION get_user_xp_history(p_user_id UUID)
-RETURNS TABLE(
-  amount INTEGER,
-  source VARCHAR(50),
-  description TEXT,
-  created_at TIMESTAMP
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    xt.amount,
-    xt.source,
-    xt.description,
-    xt.created_at
-  FROM xp_transactions xt
-  WHERE xt.user_id = p_user_id
-  ORDER BY xt.created_at DESC;
-END;
-$$ LANGUAGE plpgsql;
-
 -- Add comments for documentation
-COMMENT ON TABLE xp_transactions IS 'Tracks all XP awards to prevent duplicates and provide audit trail';
-COMMENT ON FUNCTION award_xp IS 'Safely awards XP with duplicate prevention and automatic level calculation';
-COMMENT ON FUNCTION get_user_xp_history IS 'Returns complete XP history for a user';
+COMMENT ON FUNCTION award_xp IS 'Safely awards XP with duplicate prevention, automatic level calculation, and cross-auth method duplicate prevention';
 
 COMMIT;
 
--- Verify the new system
-SELECT 'XP tracking system created successfully!' as status;
+-- Verify the updated system
+SELECT 'XP tracking system updated for email signup fixes!' as status;

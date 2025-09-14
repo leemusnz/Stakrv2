@@ -38,12 +38,36 @@ export async function GET(request: NextRequest) {
     console.log('✅ Email verified successfully for:', result.email)
     systemLogger.info(`Email verified successfully for user: ${result.email}`, 'auth')
 
+    // Award XP for email verification completion
+    try {
+      const xpAwardResult = await sql`
+        SELECT award_xp(
+          ${result.user_id}::UUID,
+          50,
+          'email_verification',
+          NULL,
+          'Email verification completed - Welcome to Stakr!'
+        )
+      `
+      
+      if (xpAwardResult[0]?.award_xp) {
+        console.log('🎯 Awarded 50 XP for email verification to user:', result.email)
+        systemLogger.info(`Awarded 50 XP for email verification to user: ${result.email}`, 'xp')
+      } else {
+        console.log('⚠️ XP already awarded for email verification to user:', result.email)
+      }
+    } catch (xpError) {
+      console.error('❌ Failed to award XP for email verification:', xpError)
+      // Don't fail email verification if XP award fails
+    }
+
     // Return success response with user ID for automatic sign-in
     return NextResponse.json({
       success: true,
-      message: 'Email verified successfully! You are now signed in.',
+      message: 'Email verified successfully! You are now signed in. +50 XP earned!',
       email: result.email,
-      userId: result.user_id
+      userId: result.user_id,
+      xpAwarded: 50
     }, { status: 200 })
 
   } catch (error) {
@@ -96,12 +120,36 @@ export async function POST(request: NextRequest) {
     console.log('✅ Email verified successfully for:', result.email)
     systemLogger.info(`Email verified successfully for user: ${result.email}`, 'auth')
 
+    // Award XP for email verification completion
+    try {
+      const xpAwardResult = await sql`
+        SELECT award_xp(
+          ${result.user_id}::UUID,
+          50,
+          'email_verification',
+          NULL,
+          'Email verification completed - Welcome to Stakr!'
+        )
+      `
+      
+      if (xpAwardResult[0]?.award_xp) {
+        console.log('🎯 Awarded 50 XP for email verification to user:', result.email)
+        systemLogger.info(`Awarded 50 XP for email verification to user: ${result.email}`, 'xp')
+      } else {
+        console.log('⚠️ XP already awarded for email verification to user:', result.email)
+      }
+    } catch (xpError) {
+      console.error('❌ Failed to award XP for email verification:', xpError)
+      // Don't fail email verification if XP award fails
+    }
+
     // Return success response with user ID for automatic sign-in
     return NextResponse.json({
       success: true,
-      message: 'Email verified successfully! You are now signed in.',
+      message: 'Email verified successfully! You are now signed in. +50 XP earned!',
       email: result.email,
-      userId: result.user_id
+      userId: result.user_id,
+      xpAwarded: 50
     }, { status: 200 })
 
   } catch (error) {
