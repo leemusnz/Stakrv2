@@ -56,11 +56,17 @@ function VerifyEmailContent() {
         
         // Automatically sign in the user using verification provider
         try {
+          console.log('🔄 Attempting auto sign-in with verification provider...')
+          console.log('📧 Email:', result.email)
+          console.log('🆔 User ID:', result.userId)
+          
           const signInResult = await signIn('verification', {
             email: result.email,
             userId: result.userId,
             redirect: false,
           })
+
+          console.log('📊 Sign-in result:', signInResult)
 
           if (signInResult?.ok) {
             console.log('✅ Auto sign-in successful!')
@@ -70,6 +76,7 @@ function VerifyEmailContent() {
             window.location.href = '/onboarding'
           } else {
             console.log('❌ Auto sign-in failed, redirecting to signin page')
+            console.log('❌ Sign-in error:', signInResult?.error)
             // Fallback to signin page if auto sign-in fails
             const signinUrl = `/auth/signin?email=${encodeURIComponent(result.email || email || '')}&message=${encodeURIComponent('Email verified! Please sign in to continue.')}`
             window.location.href = signinUrl
