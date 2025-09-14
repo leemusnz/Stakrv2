@@ -112,28 +112,16 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
         </div>
       </div>
 
-      {/* Call to Action - Mobile Optimized */}
-      <div className="space-y-3 md:space-y-4">
-        <div className="flex flex-col gap-3 md:gap-4 justify-center items-center">
-          <Button
-            onClick={handleContinue}
-            size="lg"
-            className="w-full md:w-auto text-base md:text-lg font-bold px-6 py-4 md:px-8 md:py-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden touch-target mobile-button"
-          >
-            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <Zap className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-            Start Your Journey (+350 XP)
-          </Button>
-
-          <Button
-            onClick={() => window.location.href = '/auth/signin'}
-            variant="outline"
-            size="lg"
-            className="w-full md:w-auto text-sm md:text-base font-bold px-6 py-3 md:px-8 md:py-4 bg-transparent hover:bg-primary/10 border-2 border-primary/20 touch-target mobile-button"
-          >
-            I Already Have an Account
-          </Button>
-        </div>
+      {/* Alternative Sign In Option */}
+      <div className="text-center space-y-3 md:space-y-4">
+        <Button
+          onClick={() => window.location.href = '/auth/signin'}
+          variant="outline"
+          size="lg"
+          className="w-full md:w-auto text-sm md:text-base font-bold px-6 py-3 md:px-8 md:py-4 bg-transparent hover:bg-primary/10 border-2 border-primary/20 touch-target mobile-button"
+        >
+          I Already Have an Account
+        </Button>
 
         <p className="text-xs md:text-sm text-muted-foreground">
           Join <strong>12,847</strong> people who've already put their money where their mouth is

@@ -21,6 +21,8 @@ interface SwipeableOnboardingLayoutProps {
   showBackButton?: boolean
   showSkipButton?: boolean
   showNextButton?: boolean // New prop to control Next button visibility
+  continueButtonText?: string // Custom text for continue button
+  continueButtonDisabled?: boolean // Whether continue button should be disabled
   className?: string
 }
 
@@ -38,6 +40,8 @@ export function SwipeableOnboardingLayout({
   showBackButton = true,
   showSkipButton = false,
   showNextButton = true, // Default to true for backward compatibility
+  continueButtonText = "Continue",
+  continueButtonDisabled = false,
   className
 }: SwipeableOnboardingLayoutProps) {
   const { isMobile } = useEnhancedMobile()
@@ -100,23 +104,8 @@ export function SwipeableOnboardingLayout({
         }}
       >
         <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
-            {/* Back Button */}
-            {showBackButton ? (
-              <Button
-                variant="outline"
-                onClick={onBack}
-                disabled={!canGoBack || currentStep === 0 || isAnimating}
-                className="flex items-center gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Back
-              </Button>
-            ) : (
-              <div /> // Spacer
-            )}
-
-            {/* Step Dots */}
+          {/* Step Dots - Top row */}
+          <div className="flex justify-center mb-4">
             <div className="flex gap-2">
               {Array.from({ length: totalSteps }, (_, i) => (
                 <button
@@ -138,19 +127,38 @@ export function SwipeableOnboardingLayout({
                 />
               ))}
             </div>
+          </div>
 
-            {/* Next Button - Only show if showNextButton is true */}
+          {/* Navigation Buttons - Bottom row */}
+          <div className="flex items-center gap-3">
+            {/* Back Button */}
+            {showBackButton ? (
+              <Button
+                variant="outline"
+                onClick={onBack}
+                disabled={!canGoBack || currentStep === 0 || isAnimating}
+                className="flex items-center gap-2 min-w-[80px]"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back
+              </Button>
+            ) : (
+              <div className="min-w-[80px]" /> // Spacer
+            )}
+
+            {/* Continue Button - Primary action, takes remaining space */}
             {showNextButton ? (
               <Button
                 onClick={onNext}
-                disabled={!canGoNext || isAnimating}
-                className="flex items-center gap-2"
+                disabled={!canGoNext || isAnimating || continueButtonDisabled}
+                size="lg"
+                className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all font-bold"
               >
-                Next
-                <ChevronRight className="w-4 h-4" />
+                {continueButtonText}
+                <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
-              <div /> // Spacer when Next button is hidden
+              <div className="flex-1" /> // Spacer when Next button is hidden
             )}
           </div>
 

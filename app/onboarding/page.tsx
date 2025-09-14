@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { useRef } from "react"
 import { OnboardingLayout } from "@/components/onboarding/onboarding-layout"
 import { SwipeableOnboardingLayout } from "@/components/onboarding/swipeable-onboarding-layout"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { GamefiedWelcomeStep } from "@/components/onboarding/gamified-welcome-step"
 import { GamefiedGoalsStep } from "@/components/onboarding/gamified-goals-step"
-import { GamefiedAuthStep } from "@/components/onboarding/gamified-auth-step"
+import { GamefiedAuthStep, GamefiedAuthStepRef } from "@/components/onboarding/gamified-auth-step"
 import { DevTestingPanel } from "@/components/onboarding/dev-testing-panel"
 
 export interface OnboardingData {
@@ -41,6 +42,7 @@ export default function OnboardingPage() {
     xp: 0,
     level: 1,
   })
+  const authStepRef = useRef<GamefiedAuthStepRef>(null)
 
   // Redirect authenticated users who have completed onboarding to dashboard
   useEffect(() => {
@@ -107,7 +109,33 @@ export default function OnboardingPage() {
     { id: "auth", component: GamefiedAuthStep, xpReward: 150 },
   ]
 
+  // Helper functions for unified navigation
+  const getContinueButtonText = (step: number) => {
+    switch (step) {
+      case 0: return "Start Your Journey (+350 XP)"
+      case 1: return "Continue Quest (+300 XP)"
+      case 2: return "Create Account (+300 XP)"
+      default: return "Continue"
+    }
+  }
+
+  const getContinueButtonDisabled = (step: number, data: OnboardingData) => {
+    switch (step) {
+      case 0: return false // Welcome step is always enabled
+      case 1: return !data.goals || data.goals.length === 0 // Goals step requires selection
+      case 2: return authStepRef.current ? !authStepRef.current.canProceed : true // Auth step uses ref validation
+      default: return false
+    }
+  }
+
   const handleNext = async (stepData?: Partial<OnboardingData>) => {
+    // Handle special case for auth step (step 2) - create account if needed
+    if (currentStep === 2 && authStepRef.current) {
+      // Call the auth step's createAccount method
+      await authStepRef.current.createAccount()
+      return // Don't proceed with normal flow, auth step handles its own flow
+    }
+
     if (stepData) {
       const newData = { ...onboardingData, ...stepData }
       setOnboardingData(newData)
@@ -272,7 +300,9 @@ export default function OnboardingPage() {
     onBack: handleBack,
   }
 
-  const stepContent = (
+  const stepContent = currentStep === 2 ? (
+    <GamefiedAuthStep ref={authStepRef} data={onboardingData} onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
+  ) : (
     <CurrentStepComponent data={onboardingData} onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
   )
 
@@ -285,7 +315,9 @@ export default function OnboardingPage() {
           canGoNext={currentStep < steps.length - 1}
           canGoBack={currentStep > 0}
           showBackButton={currentStep > 0}
-          showNextButton={false} // Hide footer Next button since each step has its own Continue button
+          showNextButton={true} // Show unified Continue button in footer
+          continueButtonText={getContinueButtonText(currentStep)}
+          continueButtonDisabled={getContinueButtonDisabled(currentStep, onboardingData)}
         >
           {stepContent}
         </SwipeableOnboardingLayout>
