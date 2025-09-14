@@ -40,6 +40,7 @@ function SignInContent() {
           setError('Your account has been suspended')
           break
         case 'oauth_account_exists':
+        case 'OAUTH_ACCOUNT_EXISTS':
           setError('This account was created with Google. Please sign in with Google instead.')
           setIsOAuthAccount(true)
           break
@@ -103,6 +104,7 @@ function SignInContent() {
             router.push('/auth/suspended')
             break
           case 'error=oauth_account_exists':
+          case 'OAUTH_ACCOUNT_EXISTS':
             setError('This account was created with Google. Please sign in with Google instead.')
             setIsOAuthAccount(true)
             break
@@ -222,6 +224,7 @@ function SignInContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                   className="h-12 pl-10"
                 />
               </div>
@@ -236,6 +239,7 @@ function SignInContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
                   className="h-12 pl-10 pr-10"
                 />
                 <button
