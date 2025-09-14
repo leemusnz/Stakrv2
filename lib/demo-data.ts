@@ -23,6 +23,9 @@ export function getDemoUserData(session: any) {
       premiumSubscription: session.user.premiumSubscription || false,
       premiumExpiresAt: null,
       memberSince: new Date('2024-01-01'),
+      // XP and Level system
+      xp: isAdmin ? 1250 : 450, // Admin has more XP
+      level: isAdmin ? 7 : 3, // Admin is higher level
       // Dev access fields
       isDev: isAdmin, // Admin demo users have dev access
       devModeEnabled: false

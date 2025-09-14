@@ -46,3 +46,4 @@ async function testAuthConfig() {
 }
 
 testAuthConfig().catch(console.error)
+

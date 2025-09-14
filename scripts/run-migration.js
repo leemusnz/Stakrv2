@@ -52,3 +52,4 @@ if (!migrationFile) {
 }
 
 runMigration(migrationFile)
+

@@ -22,7 +22,8 @@ import {
   Activity,
   Calendar,
   Users,
-  Star
+  Star,
+  Zap
 } from "lucide-react"
 import { useUserAvatar } from '@/hooks/use-user-avatar'
 
@@ -40,6 +41,8 @@ interface DashboardData {
     longestStreak: number
     premiumSubscription: boolean
     memberSince: string
+    xp: number
+    level: number
   }
   stats: {
     totalEarnings: number
@@ -206,6 +209,39 @@ export function DashboardMobile({ data, loading, error, onRetry }: DashboardMobi
         </Card>
       </div>
 
+      {/* XP Progress Card */}
+      <Card className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-purple-200/20">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-purple-600" />
+              <span className="font-semibold text-sm">Experience Points</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-200">
+              Level {user.level}
+            </Badge>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-2xl font-bold text-purple-600">{user.xp} XP</span>
+              <span className="text-xs text-muted-foreground">
+                {200 - (user.xp % 200)} to next level
+              </span>
+            </div>
+            
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-300"
+                style={{ 
+                  width: `${((user.xp % 200) / 200) * 100}%` 
+                }}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
         <Button
@@ -297,6 +333,29 @@ export function DashboardMobile({ data, loading, error, onRetry }: DashboardMobi
               <span className="font-medium">{user.trustScore}/100</span>
             </div>
             <Progress value={user.trustScore} className="h-2" />
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Experience Points</span>
+              <span className="font-medium">{user.xp} XP</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-2 bg-gray-200 rounded">
+                <div 
+                  className="h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded transition-all duration-300"
+                  style={{ 
+                    width: `${((user.xp % 200) / 200) * 100}%` 
+                  }}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Level {user.level}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {200 - (user.xp % 200)} XP to next level
+            </p>
           </div>
           
           <div className="grid grid-cols-2 gap-4 pt-4 border-t">

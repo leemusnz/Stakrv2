@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
       SELECT 
         id, email, name, avatar_url, credits, trust_score, verification_tier,
         challenges_completed, false_claims, current_streak, longest_streak,
-        premium_subscription, premium_expires_at, created_at
+        premium_subscription, premium_expires_at, created_at, xp, level
       FROM users 
       WHERE id = ${userId}
       LIMIT 1
@@ -334,7 +334,9 @@ export async function GET(request: NextRequest) {
         verification_tier: user.verification_tier || 'manual',
         current_streak: user.current_streak || 0,
         longest_streak: user.longest_streak || 0,
-        premium_subscription: user.premium_subscription || false
+        premium_subscription: user.premium_subscription || false,
+        xp: user.xp || 0,
+        level: user.level || 1
       },
       
       stats: {
