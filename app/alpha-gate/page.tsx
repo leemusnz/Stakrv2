@@ -21,7 +21,11 @@ export default function AlphaGatePage() {
   useEffect(() => {
     const checkAlphaAccess = () => {
       try {
+        console.log("🔍 Checking alpha access cookie...")
+        console.log("🍪 All cookies:", document.cookie)
         const hasAccess = document.cookie.includes("alpha_access=true")
+        console.log("✅ Has alpha access:", hasAccess)
+        
         if (hasAccess) {
           console.log("✅ User already has alpha access, redirecting to home page...")
           router.push("/") // Redirect to home page which will handle proper routing
@@ -87,11 +91,17 @@ export default function AlphaGatePage() {
         console.log("✅ Alpha access granted")
         setIsRedirecting(true)
 
-        // Set a client-side cookie as backup
-        document.cookie = "alpha_access=true; path=/; max-age=2592000; SameSite=Lax"
+        // Set a client-side cookie as backup (mobile-friendly)
+        try {
+          document.cookie = "alpha_access=true; path=/; max-age=604800; SameSite=None; Secure"
+          console.log("🍪 Client-side cookie set successfully")
+        } catch (cookieError) {
+          console.warn("⚠️ Could not set client-side cookie:", cookieError)
+        }
 
         // Use window.location for a full page reload to ensure cookie is processed
         setTimeout(() => {
+          console.log("🔄 Redirecting to home page...")
           window.location.href = "/" // Redirect to home page which will handle proper routing
         }, 1000)
       } else {
@@ -139,7 +149,7 @@ export default function AlphaGatePage() {
 
       if (data.success) {
         setIsRedirecting(true)
-        document.cookie = "alpha_access=true; path=/; max-age=2592000; SameSite=Lax"
+        document.cookie = "alpha_access=true; path=/; max-age=604800; SameSite=None; Secure"
         setTimeout(() => {
           window.location.href = "/" // Redirect to home page which will handle proper routing
         }, 500)

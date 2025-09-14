@@ -41,12 +41,13 @@ export async function POST(request: NextRequest) {
 
       console.log("🍪 Setting alpha_access cookie...")
       // Set the cookie server-side (this ensures it's set before redirect)
+      // Mobile-friendly cookie settings
       response.cookies.set("alpha_access", "true", {
         path: "/",
         maxAge: 7 * 24 * 60 * 60, // 7 days
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax", // Changed from 'strict' to 'lax' to allow OAuth redirects
-        httpOnly: process.env.NODE_ENV === "production", // Better security in production
+        sameSite: "none", // Changed to 'none' for better mobile compatibility
+        httpOnly: false, // Allow client-side access for mobile browsers
       })
 
       console.log("✅ Cookie set, returning success response")
