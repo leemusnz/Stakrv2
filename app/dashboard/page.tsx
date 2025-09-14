@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { DashboardMobile } from "@/components/dashboard-mobile"
 import { MobileContainer } from "@/components/mobile-container"
@@ -73,10 +73,9 @@ interface DashboardData {
   }>
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { isMobile } = useEnhancedMobile()
   const { avatarUrl } = useUserAvatar() // Use unified avatar system
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
@@ -85,6 +84,16 @@ export default function DashboardPage() {
   const [showXPAnimation, setShowXPAnimation] = useState(false)
   const [initialXP, setInitialXP] = useState(0)
   const [initialLevel, setInitialLevel] = useState(1)
+  const [fromOnboarding, setFromOnboarding] = useState(false)
+
+  // Handle search params separately to avoid SSR issues
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const from = urlParams.get('from')
+      setFromOnboarding(from === 'onboarding')
+    }
+  }, [])
 
   useEffect(() => {
     // Don't do anything during loading
@@ -96,7 +105,6 @@ export default function DashboardPage() {
       console.log('🎯 Onboarding completed:', session.user.onboardingCompleted)
       
       // Check if user just completed onboarding
-      const fromOnboarding = searchParams.get('from') === 'onboarding'
       if (fromOnboarding && session.user.xp && session.user.xp >= 350) {
         console.log('🎉 User just completed onboarding, showing XP animation')
         setInitialXP(50) // Start from verification XP
@@ -114,7 +122,7 @@ export default function DashboardPage() {
       router.push('/onboarding')
       return
     }
-  }, [session, status, router, searchParams])
+  }, [session, status, router, fromOnboarding])
 
   const loadDashboardData = async () => {
     try {
@@ -425,5 +433,13 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
   )
 }
