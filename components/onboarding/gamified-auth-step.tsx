@@ -264,7 +264,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
             placeholder="Enter your first name or nickname"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="text-lg p-4 h-14"
+            className="text-lg p-4 h-14 mobile-input"
             required
             disabled={isCreatingAccount}
           />
@@ -281,7 +281,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
             placeholder="your@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="text-lg p-4 h-14"
+            className="text-lg p-4 h-14 mobile-input"
             required
             disabled={isCreatingAccount}
           />
@@ -298,7 +298,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
             placeholder="Create a secure password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="text-lg p-4 h-14"
+            className="text-lg p-4 h-14 mobile-input"
             minLength={6}
             required
             disabled={isCreatingAccount}
@@ -310,7 +310,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
           type="submit"
           disabled={!canCreateAccount || isCreatingAccount}
           size="lg"
-          className="text-lg font-bold px-12 py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group"
+          className="text-lg font-bold px-12 py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group touch-target mobile-button"
         >
           <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
           {isCreatingAccount ? (

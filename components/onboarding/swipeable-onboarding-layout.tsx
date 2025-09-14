@@ -20,6 +20,7 @@ interface SwipeableOnboardingLayoutProps {
   showProgress?: boolean
   showBackButton?: boolean
   showSkipButton?: boolean
+  showNextButton?: boolean // New prop to control Next button visibility
   className?: string
 }
 
@@ -36,6 +37,7 @@ export function SwipeableOnboardingLayout({
   showProgress = true,
   showBackButton = true,
   showSkipButton = false,
+  showNextButton = true, // Default to true for backward compatibility
   className
 }: SwipeableOnboardingLayoutProps) {
   const { isMobile } = useEnhancedMobile()
@@ -137,15 +139,19 @@ export function SwipeableOnboardingLayout({
               ))}
             </div>
 
-            {/* Next Button */}
-            <Button
-              onClick={onNext}
-              disabled={!canGoNext || isAnimating}
-              className="flex items-center gap-2"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            {/* Next Button - Only show if showNextButton is true */}
+            {showNextButton ? (
+              <Button
+                onClick={onNext}
+                disabled={!canGoNext || isAnimating}
+                className="flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <div /> // Spacer when Next button is hidden
+            )}
           </div>
 
           

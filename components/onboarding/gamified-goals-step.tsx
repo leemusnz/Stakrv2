@@ -326,7 +326,7 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
           onClick={handleNext}
           disabled={!canProceed}
           size="lg"
-          className="text-lg font-bold px-12 py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group"
+          className="text-lg font-bold px-12 py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group touch-target mobile-button"
         >
           <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
           Continue Quest (+300 XP)

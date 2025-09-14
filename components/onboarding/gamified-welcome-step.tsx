@@ -112,7 +112,7 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
           <Button
             onClick={handleContinue}
             size="lg"
-            className="text-lg font-bold px-8 py-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+            className="text-lg font-bold px-8 py-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden touch-target mobile-button"
           >
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             <Zap className="w-5 h-5 mr-2" />
@@ -123,7 +123,7 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
             onClick={() => window.location.href = '/auth/signin'}
             variant="outline"
             size="lg"
-            className="text-lg font-bold px-8 py-6 bg-transparent hover:bg-primary/10 border-2 border-primary/20"
+            className="text-lg font-bold px-8 py-6 bg-transparent hover:bg-primary/10 border-2 border-primary/20 touch-target mobile-button"
           >
             I Already Have an Account
           </Button>

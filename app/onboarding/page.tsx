@@ -194,12 +194,12 @@ export default function OnboardingPage() {
             
             // Wait a moment for session to propagate, then redirect
             setTimeout(() => {
-              window.location.href = "/dashboard?from=onboarding"
+              window.location.href = "/"
             }, 500)
           } catch (updateError) {
             console.error("❌ Failed to update session:", updateError)
             // Still redirect even if session update fails
-            window.location.href = "/dashboard?from=onboarding"
+            window.location.href = "/"
           }
         } else {
           console.error("❌ Failed to complete onboarding")
@@ -285,6 +285,7 @@ export default function OnboardingPage() {
           canGoNext={currentStep < steps.length - 1}
           canGoBack={currentStep > 0}
           showBackButton={currentStep > 0}
+          showNextButton={false} // Hide footer Next button since each step has its own Continue button
         >
           {stepContent}
         </SwipeableOnboardingLayout>
