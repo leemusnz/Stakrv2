@@ -114,7 +114,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
   const canCreateAccount = email.trim() && password.length >= 6 && name.trim()
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto relative">
+    <div className="space-y-4 md:space-y-6 max-w-2xl mx-auto relative px-4">
       {/* Confetti Animation */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
@@ -130,58 +130,58 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
               }}
             >
               {i % 4 === 0 ? (
-                <Star className="w-6 h-6 text-primary" />
+                <Star className="w-4 h-4 md:w-6 md:h-6 text-primary" />
               ) : i % 4 === 1 ? (
-                <Trophy className="w-6 h-6 text-secondary" />
+                <Trophy className="w-4 h-4 md:w-6 md:h-6 text-secondary" />
               ) : i % 4 === 2 ? (
-                <Sparkles className="w-6 h-6 text-success" />
+                <Sparkles className="w-4 h-4 md:w-6 md:h-6 text-success" />
               ) : (
-                <Gift className="w-6 h-6 text-primary" />
+                <Gift className="w-4 h-4 md:w-6 md:h-6 text-primary" />
               )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Character Illustration */}
+      {/* Character Illustration - Mobile Optimized */}
       <div className="text-center">
-        <div className="w-32 h-32 mx-auto mb-6 relative">
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center border-4 border-primary/30 animate-pulse">
-            <div className="text-6xl">🏆</div>
+        <div className="w-20 h-20 md:w-28 md:h-28 mx-auto mb-3 md:mb-4 relative">
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center border-2 md:border-4 border-primary/30 animate-pulse">
+            <div className="text-4xl md:text-5xl">🏆</div>
           </div>
-          <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center animate-spin">
-            <Crown className="w-4 h-4 text-white" />
+          <div className="absolute -top-1 -right-1 md:-top-2 md:-right-2 w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center animate-spin">
+            <Crown className="w-3 h-3 md:w-4 md:h-4 text-white" />
           </div>
-          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-success text-white px-3 py-1 rounded-full text-sm font-bold">
+          <div className="absolute -bottom-1 md:-bottom-2 left-1/2 transform -translate-x-1/2 bg-success text-white px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold">
             Champion Level {Math.floor(((data.xp || 0) + 150) / 200) + 1}
           </div>
         </div>
       </div>
 
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+      {/* Header - Mobile Optimized */}
+      <div className="text-center space-y-2 md:space-y-3">
+        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs md:text-sm">
           Final Step: Create Your Account! 🎯
         </Badge>
-        <h1 className="text-4xl font-bold">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight">
           Join the <span className="text-primary">Champions</span> Circle!
         </h1>
-        <p className="text-lg text-muted-foreground">
+        <p className="text-sm md:text-base lg:text-lg text-muted-foreground">
           Create your account to complete your onboarding quest and unlock Champion status!
         </p>
       </div>
 
-      {/* Social Sign In Options */}
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 gap-3">
+      {/* Social Sign In Options - Mobile Optimized */}
+      <div className="space-y-3 md:space-y-4">
+        <div className="grid grid-cols-1 gap-2 md:gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={() => handleSocialSignIn("google")}
             disabled={isCreatingAccount}
-            className="w-full h-12 text-base font-semibold"
+            className="w-full h-10 md:h-12 text-sm md:text-base font-semibold"
           >
-            <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -204,20 +204,20 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
       {/* Email/Password Form or OAuth Completion */}
       {isAuthenticated ? (
         // OAuth users - show completion form
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           <div className="text-center space-y-2">
-            <h3 className="text-2xl font-bold flex items-center justify-center gap-2">
-              <Crown className="w-6 h-6 text-primary" />
+            <h3 className="text-xl md:text-2xl font-bold flex items-center justify-center gap-1 md:gap-2">
+              <Crown className="w-5 h-5 md:w-6 md:h-6 text-primary" />
               Complete Your Profile
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-sm md:text-base text-muted-foreground">
               You're signed in! Just complete your profile to finish onboarding.
             </p>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             <div className="text-center space-y-2">
-              <p className="text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground">
                 Welcome, {session.user.name || session.user.email}! You're all set to join the Champions Circle.
               </p>
             </div>
@@ -226,36 +226,36 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
               onClick={() => onNext()}
               disabled={isLoading}
               size="lg"
-              className="text-lg font-bold px-12 py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group"
+              className="text-base md:text-lg font-bold px-8 md:px-12 py-4 md:py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group"
             >
               <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
               {isLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-white mr-2"></div>
                   Completing Profile...
                 </>
               ) : (
                 <>
-                  <Crown className="w-5 h-5 mr-2" />
+                  <Crown className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                   Complete Profile & Join Champions Circle (+300 XP)
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
                 </>
               )}
             </Button>
 
             {error && (
               <div className="text-center">
-                <p className="text-sm text-red-500">{error}</p>
+                <p className="text-xs md:text-sm text-red-500">{error}</p>
               </div>
             )}
           </div>
         </div>
       ) : (
         // New users - show account creation form
-        <form onSubmit={handleCreateAccount} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-lg font-bold flex items-center gap-2">
-            <User className="w-5 h-5" />
+        <form onSubmit={handleCreateAccount} className="space-y-3 md:space-y-4">
+        <div className="space-y-1 md:space-y-2">
+          <Label htmlFor="name" className="text-sm md:text-base font-bold flex items-center gap-1 md:gap-2">
+            <User className="w-4 h-4 md:w-5 md:h-5" />
             Your Name
           </Label>
           <Input
@@ -264,15 +264,15 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
             placeholder="Enter your first name or nickname"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="text-lg p-4 h-14 mobile-input"
+            className="text-sm md:text-base p-3 md:p-4 h-11 md:h-14 mobile-input"
             required
             disabled={isCreatingAccount}
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-lg font-bold flex items-center gap-2">
-            <Mail className="w-5 h-5" />
+        <div className="space-y-1 md:space-y-2">
+          <Label htmlFor="email" className="text-sm md:text-base font-bold flex items-center gap-1 md:gap-2">
+            <Mail className="w-4 h-4 md:w-5 md:h-5" />
             Email Address
           </Label>
           <Input
@@ -281,15 +281,15 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
             placeholder="your@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="text-lg p-4 h-14 mobile-input"
+            className="text-sm md:text-base p-3 md:p-4 h-11 md:h-14 mobile-input"
             required
             disabled={isCreatingAccount}
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-lg font-bold flex items-center gap-2">
-            <Lock className="w-5 h-5" />
+        <div className="space-y-1 md:space-y-2">
+          <Label htmlFor="password" className="text-sm md:text-base font-bold flex items-center gap-1 md:gap-2">
+            <Lock className="w-4 h-4 md:w-5 md:h-5" />
             Password
           </Label>
           <Input
@@ -298,38 +298,38 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
             placeholder="Create a secure password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="text-lg p-4 h-14 mobile-input"
+            className="text-sm md:text-base p-3 md:p-4 h-11 md:h-14 mobile-input"
             minLength={6}
             required
             disabled={isCreatingAccount}
           />
-          <p className="text-sm text-muted-foreground">Must be at least 6 characters long</p>
+          <p className="text-xs md:text-sm text-muted-foreground">Must be at least 6 characters long</p>
         </div>
 
         <Button
           type="submit"
           disabled={!canCreateAccount || isCreatingAccount}
           size="lg"
-          className="text-lg font-bold px-12 py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group touch-target mobile-button"
+          className="text-sm md:text-base lg:text-lg font-bold px-8 md:px-12 py-4 md:py-6 w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group touch-target mobile-button"
         >
           <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
           {isCreatingAccount ? (
             <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-white mr-2"></div>
               Creating Account...
             </>
           ) : (
             <>
-              <Crown className="w-5 h-5 mr-2" />
+              <Crown className="w-4 h-4 md:w-5 md:h-5 mr-2" />
               Create Account & Join Champions Circle (+300 XP)
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
             </>
           )}
         </Button>
 
         {error && (
           <div className="text-center">
-            <p className="text-sm text-red-500">{error}</p>
+            <p className="text-xs md:text-sm text-red-500">{error}</p>
           </div>
         )}
       </form>
