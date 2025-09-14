@@ -17,32 +17,52 @@ export async function GET(request: NextRequest) {
 
     const sql = await createDbConnection()
 
-    // Verify the token using our database function
-    const verificationResult = await sql`
-      SELECT * FROM verify_token(${token}, 'email_verification')
+    // Verify the token directly with database operations
+    // First, check if the token exists and is valid
+    const tokenResult = await sql`
+      SELECT user_id, email, expires_at 
+      FROM verification_tokens 
+      WHERE token = ${token} 
+        AND token_type = 'email_verification' 
+        AND expires_at > NOW()
     `
 
-    const result = verificationResult[0]
-
-    if (!result.success) {
-      console.log('❌ Email verification failed:', result.message)
-      systemLogger.warning(`Email verification failed: ${result.message}`, 'auth')
+    if (tokenResult.length === 0) {
+      console.log('❌ Email verification failed: Invalid or expired token')
+      systemLogger.warning(`Email verification failed: Invalid or expired token`, 'auth')
       
       return NextResponse.json({
         success: false,
         error: 'Verification failed',
-        message: result.message
+        message: 'Invalid or expired verification token'
       }, { status: 400 })
     }
 
-    console.log('✅ Email verified successfully for:', result.email)
-    systemLogger.info(`Email verified successfully for user: ${result.email}`, 'auth')
+    const tokenData = tokenResult[0]
+    const userId = tokenData.user_id
+    const email = tokenData.email
+
+    // Update user's email verification status
+    await sql`
+      UPDATE users 
+      SET email_verified = true, email_verified_at = NOW()
+      WHERE id = ${userId}
+    `
+
+    // Delete the used token
+    await sql`
+      DELETE FROM verification_tokens 
+      WHERE token = ${token}
+    `
+
+    console.log('✅ Email verified successfully for:', email)
+    systemLogger.info(`Email verified successfully for user: ${email}`, 'auth')
 
     // Award XP for email verification completion
     try {
       const xpAwardResult = await sql`
         SELECT award_xp(
-          ${result.user_id}::UUID,
+          ${userId}::UUID,
           50,
           'email_verification',
           NULL,
@@ -51,10 +71,10 @@ export async function GET(request: NextRequest) {
       `
       
       if (xpAwardResult[0]?.award_xp) {
-        console.log('🎯 Awarded 50 XP for email verification to user:', result.email)
-        systemLogger.info(`Awarded 50 XP for email verification to user: ${result.email}`, 'xp')
+        console.log('🎯 Awarded 50 XP for email verification to user:', email)
+        systemLogger.info(`Awarded 50 XP for email verification to user: ${email}`, 'xp')
       } else {
-        console.log('⚠️ XP already awarded for email verification to user:', result.email)
+        console.log('⚠️ XP already awarded for email verification to user:', email)
       }
     } catch (xpError) {
       console.error('❌ Failed to award XP for email verification:', xpError)
@@ -65,8 +85,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Email verified successfully! You are now signed in. +50 XP earned!',
-      email: result.email,
-      userId: result.user_id,
+      email: email,
+      userId: userId,
       xpAwarded: 50
     }, { status: 200 })
 
@@ -99,32 +119,52 @@ export async function POST(request: NextRequest) {
 
     const sql = await createDbConnection()
 
-    // Verify the token using our database function
-    const verificationResult = await sql`
-      SELECT * FROM verify_token(${token}, 'email_verification')
+    // Verify the token directly with database operations
+    // First, check if the token exists and is valid
+    const tokenResult = await sql`
+      SELECT user_id, email, expires_at 
+      FROM verification_tokens 
+      WHERE token = ${token} 
+        AND token_type = 'email_verification' 
+        AND expires_at > NOW()
     `
 
-    const result = verificationResult[0]
-
-    if (!result.success) {
-      console.log('❌ Email verification failed:', result.message)
-      systemLogger.warning(`Email verification failed: ${result.message}`, 'auth')
+    if (tokenResult.length === 0) {
+      console.log('❌ Email verification failed: Invalid or expired token')
+      systemLogger.warning(`Email verification failed: Invalid or expired token`, 'auth')
       
       return NextResponse.json({
         success: false,
         error: 'Verification failed',
-        message: result.message
+        message: 'Invalid or expired verification token'
       }, { status: 400 })
     }
 
-    console.log('✅ Email verified successfully for:', result.email)
-    systemLogger.info(`Email verified successfully for user: ${result.email}`, 'auth')
+    const tokenData = tokenResult[0]
+    const userId = tokenData.user_id
+    const email = tokenData.email
+
+    // Update user's email verification status
+    await sql`
+      UPDATE users 
+      SET email_verified = true, email_verified_at = NOW()
+      WHERE id = ${userId}
+    `
+
+    // Delete the used token
+    await sql`
+      DELETE FROM verification_tokens 
+      WHERE token = ${token}
+    `
+
+    console.log('✅ Email verified successfully for:', email)
+    systemLogger.info(`Email verified successfully for user: ${email}`, 'auth')
 
     // Award XP for email verification completion
     try {
       const xpAwardResult = await sql`
         SELECT award_xp(
-          ${result.user_id}::UUID,
+          ${userId}::UUID,
           50,
           'email_verification',
           NULL,
@@ -133,10 +173,10 @@ export async function POST(request: NextRequest) {
       `
       
       if (xpAwardResult[0]?.award_xp) {
-        console.log('🎯 Awarded 50 XP for email verification to user:', result.email)
-        systemLogger.info(`Awarded 50 XP for email verification to user: ${result.email}`, 'xp')
+        console.log('🎯 Awarded 50 XP for email verification to user:', email)
+        systemLogger.info(`Awarded 50 XP for email verification to user: ${email}`, 'xp')
       } else {
-        console.log('⚠️ XP already awarded for email verification to user:', result.email)
+        console.log('⚠️ XP already awarded for email verification to user:', email)
       }
     } catch (xpError) {
       console.error('❌ Failed to award XP for email verification:', xpError)
@@ -147,8 +187,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Email verified successfully! You are now signed in. +50 XP earned!',
-      email: result.email,
-      userId: result.user_id,
+      email: email,
+      userId: userId,
       xpAwarded: 50
     }, { status: 200 })
 
