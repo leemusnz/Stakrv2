@@ -263,14 +263,26 @@ export const authOptions: NextAuthOptions = {
             email: credentials?.email,
             userId: credentials?.userId,
           })
+          console.log("🔐 All credentials received:", credentials)
 
           if (!credentials?.email || !credentials?.userId) {
             console.log("❌ Missing verification credentials")
+            console.log("❌ Email provided:", !!credentials?.email)
+            console.log("❌ UserId provided:", !!credentials?.userId)
             return null
           }
 
           // Find user in database
           const dbUser = await findUserInDatabase(credentials.email)
+          
+          console.log("🔐 Database user lookup result:", {
+            found: !!dbUser,
+            email: dbUser?.email,
+            userId: dbUser?.id,
+            emailVerified: dbUser?.email_verified,
+            expectedUserId: credentials.userId,
+            userIdMatch: dbUser?.id === credentials.userId
+          })
           
           if (dbUser && dbUser.id === credentials.userId && dbUser.email_verified) {
             console.log("✅ Verification sign-in successful for:", dbUser.email)
