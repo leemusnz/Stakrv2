@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       SELECT user_id, email, expires_at 
       FROM verification_tokens 
       WHERE token = ${token} 
-        AND token_type = 'email_verification' 
+        AND type = 'email_verification' 
         AND expires_at > NOW()
     `
 
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       SELECT user_id, email, expires_at 
       FROM verification_tokens 
       WHERE token = ${token} 
-        AND token_type = 'email_verification' 
+        AND type = 'email_verification' 
         AND expires_at > NOW()
     `
 
