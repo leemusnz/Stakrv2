@@ -130,7 +130,7 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
   const canProceed = selectedGoals.length > 0
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto relative">
+    <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto relative px-4">
       {/* XP Animation */}
       {showXPAnimation && (
         <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
@@ -142,42 +142,41 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
         </div>
       )}
 
-
-      {/* Character Illustration */}
+      {/* Character Illustration - Mobile Optimized */}
       <div className="text-center">
-        <div className="w-32 h-32 mx-auto mb-6 relative">
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center border-4 border-primary/30">
-            <div className="text-6xl">🎯</div>
+        <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-3 md:mb-4 relative">
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center border-2 md:border-4 border-primary/30">
+            <div className="text-3xl md:text-5xl">🎯</div>
           </div>
-          <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center animate-pulse">
-            <Star className="w-4 h-4 text-white" />
+          <div className="absolute -top-1 -right-1 md:-top-2 md:-right-2 w-4 h-4 md:w-6 md:h-6 bg-primary rounded-full flex items-center justify-center animate-pulse">
+            <Star className="w-2 h-2 md:w-3 md:h-3 text-white" />
           </div>
           {/* Level indicator */}
-          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-secondary text-white px-2 py-1 rounded-full text-xs font-bold">
+          <div className="absolute -bottom-1 md:-bottom-2 left-1/2 transform -translate-x-1/2 bg-secondary text-white px-1 py-0.5 md:px-2 md:py-1 rounded-full text-xs font-bold">
             Level {data.level || 1}
           </div>
         </div>
       </div>
 
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+      {/* Header - Mobile Optimized */}
+      <div className="text-center space-y-2 md:space-y-3">
+        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs md:text-sm">
           Step 2 of 3 • +300 XP Available
         </Badge>
-        <h1 className="text-4xl font-bold">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight">
           Choose Your <span className="text-primary">Quest</span> Categories
         </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-sm md:text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto">
           Select the areas where you want to build lasting habits. Each selection earns you XP and unlocks personalized
           challenges!
         </p>
       </div>
 
-      {/* XP Progress Bar */}
-      <div className="bg-muted/30 rounded-lg p-4">
+      {/* XP Progress Bar - Mobile Optimized */}
+      <div className="bg-muted/30 rounded-lg p-3 md:p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium">XP Progress</span>
-          <span className="text-sm text-muted-foreground">{data.xp || 0} / 300 XP</span>
+          <span className="text-xs md:text-sm font-medium">XP Progress</span>
+          <span className="text-xs md:text-sm text-muted-foreground">{data.xp || 0} / 300 XP</span>
         </div>
         <div className="w-full bg-muted rounded-full h-2">
           <div
@@ -187,12 +186,12 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
         </div>
       </div>
 
-      {/* Selection Counter & Clear */}
+      {/* Selection Counter & Clear - Mobile Optimized */}
       <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs md:text-sm text-muted-foreground">
           {selectedGoals.length > 0 && (
-            <span className="font-medium text-foreground flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-primary" />
+            <span className="font-medium text-foreground flex items-center gap-1 md:gap-2">
+              <Trophy className="w-3 h-3 md:w-4 md:h-4 text-primary" />
               {selectedGoals.length} goal{selectedGoals.length !== 1 ? "s" : ""} selected
             </span>
           )}
@@ -202,16 +201,16 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
             variant="outline"
             size="sm"
             onClick={handleClearAll}
-            className="text-muted-foreground hover:text-foreground bg-transparent"
+            className="text-muted-foreground hover:text-foreground bg-transparent text-xs md:text-sm px-2 py-1 md:px-3 md:py-2"
           >
-            <RotateCcw className="w-4 h-4 mr-2" />
+            <RotateCcw className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
             Clear All
           </Button>
         )}
       </div>
 
-      {/* Goal Categories */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Goal Categories - Mobile Optimized */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {goalCategories.map((category) => {
           const Icon = category.icon
           const isExpanded = expandedCategory === category.id
@@ -228,32 +227,32 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
               }`}
               onClick={() => setExpandedCategory(isExpanded ? null : category.id)}
             >
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
+              <CardContent className="p-4 md:p-6">
+                <div className="space-y-3 md:space-y-4">
+                  <div className="flex items-center gap-2 md:gap-3">
                     <div
-                      className={`w-12 h-12 rounded-full ${category.bgColor} flex items-center justify-center relative`}
+                      className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${category.bgColor} flex items-center justify-center relative`}
                     >
-                      <div className="text-2xl">{category.emoji}</div>
+                      <div className="text-xl md:text-2xl">{category.emoji}</div>
                       {hasSelectedGoals && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                        <div className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-primary rounded-full flex items-center justify-center">
                           <span className="text-xs text-white font-bold">{selectedCount}</span>
                         </div>
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold flex items-center gap-2">
+                      <h3 className="font-bold flex items-center gap-1 md:gap-2 text-sm md:text-base">
                         {category.label}
-                        {hasSelectedGoals && <Sparkles className="w-4 h-4 text-primary" />}
+                        {hasSelectedGoals && <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-primary" />}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs md:text-sm text-muted-foreground">
                         {selectedCount} selected
                       </p>
                     </div>
                   </div>
 
                   {isExpanded && (
-                    <div className="space-y-2 animate-in slide-in-from-top-2">
+                    <div className="space-y-1 md:space-y-2 animate-in slide-in-from-top-2">
                       {category.goals.map((goal) => (
                         <button
                           key={goal}
@@ -261,7 +260,7 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
                             e.stopPropagation()
                             handleGoalToggle(goal)
                           }}
-                          className={`w-full text-left p-3 rounded-lg border transition-all hover:scale-105 ${
+                          className={`w-full text-left p-2 md:p-3 rounded-lg border transition-all hover:scale-105 text-sm md:text-base ${
                             selectedGoals.includes(goal)
                               ? "border-primary bg-primary/10 text-primary font-medium ring-2 ring-primary/20"
                               : "border-muted bg-muted/30 hover:border-primary/50 hover:bg-primary/5"
@@ -281,20 +280,20 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
         })}
       </div>
 
-      {/* Selected Goals Preview */}
+      {/* Selected Goals Preview - Mobile Optimized */}
       {selectedGoals.length > 0 && (
         <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
-          <CardContent className="p-6">
-            <h3 className="font-bold mb-3 flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-primary" />
+          <CardContent className="p-4 md:p-6">
+            <h3 className="font-bold mb-2 md:mb-3 flex items-center gap-1 md:gap-2 text-sm md:text-base">
+              <Trophy className="w-4 h-4 md:w-5 md:h-5 text-primary" />
               Your Quest Goals
             </h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1 md:gap-2">
               {selectedGoals.map((goal) => (
                 <Badge
                   key={goal}
                   variant="outline"
-                  className="bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors"
+                  className="bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors text-xs md:text-sm px-2 py-1"
                   onClick={() => handleGoalToggle(goal)}
                 >
                   {goal} ×
@@ -305,14 +304,14 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
         </Card>
       )}
 
-      {/* Why This Matters */}
+      {/* Why This Matters - Mobile Optimized */}
       <Card className="bg-muted/30">
-        <CardContent className="p-6">
-          <h3 className="font-bold mb-3 flex items-center gap-2">
-            <Brain className="w-5 h-5 text-secondary" />
+        <CardContent className="p-4 md:p-6">
+          <h3 className="font-bold mb-2 md:mb-3 flex items-center gap-1 md:gap-2 text-sm md:text-base">
+            <Brain className="w-4 h-4 md:w-5 md:h-5 text-secondary" />
             The Science Behind Goal Setting
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs md:text-sm text-muted-foreground">
             Research shows that people who write down specific goals are <strong>42% more likely</strong> to achieve
             them. By selecting your focus areas, we can recommend challenges that align with your priorities and have
             the highest success rates for people like you.
@@ -320,22 +319,22 @@ export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
         </CardContent>
       </Card>
 
-      {/* Gamified CTA */}
-      <div className="text-center space-y-4">
+      {/* Gamified CTA - Mobile Optimized */}
+      <div className="text-center space-y-3 md:space-y-4">
         <Button
           onClick={handleNext}
           disabled={!canProceed}
           size="lg"
-          className="text-lg font-bold px-12 py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group touch-target mobile-button"
+          className="w-full md:w-auto text-base md:text-lg font-bold px-8 md:px-12 py-4 md:py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all relative overflow-hidden group touch-target mobile-button"
         >
           <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
           Continue Quest (+300 XP)
-          <ArrowRight className="w-5 h-5 ml-2" />
+          <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
         </Button>
 
         {!canProceed && (
-          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-            <Target className="w-4 h-4" />
+          <p className="text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1 md:gap-2">
+            <Target className="w-3 h-3 md:w-4 md:h-4" />
             Select at least one goal to continue your quest
           </p>
         )}
