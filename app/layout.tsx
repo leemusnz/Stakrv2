@@ -9,6 +9,9 @@ import { Toaster } from "@/components/ui/sonner"
 import { Providers } from "@/components/providers"
 import { AppleSplashScreen } from "./apple-splash-screen"
 import { MobileAppOptimizer, mobileAppStyles } from "@/components/mobile-app-optimizer"
+import { PWARegistration } from "@/components/pwa-registration"
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt"
+import { PWADebug } from "@/components/pwa-debug"
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] })
 const inter = Inter({ subsets: ["latin"] })
@@ -59,6 +62,7 @@ export default function RootLayout({
       </head>
       <body className={cn("bg-background font-sans antialiased", montserrat.className)}>
         <MobileAppOptimizer />
+        <PWARegistration />
         <Providers>
           <NavigationWrapper />
           <main style={{ paddingBottom: "var(--bottom-nav-safe-space, 0px)" }}>
@@ -67,6 +71,8 @@ export default function RootLayout({
             <MobileContentSpacer />
           </main>
           <Toaster />
+          <PWAInstallPrompt />
+          <PWADebug />
         </Providers>
       </body>
     </html>

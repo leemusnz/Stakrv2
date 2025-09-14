@@ -8,6 +8,8 @@
   "theme_color": "#F46036",
   "orientation": "portrait",
   "scope": "/",
+  "id": "stakr-app",
+  "display_override": ["window-controls-overlay", "standalone"],
   "categories": [
     "lifestyle",
     "health-and-fitness",
