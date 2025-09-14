@@ -22,9 +22,12 @@ export default function AlphaGatePage() {
     const checkAlphaAccess = () => {
       try {
         const hasAccess = document.cookie.includes("alpha_access=true")
+        console.log("🍪 Current cookies:", document.cookie)
+        console.log("🔍 Alpha access check:", hasAccess)
         if (hasAccess) {
           console.log("✅ User already has alpha access, redirecting to home page...")
-          router.push("/") // Redirect to home page which will handle proper routing
+          // Use window.location.replace for a hard redirect
+          window.location.replace("/")
         }
       } catch (error) {
         console.log("⚠️ Could not check alpha access cookie:", error)
@@ -32,7 +35,7 @@ export default function AlphaGatePage() {
     }
 
     checkAlphaAccess()
-  }, [router])
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,9 +94,12 @@ export default function AlphaGatePage() {
         document.cookie = "alpha_access=true; path=/; max-age=2592000; SameSite=Lax"
 
         // Use window.location for a full page reload to ensure cookie is processed
+        // Add a small delay to ensure cookie is set before redirect
         setTimeout(() => {
-          window.location.href = "/" // Redirect to home page which will handle proper routing
-        }, 1000)
+          console.log("🔄 Redirecting to home page...")
+          // Force a hard redirect to ensure the cookie is processed
+          window.location.replace("/")
+        }, 1500)
       } else {
         console.log("❌ Alpha access denied:", data.error)
         setError(data.error || "Access denied")
@@ -141,8 +147,9 @@ export default function AlphaGatePage() {
         setIsRedirecting(true)
         document.cookie = "alpha_access=true; path=/; max-age=2592000; SameSite=Lax"
         setTimeout(() => {
-          window.location.href = "/" // Redirect to home page which will handle proper routing
-        }, 500)
+          console.log("🔄 Dev bypass redirecting to home page...")
+          window.location.replace("/")
+        }, 1000)
       } else {
         setError(data.error || "Dev bypass failed")
       }

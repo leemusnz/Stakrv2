@@ -10,8 +10,16 @@ export default function HomePage() {
   const router = useRouter()
 
   useEffect(() => {
+    console.log('🏠 Home page useEffect triggered')
+    console.log('📊 Session status:', status)
+    console.log('👤 Session data:', session)
+    console.log('🍪 Current cookies:', document.cookie)
+    
     // Don't redirect during loading
-    if (status === "loading") return
+    if (status === "loading") {
+      console.log('⏳ Still loading, waiting...')
+      return
+    }
 
     // If user is authenticated, check onboarding status
     if (session?.user) {
