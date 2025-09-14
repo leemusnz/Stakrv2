@@ -91,10 +91,16 @@ export default function AlphaGatePage() {
         console.log("✅ Alpha access granted")
         setIsRedirecting(true)
 
-        // Set a client-side cookie as backup (mobile-friendly)
+        // Set a client-side cookie as backup (environment-aware)
         try {
-          document.cookie = "alpha_access=true; path=/; max-age=604800; SameSite=None; Secure"
-          console.log("🍪 Client-side cookie set successfully")
+          const isProduction = process.env.NODE_ENV === "production"
+          const isHttps = window.location.protocol === "https:"
+          const cookieString = isProduction && isHttps 
+            ? "alpha_access=true; path=/; max-age=604800; SameSite=None; Secure"
+            : "alpha_access=true; path=/; max-age=604800; SameSite=Lax"
+          
+          document.cookie = cookieString
+          console.log("🍪 Client-side cookie set successfully:", cookieString)
         } catch (cookieError) {
           console.warn("⚠️ Could not set client-side cookie:", cookieError)
         }
@@ -149,7 +155,14 @@ export default function AlphaGatePage() {
 
       if (data.success) {
         setIsRedirecting(true)
-        document.cookie = "alpha_access=true; path=/; max-age=604800; SameSite=None; Secure"
+        // Environment-aware cookie for dev bypass
+        const isProduction = process.env.NODE_ENV === "production"
+        const isHttps = window.location.protocol === "https:"
+        const cookieString = isProduction && isHttps 
+          ? "alpha_access=true; path=/; max-age=604800; SameSite=None; Secure"
+          : "alpha_access=true; path=/; max-age=604800; SameSite=Lax"
+        
+        document.cookie = cookieString
         setTimeout(() => {
           window.location.href = "/" // Redirect to home page which will handle proper routing
         }, 500)
