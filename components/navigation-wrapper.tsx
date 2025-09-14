@@ -15,9 +15,15 @@ export function NavigationWrapper() {
   const pathname = usePathname()
   const { avatarUrl } = useUserAvatar()
 
-  // Check if we're on onboarding or auth pages
+  // Check if we're on onboarding, auth, or alpha gate pages
   const isOnOnboarding = pathname?.startsWith('/onboarding')
   const isOnAuthPage = pathname?.startsWith('/auth/') || pathname === '/auth'
+  const isOnAlphaGate = pathname === '/alpha-gate'
+
+  // Hide navigation completely on alpha gate page
+  if (isOnAlphaGate) {
+    return null
+  }
 
   // Show loading state
   if (status === 'loading') {
