@@ -97,7 +97,7 @@ const goalCategories = [
   },
 ]
 
-export function GamefiedGoalsStep({ data, onNext }: GamefiedGoalsStepProps) {
+export function GamefiedGoalsStep({ data, onNext, onBack, onSkip }: GamefiedGoalsStepProps) {
   const [selectedGoals, setSelectedGoals] = useState<string[]>(data.goals || [])
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
   const [showXPAnimation, setShowXPAnimation] = useState(false)
