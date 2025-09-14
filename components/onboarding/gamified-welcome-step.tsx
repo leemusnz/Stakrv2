@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Zap, Trophy, Brain, Users, Star, Sparkles } from "lucide-react"
@@ -19,15 +18,6 @@ interface GamefiedWelcomeStepProps {
 export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) {
   const [showXPAnimation, setShowXPAnimation] = useState(false)
 
-  const handleSocialSignIn = async (provider: "google" | "apple" | "facebook") => {
-    try {
-      await signIn(provider, {
-        callbackUrl: "/onboarding", // Redirect back to onboarding to complete profile
-      })
-    } catch (error) {
-      console.error(`${provider} authentication failed:`, error)
-    }
-  }
 
   const handleContinue = () => {
     setShowXPAnimation(true)
@@ -144,39 +134,6 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
         </p>
       </div>
 
-      {/* Social Sign-in Options */}
-      <div className="space-y-4">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button
-            onClick={() => handleSocialSignIn("google")}
-            variant="outline"
-            size="lg"
-            className="flex-1 sm:flex-none text-lg font-bold px-8 py-6 bg-white hover:bg-gray-50 border-2 border-gray-200"
-          >
-            <img src="/logos/google-icon.svg" alt="Google" className="w-6 h-6 mr-3" />
-            Google
-          </Button>
-
-          <Button
-            onClick={() => handleSocialSignIn("apple")}
-            variant="outline"
-            size="lg"
-            className="flex-1 sm:flex-none text-lg font-bold px-8 py-6 bg-black hover:bg-gray-900 text-white border-2 border-gray-800"
-          >
-            <img src="/logos/apple-icon.svg" alt="Apple" className="w-6 h-6 mr-3" />
-            Apple
-          </Button>
-        </div>
-      </div>
     </div>
   )
 }
