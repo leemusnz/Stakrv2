@@ -157,18 +157,6 @@ function SignInContent() {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {error}
-                {isOAuthAccount && (
-                  <div className="mt-3">
-                    <Button
-                      onClick={() => handleSocialSignIn("google")}
-                      className="w-full"
-                      disabled={isLoading}
-                    >
-                      <img src="/logos/google-icon.svg" alt="Google" className="w-5 h-5 mr-2" />
-                      Sign in with Google
-                    </Button>
-                  </div>
-                )}
               </AlertDescription>
             </Alert>
           )}
