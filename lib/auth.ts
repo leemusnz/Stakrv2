@@ -169,9 +169,16 @@ export const authOptions: NextAuthOptions = {
             console.log("👤 Database user found:", dbUser.email)
             
             // Check if this is an OAuth-only account (no password_hash)
-            if (!dbUser.password_hash) {
+            // This check is critical to prevent bcrypt.compare() from being called with null/undefined
+            if (!dbUser.password_hash || dbUser.password_hash === null || dbUser.password_hash === undefined || dbUser.password_hash === '') {
               console.log("🔍 Account exists but has no password - likely OAuth account")
               // Return a special error to indicate OAuth account
+              throw new Error("OAUTH_ACCOUNT_EXISTS")
+            }
+            
+            // Additional safety check before bcrypt comparison
+            if (typeof dbUser.password_hash !== 'string' || dbUser.password_hash.trim() === '') {
+              console.log("❌ Invalid password_hash format for account")
               throw new Error("OAUTH_ACCOUNT_EXISTS")
             }
             
@@ -179,11 +186,28 @@ export const authOptions: NextAuthOptions = {
             let isValidPassword = false
             try {
               const bcrypt = await import('bcryptjs')
+              // Additional safety: ensure password_hash is valid before comparison
+              if (!dbUser.password_hash || typeof dbUser.password_hash !== 'string') {
+                console.log("❌ Cannot compare password - invalid password_hash")
+                throw new Error("OAUTH_ACCOUNT_EXISTS")
+              }
               isValidPassword = await bcrypt.compare(credentials.password, dbUser.password_hash)
             } catch (bcryptError) {
+              // If bcrypt error is due to invalid hash, treat as OAuth account
+              if (bcryptError instanceof Error && (
+                bcryptError.message.includes('Invalid salt version') ||
+                bcryptError.message.includes('data and hash arguments required')
+              )) {
+                console.log("🔍 bcrypt error suggests OAuth account with invalid hash")
+                throw new Error("OAUTH_ACCOUNT_EXISTS")
+              }
               console.log("⚠️ bcrypt not available, trying plain text comparison")
-              // Fallback to plain text for development
-              isValidPassword = credentials.password === dbUser.password_hash
+              // Fallback to plain text for development (only if hash exists)
+              if (dbUser.password_hash && typeof dbUser.password_hash === 'string') {
+                isValidPassword = credentials.password === dbUser.password_hash
+              } else {
+                throw new Error("OAUTH_ACCOUNT_EXISTS")
+              }
             }
             
             console.log("🔑 Database password valid:", isValidPassword)
@@ -266,39 +290,25 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     CredentialsProvider({
-      id: "verification",
       name: "verification",
       credentials: {
         email: { label: "Email", type: "email" },
         userId: { label: "User ID", type: "text" },
       },
       async authorize(credentials) {
-        console.log("🚨 VERIFICATION PROVIDER CALLED! 🚨")
         try {
           console.log("🔐 Verification sign-in attempt:", {
             email: credentials?.email,
             userId: credentials?.userId,
           })
-          console.log("🔐 All credentials received:", credentials)
 
           if (!credentials?.email || !credentials?.userId) {
             console.log("❌ Missing verification credentials")
-            console.log("❌ Email provided:", !!credentials?.email)
-            console.log("❌ UserId provided:", !!credentials?.userId)
             return null
           }
 
           // Find user in database
           const dbUser = await findUserInDatabase(credentials.email)
-          
-          console.log("🔐 Database user lookup result:", {
-            found: !!dbUser,
-            email: dbUser?.email,
-            userId: dbUser?.id,
-            emailVerified: dbUser?.email_verified,
-            expectedUserId: credentials.userId,
-            userIdMatch: dbUser?.id === credentials.userId
-          })
           
           if (dbUser && dbUser.id === credentials.userId && dbUser.email_verified) {
             console.log("✅ Verification sign-in successful for:", dbUser.email)
@@ -529,14 +539,6 @@ export const authOptions: NextAuthOptions = {
         return true
       } catch (error) {
         console.error("❌ Error in signIn callback:", error)
-        
-        // Handle OAuth account exists error
-        if (error instanceof Error && error.message === "OAUTH_ACCOUNT_EXISTS") {
-          console.log("🔍 OAuth account conflict detected")
-          // Return a special error URL parameter
-          return `/auth/signin?error=oauth_account_exists&email=${encodeURIComponent(user?.email || '')}`
-        }
-        
         return false
       }
     },

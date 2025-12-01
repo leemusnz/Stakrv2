@@ -19,7 +19,6 @@ function SignInContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
-  const [isOAuthAccount, setIsOAuthAccount] = useState(false)
 
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
   const errorParam = searchParams.get('error')
@@ -40,9 +39,7 @@ function SignInContent() {
           setError('Your account has been suspended')
           break
         case 'oauth_account_exists':
-        case 'OAUTH_ACCOUNT_EXISTS':
           setError('This account was created with Google. Please sign in with Google instead.')
-          setIsOAuthAccount(true)
           break
         default:
           setError('Sign in failed. Please try again.')
@@ -70,7 +67,6 @@ function SignInContent() {
     e.preventDefault()
     setIsLoading(true)
     setError("")
-    setIsOAuthAccount(false)
 
     console.log('🔐 Attempting sign in with:', { email, hasPassword: !!password })
 
@@ -103,10 +99,10 @@ function SignInContent() {
             setError('Your account has been suspended')
             router.push('/auth/suspended')
             break
-          case 'error=oauth_account_exists':
-          case 'OAUTH_ACCOUNT_EXISTS':
-            setError('This account was created with Google. Please sign in with Google instead.')
-            setIsOAuthAccount(true)
+          case 'CredentialsSignin':
+            // Check if this might be an OAuth-only account
+            // NextAuth doesn't pass custom error codes, so we show a helpful message
+            setError('Invalid email or password. If you signed up with Google, please use "Continue with Google" instead.')
             break
           default:
             setError('Invalid email or password')
@@ -153,11 +149,9 @@ function SignInContent() {
           )}
 
           {error && (
-            <Alert variant={isOAuthAccount ? "default" : "destructive"}>
+            <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {error}
-              </AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
@@ -208,12 +202,10 @@ function SignInContent() {
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="email"
-                  name="email"
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  autoComplete="email"
                   className="h-12 pl-10"
                 />
               </div>
@@ -224,12 +216,10 @@ function SignInContent() {
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type={showPassword ? "text" : "password"}
-                  name="password"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  autoComplete="current-password"
                   className="h-12 pl-10 pr-10"
                 />
                 <button
@@ -266,6 +256,14 @@ function SignInContent() {
             </div>
           </div>
 
+          {/* Trust Signals */}
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+              <span>🔒 Secure</span>
+              <span>📧 No spam</span>
+              <span>❌ Cancel anytime</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
