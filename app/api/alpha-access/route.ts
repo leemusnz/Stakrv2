@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         path: "/",
         maxAge: 7 * 24 * 60 * 60, // 7 days
         secure: isProduction && isHttps, // Only secure in production with HTTPS
-        sameSite: isProduction && isHttps ? "none" : "lax", // Use 'lax' for HTTP/localhost
+        sameSite: "lax", // Use 'lax' for better mobile browser compatibility
         httpOnly: false, // Allow client-side access for mobile browsers
       })
 
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         path: "/",
         maxAge: 7 * 24 * 60 * 60,
         secure: isProduction && isHttps,
-        sameSite: isProduction && isHttps ? "none" : "lax",
+        sameSite: "lax",
         httpOnly: false
       })
       return response
