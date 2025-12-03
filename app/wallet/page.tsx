@@ -164,6 +164,7 @@ export default function WalletPage() {
   const [selectedTab, setSelectedTab] = useState("overview")
   const [depositAmount, setDepositAmount] = useState("")
   const [withdrawAmount, setWithdrawAmount] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
   
   // Use the new useApi hook for wallet data
   const { data: walletData, loading: isLoadingWallet, execute: loadWallet } = useApi<typeof mockWalletData>(
@@ -174,8 +175,8 @@ export default function WalletPage() {
     }
   )
   
-  const data = walletData ?? mockWalletData
-  const isLoading = isLoadingWallet
+  const [wallet, setWallet] = useState(mockWalletData)
+  const data = walletData ?? wallet ?? mockWalletData
   const [txTypes, setTxTypes] = useState<string[]>([])
   const [fromDate, setFromDate] = useState<string>("")
   const [toDate, setToDate] = useState<string>("")
@@ -314,12 +315,40 @@ export default function WalletPage() {
 
   const handleWithdraw = async () => {
     if (!withdrawAmount || Number.parseFloat(withdrawAmount) <= 0) return
+    
+    const amount = Number.parseFloat(withdrawAmount)
+    if (amount < 10) {
+      alert("Minimum withdrawal amount is $10")
+      return
+    }
+    
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    console.log("Withdrawing:", withdrawAmount)
-    setWithdrawAmount("")
-    setIsLoading(false)
+    try {
+      const response = await fetch('/api/payments/withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          amount: amount,
+          withdrawalMethodId: 'default' 
+        })
+      })
+      
+      const result = await response.json()
+      
+      if (response.ok && result.success) {
+        alert(`✅ Withdrawal successful!\n\nAmount: $${result.withdrawal.amount}\nFee: $${result.withdrawal.fee}\nTotal deducted: $${result.withdrawal.total_deducted}\n\nNew balance: $${result.withdrawal.new_balance}\n\n${result.withdrawal.note}`)
+        setWithdrawAmount("")
+        // Refresh wallet data
+        window.location.reload()
+      } else {
+        alert(`❌ Withdrawal failed:\n\n${result.message || result.error}${result.details ? '\n\nDetails:\n' + JSON.stringify(result.details, null, 2) : ''}`)
+      }
+    } catch (error) {
+      console.error('Withdrawal error:', error)
+      alert('❌ Withdrawal failed. Please try again or contact support.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -713,14 +742,33 @@ export default function WalletPage() {
                     <Input
                       id="withdraw-amount"
                       type="number"
-                      placeholder="Enter amount"
+                      placeholder="Enter amount (min $10)"
                       value={withdrawAmount}
                       onChange={(e) => setWithdrawAmount(e.target.value)}
                     />
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Available for withdrawal: {(data.balance) - (data.totalStaked ?? 0)}
-                  </p>
+                  <div className="space-y-1 text-sm">
+                    <p className="text-muted-foreground">
+                      Available for withdrawal: ${((data.balance) - (data.totalStaked ?? 0)).toFixed(2)}
+                    </p>
+                    {withdrawAmount && Number.parseFloat(withdrawAmount) > 0 && (
+                      <div className="bg-muted p-3 rounded-md space-y-1">
+                        <p className="font-medium">Withdrawal Breakdown:</p>
+                        <div className="flex justify-between">
+                          <span>Amount:</span>
+                          <span>${Number.parseFloat(withdrawAmount).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-orange-600">
+                          <span>Fee (3%):</span>
+                          <span>${(Number.parseFloat(withdrawAmount) * 0.03).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between font-medium border-t pt-1">
+                          <span>Total deducted:</span>
+                          <span>${(Number.parseFloat(withdrawAmount) * 1.03).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <Button
                     variant="outline"
                     onClick={handleWithdraw}
@@ -729,6 +777,9 @@ export default function WalletPage() {
                   >
                     {isLoading ? "Processing..." : "Withdraw Funds"}
                   </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Funds typically arrive in 3-5 business days
+                  </p>
                 </CardContent>
               </Card>
             </div>

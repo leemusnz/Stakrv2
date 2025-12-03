@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 
 export function NotificationDropdown() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications()
+  const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, isLoading } = useNotifications()
   const [isOpen, setIsOpen] = useState(false)
 
   const getNotificationIcon = (type: string) => {
@@ -71,7 +71,12 @@ export function NotificationDropdown() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        {notifications.length === 0 ? (
+        {isLoading ? (
+          <div className="p-4 text-center text-muted-foreground">
+            <div className="w-8 h-8 mx-auto mb-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-sm">Loading notifications...</p>
+          </div>
+        ) : notifications.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
             <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No notifications yet</p>

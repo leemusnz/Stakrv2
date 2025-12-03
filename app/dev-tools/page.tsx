@@ -33,7 +33,8 @@ import {
   Users,
   Lock,
   User,
-  Brain
+  Brain,
+  Bell
 } from "lucide-react"
 
 export default function DevToolsPage() {
@@ -561,6 +562,76 @@ export default function DevToolsPage() {
                     </ul>
                   </AlertDescription>
                 </Alert>
+              </CardContent>
+            </Card>
+
+            {/* Notification Testing */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="w-5 h-5" />
+                  Notification System Testing
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Test the notification system by creating sample notifications. 
+                    Check the notification bell icon to see them appear in real-time.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button 
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/test/create-notification')
+                          const data = await response.json()
+                          if (data.success) {
+                            alert(`✅ Test notification created!\n\nType: ${data.notification.type}\nTitle: ${data.notification.title}`)
+                          } else {
+                            alert('❌ Failed to create notification: ' + (data.error || 'Unknown error'))
+                          }
+                        } catch (error) {
+                          alert('❌ Error: ' + (error instanceof Error ? error.message : 'Unknown error'))
+                        }
+                      }}
+                      variant="outline"
+                      className="h-auto py-4 flex-col"
+                    >
+                      <Bell className="w-6 h-6 mb-2" />
+                      <span className="font-medium">Create Random Notification</span>
+                      <span className="text-xs text-muted-foreground mt-1">
+                        Generates a random test notification
+                      </span>
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => window.location.href = '/notifications'}
+                      variant="outline"
+                      className="h-auto py-4 flex-col"
+                    >
+                      <Bell className="w-6 h-6 mb-2" />
+                      <span className="font-medium">View Notifications Page</span>
+                      <span className="text-xs text-muted-foreground mt-1">
+                        See all notifications
+                      </span>
+                    </Button>
+                  </div>
+
+                  <Alert>
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <p><strong>Notification System Features:</strong></p>
+                      <ul className="list-disc list-inside text-sm mt-2 space-y-1">
+                        <li>✅ Database persistence (survives page reloads)</li>
+                        <li>✅ Real-time polling (30 second intervals)</li>
+                        <li>✅ Toast notifications for new items</li>
+                        <li>✅ Mark as read / Delete functionality</li>
+                        <li>✅ Demo mode support</li>
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

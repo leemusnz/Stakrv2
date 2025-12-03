@@ -1,4 +1,5 @@
 import { createDbConnection } from '@/lib/db'
+import { notifyInsurancePayout, notifyBatchRewards } from '@/lib/notification-service'
 
 type SqlTag = (strings: TemplateStringsArray, ...values: any[]) => Promise<any[]>
 
@@ -180,6 +181,8 @@ export async function calculateChallengeRewards(
   }
 
   // Calculate platform revenue
+  // Platform takes failed_stake_cut % (default 20%) from failed stakes
+  // The remaining (100 - failed_stake_cut)% goes to the bonus pool for winners
   const platformRevenue = {
     entry_fees: parseFloat(challenge.total_entry_fees || '0'),
     failed_stake_cut: challengeStats.failed_stakes * (challengeStats.failed_stake_cut / 100),
@@ -187,11 +190,14 @@ export async function calculateChallengeRewards(
   }
   platformRevenue.total = platformRevenue.entry_fees + platformRevenue.failed_stake_cut
 
+  // Calculate the amount that goes to winners (remainder after platform cut)
+  const failedStakesForWinners = challengeStats.failed_stakes - platformRevenue.failed_stake_cut
+
   // Calculate rewards based on distribution method
   const participantRewards = calculateRewardDistribution(
     challengeStats,
     completedParticipants,
-    platformRevenue.failed_stake_cut
+    failedStakesForWinners
   )
 
   // Calculate summary
@@ -218,17 +224,17 @@ export async function calculateChallengeRewards(
 function calculateRewardDistribution(
   challengeStats: ChallengeStats,
   participants: any[],
-  platformCutFromFailed: number
+  failedStakesForWinners: number
 ): ParticipantReward[] {
   const { reward_distribution, failed_stakes, host_contribution } = challengeStats
   
-  // Available bonus pool (failed stakes minus platform cut + host contribution)
-  const failedStakesAfterCut = failed_stakes - platformCutFromFailed
-  const bonusPool = failedStakesAfterCut + host_contribution
+  // Available bonus pool (failed stakes allocated for winners + host contribution)
+  // Note: Platform has already taken its cut (e.g., 20%) before this amount is passed
+  const bonusPool = failedStakesForWinners + host_contribution
 
   console.log(`🎯 Calculating ${reward_distribution} rewards:`, {
-    failedStakes: failed_stakes,
-    platformCut: platformCutFromFailed,
+    totalFailedStakes: failed_stakes,
+    failedStakesForWinners: failedStakesForWinners,
     hostContribution: host_contribution,
     bonusPool: bonusPool,
     participants: participants.length
@@ -388,6 +394,10 @@ export async function distributeRewards(
       return rewardResult
     }
 
+    // Begin transaction for atomic reward distribution
+    await sql`BEGIN`
+    console.log('🔒 Transaction started for reward distribution')
+
     // Update each participant's reward and user credits
     for (const reward of rewardResult.participant_rewards) {
       // Update participant reward amount
@@ -477,6 +487,81 @@ export async function distributeRewards(
       console.warn('ℹ️ settlements table not found; skipping settlements record')
     }
 
+    // Process insurance refunds for failed participants
+    console.log('🛡️ Processing insurance refunds...')
+    const failedWithInsurance = await sql`
+      SELECT 
+        cp.id as participant_id,
+        cp.user_id,
+        cp.stake_amount,
+        cp.insurance_fee_paid
+      FROM challenge_participants cp
+      WHERE cp.challenge_id = ${challengeId}
+        AND cp.completion_status = 'failed'
+        AND cp.insurance_purchased = true
+        AND cp.insurance_fee_paid > 0
+    `
+
+    let totalInsurancePayouts = 0
+    for (const participant of failedWithInsurance) {
+      const refundAmount = parseFloat(participant.stake_amount)
+      
+      // Refund their stake (insurance fee is non-refundable)
+      await sql`
+        UPDATE users 
+        SET 
+          credits = credits + ${refundAmount},
+          updated_at = NOW()
+        WHERE id = ${participant.user_id}
+      `
+      
+      // Record insurance payout transaction
+      await sql`
+        INSERT INTO credit_transactions (
+          user_id, amount, transaction_type, related_challenge_id, description, created_at
+        ) VALUES (
+          ${participant.user_id}, 
+          ${refundAmount}, 
+          'insurance_payout', 
+          ${challengeId},
+          'Insurance payout for failed challenge: ${rewardResult.challenge_stats.title}',
+          NOW()
+        )
+      `
+      
+      // Record insurance revenue for the platform
+      await sql`
+        INSERT INTO platform_revenue (
+          revenue_type, amount, user_id, challenge_id, created_at
+        ) VALUES (
+          'insurance', 
+          ${parseFloat(participant.insurance_fee_paid)}, 
+          ${participant.user_id},
+          ${challengeId},
+          NOW()
+        )
+      `
+      
+      totalInsurancePayouts += refundAmount
+      console.log(`✅ Insurance payout: $${refundAmount} to user ${participant.user_id}`)
+      
+      // Send insurance payout notification
+      await notifyInsurancePayout(
+        participant.user_id,
+        rewardResult.challenge_stats.title,
+        refundAmount,
+        challengeId,
+        sql
+      ).catch(error => {
+        console.error('Failed to send insurance notification:', error)
+        // Don't fail reward distribution if notification fails
+      })
+    }
+
+    if (failedWithInsurance.length > 0) {
+      console.log(`🛡️ Total insurance payouts: $${totalInsurancePayouts} to ${failedWithInsurance.length} participants`)
+    }
+
     // Mark challenge as rewards distributed
     await sql`
       UPDATE challenges 
@@ -486,14 +571,43 @@ export async function distributeRewards(
       WHERE id = ${challengeId}
     `
 
+    // Send reward notifications to all winners
+    console.log('📬 Sending reward notifications to winners...')
+    const rewardsToNotify = rewardResult.participant_rewards.map(reward => ({
+      user_id: reward.user_id,
+      challenge_title: rewardResult.challenge_stats.title,
+      challenge_id: challengeId,
+      net_reward: reward.net_reward,
+      reward_breakdown: reward.reward_breakdown
+    }))
+    
+    await notifyBatchRewards(rewardsToNotify, sql).catch(error => {
+      console.error('Failed to send reward notifications:', error)
+      // Don't fail reward distribution if notifications fail
+    })
+
+    // Commit transaction
+    await sql`COMMIT`
+    console.log('✅ Transaction committed successfully')
+
     console.log('✅ Rewards distributed successfully for challenge:', challengeId)
     console.log('💰 Total distributed:', rewardResult.summary.total_distributed)
     console.log('📊 Platform revenue:', rewardResult.platform_revenue.total)
+    console.log('🛡️ Insurance payouts:', totalInsurancePayouts)
 
     return rewardResult
 
   } catch (error) {
     console.error('❌ Reward distribution failed:', error)
+    
+    // Rollback transaction to prevent partial updates
+    try {
+      await sql`ROLLBACK`
+      console.log('🔄 Transaction rolled back successfully')
+    } catch (rollbackError) {
+      console.error('❌ Rollback failed:', rollbackError)
+    }
+    
     throw new Error(`Failed to distribute rewards: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }

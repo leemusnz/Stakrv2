@@ -11,6 +11,7 @@ import { AIAntiCheatDashboard } from "@/components/admin/ai-anti-cheat-dashboard
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { FloatingAmbientGlows } from "@/components/floating-ambient-glows"
 import {
   Users,
   Trophy,
@@ -287,13 +288,25 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">🛠️ Admin Dashboard</h1>
-          <p className="text-muted-foreground">Complete platform analytics and system monitoring</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Ambient Glows */}
+      <FloatingAmbientGlows />
+
+      {/* Noise Texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 relative z-10">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">🛠️ Admin Dashboard</h1>
+            <p className="text-muted-foreground">Complete platform analytics and system monitoring</p>
+          </div>
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
@@ -1502,6 +1515,7 @@ export default function AdminDashboard() {
           <AIAntiCheatDashboard />
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   )
 }

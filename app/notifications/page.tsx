@@ -9,7 +9,7 @@ import Link from "next/link"
 import { FloatingAmbientGlows } from '@/components/floating-ambient-glows'
 
 export default function NotificationsPage() {
-  const { notifications, markAsRead, markAllAsRead, removeNotification } = useNotifications()
+  const { notifications, markAsRead, markAllAsRead, removeNotification, isLoading } = useNotifications()
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -68,7 +68,15 @@ export default function NotificationsPage() {
         )}
       </div>
 
-      {notifications.length === 0 ? (
+      {isLoading ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="w-12 h-12 mb-4 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <h3 className="text-lg font-semibold mb-2">Loading notifications...</h3>
+            <p className="text-muted-foreground text-center">Please wait</p>
+          </CardContent>
+        </Card>
+      ) : notifications.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Bell className="w-12 h-12 text-muted-foreground mb-4" />

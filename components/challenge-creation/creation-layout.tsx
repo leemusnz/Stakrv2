@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { FloatingAmbientGlows } from "@/components/floating-ambient-glows"
 
 interface CreationLayoutProps {
   children: ReactNode
@@ -45,10 +46,7 @@ export function CreationLayout({
       style={{ ['--bottom-cta-height' as any]: '80px' }}
     >
       {/* Ambient Glows */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-[#F46036] rounded-full mix-blend-screen filter blur-[120px] opacity-10 dark:opacity-15 animate-pulse"></div>
-        <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-[#D74E25] rounded-full mix-blend-screen filter blur-[100px] opacity-[0.07] dark:opacity-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
-      </div>
+      <FloatingAmbientGlows />
 
       {/* Noise Texture */}
       <div 

@@ -207,6 +207,10 @@ export async function distributeXPRewards(
       return rewardResult
     }
 
+    // Begin transaction for atomic XP distribution
+    await sql`BEGIN`
+    console.log('🔒 Transaction started for XP reward distribution')
+
     // Award XP to each participant
     for (const reward of rewardResult.participant_rewards) {
       // Use the safe XP awarding function
@@ -247,6 +251,10 @@ export async function distributeXPRewards(
       WHERE id = ${challengeId}
     `
 
+    // Commit transaction
+    await sql`COMMIT`
+    console.log('✅ Transaction committed successfully')
+
     console.log(`🎉 XP reward distribution completed for challenge: ${challengeId}`)
     console.log(`📊 Summary:`, {
       totalParticipants: rewardResult.challenge_stats.total_participants,
@@ -259,6 +267,15 @@ export async function distributeXPRewards(
 
   } catch (error) {
     console.error('❌ Error distributing XP rewards:', error)
+    
+    // Rollback transaction to prevent partial updates
+    try {
+      await sql`ROLLBACK`
+      console.log('🔄 Transaction rolled back successfully')
+    } catch (rollbackError) {
+      console.error('❌ Rollback failed:', rollbackError)
+    }
+    
     throw error
   }
 }

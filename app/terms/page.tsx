@@ -88,9 +88,9 @@ export default function TermsOfServicePage() {
           <ul className="list-disc pl-6 space-y-2">
             <li><strong>Entry Fees:</strong> Stakr charges a 5% platform fee on all paid challenges</li>
             <li><strong>Reward Pool:</strong> Distributed equally among all successful completers</li>
-            <li><strong>Failed Stakes:</strong> 20% of failed stakes contribute to reward pool, 80% retained by Stakr</li>
+            <li><strong>Failed Stakes:</strong> 80% of failed stakes contribute to reward pool for winners, 20% retained by Stakr as platform revenue</li>
             <li><strong>Cash Out Fee:</strong> 3% fee when withdrawing earnings</li>
-            <li><strong>Insurance:</strong> Optional $1 insurance protects your stake if you fail</li>
+            <li><strong>Insurance:</strong> Optional $1 insurance protects your stake if you fail by refunding your stake amount (insurance fee is non-refundable)</li>
           </ul>
 
           <h3 className="text-xl font-semibold mt-6 mb-3">5.4 Challenge Cancellation</h3>
