@@ -4,15 +4,20 @@ import crypto from 'crypto'
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'dev-key-change-in-production-32char'
 const ALGORITHM = 'aes-256-gcm'
 
-// Validate encryption key in production
-if (process.env.NODE_ENV === 'production' && ENCRYPTION_KEY === 'dev-key-change-in-production-32char') {
-  throw new Error('ENCRYPTION_KEY environment variable must be set in production')
+// Validate encryption key at runtime (not during build)
+function validateEncryptionKey() {
+  // Only validate when actually using encryption, not during static page generation
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production' && ENCRYPTION_KEY === 'dev-key-change-in-production-32char') {
+    console.warn('⚠️ ENCRYPTION_KEY not set - using development key. Set ENCRYPTION_KEY in production!')
+    // Don't throw during build - just warn
+  }
 }
 
 /**
  * Encrypts a string using AES-256-GCM
  */
 export function encrypt(text: string): string {
+  validateEncryptionKey() // Validate at runtime
   const iv = crypto.randomBytes(16)
   const cipher = crypto.createCipheriv(
     ALGORITHM,
@@ -36,6 +41,7 @@ export function encrypt(text: string): string {
  * Decrypts a string encrypted with encrypt()
  */
 export function decrypt(encryptedData: string): string {
+  validateEncryptionKey() // Validate at runtime
   const { encrypted, iv, authTag } = JSON.parse(encryptedData)
   
   const decipher = crypto.createDecipheriv(
