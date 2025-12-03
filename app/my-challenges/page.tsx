@@ -14,6 +14,7 @@ import { Clock, Calendar, DollarSign, CheckCircle, XCircle, MessageSquare, Plus 
 import { VerificationAppealModal } from "@/components/verification-appeal-modal"
 import { ChallengeAnalyticsModal } from "@/components/challenge-analytics-modal"
 import { toast } from "sonner"
+import { FloatingAmbientGlows } from '@/components/floating-ambient-glows'
 
 export default function MyChallengesPage() {
   const { isMobile } = useEnhancedMobile()
@@ -205,12 +206,23 @@ export default function MyChallengesPage() {
   const failedChallenges = getFilteredChallenges('failed')
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Ambient Glows */}
+      <FloatingAmbientGlows />
+
+      {/* Noise Texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">My Challenges</h1>
-          <p className="text-muted-foreground">Track your progress and manage your active challenges</p>
+          <h1 className="text-4xl font-heading font-bold text-slate-900 dark:text-white tracking-tight mb-2">My Challenges</h1>
+          <p className="text-slate-600 dark:text-slate-400 font-body text-lg">Track your progress and manage your active challenges</p>
         </div>
 
         {/* Stats Overview */}

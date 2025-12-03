@@ -202,138 +202,166 @@ export default function AlphaGatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A] relative overflow-hidden flex items-center justify-center p-4">
-      {/* Animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden flex items-center justify-center p-4">
+      {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#F46036] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#3FC1C9] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-[#F46036] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse delay-500"></div>
+        <img 
+          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80" 
+          alt="Background"
+          className="w-full h-full object-cover grayscale-[30%] dark:grayscale-[50%]"
+        />
+        {/* Themed overlay with gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/70 to-white/80 dark:from-black/80 dark:via-black/70 dark:to-black/80"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-white/50 dark:to-black/50"></div>
       </div>
 
-      {/* Grid pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-50"
+      {/* Ambient Glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#F46036] rounded-full mix-blend-screen filter blur-[120px] opacity-10 dark:opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#D74E25] rounded-full mix-blend-screen filter blur-[100px] opacity-[0.07] dark:opacity-15 animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+
+      {/* Noise Texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23F46036' fillOpacity='0.05'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
         }}
-      ></div>
+      />
 
       <div className="relative z-10 w-full max-w-md">
         {/* Logo/Brand section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#F46036] to-[#3FC1C9] rounded-2xl mb-6 shadow-2xl">
-            <Shield className="w-10 h-10 text-white" />
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-[#F46036] to-[#D74E25] rounded-2xl mb-6 shadow-2xl shadow-orange-500/20 relative group">
+            <Shield className="w-12 h-12 text-white relative z-10" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#F46036] to-[#D74E25] rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Stakr</h1>
-          <p className="text-gray-400 text-lg">Level up your life</p>
+          <h1 className="text-5xl font-heading font-bold text-slate-900 dark:text-white mb-3 tracking-tight">Stakr</h1>
+          <p className="text-slate-600 dark:text-slate-400 text-lg font-body">Put Your Money Where Your Mouth Is</p>
         </div>
 
-        {/* Main card */}
-        <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
-          <CardHeader className="text-center pb-6">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-[#F46036] rounded-lg flex items-center justify-center">
-                <Lock className="w-4 h-4 text-white" />
-              </div>
-              <div className="w-8 h-8 bg-[#3FC1C9] rounded-lg flex items-center justify-center">
-                <Gamepad2 className="w-4 h-4 text-white" />
-              </div>
-              <div className="w-8 h-8 bg-[#F46036] rounded-lg flex items-center justify-center">
-                <Trophy className="w-4 h-4 text-white" />
-              </div>
-            </div>
-            <CardTitle className="text-2xl font-bold text-white">Alpha Access Required</CardTitle>
-            <CardDescription className="text-gray-300 text-base">
-              Join the exclusive alpha testing community and be the first to experience the future of personal
-              challenges.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Access Code</label>
-                <div className="relative">
-                  <Input
-                    type="password"
-                    placeholder="Enter your exclusive access code"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-[#F46036] focus:ring-[#F46036] h-12 text-center text-lg tracking-wider"
-                  />
-                  <div className="absolute inset-0 rounded-md bg-gradient-to-r from-[#F46036]/20 to-[#3FC1C9]/20 opacity-0 hover:opacity-100 transition-opacity pointer-events-none"></div>
+        {/* Main card - Themed Glass HUD */}
+        <div className="relative group">
+          {/* Glow effect on hover */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500"></div>
+          
+          <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl dark:shadow-2xl overflow-hidden">
+            {/* Shimmer effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 dark:via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            
+            <div className="relative p-8 space-y-8">
+              {/* Header with icons */}
+              <div className="text-center space-y-4">
+                <div className="flex items-center justify-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#F46036] to-[#D74E25] rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+                    <Lock className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="w-10 h-10 bg-slate-100 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-center">
+                    <Gamepad2 className="w-5 h-5 text-[#F46036]" />
+                  </div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#F46036] to-[#D74E25] rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+                    <Trophy className="w-5 h-5 text-white" />
+                  </div>
                 </div>
+                <h2 className="text-3xl font-heading font-bold text-slate-900 dark:text-white tracking-tight">Alpha Access</h2>
+                <p className="text-slate-600 dark:text-slate-400 text-base font-body leading-relaxed max-w-sm mx-auto">
+                  Enter your exclusive access code to join the private alpha
+                </p>
               </div>
 
-              {error && (
-                <Alert variant="destructive" className="bg-red-500/20 border-red-500/30 text-red-200">
-                  <AlertDescription className="text-center">{error}</AlertDescription>
-                </Alert>
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-heading font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Access Code</label>
+                  <div className="relative group/input">
+                    <Input
+                      type="password"
+                      placeholder="••••••••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
+                      className="bg-slate-100/50 dark:bg-white/5 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-[#F46036] focus:ring-2 focus:ring-[#F46036]/20 h-14 text-center text-lg tracking-[0.3em] font-mono backdrop-blur-sm transition-all duration-300"
+                    />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#F46036]/10 to-[#D74E25]/10 opacity-0 group-hover/input:opacity-100 transition-opacity pointer-events-none"></div>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="bg-red-500/10 border border-red-500/20 backdrop-blur-sm rounded-xl p-4">
+                    <p className="text-red-700 dark:text-red-300 text-center text-sm font-medium">{error}</p>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full h-14 bg-gradient-to-r from-[#F46036] to-[#D74E25] hover:from-[#ff724c] hover:to-[#e85a30] text-white font-heading font-bold text-lg shadow-xl shadow-orange-500/20 hover:shadow-orange-500/40 transition-all duration-300 transform hover:scale-[1.02] rounded-xl"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                      Verifying Access...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="mr-3 h-5 w-5" />
+                      Enter the Arena
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              {process.env.NODE_ENV === "development" && (
+                <div className="pt-6 border-t border-slate-200 dark:border-white/10">
+                  <Button
+                    variant="outline"
+                    onClick={handleDevBypass}
+                    disabled={isLoading}
+                    className="w-full h-12 bg-white/50 dark:bg-white/5 border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-white/20 backdrop-blur-sm transition-all duration-300 font-medium"
+                  >
+                    🚀 Dev Bypass
+                  </Button>
+                </div>
               )}
 
-              <Button
-                type="submit"
-                className="w-full h-12 bg-gradient-to-r from-[#F46036] to-[#3FC1C9] hover:from-[#F46036]/90 hover:to-[#3FC1C9]/90 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Verifying Access...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="mr-2 h-5 w-5" />
-                    Enter the Arena
-                  </>
-                )}
-              </Button>
-            </form>
-
-            {process.env.NODE_ENV === "development" && (
-              <div className="pt-4 border-t border-white/20">
-                <Button
-                  variant="outline"
-                  onClick={handleDevBypass}
-                  disabled={isLoading}
-                  className="w-full bg-transparent border-white/30 text-gray-300 hover:bg-white/10 hover:text-white"
-                >
-                  🚀 Dev Bypass
-                </Button>
-              </div>
-            )}
-
-            {/* Features preview */}
-            <div className="pt-4 border-t border-white/20">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="space-y-2">
-                  <div className="w-8 h-8 bg-[#F46036]/20 rounded-lg flex items-center justify-center mx-auto">
-                    <Trophy className="w-4 h-4 text-[#F46036]" />
+              {/* Features preview */}
+              <div className="pt-6 border-t border-slate-200 dark:border-white/10">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="space-y-3 group/feature">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#F46036]/20 to-[#D74E25]/20 backdrop-blur-sm border border-[#F46036]/20 rounded-xl flex items-center justify-center mx-auto group-hover/feature:scale-110 transition-transform duration-300">
+                      <Trophy className="w-5 h-5 text-[#F46036]" />
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Earn Rewards</p>
                   </div>
-                  <p className="text-xs text-gray-400">Earn Rewards</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="w-8 h-8 bg-[#3FC1C9]/20 rounded-lg flex items-center justify-center mx-auto">
-                    <Gamepad2 className="w-4 h-4 text-[#3FC1C9]" />
+                  <div className="space-y-3 group/feature">
+                    <div className="w-12 h-12 bg-slate-100 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-center mx-auto group-hover/feature:scale-110 transition-transform duration-300">
+                      <Gamepad2 className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Level Up</p>
                   </div>
-                  <p className="text-xs text-gray-400">Level Up</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="w-8 h-8 bg-[#F46036]/20 rounded-lg flex items-center justify-center mx-auto">
-                    <Zap className="w-4 h-4 text-[#F46036]" />
+                  <div className="space-y-3 group/feature">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#F46036]/20 to-[#D74E25]/20 backdrop-blur-sm border border-[#F46036]/20 rounded-xl flex items-center justify-center mx-auto group-hover/feature:scale-110 transition-transform duration-300">
+                      <Zap className="w-5 h-5 text-[#F46036]" />
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Stay Motivated</p>
                   </div>
-                  <p className="text-xs text-gray-400">Stay Motivated</p>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 space-y-2">
-          <p className="text-gray-400 text-sm">Don't have access? Contact us for an exclusive invitation.</p>
-          <p className="text-gray-500 text-xs">Private Alpha • Limited Access • stakr.app</p>
+        <div className="text-center mt-10 space-y-3">
+          <p className="text-slate-600 dark:text-slate-400 text-sm font-body">Don't have access? Contact us for an exclusive invitation.</p>
+          <div className="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-500 text-xs font-medium">
+            <span className="w-1.5 h-1.5 bg-[#F46036] rounded-full animate-pulse"></span>
+            <span>Private Alpha</span>
+            <span>•</span>
+            <span>Limited Access</span>
+            <span>•</span>
+            <span>stakr.app</span>
+          </div>
         </div>
       </div>
     </div>

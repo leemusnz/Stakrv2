@@ -263,9 +263,9 @@ export function ChallengeFeaturesStep({
               </div>
 
               {allowPointsOnly ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <Info className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <Info className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
                       <p className="font-medium text-green-700 mb-2">Points-Only Benefits:</p>
                       <ul className="text-green-600 space-y-1 text-xs">
@@ -442,7 +442,7 @@ export function ChallengeFeaturesStep({
                                 {outcome.label}
                               </Label>
                               <p className="text-xs text-muted-foreground">{outcome.description}</p>
-                              <div className="bg-blue-50 rounded p-2 text-xs text-blue-600">
+                              <div className="bg-blue-50 dark:bg-blue-950/30 rounded p-2 text-xs text-blue-600 dark:text-blue-400">
                                 <strong>Motivation level:</strong> {outcome.motivation}
                               </div>
                             </div>
@@ -547,7 +547,7 @@ export function ChallengeFeaturesStep({
                           <li>• Maximum {maxReferrals} successful referrals per person</li>
                           <li>• Drives viral growth and makes challenges more social</li>
                         </ul>
-                        <div className="mt-3 p-2 bg-white rounded border">
+                        <div className="mt-3 p-2 bg-white/80 dark:bg-black/40 rounded border border-slate-200 dark:border-white/10 backdrop-blur-sm">
                           <p className="text-xs font-medium">
                             Example: If someone stakes $100 and refers 2 friends who complete:
                           </p>
@@ -655,12 +655,12 @@ export function ChallengeFeaturesStep({
 
               {/* Solo Challenge Info */}
               {isSoloChallenge && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
-                      <p className="font-medium text-blue-700 mb-2">Solo Challenge Benefits:</p>
-                      <ul className="text-blue-600 space-y-1 text-xs">
+                      <p className="font-medium text-blue-700 dark:text-blue-300 mb-2">Solo Challenge Benefits:</p>
+                      <ul className="text-blue-600 dark:text-blue-400 space-y-1 text-xs">
                         <li>
                           • <strong>Pure self-accountability</strong> - no external pressure or comparison
                         </li>
@@ -684,12 +684,12 @@ export function ChallengeFeaturesStep({
 
               {/* Multi-participant Info */}
               {!isSoloChallenge && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <Info className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <Info className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
-                      <p className="font-medium text-green-700 mb-2">Group Challenge Benefits:</p>
-                      <ul className="text-green-600 space-y-1 text-xs">
+                      <p className="font-medium text-green-700 dark:text-green-300 mb-2">Group Challenge Benefits:</p>
+                      <ul className="text-green-600 dark:text-green-400 space-y-1 text-xs">
                         <li>
                           • <strong>Social accountability</strong> - {minParticipants}{" "}
                           {minParticipants === 1 ? "person" : "people"} minimum for peer pressure
@@ -751,7 +751,7 @@ export function ChallengeFeaturesStep({
                               {type.label}
                             </Label>
                             <p className="text-xs text-muted-foreground">{type.description}</p>
-                            <div className="bg-blue-50 rounded p-2 text-xs text-blue-600">
+                            <div className="bg-blue-50 dark:bg-blue-950/30 rounded p-2 text-xs text-blue-600 dark:text-blue-400">
                               <strong>Best for:</strong> {type.bestFor}
                             </div>
                           </div>
@@ -898,9 +898,9 @@ export function ChallengeFeaturesStep({
           </Card>
 
           {/* Success Tips */}
-          <Card className="bg-green-50 border-green-200">
+          <Card className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2 text-green-600">
+              <CardTitle className="text-sm flex items-center gap-2 text-green-600 dark:text-green-400">
                 <Star className="w-4 h-4" />
                 Success Tips
               </CardTitle>
@@ -908,8 +908,8 @@ export function ChallengeFeaturesStep({
             <CardContent className="text-sm">
               <div className="space-y-3">
                 <div>
-                  <p className="font-medium text-green-700 mb-1">High Completion Rates:</p>
-                  <ul className="text-green-600 space-y-1 text-xs">
+                  <p className="font-medium text-green-700 dark:text-green-300 mb-1">High Completion Rates:</p>
+                  <ul className="text-green-600 dark:text-green-400 space-y-1 text-xs">
                     <li>• Solo challenges: 65% completion</li>
                     <li>• Small groups (2-5): 78% completion</li>
                     <li>• Team challenges: 85% completion</li>
@@ -918,8 +918,8 @@ export function ChallengeFeaturesStep({
                 </div>
 
                 <div>
-                  <p className="font-medium text-green-700 mb-1">Optimal Settings:</p>
-                  <ul className="text-green-600 space-y-1 text-xs">
+                  <p className="font-medium text-green-700 dark:text-green-300 mb-1">Optimal Settings:</p>
+                  <ul className="text-green-600 dark:text-green-400 space-y-1 text-xs">
                     <li>• 2-3 day start delay</li>
                     <li>• 5-20 participants for groups</li>
                     <li>• 20% referral bonus</li>

@@ -140,7 +140,7 @@ function VerifyEmailContent() {
   // If verification is in progress
   if (loading) {
     return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center space-y-4 p-6">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -157,7 +157,7 @@ function VerifyEmailContent() {
   // If verification completed (success or failure)
   if (verificationResult) {
     return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center space-y-4 p-6">
             {verificationResult.success ? (
@@ -220,7 +220,7 @@ function VerifyEmailContent() {
 
   // Default state - show verification form
   return (
-    <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <Mail className="h-12 w-12 text-primary mx-auto mb-4" />
@@ -325,7 +325,7 @@ function VerifyEmailContent() {
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardContent className="flex flex-col items-center space-y-4 p-6">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />

@@ -16,6 +16,7 @@ import { SocialShareModal } from "@/components/social-sharing/social-share-modal
 import { ProfilePictureUpload } from "@/components/profile-picture-upload"
 import { getPersonalizedAvatar } from "@/lib/avatars"
 import { MapPin, Calendar, ExternalLink, Trophy, Users, TrendingUp, Settings, Share2, Edit, Flame } from "lucide-react"
+import { FloatingAmbientGlows } from '@/components/floating-ambient-glows'
 
 export default function ProfilePage() {
   const { isMobile } = useEnhancedMobile()
@@ -166,8 +167,19 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Ambient Glows */}
+      <FloatingAmbientGlows />
+
+      {/* Noise Texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
         {/* Profile Header */}
         <Card className="mb-8">
           <CardContent className="pt-6">

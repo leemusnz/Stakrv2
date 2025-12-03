@@ -9,22 +9,34 @@ import { SocialProof } from "@/components/social/social-proof"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, TrendingUp, Trophy, UserPlus } from "lucide-react"
+import { FloatingAmbientGlows } from '@/components/floating-ambient-glows'
 
 export default function SocialPage() {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState<"feed" | "leaderboard" | "friends">("feed")
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto p-4 space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Ambient Glows */}
+      <FloatingAmbientGlows />
+
+      {/* Noise Texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="relative z-10 max-w-6xl mx-auto p-4 space-y-8">
         {/* Header */}
         <div className="space-y-4">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Users className="w-8 h-8 text-primary" />
+            <h1 className="text-4xl font-heading font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+              <Users className="w-10 h-10 text-[#F46036]" />
               Social Hub
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-slate-600 dark:text-slate-400 font-body text-lg">
               {session?.user?.name ? `Welcome ${session.user.name}! ` : ''}Connect with the community, celebrate wins, and stay motivated together
             </p>
           </div>

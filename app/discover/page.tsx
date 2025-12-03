@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useApi } from "@/hooks/use-api"
+import { LoadingSpinner, SkeletonLoader } from "@/components/loading-spinner"
 import { DiscoverMobile } from "@/components/discover-mobile"
 import { ChallengeGrid } from "@/components/challenge-grid"
 import { TrendingChallenges } from "@/components/trending-challenges"
@@ -13,6 +15,7 @@ import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, Users, Award, Sparkles, FlameIcon as Fire } from "lucide-react"
+import { FloatingAmbientGlows } from "@/components/floating-ambient-glows"
 
 export default function Discover() {
   const { isMobile } = useEnhancedMobile()
@@ -25,7 +28,16 @@ export default function Discover() {
   const [challenges, setChallenges] = useState<any[]>([])
   const [creators, setCreators] = useState<any[]>([])
   const [brands, setBrands] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  
+  // Use API hook for challenges
+  const { data: challengesData, loading: isLoadingChallenges, execute: fetchChallenges } = useApi<{
+    challenges: any[]
+  }>(
+    "/api/challenges?status=joinable",
+    { showSuccessToast: false, showErrorToast: true }
+  )
+  
+  const isLoading = isLoadingChallenges
   const [stats, setStats] = useState({
     totalChallenges: 0,
     activeChallenges: 0,
@@ -46,49 +58,27 @@ export default function Discover() {
   useEffect(() => {
     const fetchDiscoverData = async () => {
       try {
-        setIsLoading(true)
-
-        // Fetch challenges, creators, and brands in parallel
-        const [pendingRes, activeRes, creatorsRes, brandsRes] = await Promise.all([
-          fetch("/api/challenges?status=joinable"),
-          fetch("/api/challenges?status=active"),
-          fetch("/api/creators"),
-          fetch("/api/brands"),
-        ])
-
-        if (pendingRes.ok) {
-          const pendingData = await pendingRes.json()
-          const pendingList = pendingData.challenges || []
-          const activeList = activeRes.ok ? ((await activeRes.json()).challenges || []) : []
-          // Merge with pending first, then active; de-duplicate by id
-          const seen = new Set<string>()
-          const merged: any[] = []
-          // Merge with pending first, then active
-          for (const c of [...pendingList, ...activeList]) {
-            if (c && !seen.has(c.id)) {
-              seen.add(c.id)
-              merged.push(c)
-            }
-          }
-          // Sort so pending appear before active
-          merged.sort((a: any, b: any) => {
-            const aJoinable = a.status === 'pending' && (!a.start_date || new Date(a.start_date) > new Date())
-            const bJoinable = b.status === 'pending' && (!b.start_date || new Date(b.start_date) > new Date())
-            if (aJoinable !== bJoinable) return aJoinable ? -1 : 1
-            const at = new Date(a.start_date || 0).getTime()
-            const bt = new Date(b.start_date || 0).getTime()
-            return at - bt
-          })
-          setChallenges(merged)
+        // Fetch challenges first with the useApi hook
+        const result = await fetchChallenges()
+        
+        if (result) {
+          const challengesList = result.challenges || []
+          setChallenges(challengesList)
 
           // Calculate stats
           setStats({
-            totalChallenges: merged.length,
-            activeChallenges: merged.filter((c: any) => c.status === "active").length,
-            totalParticipants: merged.reduce((sum: number, c: any) => sum + (c.participants_count || 0), 0),
-            totalRewards: merged.reduce((sum: number, c: any) => sum + (c.total_stake_pool || 0), 0),
+            totalChallenges: challengesList.length,
+            activeChallenges: challengesList.filter((c: any) => c.status === "active").length,
+            totalParticipants: challengesList.reduce((sum: number, c: any) => sum + (c.participants_count || 0), 0),
+            totalRewards: challengesList.reduce((sum: number, c: any) => sum + (c.total_stake_pool || 0), 0),
           })
         }
+
+        // Fetch creators and brands in parallel
+        const [creatorsRes, brandsRes] = await Promise.all([
+          fetch("/api/creators"),
+          fetch("/api/brands"),
+        ])
 
         if (creatorsRes.ok) {
           const creatorsData = await creatorsRes.json()
@@ -101,8 +91,6 @@ export default function Discover() {
         }
       } catch (error) {
         console.error("Failed to fetch discover data:", error)
-      } finally {
-        setIsLoading(false)
       }
     }
 
@@ -192,50 +180,66 @@ export default function Discover() {
     )
   }
 
-  // Desktop discover with YouTube-style layout
+  // Desktop discover with themed layout
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      {/* Hero Section */}
-      <div className="text-center space-y-4 py-8">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Sparkles className="w-8 h-8 text-primary" />
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Discover Amazing Challenges
-          </h1>
-          <Fire className="w-8 h-8 text-secondary" />
-        </div>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Join thousands of people transforming their lives through accountability and community
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Ambient Glows - Floating Animation */}
+      <FloatingAmbientGlows />
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-8">
-          <Card className="text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-primary">{stats.totalChallenges}</div>
-              <div className="text-sm text-muted-foreground">Total Challenges</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-secondary">{stats.activeChallenges}</div>
-              <div className="text-sm text-muted-foreground">Active Now</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-primary">{stats.totalParticipants.toLocaleString()}</div>
-              <div className="text-sm text-muted-foreground">Participants</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-secondary">${stats.totalRewards.toLocaleString()}</div>
-              <div className="text-sm text-muted-foreground">In Rewards</div>
-            </CardContent>
-          </Card>
+      {/* Noise Texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="relative z-10 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        {/* Hero Section */}
+        <div className="text-center space-y-4 py-8">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Sparkles className="w-8 h-8 text-[#F46036]" />
+            <h1 className="text-5xl font-heading font-bold text-slate-900 dark:text-white tracking-tight">
+              Discover <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F46036] to-[#D74E25]">Challenges</span>
+            </h1>
+            <Fire className="w-8 h-8 text-[#D74E25]" />
+          </div>
+          <p className="text-xl text-slate-600 dark:text-slate-400 font-body max-w-2xl mx-auto">
+            Join thousands of people transforming their lives through accountability and community
+          </p>
+
+          {/* Stats Row - Themed Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-8">
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+              <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+                <div className="text-3xl font-heading font-bold text-[#F46036]">{stats.totalChallenges}</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-body mt-1">Total Challenges</div>
+              </div>
+            </div>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+              <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+                <div className="text-3xl font-heading font-bold text-[#D74E25]">{stats.activeChallenges}</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-body mt-1">Active Now</div>
+              </div>
+            </div>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+              <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+                <div className="text-3xl font-heading font-bold text-[#F46036]">{stats.totalParticipants.toLocaleString()}</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-body mt-1">Participants</div>
+              </div>
+            </div>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+              <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+                <div className="text-3xl font-heading font-bold text-[#D74E25]">${stats.totalRewards.toLocaleString()}</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-body mt-1">In Rewards</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
         <div className="flex justify-center">
@@ -307,6 +311,7 @@ export default function Discover() {
         selectedStakeRange={selectedStakeRange}
         setSelectedStakeRange={setSelectedStakeRange}
       />
+      </div>
     </div>
   )
 }

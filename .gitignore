@@ -25,3 +25,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# test coverage
+/coverage/
+*.lcov
+/test-reports/
+
+# temporary/junk files
+*.backup
+temp-logos/

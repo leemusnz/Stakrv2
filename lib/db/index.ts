@@ -1,68 +1,59 @@
 // Database connection and configuration for Stakr
-// Simple connection without complex imports
+// Centralized database connection using Neon PostgreSQL
 
-// Validate required environment variables
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is required')
+import { neon } from '@neondatabase/serverless'
+
+let db: any = null
+
+/**
+ * Creates and returns a cached Neon database connection
+ * @returns SQL query function
+ */
+export function createDbConnection() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set')
+  }
+
+  if (!db) {
+    db = neon(process.env.DATABASE_URL)
+  }
+
+  return db
 }
 
-// Simple database client using dynamic imports
-export async function createDbConnection() {
+/**
+ * Tests the database connection
+ * @returns Promise with success status and message
+ */
+export async function testDatabaseConnection(): Promise<{ 
+  success: boolean
+  error?: string
+  message?: string 
+}> {
   try {
-    const { neon } = await import('@neondatabase/serverless')
-    return neon(process.env.DATABASE_URL!)
+    const sql = createDbConnection()
+    await sql`SELECT 1 as test`
+    console.log('✅ Database connection successful')
+    return { 
+      success: true, 
+      message: 'Database connection successful' 
+    }
   } catch (error) {
-    console.error('Failed to create database connection:', error)
-    throw error
+    console.error('❌ Database connection failed:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }
   }
 }
 
-// Database utilities
+/**
+ * Database configuration
+ */
 export const dbConfig = {
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production',
 }
 
-// Enhanced connection health check
-export async function testDatabaseConnection(): Promise<{ success: boolean; error?: string; message?: string }> {
-  try {
-    // Test basic connection
-    const dbUrl = process.env.DATABASE_URL
-    
-    if (!dbUrl) {
-      return { 
-        success: false, 
-        error: 'DATABASE_URL environment variable is not set' 
-      }
-    }
-    
-    if (!dbUrl.includes('postgresql://')) {
-      return { 
-        success: false, 
-        error: 'DATABASE_URL does not appear to be a PostgreSQL connection string' 
-      }
-    }
-    
-    // Test actual database query
-    try {
-      const sql = await createDbConnection()
-      await sql`SELECT 1 as test`
-      return { 
-        success: true,
-        message: 'Database connection and query successful!'
-      }
-    } catch (queryError) {
-      return {
-        success: false,
-        error: `Database query failed: ${queryError instanceof Error ? queryError.message : 'Unknown query error'}`
-      }
-    }
-    
-  } catch (error) {
-    console.error('Database connection test failed:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown database error' 
-    }
-  }
-}
+// Export db instance for backward compatibility
+export { db }

@@ -32,6 +32,7 @@ import {
 import { toast } from 'sonner'
 import { getDeviceIcon, getDeviceName } from '@/lib/wearable-integrations'
 import { getAppIcon, getAppName } from '@/lib/app-integrations'
+import { IntegrationIcon } from '@/components/integration-icon'
 
 interface Integration {
   device?: string
@@ -113,7 +114,7 @@ export function IntegrationManager() {
     try {
       setIsAddingWearable(true)
 
-      const oauthDevices = ['strava', 'fitbit', 'google_fit']
+      const oauthDevices = ['strava', 'fitbit', 'google_fit', 'whoop']
       
       if (oauthDevices.includes(newIntegration.device)) {
         // Start OAuth flow
@@ -415,7 +416,10 @@ export function IntegrationManager() {
                       <SelectContent>
                         {availableDevices.map(device => (
                           <SelectItem key={device} value={device}>
-                            {getDeviceIcon(device as any)} {getDeviceName(device as any)}
+                            <div className="flex items-center gap-2">
+                              <IntegrationIcon provider={device} size={20} />
+                              <span>{getDeviceName(device as any)}</span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -467,7 +471,7 @@ export function IntegrationManager() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{getIntegrationIcon('wearable', integration.device!)}</span>
+                      <IntegrationIcon provider={integration.device!} size={32} />
                       <div>
                         <CardTitle className="text-sm">{getIntegrationName('wearable', integration.device!)}</CardTitle>
                         <CardDescription className="text-xs">
@@ -566,7 +570,10 @@ export function IntegrationManager() {
                       <SelectContent>
                         {availableApps.map(app => (
                           <SelectItem key={app} value={app}>
-                            {getAppIcon(app as any)} {getAppName(app as any)}
+                            <div className="flex items-center gap-2">
+                              <IntegrationIcon provider={app} size={20} />
+                              <span>{getAppName(app as any)}</span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -630,7 +637,7 @@ export function IntegrationManager() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{getIntegrationIcon('app', integration.app!)}</span>
+                      <IntegrationIcon provider={integration.app!} size={32} />
                       <div>
                         <CardTitle className="text-sm">{getIntegrationName('app', integration.app!)}</CardTitle>
                         <CardDescription className="text-xs">

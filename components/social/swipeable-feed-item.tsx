@@ -133,7 +133,7 @@ export function SwipeableFeedItem({
       case "challenge_created":
         return "bg-secondary/10 border-secondary/20"
       default:
-        return "bg-muted border-muted"
+        return "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10"
     }
   }
 

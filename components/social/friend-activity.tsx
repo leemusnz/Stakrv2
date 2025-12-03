@@ -77,9 +77,9 @@ export function FriendActivity({ friends = mockFriends, showInviteButton = true 
       case "in-challenge":
         return "bg-primary"
       case "offline":
-        return "bg-muted-foreground"
+        return "bg-slate-400 dark:bg-slate-600"
       default:
-        return "bg-muted-foreground"
+        return "bg-slate-400 dark:bg-slate-600"
     }
   }
 
@@ -112,7 +112,7 @@ export function FriendActivity({ friends = mockFriends, showInviteButton = true 
       </CardHeader>
       <CardContent className="space-y-4">
         {friends.map((friend) => (
-          <div key={friend.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+          <div key={friend.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors">
             <div className="relative">
               <Avatar className="w-12 h-12">
                 <AvatarImage src={getProxiedAvatarUrl(friend.avatar)} />
@@ -191,7 +191,7 @@ export function FriendActivity({ friends = mockFriends, showInviteButton = true 
         )}
 
         {/* Social Motivation */}
-        <div className="pt-4 border-t border-muted">
+        <div className="pt-4 border-t border-slate-200 dark:border-white/10">
           <div className="bg-gradient-to-r from-primary/5 to-secondary/5 p-3 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Trophy className="w-4 h-4 text-primary" />

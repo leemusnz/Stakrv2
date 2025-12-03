@@ -182,7 +182,7 @@ export function SocialProof({
           </CardHeader>
           <CardContent className="space-y-4">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="p-4 bg-muted/30 rounded-lg space-y-3">
+              <div key={index} className="p-4 bg-slate-100/30 dark:bg-white/5 rounded-lg space-y-3">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10">
                     <AvatarImage src={testimonial.avatar || "/placeholder.svg"} />

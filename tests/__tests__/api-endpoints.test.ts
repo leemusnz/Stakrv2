@@ -3,6 +3,23 @@ import { jest } from '@jest/globals'
 // Mock fetch for API calls
 global.fetch = jest.fn()
 
+/**
+ * API Endpoints Test Suite
+ * 
+ * NOTE: These are mock-based tests that simulate API responses without hitting real endpoints.
+ * Consider writing integration tests that test actual API routes for better coverage.
+ * 
+ * Coverage:
+ * - Authentication endpoints (register, password reset, email verification)
+ * - User profile endpoints (update, dashboard)
+ * - File upload endpoints (presigned URLs, upload confirmation)
+ * - Challenge endpoints (list, details, participants)
+ * - Social endpoints (feed, follow, leaderboard)
+ * - Admin endpoints (analytics, user management, moderation)
+ * - Error handling (404, 500, network errors, malformed JSON)
+ * - Rate limiting
+ * - Authentication requirements
+ */
 describe('API Endpoints', () => {
   beforeEach(() => {
     jest.clearAllMocks()

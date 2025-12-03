@@ -20,9 +20,14 @@ export function OnboardingLayout({ children, currentStep, totalSteps, onBack, ca
   const progressPercentage = ((currentStep + 1) / totalSteps) * 100
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Ambient Background Glows */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px] opacity-60 pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] opacity-60 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('/noise.png')] opacity-[0.02] pointer-events-none" />
+
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-muted">
+      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Back Button */}

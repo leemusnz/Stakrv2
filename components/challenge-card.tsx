@@ -179,7 +179,7 @@ export function ChallengeCard({
 
         {/* Custom Progress Bar with Glow Effect */}
         <div className="relative">
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-slate-200 dark:bg-white/10 rounded-full h-3 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-1000 ease-out ${
                 isCompleted
@@ -201,7 +201,7 @@ export function ChallengeCard({
               <div
                 key={milestone}
                 className={`w-2 h-2 rounded-full border-2 ${
-                  currentProgress >= milestone ? "bg-white border-primary" : "bg-gray-200 border-gray-300"
+                  currentProgress >= milestone ? "bg-white dark:bg-slate-800 border-primary" : "bg-slate-200 dark:bg-white/10 border-slate-300 dark:border-white/20"
                 }`}
               />
             ))}

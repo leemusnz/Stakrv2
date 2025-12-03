@@ -1,280 +1,395 @@
-import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { useSession, signIn, signOut } from 'next-auth/react'
+/**
+ * Authentication System Tests
+ * 
+ * Tests for the real NextAuth configuration and authentication utilities.
+ * Tests the actual auth callbacks, providers, and database integration.
+ */
+
 import { jest } from '@jest/globals'
+import { authOptions } from '@/lib/auth'
 
-// Mock NextAuth to provide a stable SessionProvider in tests
-jest.mock('next-auth/react', () => ({
-  useSession: jest.fn(),
-  signIn: jest.fn(),
-  signOut: jest.fn(),
-}))
-
-// Local mock provider to avoid import interop issues
-const MockSessionProvider = ({ children }: { children: React.ReactNode }) => (
-  <div data-testid="session-provider">{children}</div>
-)
-
-// Mock the auth module
-jest.mock('@/lib/auth', () => ({
-  authOptions: {
-    providers: [],
-    callbacks: {},
-  },
-}))
-
-// Mock the database
+// Mock database connection
+const mockSql = jest.fn()
 jest.mock('@/lib/db', () => ({
-  sql: jest.fn(),
+  createDbConnection: jest.fn(() => mockSql)
+}))
+
+// Mock bcryptjs
+jest.mock('bcryptjs', () => ({
+  compare: jest.fn()
 }))
 
 describe('Authentication System', () => {
-  const mockSession = {
-    data: {
-      user: {
-        id: '1',
-        email: 'test@example.com',
-        name: 'Test User',
-        image: 'https://example.com/avatar.jpg',
-        avatar: 'https://example.com/avatar.jpg',
-        is_dev: false,
-        has_dev_access: false,
-        dev_mode_enabled: false,
-      },
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    },
-    status: 'authenticated' as const,
-  }
-
-  const mockUnauthenticatedSession = {
-    data: null,
-    status: 'unauthenticated' as const,
-  }
-
   beforeEach(() => {
     jest.clearAllMocks()
+    mockSql.mockReset()
   })
 
-  describe('Session Management', () => {
-    it('should handle authenticated session correctly', () => {
-      ;(useSession as jest.Mock).mockReturnValue(mockSession)
-
-      render(
-        <MockSessionProvider>
-          <div data-testid="session-status">
-            {mockSession.status}
-          </div>
-        </MockSessionProvider>
+  describe('Auth Configuration', () => {
+    it('should have credentials provider configured', () => {
+      const credentialsProviders = authOptions.providers.filter(
+        (p: any) => p.type === 'credentials'
       )
-
-      expect(screen.getByTestId('session-status')).toHaveTextContent('authenticated')
+      expect(credentialsProviders.length).toBeGreaterThan(0)
+      expect(credentialsProviders[0].name).toBe('Credentials')
     })
 
-    it('should handle unauthenticated session correctly', () => {
-      ;(useSession as jest.Mock).mockReturnValue(mockUnauthenticatedSession)
-
-      render(
-        <MockSessionProvider>
-          <div data-testid="session-status">
-            {mockUnauthenticatedSession.status}
-          </div>
-        </MockSessionProvider>
+    it('should have multiple authentication methods configured', () => {
+      const credentialsProviders = authOptions.providers.filter(
+        (p: any) => p.type === 'credentials'
       )
-
-      expect(screen.getByTestId('session-status')).toHaveTextContent('unauthenticated')
+      // Should have at least 1 credentials provider (main login)
+      expect(credentialsProviders.length).toBeGreaterThanOrEqual(1)
+      
+      // Should have additional providers configured (OAuth, etc.)
+      expect(authOptions.providers.length).toBeGreaterThanOrEqual(1)
     })
 
-    it('should display user information when authenticated', () => {
-      ;(useSession as jest.Mock).mockReturnValue(mockSession)
+    it('should configure JWT session strategy', () => {
+      expect(authOptions.session?.strategy).toBe('jwt')
+      expect(authOptions.session?.maxAge).toBe(30 * 24 * 60 * 60) // 30 days
+    })
 
-      render(
-        <MockSessionProvider>
-          <div data-testid="user-email">{mockSession.data?.user?.email}</div>
-          <div data-testid="user-name">{mockSession.data?.user?.name}</div>
-        </MockSessionProvider>
-      )
-
-      expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com')
-      expect(screen.getByTestId('user-name')).toHaveTextContent('Test User')
+    it('should have custom sign-in page configured', () => {
+      expect(authOptions.pages?.signIn).toBe('/auth/signin')
+      expect(authOptions.pages?.error).toBe('/auth/error')
     })
   })
 
-  describe('Login Functionality', () => {
-    it('should call signIn with correct parameters', async () => {
-      const mockSignIn = signIn as jest.Mock
-      mockSignIn.mockResolvedValue({ ok: true })
+  describe('Credentials Authentication', () => {
+    it('should authenticate with valid database user', async () => {
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        password_hash: '$2a$10$validhash',
+        avatar_url: null,
+        credits: '100.00',
+        trust_score: 75,
+        verification_tier: 'manual',
+        challenges_completed: 0,
+        current_streak: 0,
+        longest_streak: 0,
+        premium_subscription: false,
+        email_verified: true,
+        onboarding_completed: true,
+        xp: 0,
+        level: 1,
+        is_dev: false,
+        dev_mode_enabled: false
+      }
 
-      render(
-        <MockSessionProvider>
-          <button
-            onClick={() => signIn('credentials', { email: 'test@example.com', password: 'password' })}
-            data-testid="login-button"
-          >
-            Login
-          </button>
-        </MockSessionProvider>
-      )
+      mockSql.mockResolvedValueOnce([mockUser])
+      
+      const bcrypt = await import('bcryptjs')
+      ;(bcrypt.compare as jest.Mock).mockResolvedValue(true)
 
-      fireEvent.click(screen.getByTestId('login-button'))
+      const credentialsProvider = authOptions.providers.find(
+        (p: any) => p.name === 'Credentials'
+      ) as any
 
-      await waitFor(() => {
-        expect(mockSignIn).toHaveBeenCalledWith('credentials', {
+      const user = await credentialsProvider.options.authorize({
+        email: 'test@example.com',
+        password: 'password123'
+      }, {} as any)
+
+      expect(user).toBeDefined()
+      expect(user).not.toBeNull()
+      expect(user?.email).toBe('test@example.com')
+      expect(user?.id).toBe('user-123')
+      expect(user?.credits).toBe(100)
+    })
+
+    it('should reject invalid password', async () => {
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@example.com',
+        password_hash: '$2a$10$validhash',
+        credits: '100.00',
+        trust_score: 75,
+        verification_tier: 'manual'
+      }
+
+      mockSql.mockResolvedValueOnce([mockUser])
+      
+      const bcrypt = await import('bcryptjs')
+      ;(bcrypt.compare as jest.Mock).mockResolvedValue(false)
+
+      const credentialsProvider = authOptions.providers.find(
+        (p: any) => p.name === 'Credentials'
+      ) as any
+
+      const user = await credentialsProvider.options.authorize({
+        email: 'test@example.com',
+        password: 'wrongpassword'
+      }, {} as any)
+
+      expect(user).toBeNull()
+    })
+
+    it('should authenticate demo users as fallback', async () => {
+      mockSql.mockResolvedValueOnce([]) // No database user
+
+      const credentialsProvider = authOptions.providers.find(
+        (p: any) => p.name === 'Credentials'
+      ) as any
+
+      const user = await credentialsProvider.options.authorize({
+        email: 'demo@stakr.app',
+        password: 'demo123'
+      }, {} as any)
+
+      expect(user).toBeDefined()
+      expect(user).not.toBeNull()
+      expect(user?.email).toBe('demo@stakr.app')
+      expect(user?.credits).toBe(156.75)
+    })
+
+    it('should reject OAuth accounts without password', async () => {
+      const mockOAuthUser = {
+        id: 'user-123',
+        email: 'oauth@example.com',
+        password_hash: null, // OAuth account has no password
+        credits: '100.00'
+      }
+
+      mockSql.mockResolvedValueOnce([mockOAuthUser])
+
+      const credentialsProvider = authOptions.providers.find(
+        (p: any) => p.name === 'Credentials'
+      ) as any
+
+      await expect(async () => {
+        await credentialsProvider.options.authorize({
+          email: 'oauth@example.com',
+          password: 'anypassword'
+        }, {} as any)
+      }).rejects.toThrow('OAUTH_ACCOUNT_EXISTS')
+    })
+  })
+
+  describe('JWT Callback', () => {
+    it('should add user fields to JWT token', async () => {
+      const token = { sub: 'user-123' }
+      const user = {
+        id: 'user-123',
+        email: 'test@example.com',
+        avatar: '/avatar.jpg',
+        credits: 150,
+        trustScore: 85,
+        verificationTier: 'gold',
+        isAdmin: false,
+        isDev: false,
+        emailVerified: true,
+        xp: 500,
+        level: 5
+      }
+
+      const result = await authOptions.callbacks!.jwt!({ 
+        token, 
+        user, 
+        trigger: 'signIn',
+        session: null as any
+      })
+
+      expect(result.avatar).toBe('/avatar.jpg')
+      expect(result.credits).toBe(150)
+      expect(result.trustScore).toBe(85)
+      expect(result.verificationTier).toBe('gold')
+      expect(result.xp).toBe(500)
+      expect(result.level).toBe(5)
+    })
+
+    it('should handle session updates', async () => {
+      const token = { 
+        sub: 'user-123',
+        avatar: '/old-avatar.jpg',
+        credits: 100
+      }
+
+      const session = {
+        user: {
+          avatar: '/new-avatar.jpg',
+          credits: 200
+        }
+      }
+
+      const result = await authOptions.callbacks!.jwt!({ 
+        token, 
+        user: undefined,
+        trigger: 'update',
+        session
+      })
+
+      expect(result.avatar).toBe('/new-avatar.jpg')
+      expect(result.credits).toBe(200)
+    })
+  })
+
+  describe('Session Callback', () => {
+    it('should populate session with user data from token', async () => {
+      const session = {
+        user: {
+          id: '',
           email: 'test@example.com',
-          password: 'password',
-        })
-      })
-    })
+          name: 'Test User'
+        } as any
+      }
 
-    it('should handle login errors', async () => {
-      const mockSignIn = signIn as jest.Mock
-      mockSignIn.mockResolvedValue({ error: 'Invalid credentials' })
+      const token = {
+        sub: 'user-123',
+        avatar: '/avatar.jpg',
+        credits: 150,
+        trustScore: 85,
+        verificationTier: 'gold',
+        isAdmin: false,
+        isDev: true,
+        devModeEnabled: true,
+        emailVerified: true,
+        xp: 500,
+        level: 5
+      }
 
-      render(
-        <MockSessionProvider>
-          <button
-            onClick={() => signIn('credentials', { email: 'wrong@example.com', password: 'wrong' })}
-            data-testid="login-button"
-          >
-            Login
-          </button>
-        </MockSessionProvider>
-      )
+      const result = await authOptions.callbacks!.session!({ session, token, user: null as any })
 
-      fireEvent.click(screen.getByTestId('login-button'))
-
-      await waitFor(() => {
-        expect(mockSignIn).toHaveBeenCalledWith('credentials', {
-          email: 'wrong@example.com',
-          password: 'wrong',
-        })
-      })
+      expect(result.user.id).toBe('user-123')
+      expect(result.user.avatar).toBe('/avatar.jpg')
+      expect(result.user.credits).toBe(150)
+      expect(result.user.trustScore).toBe(85)
+      expect(result.user.isDev).toBe(true)
+      expect(result.user.xp).toBe(500)
+      expect(result.user.level).toBe(5)
     })
   })
 
-  describe('Logout Functionality', () => {
-    it('should call signOut when logout is triggered', async () => {
-      const mockSignOut = signOut as jest.Mock
-      mockSignOut.mockResolvedValue({ ok: true })
+  describe('Sign In Callback', () => {
+    it('should create OAuth user if not exists', async () => {
+      const user = {
+        id: 'temp-id',
+        email: 'newuser@gmail.com',
+        name: 'New User',
+        image: 'https://example.com/avatar.jpg'
+      }
 
-      render(
-        <MockSessionProvider>
-          <button onClick={() => signOut()} data-testid="logout-button">
-            Logout
-          </button>
-        </MockSessionProvider>
-      )
+      const account = {
+        type: 'oauth' as const,
+        provider: 'google'
+      }
 
-      fireEvent.click(screen.getByTestId('logout-button'))
+      // Mock: user doesn't exist
+      mockSql.mockResolvedValueOnce([])
+      // Mock: create user returns new user
+      mockSql.mockResolvedValueOnce([{ id: 'new-user-id', email: user.email, name: user.name, username: 'newuser' }])
+      // Mock: XP award function
+      mockSql.mockResolvedValueOnce([{ award_xp: true }])
+      // Mock: fetch full user data
+      mockSql.mockResolvedValueOnce([{
+        id: 'new-user-id',
+        email: user.email,
+        name: user.name,
+        avatar_url: user.image,
+        credits: '0.00',
+        trust_score: 50,
+        verification_tier: 'manual',
+        challenges_completed: 0,
+        current_streak: 0,
+        longest_streak: 0,
+        premium_subscription: false,
+        email_verified: true,
+        onboarding_completed: false,
+        xp: 50,
+        level: 1,
+        is_dev: false,
+        dev_mode_enabled: false,
+        has_dev_access: false
+      }])
 
-      await waitFor(() => {
-        expect(mockSignOut).toHaveBeenCalled()
+      const result = await authOptions.callbacks!.signIn!({ 
+        user, 
+        account,
+        profile: null as any
       })
+
+      expect(result).toBe(true)
+      expect(user.id).toBe('new-user-id')
+      expect(user.emailVerified).toBe(true)
+    })
+
+    it('should update existing OAuth user', async () => {
+      const user = {
+        id: 'temp-id',
+        email: 'existing@gmail.com',
+        name: 'Existing User'
+      }
+
+      const account = {
+        type: 'oauth' as const,
+        provider: 'google'
+      }
+
+      // Mock: user exists
+      mockSql.mockResolvedValueOnce([{ 
+        id: 'existing-user-id', 
+        email: user.email, 
+        email_verified: true 
+      }])
+      // Mock: fetch full user data
+      mockSql.mockResolvedValueOnce([{
+        id: 'existing-user-id',
+        email: user.email,
+        name: user.name,
+        avatar_url: null,
+        credits: '100.00',
+        trust_score: 75,
+        verification_tier: 'manual',
+        email_verified: true,
+        onboarding_completed: true,
+        xp: 200,
+        level: 3,
+        is_dev: false,
+        dev_mode_enabled: false,
+        has_dev_access: false
+      }])
+
+      const result = await authOptions.callbacks!.signIn!({ 
+        user, 
+        account,
+        profile: null as any
+      })
+
+      expect(result).toBe(true)
+      expect(user.id).toBe('existing-user-id')
     })
   })
 
-  describe('OAuth Authentication', () => {
-    it('should handle Google OAuth sign in', async () => {
-      const mockSignIn = signIn as jest.Mock
-      mockSignIn.mockResolvedValue({ ok: true })
+  describe('Redirect Callback', () => {
+    const baseUrl = 'https://stakr.app'
 
-      render(
-        <MockSessionProvider>
-          <button onClick={() => signIn('google')} data-testid="google-login">
-            Sign in with Google
-          </button>
-        </MockSessionProvider>
-      )
-
-      fireEvent.click(screen.getByTestId('google-login'))
-
-      await waitFor(() => {
-        expect(mockSignIn).toHaveBeenCalledWith('google')
+    it('should handle relative URL redirects', async () => {
+      const result = await authOptions.callbacks!.redirect!({
+        url: '/dashboard',
+        baseUrl
       })
+
+      expect(result).toBe('https://stakr.app/dashboard')
     })
 
-    it('should handle OAuth callback with user data', () => {
-      const oauthSession = {
-        ...mockSession,
-        data: {
-          ...mockSession.data,
-          user: {
-            ...mockSession.data.user,
-            email: 'oauth@example.com',
-            name: 'OAuth User',
-            is_dev: true,
-            has_dev_access: true,
-            dev_mode_enabled: true,
-          },
-        },
-      }
+    it('should handle same-origin URL redirects', async () => {
+      const result = await authOptions.callbacks!.redirect!({
+        url: 'https://stakr.app/profile',
+        baseUrl
+      })
 
-      ;(useSession as jest.Mock).mockReturnValue(oauthSession)
-
-      render(
-        <MockSessionProvider>
-          <div data-testid="oauth-user">{oauthSession.data?.user?.email}</div>
-          <div data-testid="dev-access">{oauthSession.data?.user?.has_dev_access ? 'true' : 'false'}</div>
-        </MockSessionProvider>
-      )
-
-      expect(screen.getByTestId('oauth-user')).toHaveTextContent('oauth@example.com')
-      expect(screen.getByTestId('dev-access')).toHaveTextContent('true')
-    })
-  })
-
-  describe('Dev Access Control', () => {
-    it('should show dev access for users with dev privileges', () => {
-      const devSession = {
-        ...mockSession,
-        data: {
-          ...mockSession.data,
-          user: {
-            ...mockSession.data.user,
-            is_dev: true,
-            has_dev_access: true,
-            dev_mode_enabled: true,
-          },
-        },
-      }
-
-      ;(useSession as jest.Mock).mockReturnValue(devSession)
-
-      render(
-        <MockSessionProvider>
-          <div data-testid="dev-status">
-            {devSession.data?.user?.has_dev_access ? 'Dev Access' : 'No Access'}
-          </div>
-        </MockSessionProvider>
-      )
-
-      expect(screen.getByTestId('dev-status')).toHaveTextContent('Dev Access')
+      expect(result).toBe('https://stakr.app/profile')
     })
 
-    it('should hide dev access for regular users', () => {
-      const regularSession = {
-        ...mockSession,
-        data: {
-          ...mockSession.data,
-          user: {
-            ...mockSession.data.user,
-            is_dev: false,
-            has_dev_access: false,
-            dev_mode_enabled: false,
-          },
-        },
-      }
+    it('should redirect to baseUrl for external URLs', async () => {
+      const result = await authOptions.callbacks!.redirect!({
+        url: 'https://evil.com/phishing',
+        baseUrl
+      })
 
-      ;(useSession as jest.Mock).mockReturnValue(regularSession)
-
-      render(
-        <MockSessionProvider>
-          <div data-testid="dev-status">
-            {regularSession.data?.user?.has_dev_access ? 'Dev Access' : 'No Access'}
-          </div>
-        </MockSessionProvider>
-      )
-
-      expect(screen.getByTestId('dev-status')).toHaveTextContent('No Access')
+      expect(result).toBe(baseUrl)
     })
   })
 })

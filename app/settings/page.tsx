@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
 import { toast } from "sonner"
+import { useMutation } from "@/hooks/use-api"
+import { LoadingSpinner } from "@/components/loading-spinner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,6 +22,7 @@ import { User, Bell, Shield, SettingsIcon, Camera, Save, Trash2, Eye, EyeOff, Li
 
 export default function SettingsPage() {
   const { data: session, status, update } = useSession()
+  const searchParams = useSearchParams()
   const [selectedTab, setSelectedTab] = useState("profile")
   const [settings, setSettings] = useState({
     profile: {
@@ -56,9 +60,43 @@ export default function SettingsPage() {
     },
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
+  
+  // Use mutation hook for profile updates with automatic toast notifications
+  const { loading: isSavingProfile, mutate: saveProfile } = useMutation(
+    '/api/user/profile',
+    {
+      showSuccessToast: 'Profile updated successfully!',
+      onSuccess: async () => {
+        // Refresh session to get updated data
+        await update()
+      }
+    }
+  )
+  
+  const isLoading = isSavingProfile
 
+  // Handle URL parameters (tab switching and success messages)
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    const success = searchParams.get('success')
+    const error = searchParams.get('error')
+    
+    if (tab) {
+      setSelectedTab(tab)
+    }
+    
+    if (success === 'whoop_connected') {
+      toast.success('Whoop connected successfully! 💪')
+    } else if (error === 'whoop_auth_failed') {
+      toast.error('Failed to connect Whoop. Please try again.')
+    } else if (error === 'token_exchange_failed') {
+      toast.error('Whoop authentication failed. Please check your credentials.')
+    } else if (error === 'invalid_state') {
+      toast.error('Security validation failed. Please try again.')
+    }
+  }, [searchParams])
+  
   // Load user data from session
   useEffect(() => {
     if (session?.user && !dataLoaded) {
@@ -94,82 +132,24 @@ export default function SettingsPage() {
   }, [session?.user?.image, settings.profile.avatar])
 
   const handleSave = async (section: string) => {
-    setIsLoading(true)
     try {
       if (section === 'profile') {
-        // Save profile settings via API
-        const response = await fetch('/api/user/profile', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: settings.profile.name,
-            username: settings.profile.username,
-            avatar: settings.profile.avatar
-          })
+        // Save profile settings using mutation hook with automatic loading & toast
+        await updateProfile({
+          name: settings.profile.name,
+          username: settings.profile.username,
+          avatar: settings.profile.avatar
         })
-
-        const result = await response.json()
-        
-        if (!response.ok) {
-          throw new Error(result.message || result.error || 'Failed to update profile')
-        }
-
-        console.log('✅ Profile updated successfully:', result)
-        
-        // Show success message
-        toast.success("Profile updated successfully!", {
-          description: "Your changes have been saved.",
-          style: {
-            background: '#4CAF50',
-            color: 'white',
-            border: '1px solid #4CAF50',
-            fontSize: '14px',
-            fontWeight: '500',
-          },
-          className: 'text-white',
-        })
-        
-        // Update session with new data
-        await update()
-        
       } else {
-        // For other sections, just simulate for now
+        // For other sections, show info toast
+        toast.info(`${section} settings saved!`, {
+          description: "Your preferences have been updated."
+        })
         console.log(`Saving ${section} settings:`, settings[section as keyof typeof settings])
-        await new Promise((resolve) => setTimeout(resolve, 1000))
       }
     } catch (error) {
+      // Error is automatically handled by useMutation with toast
       console.error('Failed to save settings:', error)
-      
-      // Show error message with better formatting
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save settings'
-      
-      // Create concise title and description
-      let title = "Failed to save profile"
-      let description = errorMessage
-      
-      // For moderation errors, make it more specific
-      if (errorMessage.includes('username') || errorMessage.includes('Username')) {
-        title = "Username not allowed"
-        description = "Choose a different username."
-      } else if (errorMessage.includes('name') || errorMessage.includes('Name')) {
-        title = "Name not allowed"
-        description = "Choose a different name."
-      }
-      
-      toast.error(title, {
-        description: description,
-        duration: 5000,
-        style: {
-          background: '#FF3B30',
-          color: 'white',
-          border: '1px solid #FF3B30',
-          fontSize: '14px',
-          fontWeight: '500',
-        },
-        className: 'text-white',
-      })
-    } finally {
-      setIsLoading(false)
     }
   }
 

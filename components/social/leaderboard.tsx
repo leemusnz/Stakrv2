@@ -138,7 +138,7 @@ export function Leaderboard({ timeframe = "weekly", category = "overall", showCu
         {/* Rest of leaderboard */}
         <div className="space-y-3">
           {topUsers.slice(3).map((user) => (
-            <div key={user.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+            <div key={user.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100/50 dark:hover:bg-white/5 transition-colors">
               <div className="flex items-center gap-3 flex-1">
                 <div className="flex items-center gap-2 w-8">
                   {getRankIcon(user.rank)}
@@ -167,7 +167,7 @@ export function Leaderboard({ timeframe = "weekly", category = "overall", showCu
 
         {/* Current User Position */}
         {showCurrentUser && currentUser && currentUser.rank > 5 && (
-          <div className="pt-4 border-t border-muted">
+          <div className="pt-4 border-t border-slate-200 dark:border-white/10">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
               <div className="flex items-center gap-3 flex-1">
                 <div className="flex items-center gap-2 w-8">
@@ -196,7 +196,7 @@ export function Leaderboard({ timeframe = "weekly", category = "overall", showCu
         )}
 
         {/* Call to Action */}
-        <div className="pt-4 border-t border-muted">
+        <div className="pt-4 border-t border-slate-200 dark:border-white/10">
           <div className="bg-gradient-to-r from-primary/5 to-secondary/5 p-3 rounded-lg">
             <div className="flex items-center justify-between">
               <div>

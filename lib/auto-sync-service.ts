@@ -5,6 +5,8 @@
 
 import { createDbConnection } from '@/lib/db'
 import { EnhancedAIVerification } from '@/lib/enhanced-ai-verification'
+import { decryptCredentials } from '@/lib/encryption'
+import { fetchWithRetry, retry } from '@/lib/retry-utils'
 
 export interface SyncResult {
   success: boolean
@@ -87,9 +89,20 @@ export async function getUserIntegrations(userId: string, challengeTypes: string
     
     console.log('🔍 App integrations query result:', appIntegrations)
     
+    // Decrypt credentials before returning
+    const decryptedWearables = wearableIntegrations.map(w => ({
+      ...w,
+      api_credentials: decryptCredentials(w.api_credentials)
+    }))
+    
+    const decryptedApps = appIntegrations.map(a => ({
+      ...a,
+      api_credentials: decryptCredentials(a.api_credentials)
+    }))
+    
     return {
-      wearables: wearableIntegrations,
-      apps: appIntegrations
+      wearables: decryptedWearables,
+      apps: decryptedApps
     }
   } catch (error) {
     console.error('Error fetching user integrations:', error)
@@ -121,13 +134,24 @@ export async function syncStravaData(
       return { success: false, error: 'No access token available', provider: 'strava' }
     }
     
-    // Helper to call Strava API with a given access token
+    // Helper to call Strava API with a given access token (with retry logic)
     const fetchActivities = async (accessToken: string) => {
       const thirtyDaysAgo = Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)
       console.log('🌐 Calling Strava API for recent activities...')
-      return fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=50&after=${thirtyDaysAgo}`, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      })
+      return fetchWithRetry(
+        `https://www.strava.com/api/v3/athlete/activities?per_page=50&after=${thirtyDaysAgo}`, 
+        {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        },
+        {
+          maxAttempts: 3,
+          backoff: 'exponential',
+          initialDelay: 1000,
+          onRetry: (error, attempt) => {
+            console.log(`🔄 Strava API retry ${attempt}/3:`, error.message)
+          }
+        }
+      )
     }
     
     // First attempt with existing access token

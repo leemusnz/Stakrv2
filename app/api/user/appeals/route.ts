@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
     // For real users, process with database
     const sql = await createDbConnection()
 
-    // Check if verification exists and belongs to the user
+    // Check if proof submission exists and belongs to the user
     const verification = await sql`
       SELECT v.id, v.status, v.user_id, c.title as challenge_title
-      FROM verifications v
+      FROM proof_submissions v
       JOIN challenges c ON v.challenge_id = c.id
       WHERE v.id = ${verificationId} AND v.user_id = ${session.user.id}
     `
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
         a.admin_notes,
         c.title as challenge_title
       FROM verification_appeals a
-      JOIN verifications v ON a.verification_id = v.id
+      JOIN proof_submissions v ON a.verification_id = v.id
       JOIN challenges c ON v.challenge_id = c.id
       WHERE a.user_id = ${session.user.id}
       ORDER BY a.submitted_at DESC

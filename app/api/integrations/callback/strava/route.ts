@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
+import { validateOAuthState } from '@/lib/oauth-state'
+import { encryptCredentials } from '@/lib/encryption'
 
 // Force Node.js runtime and dynamic execution to ensure the route is deployed in all environments
 export const runtime = 'nodejs'
@@ -24,8 +26,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/settings?tab=integrations&error=strava_auth_failed', request.url))
     }
 
-    if (!code) {
-      return NextResponse.redirect(new URL('/settings?tab=integrations&error=missing_code', request.url))
+    if (!code || !state) {
+      return NextResponse.redirect(new URL('/settings?tab=integrations&error=missing_parameters', request.url))
+    }
+
+    // CSRF Protection: Validate OAuth state
+    const isValidState = await validateOAuthState(session.user.id, 'strava', state)
+    if (!isValidState) {
+      console.error('❌ Invalid OAuth state - possible CSRF attack attempt')
+      return NextResponse.redirect(new URL('/settings?tab=integrations&error=invalid_state', request.url))
     }
 
     // Exchange authorization code for access token
@@ -49,7 +58,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/settings?tab=integrations&error=token_exchange_failed', request.url))
     }
 
-    // Store the tokens and user info
+    // Store the tokens and user info with encryption
     const sql = await createDbConnection()
 
     await sql`
@@ -69,10 +78,10 @@ export async function GET(request: NextRequest) {
         true,
         true,
         'standard',
-        ${JSON.stringify({
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-          expires_at: tokenData.expires_at,
+        ${encryptCredentials({
+          accessToken: tokenData.access_token,
+          refreshToken: tokenData.refresh_token,
+          expiresAt: tokenData.expires_at,
           athlete: tokenData.athlete,
         })},
         NOW(),

@@ -167,7 +167,7 @@ export default function CreatorProfilePage({ params }: { params: { id: string } 
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F]">
       {/* <Navigation
         user={{
           name: "Alex Chen",

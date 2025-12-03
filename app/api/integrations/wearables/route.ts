@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { wearableManager, WearableDevice, WearableIntegrationConfig } from '@/lib/wearable-integrations'
 import { createDbConnection } from '@/lib/db'
+import { encryptCredentials, decryptCredentials } from '@/lib/encryption'
 
 // GET - List user's wearable integrations
 export async function GET(request: NextRequest) {
@@ -40,15 +41,13 @@ export async function GET(request: NextRequest) {
         let connected = false
         try {
           if (integration.api_credentials) {
-            const credentials = typeof integration.api_credentials === 'string' 
-              ? JSON.parse(integration.api_credentials)
-              : integration.api_credentials
+            const credentials = decryptCredentials(integration.api_credentials)
             
             // For OAuth integrations, check for access_token
             connected = !!(credentials.access_token || credentials.accessToken || credentials.apiKey)
           }
         } catch (error) {
-          console.error('Error parsing credentials for', integration.device_type, error)
+          console.error('Error decrypting credentials for', integration.device_type, error)
           connected = false
         }
 
@@ -72,7 +71,8 @@ export async function GET(request: NextRequest) {
         'strava',
         'polar',
         'withings',
-        'oura_ring'
+        'oura_ring',
+        'whoop'
       ]
     })
 
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
 
     const sql = await createDbConnection()
 
-    // Save integration to database
+    // Save integration to database with encrypted credentials
     await sql`
       INSERT INTO wearable_integrations (
         user_id,
@@ -151,11 +151,13 @@ export async function POST(request: NextRequest) {
         ${enabled},
         ${autoSync},
         ${privacyLevel},
-        ${JSON.stringify({
-          apiKey: apiKey ? '***' : null,
-          clientId: clientId || null,
-          hasAccessToken: !!accessToken,
-          hasRefreshToken: !!refreshToken
+        ${encryptCredentials({
+          apiKey,
+          clientId,
+          clientSecret,
+          accessToken,
+          refreshToken,
+          expiresAt: accessToken ? Math.floor(Date.now() / 1000) + 3600 : null // Default 1hr expiry
         })},
         NOW(),
         NOW()

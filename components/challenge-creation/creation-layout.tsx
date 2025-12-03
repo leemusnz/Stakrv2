@@ -41,11 +41,25 @@ export function CreationLayout({
 
   return (
     <div
-      className="min-h-screen bg-muted/30 flex flex-col has-bottom-cta"
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden flex flex-col has-bottom-cta"
       style={{ ['--bottom-cta-height' as any]: '80px' }}
     >
+      {/* Ambient Glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-[#F46036] rounded-full mix-blend-screen filter blur-[120px] opacity-10 dark:opacity-15 animate-pulse"></div>
+        <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-[#D74E25] rounded-full mix-blend-screen filter blur-[100px] opacity-[0.07] dark:opacity-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+
+      {/* Noise Texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
       {/* Header */}
-      <div className="bg-background border-b border-gray-200 sticky top-0 z-40">
+      <div className="relative z-10 bg-white/80 dark:bg-background/95 border-b border-slate-200 dark:border-gray-200 sticky top-0 z-40 backdrop-blur-xl">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">

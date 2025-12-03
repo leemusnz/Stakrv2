@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { appIntegrationManager, IntegratedApp, AppIntegrationConfig } from '@/lib/app-integrations'
 import { createDbConnection } from '@/lib/db'
+import { encryptCredentials, decryptCredentials } from '@/lib/encryption'
 
 // GET - List user's app integrations
 export async function GET(request: NextRequest) {
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     const sql = await createDbConnection()
 
-    // Save integration to database
+    // Save integration to database with encrypted credentials
     await sql`
       INSERT INTO app_integrations (
         user_id,
@@ -136,11 +137,12 @@ export async function POST(request: NextRequest) {
         ${enabled},
         ${autoSync},
         ${privacyLevel},
-        ${JSON.stringify({
-          apiKey: apiKey ? '***' : null,
-          username: username || null,
-          hasAccessToken: !!accessToken,
-          hasRefreshToken: !!refreshToken
+        ${encryptCredentials({
+          apiKey,
+          username,
+          accessToken,
+          refreshToken,
+          expiresAt: accessToken ? Math.floor(Date.now() / 1000) + 3600 : null // Default 1hr expiry
         })},
         ${JSON.stringify(dataTypes)},
         NOW(),

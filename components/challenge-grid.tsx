@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { YouTubeStyleChallengeCard } from "@/components/youtube-style-challenge-card"
+import { ChallengeCardNew } from "@/components/challenge-card-new"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -316,11 +316,21 @@ export function ChallengeGrid() {
           )}
         >
           {filteredChallenges.map((challenge) => (
-            <YouTubeStyleChallengeCard
-              key={challenge.id}
-              {...challenge}
-              className={viewMode === "list" ? "flex-row" : ""}
-            />
+            <div key={challenge.id} className="flex justify-center">
+              <ChallengeCardNew
+                title={challenge.title}
+                category={challenge.category}
+                participants={challenge.participants}
+                stakeAmount={challenge.minStake}
+                duration={challenge.duration}
+                difficulty={challenge.difficulty as any}
+                isPopular={challenge.participants > 100}
+                progress={challenge.isJoined ? challenge.progress : undefined}
+                imageUrl={challenge.thumbnailUrl}
+                hostAvatarUrl={challenge.hostAvatar}
+                onJoin={() => window.location.href = `/challenge/${challenge.id}`}
+              />
+            </div>
           ))}
         </div>
       )}

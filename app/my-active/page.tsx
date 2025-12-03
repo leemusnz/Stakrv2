@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { useApi, useMutation } from "@/hooks/use-api"
+import { LoadingSpinner, SkeletonLoader } from "@/components/loading-spinner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -29,6 +31,7 @@ import Link from "next/link"
 import { PostCreationModal } from "@/components/post-creation/post-creation-modal"
 import { SocialShareModal } from "@/components/social-sharing/social-share-modal"
 import { toast } from "sonner"
+import { FloatingAmbientGlows } from '@/components/floating-ambient-glows'
 
 interface ActiveChallenge {
   id: string
@@ -44,7 +47,7 @@ interface ActiveChallenge {
   proofTypes: string[]
   todayInstructions: string
   // Add verification data for UI detection
-  verificationType?: string
+  verificationType?: "auto" | "manual" | "ai"
   verificationRequirements?: any
   selectedProofTypes?: string[]
   streak: number
@@ -55,28 +58,30 @@ interface ActiveChallenge {
 export default function MyActivePage() {
   const { data: session } = useSession()
   const [activeChallenges, setActiveChallenges] = useState<ActiveChallenge[]>([])
-  const [loading, setLoading] = useState(true)
   const [syncingChallenges, setSyncingChallenges] = useState<Set<string>>(new Set())
+  
+  // Use API hook for fetching challenges with automatic loading states
+  const { data: challengesData, loading, execute: fetchActiveChallenges } = useApi<{
+    challenges: any[]
+  }>(
+    '/api/user/challenges',
+    {
+      showSuccessToast: false,
+      showErrorToast: true
+    }
+  )
 
   useEffect(() => {
-    const fetchActiveChallenges = async () => {
+    const loadChallenges = async () => {
       if (!session?.user) {
-        setLoading(false)
         return
       }
 
       try {
-        setLoading(true)
+        // Fetch user's challenges using the API hook
+        const data = await fetchActiveChallenges()
         
-        // Fetch user's challenges from the API
-        const response = await fetch('/api/user/challenges')
-        if (!response.ok) {
-          throw new Error('Failed to fetch challenges')
-        }
-        
-        const data = await response.json()
-        
-        if (data.success && data.challenges) {
+        if (data && data.challenges) {
           // Transform API data to match our interface
           const transformedChallenges: ActiveChallenge[] = data.challenges
             .filter((challenge: any) => {
@@ -164,12 +169,10 @@ export default function MyActivePage() {
           }
         ]
         setActiveChallenges(demoChallenges)
-      } finally {
-        setLoading(false)
       }
     }
 
-    fetchActiveChallenges()
+    loadChallenges()
   }, [session])
 
   const getTimeUntilDeadline = (deadline: string) => {
@@ -237,15 +240,27 @@ export default function MyActivePage() {
   })
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">My Active Challenges</h1>
-          <p className="text-muted-foreground mt-2">
-            Track progress and complete today's requirements
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Ambient Glows */}
+      <FloatingAmbientGlows />
+
+      {/* Noise Texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="relative z-10 max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-heading font-bold text-slate-900 dark:text-white tracking-tight">My Active Challenges</h1>
+            <p className="text-slate-600 dark:text-slate-400 font-body text-lg mt-2">
+              Track progress and complete today's requirements
+            </p>
+          </div>
         
         <div className="text-right">
           <div className="text-2xl font-bold text-primary">
@@ -570,6 +585,7 @@ export default function MyActivePage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

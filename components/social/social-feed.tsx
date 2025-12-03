@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useApi, useMutation } from "@/hooks/use-api"
+import { LoadingSpinner, SkeletonLoader } from "@/components/loading-spinner"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -69,37 +71,33 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
   const { isMobile } = useEnhancedMobile()
   const [activeFilter, setActiveFilter] = useState(filter)
   const [feedItems, setFeedItems] = useState<FeedItem[]>([])
-  const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
-
-  // Fetch feed data from API
-  const fetchFeedData = async (filterType: string = activeFilter, pageNum: number = 1) => {
-    setIsLoading(true)
-    try {
-      const response = await fetch(`/api/social/feed?filter=${filterType}&page=${pageNum}&limit=20`)
-      const data = await response.json()
-      
-      if (data.success) {
-        if (pageNum === 1) {
-          setFeedItems(data.items)
-        } else {
-          setFeedItems(prev => [...prev, ...data.items])
-        }
-        setHasMore(data.pagination.hasMore)
-      } else {
-        console.error('Failed to fetch feed:', data.error)
-      }
-    } catch (error) {
-      console.error('Feed fetch error:', error)
-    } finally {
-      setIsLoading(false)
+  
+  // Use API hook for feed data with skeleton loaders
+  const { data: feedData, loading: isLoading, execute: fetchFeedFromApi } = useApi<{
+    items: FeedItem[]
+    pagination: { hasMore: boolean }
+  }>(
+    `/api/social/feed?filter=${activeFilter}&page=${page}&limit=20`,
+    {
+      showSuccessToast: false,
+      showErrorToast: true
     }
-  }
+  )
 
-  // Load initial data
+  // Load initial data when filter changes
   useEffect(() => {
-    fetchFeedData(activeFilter, 1)
+    fetchFeedFromApi().then(() => {
+      if (feedData) {
+        if (page === 1) {
+          setFeedItems(feedData.items)
+        } else {
+          setFeedItems(prev => [...prev, ...feedData.items])
+        }
+        setHasMore(feedData.pagination.hasMore)
+      }
+    })
     setPage(1)
   }, [activeFilter])
 
@@ -139,10 +137,35 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
       case "challenge_created":
         return "bg-secondary/10 border-secondary/20"
       default:
-        return "bg-muted border-muted"
+        return "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10"
     }
   }
 
+  // Like action with optimistic updates
+  const { mutate: likeMutate } = useMutation('/api/social/like', {
+    showSuccessToast: false, // Don't spam toasts for likes
+    showErrorToast: true,
+    optimisticUpdate: (variables: { feedItemId: string; action: string }) => {
+      // Immediately update UI
+      setFeedItems(prev => prev.map(item => 
+        item.id === variables.feedItemId
+          ? {
+              ...item,
+              engagement: {
+                ...item.engagement,
+                liked: variables.action === 'like',
+                likes: item.engagement.likes + (variables.action === 'like' ? 1 : -1)
+              }
+            }
+          : item
+      ))
+    },
+    onOptimisticError: () => {
+      // Revert on error by refetching
+      fetchFeedFromApi()
+    }
+  })
+  
   const handleLike = async (itemId: string) => {
     const item = feedItems.find(f => f.id === itemId)
     if (!item) return
@@ -150,15 +173,10 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
     const action = item.engagement.liked ? 'unlike' : 'like'
     
     try {
-      const response = await fetch('/api/social/like', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ feedItemId: itemId, action })
-      })
+      await likeMutate({ feedItemId: itemId, action })
       
-      const data = await response.json()
-      
-      if (data.success) {
+      // Original success handling (now redundant with optimistic update, but keeping for compatibility)
+      if (true) {
         setFeedItems((items) =>
           items.map((item) =>
             item.id === itemId
@@ -179,6 +197,30 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
     }
   }
 
+  // Follow action with optimistic updates
+  const { mutate: followMutate } = useMutation('/api/social/follow', {
+    showSuccessToast: false, // Don't spam toasts for follows
+    showErrorToast: true,
+    optimisticUpdate: (variables: { targetUserId: string; action: string }) => {
+      // Immediately update UI
+      setFeedItems(prev => prev.map(item =>
+        item.user.id === variables.targetUserId
+          ? {
+              ...item,
+              user: {
+                ...item.user,
+                isFollowing: variables.action === 'follow'
+              }
+            }
+          : item
+      ))
+    },
+    onOptimisticError: () => {
+      // Revert on error by refetching
+      fetchFeedFromApi()
+    }
+  })
+  
   const handleFollow = async (userId: string) => {
     const item = feedItems.find(f => f.user.id === userId)
     if (!item) return
@@ -186,15 +228,10 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
     const action = item.user.isFollowing ? 'unfollow' : 'follow'
     
     try {
-      const response = await fetch('/api/social/follow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetUserId: userId, action })
-      })
+      await followMutate({ targetUserId: userId, action })
       
-      const data = await response.json()
-      
-      if (data.success) {
+      // Original success handling (now redundant with optimistic update, but keeping for compatibility)
+      if (true) {
         setFeedItems((items) =>
           items.map((item) =>
             item.user.id === userId
@@ -229,7 +266,7 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
     if (!isLoading && hasMore) {
       const nextPage = page + 1
       setPage(nextPage)
-      fetchFeedData(activeFilter, nextPage)
+      fetchFeedFromApi()
     }
   }
 

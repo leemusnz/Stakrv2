@@ -108,14 +108,14 @@ export async function GET(request: NextRequest) {
     const challengesWithVerifications = await Promise.all(
       challenges.map(async (challenge: any) => {
         if (challenge.completion_status === 'failed') {
-          // Look for rejected verifications for this challenge and user
+          // Look for rejected proof submissions for this challenge and user
           const rejectedVerifications = await sql`
-            SELECT id, admin_notes as reason, updated_at as rejected_at
-            FROM verifications 
+            SELECT id, admin_notes as reason, reviewed_at as rejected_at
+            FROM proof_submissions 
             WHERE challenge_id = ${challenge.id} 
               AND user_id = ${session.user.id} 
               AND status = 'rejected'
-            ORDER BY updated_at DESC
+            ORDER BY reviewed_at DESC
             LIMIT 1
           `
 

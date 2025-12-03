@@ -35,6 +35,7 @@ export type WearableDevice =
   | 'polar'
   | 'withings'
   | 'oura_ring'
+  | 'whoop'
 
 export type WearableDataType = 
   | 'steps'
@@ -48,6 +49,10 @@ export type WearableDataType =
   | 'weight'
   | 'blood_pressure'
   | 'meditation'
+  | 'strain'
+  | 'recovery'
+  | 'hrv'
+  | 'respiratory_rate'
 
 export interface WearableIntegrationConfig {
   device: WearableDevice
@@ -386,6 +391,312 @@ export class OuraRingIntegration {
   }
 }
 
+// Whoop Integration
+export class WhoopIntegration {
+  private config: WearableIntegrationConfig
+  private readonly BASE_URL = 'https://api.prod.whoop.com/developer'
+  private readonly AUTH_URL = 'https://api.prod.whoop.com/oauth/oauth2/auth'
+  private readonly TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token'
+
+  constructor(config: WearableIntegrationConfig) {
+    this.config = config
+  }
+
+  async connect(): Promise<boolean> {
+    try {
+      // In development mode, allow connection without API keys
+      if (process.env.NODE_ENV === 'development') {
+        console.log('💪 Whoop integration connected (development mode)')
+        return true
+      }
+
+      if (!this.config.clientId || !this.config.clientSecret) {
+        console.log('💪 Whoop Client ID and Secret required for production')
+        return false
+      }
+
+      // If we have an access token, test the connection
+      if (this.config.accessToken) {
+        const response = await fetch(`${this.BASE_URL}/v1/user/profile/basic`, {
+          headers: {
+            'Authorization': `Bearer ${this.config.accessToken}`
+          }
+        })
+
+        if (response.ok) {
+          console.log('💪 Whoop connection verified')
+          return true
+        } else if (response.status === 401) {
+          // Token invalid, need to refresh or re-authenticate
+          console.log('💪 Whoop token expired or invalid')
+          return false
+        }
+      }
+
+      // No access token - need OAuth flow
+      console.log('💪 Whoop OAuth flow required')
+      return false
+    } catch (error) {
+      console.error('Whoop connection failed:', error)
+      return false
+    }
+  }
+
+  async fetchRecoveryData(startDate: Date, endDate: Date): Promise<WearableData[]> {
+    if (!this.config.accessToken) {
+      throw new Error('Whoop access token required')
+    }
+
+    try {
+      const start = startDate.toISOString()
+      const end = endDate.toISOString()
+      
+      const response = await fetch(
+        `${this.BASE_URL}/v1/recovery?start=${start}&end=${end}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.config.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(`Whoop API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return this.parseRecoveryData(data)
+    } catch (error) {
+      console.error('Failed to fetch Whoop recovery data:', error)
+      return []
+    }
+  }
+
+  async fetchWorkoutData(startDate: Date, endDate: Date): Promise<WearableData[]> {
+    if (!this.config.accessToken) {
+      throw new Error('Whoop access token required')
+    }
+
+    try {
+      const start = startDate.toISOString()
+      const end = endDate.toISOString()
+      
+      const response = await fetch(
+        `${this.BASE_URL}/v1/activity/workout?start=${start}&end=${end}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.config.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(`Whoop API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return this.parseWorkoutData(data)
+    } catch (error) {
+      console.error('Failed to fetch Whoop workout data:', error)
+      return []
+    }
+  }
+
+  async fetchSleepData(startDate: Date, endDate: Date): Promise<WearableData[]> {
+    if (!this.config.accessToken) {
+      throw new Error('Whoop access token required')
+    }
+
+    try {
+      const start = startDate.toISOString()
+      const end = endDate.toISOString()
+      
+      const response = await fetch(
+        `${this.BASE_URL}/v1/activity/sleep?start=${start}&end=${end}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.config.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(`Whoop API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return this.parseSleepData(data)
+    } catch (error) {
+      console.error('Failed to fetch Whoop sleep data:', error)
+      return []
+    }
+  }
+
+  private parseRecoveryData(data: any): WearableData[] {
+    const records = data.records || []
+    
+    return records.map((record: any) => ({
+      id: `whoop_recovery_${record.cycle_id}`,
+      userId: 'current-user',
+      deviceType: 'whoop' as WearableDevice,
+      dataType: 'recovery' as WearableDataType,
+      value: record.score.recovery_score,
+      unit: 'percentage',
+      timestamp: new Date(record.created_at),
+      metadata: {
+        deviceId: 'Whoop Device',
+        accuracy: 'high',
+        source: 'Whoop API',
+        heartRate: record.score.resting_heart_rate ? [record.score.resting_heart_rate] : undefined,
+        hrv: record.score.hrv_rmssd_milli,
+        respiratoryRate: record.score.spo2_percentage,
+        rawData: record
+      },
+      verificationStatus: 'pending'
+    }))
+  }
+
+  private parseWorkoutData(data: any): WearableData[] {
+    const records = data.records || []
+    
+    return records.map((record: any) => ({
+      id: `whoop_workout_${record.id}`,
+      userId: 'current-user',
+      deviceType: 'whoop' as WearableDevice,
+      dataType: 'workout' as WearableDataType,
+      value: record.score.strain,
+      unit: 'strain',
+      timestamp: new Date(record.start),
+      metadata: {
+        deviceId: 'Whoop Device',
+        accuracy: 'high',
+        source: 'Whoop API',
+        heartRate: record.score.average_heart_rate ? [record.score.average_heart_rate] : undefined,
+        calories: record.score.kilojoule / 4.184, // Convert kJ to kcal
+        distance: record.score.distance_meter / 1000, // Convert to km
+        duration: Math.floor((new Date(record.end).getTime() - new Date(record.start).getTime()) / 60000), // Minutes
+        rawData: record
+      },
+      verificationStatus: 'pending'
+    }))
+  }
+
+  private parseSleepData(data: any): WearableData[] {
+    const records = data.records || []
+    
+    return records.map((record: any) => ({
+      id: `whoop_sleep_${record.id}`,
+      userId: 'current-user',
+      deviceType: 'whoop' as WearableDevice,
+      dataType: 'sleep' as WearableDataType,
+      value: record.score.stage_summary.total_in_bed_time_milli / 60000, // Convert to minutes
+      unit: 'minutes',
+      timestamp: new Date(record.start),
+      metadata: {
+        deviceId: 'Whoop Device',
+        accuracy: 'high',
+        source: 'Whoop API',
+        heartRate: record.score.average_heart_rate ? [record.score.average_heart_rate] : undefined,
+        respiratoryRate: record.score.respiratory_rate,
+        sleepQuality: record.score.sleep_performance_percentage,
+        rawData: record
+      },
+      verificationStatus: 'pending'
+    }))
+  }
+
+  /**
+   * Generate OAuth authorization URL for Whoop
+   */
+  getAuthorizationUrl(redirectUri: string, state: string): string {
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: this.config.clientId || '',
+      redirect_uri: redirectUri,
+      scope: 'read:recovery read:cycles read:workout read:sleep read:profile read:body_measurement',
+      state
+    })
+
+    return `${this.AUTH_URL}?${params.toString()}`
+  }
+
+  /**
+   * Exchange authorization code for access token
+   */
+  async exchangeCodeForToken(code: string, redirectUri: string): Promise<{
+    accessToken: string
+    refreshToken: string
+    expiresIn: number
+  }> {
+    const response = await fetch(this.TOKEN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${this.config.clientId}:${this.config.clientSecret}`).toString('base64')}`
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`Whoop token exchange failed: ${error}`)
+    }
+
+    const data = await response.json()
+    
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresIn: data.expires_in
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  async refreshAccessToken(): Promise<{
+    accessToken: string
+    refreshToken: string
+    expiresIn: number
+  }> {
+    if (!this.config.refreshToken) {
+      throw new Error('No refresh token available')
+    }
+
+    const response = await fetch(this.TOKEN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${this.config.clientId}:${this.config.clientSecret}`).toString('base64')}`
+      },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: this.config.refreshToken
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`Whoop token refresh failed: ${error}`)
+    }
+
+    const data = await response.json()
+    
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresIn: data.expires_in
+    }
+  }
+}
+
 // Main Wearable Manager
 export class WearableManager {
   private integrations: Map<WearableDevice, any> = new Map()
@@ -431,6 +742,9 @@ export class WearableManager {
           break
         case 'oura_ring':
           integration = new OuraRingIntegration(config)
+          break
+        case 'whoop':
+          integration = new WhoopIntegration(config)
           break
         default:
           throw new Error(`Unsupported device: ${device}`)
@@ -588,7 +902,8 @@ export function getDeviceIcon(device: WearableDevice): string {
     strava: '🏃',
     polar: '⌚',
     withings: '⚖️',
-    oura_ring: '💍'
+    oura_ring: '💍',
+    whoop: '💪'
   }
   return icons[device] || '⌚'
 }
@@ -603,7 +918,8 @@ export function getDeviceName(device: WearableDevice): string {
     strava: 'Strava',
     polar: 'Polar',
     withings: 'Withings',
-    oura_ring: 'Oura Ring'
+    oura_ring: 'Oura Ring',
+    whoop: 'Whoop'
   }
   return names[device] || device
 }

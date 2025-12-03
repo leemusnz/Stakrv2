@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Calculator, HelpCircle, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+import { FloatingAmbientGlows } from '@/components/floating-ambient-glows'
 
 export default function PricingPage() {
   const [stakeAmount, setStakeAmount] = useState(100)
@@ -17,9 +18,20 @@ export default function PricingPage() {
   const totalCost = stakeAmount + entryFee + insuranceFee
   
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Ambient Glows */}
+      <FloatingAmbientGlows />
+
+      {/* Noise Texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
       {/* Header */}
-      <div className="border-b bg-white">
+      <div className="relative z-10 border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-black/40 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">

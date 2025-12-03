@@ -215,7 +215,7 @@ export function SocialSharing({ type, data, onShare }: SocialSharingProps) {
         </div>
 
         {/* Motivation */}
-        <div className="text-center p-3 bg-muted/30 rounded-lg">
+        <div className="text-center p-3 bg-slate-100/30 dark:bg-white/5 rounded-lg">
           <p className="text-sm text-muted-foreground">
             Share your success to inspire others and build your accountability network! 🚀
           </p>

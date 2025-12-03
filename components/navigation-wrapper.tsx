@@ -8,6 +8,7 @@ import { Button } from './ui/button'
 import Link from 'next/link'
 import { Logo } from './logo'
 import { useUserAvatar } from '@/hooks/use-user-avatar'
+import { ThemeToggle } from './theme-toggle'
 
 export function NavigationWrapper() {
   const { data: session, status } = useSession()
@@ -49,6 +50,7 @@ export function NavigationWrapper() {
           </Link>
           
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             {/* Show different navigation based on context */}
             {isOnOnboarding ? (
               // During onboarding - minimal, focused navigation

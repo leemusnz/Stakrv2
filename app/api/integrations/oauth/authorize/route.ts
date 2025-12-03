@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { generateOAuthState } from '@/lib/oauth-state'
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +17,9 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-    const state = `${session.user.id}-${Date.now()}` // Simple state for CSRF protection
+    
+    // Generate cryptographically secure OAuth state for CSRF protection
+    const state = await generateOAuthState(session.user.id, provider)
 
     let authUrl: string
 
@@ -81,6 +84,15 @@ export async function POST(request: NextRequest) {
           `client_id=${process.env.MYFITNESSPAL_CLIENT_ID}&` +
           `response_type=code&` +
           `redirect_uri=${encodeURIComponent(`${baseUrl}/api/auth/callback/myfitnesspal`)}&` +
+          `state=${state}`
+        break
+
+      case 'whoop':
+        authUrl = `https://api.prod.whoop.com/oauth/oauth2/auth?` +
+          `response_type=code&` +
+          `client_id=${process.env.WHOOP_CLIENT_ID}&` +
+          `scope=read:recovery read:cycles read:workout read:sleep read:profile read:body_measurement&` +
+          `redirect_uri=${encodeURIComponent(`${baseUrl}/api/integrations/callback/whoop`)}&` +
           `state=${state}`
         break
 

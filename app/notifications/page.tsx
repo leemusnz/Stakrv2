@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { useNotifications } from "@/components/notifications/notification-provider"
 import { Bell, Check, X, Clock, Trophy, Users, Settings } from "lucide-react"
 import Link from "next/link"
+import { FloatingAmbientGlows } from '@/components/floating-ambient-glows'
 
 export default function NotificationsPage() {
   const { notifications, markAsRead, markAllAsRead, removeNotification } = useNotifications()
@@ -41,12 +42,24 @@ export default function NotificationsPage() {
   const readNotifications = notifications.filter((n) => n.read)
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Notifications</h1>
-          <p className="text-muted-foreground">Stay updated with your challenges and activities</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Ambient Glows */}
+      <FloatingAmbientGlows />
+
+      {/* Noise Texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="relative z-10 max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-heading font-bold text-slate-900 dark:text-white tracking-tight">Notifications</h1>
+            <p className="text-slate-600 dark:text-slate-400 font-body text-lg mt-2">Stay updated with your challenges and activities</p>
+          </div>
         {unreadNotifications.length > 0 && (
           <Button onClick={markAllAsRead} variant="outline">
             <Check className="w-4 h-4 mr-2" />
@@ -183,6 +196,7 @@ export default function NotificationsPage() {
           )}
         </div>
       )}
+      </div>
     </div>
   )
 }

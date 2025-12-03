@@ -249,15 +249,8 @@ export default function OnboardingPage() {
     console.log("Toggle variant:", variant)
   }
 
-  // Don't render onboarding if user is authenticated (will redirect)
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
+  // Don't render onboarding if user is authenticated and completed (will redirect)
+  // Allow rendering during loading to show the loading spinner
   if (session?.user && session.user.onboardingCompleted) {
     return null // Will redirect via useEffect
   }

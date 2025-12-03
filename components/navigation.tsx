@@ -16,6 +16,7 @@ import {
 import { Home, Search, Trophy, Wallet, Settings, LogOut, Plus, Menu, X, Shield, DollarSign, Users, Bug } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { NotificationDropdown } from "@/components/notifications/notification-dropdown"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { useAvatar } from "@/hooks/use-avatar"
 import { cn } from "@/lib/utils"
@@ -112,8 +113,13 @@ export function Navigation({ user, onLogout }: NavigationProps) {
             </Link>
           </div>
 
-          {/* Right Side: credits, notifications, avatar */}
+          {/* Right Side: theme toggle, credits, notifications, avatar */}
           <div className="flex items-center gap-3 justify-end">
+            {/* Theme Toggle - Desktop */}
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+            
             {/* Desktop create button (restored) */}
             <Link href="/create-challenge" className="hidden md:block" aria-label="Create challenge (desktop)">
               <Button

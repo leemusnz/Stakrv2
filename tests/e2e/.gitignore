@@ -1,0 +1,8 @@
+# Playwright auth state
+.auth/
+
+# Test artifacts
+test-results/
+playwright-report/
+
+

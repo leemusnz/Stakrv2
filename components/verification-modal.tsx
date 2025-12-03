@@ -415,7 +415,7 @@ export function VerificationModal({ isOpen, onOpenChange, challenge, onSubmit }:
               autoPlay
               playsInline
               muted
-              className="w-full h-48 bg-black rounded-lg"
+              className="w-full h-48 bg-slate-900 dark:bg-black rounded-lg"
             />
             <canvas
               ref={canvasRef}

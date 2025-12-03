@@ -402,13 +402,15 @@ describe('Integration API Endpoints', () => {
       'strava',
       'polar',
       'withings',
-      'oura_ring'
+      'oura_ring',
+      'whoop'
     ]
     
     expect(availableDevices).toContain('apple_watch')
     expect(availableDevices).toContain('fitbit')
     expect(availableDevices).toContain('strava')
-    expect(availableDevices.length).toBe(9)
+    expect(availableDevices).toContain('whoop')
+    expect(availableDevices.length).toBe(10)
   })
 
   test('should list available apps', () => {
