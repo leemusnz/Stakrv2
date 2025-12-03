@@ -1,13 +1,12 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect, useCallback } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import { toast } from "sonner"
-import { useSession } from "next-auth/react"
 
 interface Notification {
   id: string
-  type: "challenge" | "verification" | "system" | "social" | "financial" | "insurance" | "withdrawal" | "reward"
+  type: "challenge" | "verification" | "system" | "social"
   title: string
   message: string
   timestamp: Date
@@ -19,12 +18,10 @@ interface Notification {
 interface NotificationContextType {
   notifications: Notification[]
   unreadCount: number
-  isLoading: boolean
-  markAsRead: (id: string) => Promise<void>
-  markAllAsRead: () => Promise<void>
+  markAsRead: (id: string) => void
+  markAllAsRead: () => void
   addNotification: (notification: Omit<Notification, "id" | "timestamp" | "read">) => void
-  removeNotification: (id: string) => Promise<void>
-  refreshNotifications: () => Promise<void>
+  removeNotification: (id: string) => void
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
@@ -38,112 +35,32 @@ export function useNotifications() {
 }
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession()
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [lastFetchedCount, setLastFetchedCount] = useState(0)
+  const [notifications, setNotifications] = useState<Notification[]>([
+    {
+      id: "welcome",
+      type: "system",
+      title: "Welcome to Stakr! 🎉",
+      message: "Start your first challenge to begin your journey",
+      timestamp: new Date(),
+      read: false,
+      actionUrl: "/discover",
+    }
+  ])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  // Fetch notifications from API
-  const fetchNotifications = useCallback(async () => {
-    if (status !== 'authenticated' || !session?.user) {
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      const response = await fetch('/api/user/notifications')
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch notifications')
-      }
-
-      const data = await response.json()
-      
-      if (data.success && data.notifications) {
-        const formattedNotifications = data.notifications.map((n: any) => ({
-          ...n,
-          timestamp: new Date(n.timestamp)
-        }))
-        
-        setNotifications(formattedNotifications)
-        
-        // Show toast for new notifications (only if we had previous notifications)
-        if (lastFetchedCount > 0 && data.notifications.length > lastFetchedCount) {
-          const newNotifications = data.notifications.slice(0, data.notifications.length - lastFetchedCount)
-          newNotifications.forEach((n: any) => {
-            if (!n.read) {
-              toast(n.title, {
-                description: n.message,
-                action: n.actionUrl
-                  ? {
-                      label: "View",
-                      onClick: () => (window.location.href = n.actionUrl!),
-                    }
-                  : undefined,
-              })
-            }
-          })
-        }
-        
-        setLastFetchedCount(data.notifications.length)
-      }
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [status, session, lastFetchedCount])
-
-  // Mark single notification as read
-  const markAsRead = async (id: string) => {
-    try {
-      // Optimistic update
-      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
-
-      const response = await fetch(`/api/user/notifications/${id}`, {
-        method: 'PATCH',
-      })
-
-      if (!response.ok) {
-        // Revert on failure
-        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: false } : n)))
-        throw new Error('Failed to mark notification as read')
-      }
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error)
-      toast.error('Failed to mark notification as read')
-    }
+  const markAsRead = (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
   }
 
-  // Mark all notifications as read
-  const markAllAsRead = async () => {
-    try {
-      // Optimistic update
-      const previousNotifications = [...notifications]
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-
-      const response = await fetch('/api/user/notifications', {
-        method: 'PATCH',
-      })
-
-      if (!response.ok) {
-        // Revert on failure
-        setNotifications(previousNotifications)
-        throw new Error('Failed to mark all notifications as read')
-      }
-    } catch (error) {
-      console.error('Failed to mark all notifications as read:', error)
-      toast.error('Failed to mark all notifications as read')
-    }
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
   }
 
-  // Add notification (client-side only, for real-time updates)
   const addNotification = (notification: Omit<Notification, "id" | "timestamp" | "read">) => {
     const newNotification: Notification = {
       ...notification,
-      id: `temp-${Date.now()}`,
+      id: Date.now().toString(),
       timestamp: new Date(),
       read: false,
     }
@@ -162,60 +79,25 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     })
   }
 
-  // Remove notification
-  const removeNotification = async (id: string) => {
-    try {
-      // Optimistic update
-      const previousNotifications = [...notifications]
-      setNotifications((prev) => prev.filter((n) => n.id !== id))
-
-      const response = await fetch(`/api/user/notifications/${id}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        // Revert on failure
-        setNotifications(previousNotifications)
-        throw new Error('Failed to delete notification')
-      }
-    } catch (error) {
-      console.error('Failed to delete notification:', error)
-      toast.error('Failed to delete notification')
-    }
+  const removeNotification = (id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
   }
 
-  // Refresh notifications manually
-  const refreshNotifications = async () => {
-    await fetchNotifications()
-  }
-
-  // Initial load
+  // Load real notifications from API
   useEffect(() => {
-    fetchNotifications()
-  }, [fetchNotifications])
-
-  // Poll for new notifications every 30 seconds
-  useEffect(() => {
-    if (status !== 'authenticated') return
-
-    const interval = setInterval(() => {
-      fetchNotifications()
-    }, 30000) // 30 seconds
-
-    return () => clearInterval(interval)
-  }, [status, fetchNotifications])
+    // TODO: Load real notifications from /api/user/notifications
+    // For now, just show the welcome notification for new users
+  }, [])
 
   return (
     <NotificationContext.Provider
       value={{
         notifications,
         unreadCount,
-        isLoading,
         markAsRead,
         markAllAsRead,
         addNotification,
         removeNotification,
-        refreshNotifications,
       }}
     >
       {children}
