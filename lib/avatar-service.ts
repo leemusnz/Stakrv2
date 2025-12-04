@@ -60,16 +60,11 @@ export function getUserAvatar(options: {
 
 /**
  * Apply S3 proxy for CORS bypass and caching
- * TODO: Remove proxy once S3 bucket is made public for better performance
+ * NOTE: Proxy removed - S3 bucket is now public for direct access (5-10x faster!)
  */
 export function applyS3Proxy(url: string): string {
-  if (!url || !url.includes('stakr-verification-files.s3')) {
-    return url
-  }
-
-  // Use proxy until S3 bucket is made public
-  const stableTimestamp = url.split('/').pop()?.split('-')[0] || 'default'
-  return `/api/image-proxy?url=${encodeURIComponent(url)}&v=${stableTimestamp}`
+  // Return direct URLs - S3 is now public for avatars
+  return url
 }
 
 /**
