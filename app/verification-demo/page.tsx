@@ -1,8 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { notFound } from 'next/navigation'
+
+// Production guard - only allow in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+  notFound()
+}
 import { VerificationTrigger } from "@/components/verification-trigger"
-import { DevTestingPanel } from "@/components/dev-testing-panel"
+// DevTestingPanel removed - component was for development only
 import { useDevMode } from "@/components/dev-mode-toggle"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -56,15 +62,14 @@ export default function VerificationDemo() {
         </Badge>
       </div>
 
-      {/* Dev Testing Panel - Only show when dev mode is enabled */}
+      {/* Dev Testing Panel - Component removed, use dev-tools page instead */}
       {isDevModeEnabled && (
-        <DevTestingPanel
-          onProofTypeChange={setCurrentProofType}
-          onResponseModeChange={setResponseMode}
-          onReset={() => console.log("Reset triggered")}
-          submissions={submissions}
-          onClearSubmissions={() => setSubmissions([])}
-        />
+        <div className="text-center p-8 bg-muted/50 rounded-lg">
+          <p className="text-muted-foreground mb-4">Dev Testing Panel has been moved</p>
+          <Button onClick={() => window.location.href = '/dev-tools'}>
+            Go to Dev Tools
+          </Button>
+        </div>
       )}
 
       <Card className="border-green-200 bg-green-50/50">

@@ -30,7 +30,26 @@ next-env.d.ts
 /coverage/
 *.lcov
 /test-reports/
+/jest-report.json
+/test-results/
+/playwright-report/
+
+# build outputs
+build-output.log
+*.tsbuildinfo
+
+# lock files (using npm only)
+pnpm-lock.yaml
+yarn.lock
 
 # temporary/junk files
 *.backup
+*.bak
+*.old
+/temp-*/
 temp-logos/
+
+# meta-documentation (cleanup reports)
+PHASE_*_CLEANUP_COMPLETE.md
+COMPONENT_ANALYSIS.md
+REDUNDANCY_ANALYSIS_REPORT.md

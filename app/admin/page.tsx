@@ -325,46 +325,46 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-10">
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
+        <TabsList className="w-full inline-flex overflow-x-auto">
+          <TabsTrigger value="analytics" className="flex items-center gap-1 text-xs md:text-sm md:gap-2">
             <BarChart3 className="w-4 h-4" />
-            Analytics
+            <span className="hidden sm:inline">Analytics</span>
           </TabsTrigger>
-          <TabsTrigger value="verifications" className="flex items-center gap-2">
+          <TabsTrigger value="verifications" className="flex items-center gap-1 text-xs md:text-sm md:gap-2">
             <Eye className="w-4 h-4" />
-            Verifications
+            <span className="hidden sm:inline">Verifications</span>
           </TabsTrigger>
-          <TabsTrigger value="appeals" className="flex items-center gap-2">
+          <TabsTrigger value="appeals" className="flex items-center gap-1 text-xs md:text-sm md:gap-2">
             <MessageSquare className="w-4 h-4" />
-            Appeals
+            <span className="hidden sm:inline">Appeals</span>
           </TabsTrigger>
-          <TabsTrigger value="moderation" className="flex items-center gap-2">
+          <TabsTrigger value="moderation" className="flex items-center gap-1 text-xs md:text-sm md:gap-2">
             <Shield className="w-4 h-4" />
-            Moderation
+            <span className="hidden sm:inline">Moderation</span>
           </TabsTrigger>
-          <TabsTrigger value="ai-anticheat" className="flex items-center gap-2">
+          <TabsTrigger value="ai-anticheat" className="flex items-center gap-1 text-xs md:text-sm md:gap-2">
             <Brain className="w-4 h-4" />
-            AI Security
+            <span className="hidden sm:inline">AI Security</span>
           </TabsTrigger>
-          <TabsTrigger value="monitoring" className="flex items-center gap-2">
+          <TabsTrigger value="monitoring" className="flex items-center gap-1 text-xs md:text-sm md:gap-2">
             <Monitor className="w-4 h-4" />
-            System
+            <span className="hidden sm:inline">System</span>
           </TabsTrigger>
-          <TabsTrigger value="users" className="flex items-center gap-2">
+          <TabsTrigger value="users" className="flex items-center gap-1 text-xs md:text-sm md:gap-2">
             <Users className="w-4 h-4" />
-            Users
+            <span className="hidden sm:inline">Users</span>
           </TabsTrigger>
-          <TabsTrigger value="dev-access" className="flex items-center gap-2">
+          <TabsTrigger value="dev-access" className="flex items-center gap-1 text-xs md:text-sm md:gap-2">
             <Zap className="w-4 h-4" />
-            Dev Access
+            <span className="hidden sm:inline">Dev Access</span>
           </TabsTrigger>
-          <TabsTrigger value="dev-tools" className="flex items-center gap-2">
+          <TabsTrigger value="dev-tools" className="flex items-center gap-1 text-xs md:text-sm md:gap-2">
             <Bug className="w-4 h-4" />
-            Dev Tools
+            <span className="hidden sm:inline">Dev Tools</span>
           </TabsTrigger>
-          <TabsTrigger value="logs" className="flex items-center gap-2">
+          <TabsTrigger value="logs" className="flex items-center gap-1 text-xs md:text-sm md:gap-2">
             <Activity className="w-4 h-4" />
-            Logs
+            <span className="hidden sm:inline">Logs</span>
           </TabsTrigger>
         </TabsList>
 

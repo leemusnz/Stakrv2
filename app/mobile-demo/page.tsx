@@ -1,6 +1,12 @@
 "use client"
 
 import { useState } from "react"
+import { notFound } from 'next/navigation'
+
+// Production guard - only allow in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+  notFound()
+}
 import { MobileContainer, MobileSectionWrapper } from "@/components/mobile-container"
 import { DashboardMobile } from "@/components/dashboard-mobile"
 import { DiscoverMobile } from "@/components/discover-mobile"

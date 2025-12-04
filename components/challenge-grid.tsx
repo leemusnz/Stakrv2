@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ChallengeCardNew } from "@/components/challenge-card-new"
+import { ChallengeCard } from "@/components/challenge-card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -317,18 +317,19 @@ export function ChallengeGrid() {
         >
           {filteredChallenges.map((challenge) => (
             <div key={challenge.id} className="flex justify-center">
-              <ChallengeCardNew
+              <ChallengeCard
+                id={challenge.id}
                 title={challenge.title}
+                description={challenge.description || ''}
                 category={challenge.category}
                 participants={challenge.participants}
-                stakeAmount={challenge.minStake}
+                minStake={challenge.minStake}
+                maxStake={challenge.maxStake || challenge.minStake}
                 duration={challenge.duration}
                 difficulty={challenge.difficulty as any}
-                isPopular={challenge.participants > 100}
                 progress={challenge.isJoined ? challenge.progress : undefined}
-                imageUrl={challenge.thumbnailUrl}
-                hostAvatarUrl={challenge.hostAvatar}
-                onJoin={() => window.location.href = `/challenge/${challenge.id}`}
+                isJoined={challenge.isJoined}
+                isActive={challenge.isActive}
               />
             </div>
           ))}

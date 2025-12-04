@@ -15,10 +15,19 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import dynamic from "next/dynamic"
 import { DevModeToggle } from "@/components/dev-mode-toggle"
 import { ProfilePictureUpload } from "@/components/profile-picture-upload"
-import { IntegrationManager } from "@/components/integrations/integration-manager"
 import { User, Bell, Shield, SettingsIcon, Camera, Save, Trash2, Eye, EyeOff, Link } from "lucide-react"
+
+// Dynamic import for IntegrationManager to reduce initial bundle size
+const IntegrationManager = dynamic(
+  () => import("@/components/integrations/integration-manager").then(mod => ({ default: mod.IntegrationManager })),
+  { 
+    loading: () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>,
+    ssr: false 
+  }
+)
 
 export default function SettingsPage() {
   const { data: session, status, update } = useSession()
@@ -66,10 +75,23 @@ export default function SettingsPage() {
   const { loading: isSavingProfile, mutate: saveProfile } = useMutation(
     '/api/user/profile',
     {
+      method: 'PATCH',
       showSuccessToast: 'Profile updated successfully!',
-      onSuccess: async () => {
-        // Refresh session to get updated data
-        await update()
+      onSuccess: async (data: any) => {
+        console.log('✅ Profile save successful, updating session with:', data)
+        // Update session with the new profile data
+        if (data.profile) {
+          await update({
+            ...session,
+            user: {
+              ...session?.user,
+              ...data.profile
+            }
+          })
+        } else {
+          // Fallback: just trigger a session refresh
+          await update()
+        }
       }
     }
   )
@@ -135,7 +157,7 @@ export default function SettingsPage() {
     try {
       if (section === 'profile') {
         // Save profile settings using mutation hook with automatic loading & toast
-        await updateProfile({
+        await saveProfile({
           name: settings.profile.name,
           username: settings.profile.username,
           avatar: settings.profile.avatar
@@ -260,26 +282,26 @@ export default function SettingsPage() {
 
         {/* Settings Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+          <TabsList className="w-full grid grid-cols-5 md:inline-flex md:w-auto">
+            <TabsTrigger value="profile" className="flex items-center gap-2 md:gap-2 text-xs md:text-sm">
               <User className="w-4 h-4" />
-              Profile
+              <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="integrations" className="flex items-center gap-2">
+            <TabsTrigger value="integrations" className="flex items-center gap-2 md:gap-2 text-xs md:text-sm">
               <Link className="w-4 h-4" />
-              Integrations
+              <span className="hidden sm:inline">Integrations</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <TabsTrigger value="notifications" className="flex items-center gap-2 md:gap-2 text-xs md:text-sm">
               <Bell className="w-4 h-4" />
-              Notifications
+              <span className="hidden sm:inline">Notifications</span>
             </TabsTrigger>
-            <TabsTrigger value="privacy" className="flex items-center gap-2">
+            <TabsTrigger value="privacy" className="flex items-center gap-2 md:gap-2 text-xs md:text-sm">
               <Shield className="w-4 h-4" />
-              Privacy
+              <span className="hidden sm:inline">Privacy</span>
             </TabsTrigger>
-            <TabsTrigger value="account" className="flex items-center gap-2">
+            <TabsTrigger value="account" className="flex items-center gap-2 md:gap-2 text-xs md:text-sm">
               <SettingsIcon className="w-4 h-4" />
-              Account
+              <span className="hidden sm:inline">Account</span>
             </TabsTrigger>
           </TabsList>
 

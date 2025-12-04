@@ -440,7 +440,7 @@ export default function WalletPage() {
 
         {/* Wallet Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="w-full inline-flex md:grid md:grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="stakes">Active Stakes</TabsTrigger>

@@ -150,19 +150,61 @@ export default function Discover() {
     window.location.href = `/challenge/${challenge.id}`
   }
 
-  const handleSaveChallenge = (challenge: any) => {
-    console.log("Saving challenge:", challenge.title)
-    // TODO: Implement save functionality
+  const handleSaveChallenge = async (challenge: any) => {
+    try {
+      const response = await fetch('/api/user/saved-challenges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challengeId: challenge.id })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        toast.success(data.alreadySaved ? 'Challenge already saved' : 'Challenge saved!', {
+          description: 'View your saved challenges in your profile'
+        })
+      } else {
+        toast.error('Failed to save challenge')
+      }
+    } catch (error) {
+      console.error('Error saving challenge:', error)
+      toast.error('Failed to save challenge')
+    }
   }
 
   const handlePassChallenge = (challenge: any) => {
-    console.log("Passing on challenge:", challenge.title)
-    // TODO: Implement pass functionality
+    // For now, just provide feedback that the challenge was passed
+    // This could be enhanced later with a "not interested" tracking system
+    toast.info('Challenge passed', {
+      description: 'We\'ll show you different challenges'
+    })
   }
 
-  const handleFollowCreator = (creator: any) => {
-    console.log("Following creator:", creator.name)
-    // TODO: Implement follow functionality
+  const handleFollowCreator = async (creator: any) => {
+    try {
+      const response = await fetch('/api/social/follow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          targetUserId: creator.id, 
+          action: 'follow' 
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        toast.success(`Now following ${creator.name}!`, {
+          description: 'You\'ll see their challenges and updates in your feed'
+        })
+      } else {
+        toast.error(data.error || 'Failed to follow creator')
+      }
+    } catch (error) {
+      console.error('Error following creator:', error)
+      toast.error('Failed to follow creator')
+    }
   }
 
   // Use mobile discover on mobile devices

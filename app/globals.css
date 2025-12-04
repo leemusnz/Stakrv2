@@ -139,6 +139,15 @@ html, body {
     text-wrap: balance;
   }
   
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+  
   /* Mobile-first touch optimizations */
   .touch-target {
     min-height: 44px;

@@ -598,7 +598,7 @@ export function ChallengeCommunityTabs({
         />
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="w-full inline-flex md:grid md:grid-cols-4">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="community">Community</TabsTrigger>
             <TabsTrigger value="participants" className="relative">

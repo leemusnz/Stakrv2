@@ -524,7 +524,7 @@ export async function distributeRewards(
           ${refundAmount}, 
           'insurance_payout', 
           ${challengeId},
-          ${`Insurance payout for failed challenge: ${rewardResult.challenge_stats.title}`},
+          'Insurance payout for failed challenge: ${rewardResult.challenge_stats.title}',
           NOW()
         )
       `

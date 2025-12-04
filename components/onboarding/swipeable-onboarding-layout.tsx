@@ -49,8 +49,8 @@ export function SwipeableOnboardingLayout({
     <div
       className={cn("min-h-screen bg-background flex flex-col", className)}
       style={{
-        paddingBottom: isMobile ? "var(--bottom-nav-safe-space, 0px)" : "calc(var(--bottom-nav-safe-space, 0px) + var(--bottom-cta-height, 72px))",
-        ['--bottom-cta-height' as any]: '72px',
+        paddingBottom: "calc(var(--bottom-nav-safe-space, 0px) + 80px)", // Add extra space for the navigation footer
+        ['--bottom-cta-height' as any]: '80px',
       }}
     >
       {/* Progress Header */}
@@ -85,75 +85,76 @@ export function SwipeableOnboardingLayout({
                     </div>
                   </div>
 
-      {/* Navigation Footer - Desktop Only */}
-      {!isMobile && (
-        <div
-          className="bg-background/95 backdrop-blur border-t"
-          style={{
-            position: 'sticky' as const,
-            marginTop: 'auto',
-            zIndex: 60,
-            borderTopLeftRadius: '12px',
-            borderTopRightRadius: '12px',
-          }}
-        >
-          <div className="max-w-2xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between gap-4">
-              {/* Back Button */}
-              {showBackButton ? (
-                <Button
-                  variant="outline"
-                  onClick={onBack}
-                  disabled={!canGoBack || currentStep === 0 || isAnimating}
-                  className="flex items-center gap-2"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Back
-                </Button>
-              ) : (
-                <div /> // Spacer
-              )}
+      {/* Navigation Footer */}
+      <div
+        className="bg-background/95 backdrop-blur border-t"
+        style={{
+          position: isMobile ? 'fixed' as const : 'sticky' as const,
+          left: isMobile ? 0 : undefined,
+          right: isMobile ? 0 : undefined,
+          bottom: isMobile ? 'var(--bottom-nav-safe-space, 0px)' : undefined,
+          marginTop: !isMobile ? 'auto' : undefined,
+          zIndex: 60,
+          borderTopLeftRadius: '12px',
+          borderTopRightRadius: '12px',
+        }}
+      >
+        <div className="max-w-2xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between gap-4">
+            {/* Back Button */}
+            {showBackButton ? (
+              <Button
+                variant="outline"
+                onClick={onBack}
+                disabled={!canGoBack || currentStep === 0 || isAnimating}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back
+              </Button>
+            ) : (
+              <div /> // Spacer
+            )}
 
-              {/* Step Dots */}
-              <div className="flex gap-2">
-                {Array.from({ length: totalSteps }, (_, i) => (
-                  <button
-                    key={i}
-                    className={cn(
-                      "w-2 h-2 rounded-full transition-colors",
-                      i === currentStep ? "bg-primary" : "bg-muted",
-                      i < currentStep && "bg-primary/60"
-                    )}
-                    onClick={() => {
-                      // Allow jumping to completed steps
-                      if (i < currentStep) {
-                        const stepsBack = currentStep - i
-                        for (let j = 0; j < stepsBack; j++) {
-                          setTimeout(() => onBack(), j * 100)
-                        }
+            {/* Step Dots */}
+            <div className="flex gap-2">
+              {Array.from({ length: totalSteps }, (_, i) => (
+                <button
+                  key={i}
+                  className={cn(
+                    "w-2 h-2 rounded-full transition-colors",
+                    i === currentStep ? "bg-primary" : "bg-muted",
+                    i < currentStep && "bg-primary/60"
+                  )}
+                  onClick={() => {
+                    // Allow jumping to completed steps
+                    if (i < currentStep) {
+                      const stepsBack = currentStep - i
+                      for (let j = 0; j < stepsBack; j++) {
+                        setTimeout(() => onBack(), j * 100)
                       }
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Next Button - Only show if showNextButton is true */}
-              {showNextButton ? (
-                <Button
-                  onClick={onNext}
-                  disabled={!canGoNext || isAnimating}
-                  className="flex items-center gap-2"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              ) : (
-                <div /> // Spacer when Next button is hidden
-              )}
+                    }
+                  }}
+                />
+              ))}
             </div>
+
+            {/* Next Button - Only show if showNextButton is true */}
+            {showNextButton ? (
+              <Button
+                onClick={onNext}
+                disabled={!canGoNext || isAnimating}
+                className="flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <div /> // Spacer when Next button is hidden
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

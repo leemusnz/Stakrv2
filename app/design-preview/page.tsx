@@ -1,6 +1,12 @@
 "use client"
 
-import { ChallengeCardNew } from "@/components/challenge-card-new"
+import { ChallengeCard } from "@/components/challenge-card"
+import { notFound } from 'next/navigation'
+
+// Production guard - only allow in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+  notFound()
+}
 import { Sparkles } from "lucide-react"
 
 export default function DesignPreviewPage() {
@@ -83,7 +89,7 @@ export default function DesignPreviewPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
           {/* Card 1: Fitness */}
-          <ChallengeCardNew 
+          <ChallengeCard 
             title="30-Day Abs Blaster"
             category="Fitness"
             stakeAmount={50}
@@ -96,7 +102,7 @@ export default function DesignPreviewPage() {
           />
 
           {/* Card 2: Mindfulness (Active) */}
-          <ChallengeCardNew 
+          <ChallengeCard 
             title="Morning Meditation"
             category="Mindfulness"
             stakeAmount={25}
@@ -109,7 +115,7 @@ export default function DesignPreviewPage() {
           />
 
           {/* Card 3: Productivity - BRAND EXAMPLE */}
-          <ChallengeCardNew 
+          <ChallengeCard 
             title="Deep Work Protocol"
             category="Productivity"
             stakeAmount={100}

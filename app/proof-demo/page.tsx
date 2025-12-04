@@ -1,6 +1,12 @@
 'use client'
 
 import { ProofSubmission } from '@/components/proof-submission'
+import { notFound } from 'next/navigation'
+
+// Production guard - only allow in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+  notFound()
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'

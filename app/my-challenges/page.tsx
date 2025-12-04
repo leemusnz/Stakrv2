@@ -659,7 +659,7 @@ export default function MyChallengesPage() {
           />
         ) : (
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="w-full inline-flex md:grid md:grid-cols-4">
               <TabsTrigger value="active" className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 Active ({stats.activeChallenges})

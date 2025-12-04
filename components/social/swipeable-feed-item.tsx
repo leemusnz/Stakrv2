@@ -271,8 +271,13 @@ export function SwipeableFeedItem({
             </div>
 
             {/* Join/View Challenge Button */}
-            {post.content.challenge && (
-              <Button size="sm" variant="outline" className="bg-transparent">
+            {post.content.challenge && typeof post.content.challenge === 'object' && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="bg-transparent"
+                onClick={() => window.location.href = `/challenge/${(post.content.challenge as any).id}`}
+              >
                 {post.type === "challenge_created" ? "Join Challenge" : "View Challenge"}
               </Button>
             )}

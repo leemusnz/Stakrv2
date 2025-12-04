@@ -102,16 +102,24 @@ export async function PATCH(request: NextRequest) {
       try {
         const sql = await createDbConnection()
         
-        // Update user profile with moderation-approved data
-        const result = await sql`
-          UPDATE users 
-          SET 
-            ${name !== undefined ? sql`name = ${name},` : sql``}
-            ${username !== undefined ? sql`username = ${username},` : sql``}
-            ${avatar !== undefined ? sql`avatar_url = ${avatar},` : sql``}
-            updated_at = NOW()
+        // Update fields individually to avoid SQL syntax issues
+        let result: any[] = []
+        
+        if (name !== undefined) {
+          await sql`UPDATE users SET name = ${name}, updated_at = NOW() WHERE id = ${session.user.id}`
+        }
+        if (username !== undefined) {
+          await sql`UPDATE users SET username = ${username}, updated_at = NOW() WHERE id = ${session.user.id}`
+        }
+        if (avatar !== undefined) {
+          await sql`UPDATE users SET avatar_url = ${avatar}, updated_at = NOW() WHERE id = ${session.user.id}`
+        }
+        
+        // Fetch updated user data
+        result = await sql`
+          SELECT name, username, avatar_url, updated_at 
+          FROM users 
           WHERE id = ${session.user.id}
-          RETURNING name, username, avatar_url, updated_at
         `
         
         if (result.length > 0) {

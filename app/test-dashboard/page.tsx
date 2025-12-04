@@ -1,6 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { notFound } from 'next/navigation'
+
+// Production guard - only allow in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+  notFound()
+}
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

@@ -118,11 +118,12 @@ export function useApi<T = any>(
 }
 
 /**
- * Hook for mutations (POST/PUT/DELETE) with optimistic updates
+ * Hook for mutations (POST/PUT/PATCH/DELETE) with optimistic updates
  */
 export function useMutation<T = any, P = any>(
   url: string,
   options: UseApiOptions<T> & {
+    method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
     optimisticUpdate?: (variables: P) => void
     onOptimisticError?: () => void
   } = {}
@@ -145,7 +146,7 @@ export function useMutation<T = any, P = any>(
 
     try {
       const response = await apiCall<T>(url, {
-        method: 'POST',
+        method: options.method || 'POST',
         body: JSON.stringify(variables),
       })
 

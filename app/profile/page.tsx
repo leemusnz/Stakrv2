@@ -540,7 +540,7 @@ export default function ProfilePage() {
           />
         ) : (
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="w-full inline-flex md:grid md:grid-cols-4">
               <TabsTrigger value="posts">Posts</TabsTrigger>
               <TabsTrigger value="challenges">Challenges</TabsTrigger>
               <TabsTrigger value="achievements">Achievements</TabsTrigger>

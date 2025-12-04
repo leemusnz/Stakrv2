@@ -109,7 +109,7 @@ export function CreationLayout({
 
         {/* Navigation - sticks just above bottom nav */}
         <div
-          className="flex items-center justify-between mt-8 bg-background/95 backdrop-blur border-t"
+          className="flex items-center justify-between mt-8 bg-background/95 backdrop-blur border-t px-4 py-4"
           style={{
             position: 'fixed',
             left: 0,

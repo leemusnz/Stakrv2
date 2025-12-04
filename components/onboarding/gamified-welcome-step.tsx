@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Zap, Trophy, Brain, Users, Sparkles } from "lucide-react"
 import type { OnboardingData } from "@/app/onboarding/page"
-import { ChallengeCardNew } from "@/components/challenge-card-new"
+import { ChallengeCard } from "@/components/challenge-card"
 
 interface GamefiedWelcomeStepProps {
   data: OnboardingData
@@ -123,15 +123,17 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
             }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           >
-            <ChallengeCardNew
+            <ChallengeCard
+              id="demo-1"
               title="Early Riser Club"
+              description="Wake up early and start your day right"
               category="Productivity"
               participants={842}
-              stakeAmount={25}
+              minStake={25}
+              maxStake={100}
               duration="14 Days"
               difficulty="Medium"
               progress={0}
-              imageUrl="https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=800&q=80"
             />
           </motion.div>
 
@@ -144,15 +146,17 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
             }}
             transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           >
-            <ChallengeCardNew
+            <ChallengeCard
+              id="demo-2"
               title="Digital Detox"
+              description="Reduce screen time and reconnect with yourself"
               category="Mindfulness"
               participants={320}
-              stakeAmount={100}
+              minStake={100}
+              maxStake={200}
               duration="7 Days"
               difficulty="Hard"
               progress={0}
-              imageUrl="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800&q=80"
             />
           </motion.div>
 
@@ -164,16 +168,17 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
             }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           >
-            <ChallengeCardNew
+            <ChallengeCard
+              id="demo-3"
               title="30-Day Fitness Streak"
+              description="Build a consistent fitness habit"
               category="Fitness"
               participants={1234}
-              stakeAmount={50}
+              minStake={50}
+              maxStake={150}
               duration="30 Days"
               difficulty="Medium"
-              isPopular={true}
               progress={0}
-              imageUrl="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80"
             />
           </motion.div>
         </div>
@@ -183,16 +188,17 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
       <div className="lg:hidden pb-8">
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-blue-600/20 blur-3xl" />
-          <ChallengeCardNew
+          <ChallengeCard
+            id="demo-4"
             title="30-Day Fitness Streak"
+            description="Build a consistent fitness habit"
             category="Fitness"
             participants={1234}
-            stakeAmount={50}
+            minStake={50}
+            maxStake={150}
             duration="30 Days"
             difficulty="Medium"
-            isPopular={true}
             progress={0}
-            imageUrl="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80"
           />
         </div>
       </div>

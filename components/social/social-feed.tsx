@@ -469,7 +469,12 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
 
                     {/* Join/View Challenge Button */}
                     {item.content.challenge && (
-                      <Button size="sm" variant="outline" className="bg-transparent">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="bg-transparent"
+                        onClick={() => window.location.href = `/challenge/${item.content.challenge.id}`}
+                      >
                         {item.type === "challenge_created" ? "Join Challenge" : "View Challenge"}
                       </Button>
                     )}

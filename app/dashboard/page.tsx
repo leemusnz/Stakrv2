@@ -211,7 +211,12 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             {notifications.length > 0 && (
-              <Button variant="outline" size="sm" className="bg-white/50 dark:bg-white/5 border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white backdrop-blur-sm">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => router.push('/notifications')}
+                className="bg-white/50 dark:bg-white/5 border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white backdrop-blur-sm"
+              >
                 <Bell className="w-4 h-4 mr-2" />
                 {notifications.length}
               </Button>

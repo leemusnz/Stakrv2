@@ -1,109 +1,257 @@
 # Stakr Documentation
 
-Welcome to the Stakr documentation hub. This directory contains all project documentation organized by category.
-
-## 📁 Documentation Structure
-
-### 🤖 [AI Systems](./ai-systems/)
-- AI anti-cheat system design and implementation
-- Verification system architecture
-- AI-powered content moderation
-
-### 📱 [Mobile & UI](./mobile-ui/)
-- Mobile architecture and design
-- Swipe navigation implementation
-- UI/UX guidelines and testing
-
-### 🧪 [Testing](./testing/)
-- Test suite development and implementation
-- Testing strategies and best practices
-- Quality assurance processes
-
-### ⚙️ [Setup & Configuration](./setup/)
-- Environment setup guides
-- OAuth and authentication setup
-- Alpha access configuration
-- Storage and deployment setup
-
-### 💻 [Development](./development/)
-- Implementation guides and status
-- Integration documentation
-- Development best practices
-- Deployment checklists
-
-### 🔍 [Audits & Analysis](./audits/)
-- API coverage audits
-- System analysis reports
-- Cleanup plans and recommendations
-
-### ✨ [Features](./features/)
-- Feature-specific documentation
-- Avatar system guides
-- Content moderation setup
-- Demo data strategies
-
-### 💼 [Business](./business/)
-- Investor presentations
-- Business strategy documents
-- Market analysis
-
-## 🚀 Quick Start
-
-### For Developers:
-1. Start with [Setup & Configuration](./setup/) for environment setup
-2. Review [Development](./development/) for implementation guidelines
-3. Check [Testing](./testing/) for quality assurance processes
-
-### For Product Managers:
-1. Review [Business](./business/) for strategy and presentations
-2. Check [Features](./features/) for feature documentation
-3. Review [Audits & Analysis](./audits/) for system insights
-
-### For AI/ML Engineers:
-1. Start with [AI Systems](./ai-systems/) for AI implementation
-2. Review verification and anti-cheat systems
-3. Check content moderation documentation
-
-## 📋 Documentation Standards
-
-### File Naming:
-- Use descriptive, kebab-case names
-- Include dates for time-sensitive documents
-- Use consistent prefixes for related documents
-
-### Content Structure:
-- Start with a clear title and purpose
-- Include table of contents for long documents
-- Use consistent formatting and markdown
-- Include relevant code examples and screenshots
-
-### Maintenance:
-- Keep documentation up to date with code changes
-- Archive outdated documents
-- Regular review and cleanup of documentation
-
-## 🔄 Migration Status
-
-This documentation structure consolidates previously scattered documentation files from the root directory. All documentation has been organized into logical categories for better maintainability and discoverability.
-
-### Recently Consolidated:
-- ✅ AI Systems documentation
-- ✅ Mobile & UI documentation  
-- ✅ Testing documentation
-- ✅ Setup & Configuration guides
-- ✅ Development documentation
-- ✅ Audits & Analysis reports
-- ✅ Feature documentation
-- ✅ Business documentation
-
-## 📞 Support
-
-For questions about documentation or suggestions for improvements, please:
-1. Check existing documentation first
-2. Create an issue if documentation is missing or unclear
-3. Submit a pull request for documentation improvements
+Welcome to the Stakr documentation hub. This directory contains comprehensive guides for developers, product managers, and stakeholders.
 
 ---
 
-**Last Updated:** January 15, 2025
-**Version:** 2.0 (Consolidated Structure)
+## 📚 Core Documentation
+
+### 🚀 [Setup Guide](./SETUP_GUIDE.md)
+Complete environment setup including OAuth, database, storage, and deployment.
+
+**Topics:**
+- Environment variables
+- Google OAuth setup
+- AWS S3 configuration
+- Alpha access setup
+- Production deployment
+
+---
+
+### 🔔 [Notification System](./NOTIFICATION_SYSTEM.md)
+Comprehensive guide to the notification system with 35+ templates.
+
+**Topics:**
+- Notification templates (challenges, verification, social, financial)
+- User preferences (40+ settings)
+- Integration guide
+- Cron jobs
+- Email delivery
+
+---
+
+### 🔌 [Integrations Guide](./INTEGRATIONS_GUIDE.md)
+Connect with 22+ external services for automatic challenge verification.
+
+**Topics:**
+- Available integrations (Strava, WHOOP, Fitbit, GitHub, etc.)
+- OAuth implementation
+- Adding new integrations
+- Security best practices
+- Known issues and fixes
+
+---
+
+### 💪 [WHOOP Integration](./WHOOP_INTEGRATION.md)
+Detailed guide for WHOOP fitness tracker integration.
+
+**Topics:**
+- Quick setup (5 minutes)
+- OAuth configuration
+- Data types (recovery, strain, sleep)
+- Testing guide
+- Compliance and legal considerations
+
+---
+
+### 📱 [Mobile UI Guide](./MOBILE_UI_GUIDE.md)
+Mobile-first design with button-based interactions.
+
+**Topics:**
+- Mobile detection hooks
+- Touch-friendly components
+- Responsive layouts
+- Bottom navigation
+- Best practices
+
+---
+
+### 🧪 [Testing Guide](./TESTING_GUIDE.md)
+Comprehensive testing strategy and implementation.
+
+**Topics:**
+- Test infrastructure (Jest, Playwright)
+- Unit, integration, and E2E tests
+- Writing tests
+- CI/CD integration
+- Best practices
+
+---
+
+### 👤 [Avatar System](./AVATAR_SYSTEM.md)
+Profile picture upload and management system.
+
+**Topics:**
+- How it works
+- Upload flow
+- Troubleshooting
+- API endpoints
+- Best practices
+
+---
+
+## 📂 Additional Resources
+
+### Features Documentation
+
+**Location:** `./features/`
+
+- **Content Moderation Setup** - AI-powered content filtering
+- **Demo Data Strategy** - Hybrid demo system for development and sales
+- **MVP Verification Tiers** - Challenge verification levels
+- **XP System Design** - Gamification and rewards
+
+### Development Documentation
+
+**Location:** `./development/`
+
+- **Deployment Checklist** - Pre-launch verification
+- **Implementation Guide** - Development best practices
+- **Implementation Status** - Feature completion tracking
+- **Integrations Summary** - Integration system overview
+
+### Audit Documentation
+
+**Location:** `./audits/`
+
+- **API Coverage Audit** - API endpoint analysis
+- **Audit Cleanup Plan** - Code cleanup recommendations
+- **Current Verification Audit** - Verification system review
+
+### Business Documentation
+
+**Location:** `./business/`
+
+- **Stakr Verification Investor Presentation** - Pitch deck and business model
+
+---
+
+## 🎯 Quick Start
+
+### For New Developers
+
+1. **Setup:** Read [Setup Guide](./SETUP_GUIDE.md)
+2. **Test:** Review [Testing Guide](./TESTING_GUIDE.md)
+3. **Build:** Check [Mobile UI Guide](./MOBILE_UI_GUIDE.md)
+4. **Deploy:** Follow [Setup Guide - Production](./SETUP_GUIDE.md#production-deployment)
+
+### For Product Managers
+
+1. **Business Model:** Review [Business Documentation](./business/)
+2. **Features:** Check [Features Documentation](./features/)
+3. **Integrations:** Read [Integrations Guide](./INTEGRATIONS_GUIDE.md)
+4. **Status:** See [Implementation Status](./development/IMPLEMENTATION_STATUS.md)
+
+### For QA/Testing
+
+1. **Testing Strategy:** Read [Testing Guide](./TESTING_GUIDE.md)
+2. **Manual Testing:** Check individual feature guides
+3. **E2E Tests:** Review test files in `/tests/e2e/`
+4. **Bug Reports:** Use GitHub Issues with proper labels
+
+---
+
+## 📋 Documentation Standards
+
+### File Naming
+- Use descriptive, SCREAMING_SNAKE_CASE names
+- Example: `NOTIFICATION_SYSTEM.md`, `SETUP_GUIDE.md`
+
+### Content Structure
+- Start with clear title and status
+- Include table of contents for long documents
+- Use consistent markdown formatting
+- Include code examples where relevant
+- Add troubleshooting sections
+
+### Maintenance
+- Update documentation when code changes
+- Mark outdated sections clearly
+- Review quarterly for accuracy
+- Archive obsolete documents
+
+---
+
+## 🔄 Recent Changes
+
+**December 2025 - Documentation Consolidation:**
+- ✅ Consolidated 40+ scattered docs into 7 core guides
+- ✅ Removed duplicate and outdated content
+- ✅ Improved organization and discoverability
+- ✅ Added comprehensive troubleshooting sections
+- ✅ Standardized formatting across all docs
+
+**Previous Updates:**
+- Notification system documentation (35+ templates)
+- WHOOP integration guide (complete OAuth flow)
+- Mobile UI simplification (button-based interactions)
+- Testing infrastructure (Jest + Playwright)
+- Integration system fixes (security and reliability)
+
+---
+
+## 🆘 Getting Help
+
+### Documentation Issues
+- **Missing information?** Create a GitHub issue with label `documentation`
+- **Found errors?** Submit a pull request with corrections
+- **Need clarification?** Ask in team chat or create discussion
+
+### Technical Support
+- **Setup problems:** Check [Setup Guide - Troubleshooting](./SETUP_GUIDE.md#troubleshooting)
+- **Integration issues:** See [Integrations Guide](./INTEGRATIONS_GUIDE.md)
+- **Testing help:** Review [Testing Guide](./TESTING_GUIDE.md)
+- **Mobile UI:** Check [Mobile UI Guide](./MOBILE_UI_GUIDE.md)
+
+---
+
+## 📊 Documentation Coverage
+
+| Area | Status | Last Updated |
+|------|--------|--------------|
+| Setup & Configuration | ✅ Complete | Dec 2025 |
+| Notification System | ✅ Complete | Dec 2025 |
+| Integrations | ✅ Complete | Dec 2025 |
+| WHOOP Integration | ✅ Complete | Dec 2025 |
+| Mobile UI | ✅ Complete | Dec 2025 |
+| Testing | ✅ Complete | Dec 2025 |
+| Avatar System | ✅ Complete | Dec 2025 |
+| API Documentation | 🚧 In Progress | - |
+| Database Schema | 🚧 In Progress | - |
+| Deployment Guide | ✅ Complete | Dec 2025 |
+
+---
+
+## 🎨 Project Overview
+
+**Stakr** is a challenge-based self-improvement platform where users stake money/credits on completing personal challenges.
+
+### Core Features
+- **Challenge System:** Time-bound challenges with stakes and rewards
+- **Verification:** Proof-based verification with optional AI/integration verification
+- **Integrations:** 22+ services (WHOOP, Strava, Fitbit, GitHub, etc.)
+- **Social:** Community features, nudges, and social feed
+- **Payments:** Stripe integration with wallet system
+- **Gamification:** XP, achievements, streaks
+
+### Tech Stack
+- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
+- **Backend:** Next.js API Routes, PostgreSQL (Neon)
+- **Storage:** AWS S3
+- **Auth:** NextAuth.js with Google OAuth
+- **Payments:** Stripe
+- **Hosting:** Vercel
+
+---
+
+## 📞 Contact
+
+- **GitHub:** [Repository Link]
+- **Team Chat:** [Slack/Discord Link]
+- **Email:** [Support Email]
+
+---
+
+**Last Updated:** December 3, 2025  
+**Documentation Version:** 2.0 (Consolidated)  
+**Status:** ✅ Production Ready

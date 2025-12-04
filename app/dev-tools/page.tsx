@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
 import { DevModeToggle, useDevMode } from "@/components/dev-mode-toggle"
-import { AvatarTestPanel } from "@/components/avatar-test-panel"
+// Avatar test panel removed - use /test-avatar page instead
 import { AIAnalyzerControls } from "@/components/dev-tools/ai-analyzer-controls"
 import {
   Bug,
@@ -198,7 +198,7 @@ export default function DevToolsPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+          <TabsList className="w-full inline-flex overflow-x-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="ai-analyzer">AI Analyzer</TabsTrigger>
             <TabsTrigger value="database">Database</TabsTrigger>
@@ -818,7 +818,12 @@ export default function DevToolsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <AvatarTestPanel />
+                <div className="text-center p-8">
+                  <p className="text-muted-foreground mb-4">Avatar testing has been moved to a dedicated page</p>
+                  <Button onClick={() => window.location.href = '/test-avatar'}>
+                    Go to Avatar Test Page
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

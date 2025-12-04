@@ -211,7 +211,7 @@ export function ProfileSetupStep({ data, onNext }: ProfileSetupStepProps) {
 
             {/* Avatar Category Tabs */}
             <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="w-full inline-flex md:grid md:grid-cols-4">
                 {avatarCategories.map((category) => (
                   <TabsTrigger key={category.id} value={category.id} className="text-xs">
                     {category.name}

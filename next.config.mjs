@@ -9,6 +9,30 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  
+  // Performance optimizations
+  experimental: {
+    // Optimize package imports to reduce bundle size and compilation time
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-icons',
+      'date-fns',
+      'recharts'
+    ],
+  },
+  
+  // Webpack optimizations for faster dev builds
+  webpack: (config, { dev }) => {
+    if (dev) {
+      // Faster file watching on Windows
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      }
+    }
+    
+    return config
+  },
 }
 
 export default nextConfig
