@@ -47,8 +47,12 @@ export function ProfilePictureUpload({
   const sessionAvatar = session?.user?.image
   let rawAvatar = uploadedAvatarUrl || sessionAvatar || currentAvatar || previewUrl || getDefaultAvatar()
   
-  // Use direct S3 URLs for faster loading (S3 bucket is now public for avatars)
+  // Use image proxy for S3 URLs until bucket is made public
   let displayAvatar = rawAvatar
+  if (rawAvatar && rawAvatar.includes('stakr-verification-files.s3')) {
+    const stableTimestamp = rawAvatar.split('/').pop()?.split('-')[0] || 'default'
+    displayAvatar = `/api/image-proxy?url=${encodeURIComponent(rawAvatar)}&v=${stableTimestamp}`
+  }
   
   const isCustomAvatar = (uploadedAvatarUrl || sessionAvatar || currentAvatar) && 
     !rawAvatar.includes('dicebear') && 
