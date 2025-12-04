@@ -8,13 +8,18 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Converts raw avatar URLs for consistent display
  * @param rawAvatarUrl - The original avatar URL from database/session
- * @returns Direct URL - S3 bucket is now public for fast loading
+ * @returns Proxied URL for S3 images
  */
 export function getProxiedAvatarUrl(rawAvatarUrl?: string | null): string {
   if (!rawAvatarUrl) {
     return "/placeholder.svg"
   }
   
-  // Return direct S3 URLs - bucket is public for avatars (5-10x faster!)
+  // Use proxy for S3 URLs (bucket access needs configuration)
+  if (rawAvatarUrl.includes('stakr-verification-files.s3')) {
+    const stableTimestamp = rawAvatarUrl.split('/').pop()?.split('-')[0] || 'default'
+    return `/api/image-proxy?url=${encodeURIComponent(rawAvatarUrl)}&v=${stableTimestamp}`
+  }
+  
   return rawAvatarUrl
 }
