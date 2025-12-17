@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 
 import { systemLogger } from '@/lib/system-logger'
+import { notifyVerificationReversed } from '@/lib/notification-templates'
 
 // Mock verification data for demo accounts
 const getDemoVerifications = () => ({
@@ -436,7 +437,27 @@ export async function PUT(request: NextRequest) {
     `
 
     // TODO: Process financial implications (refund/charge stakes, recalculate rewards)
-    // TODO: Send notification to user about reversal
+
+    // Get challenge title and user id for notification
+    const notificationData = await sql`
+      SELECT c.title, ps.user_id
+      FROM proof_submissions ps
+      JOIN challenges c ON ps.challenge_id = c.id
+      WHERE ps.id = ${verificationId}
+    `
+
+    if (notificationData.length > 0) {
+      const { title, user_id } = notificationData[0]
+      await notifyVerificationReversed(
+        user_id,
+        currentVerification[0].challenge_id,
+        title,
+        currentStatus,
+        newStatus,
+        reason,
+        sql
+      )
+    }
 
     return NextResponse.json({
       success: true,

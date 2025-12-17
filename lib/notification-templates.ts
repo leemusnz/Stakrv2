@@ -1307,3 +1307,56 @@ export {
   notifyNewLogin
 }
 
+
+/**
+ * Verification decision reversed
+ */
+export async function notifyVerificationReversed(
+  userId: string,
+  challengeId: string,
+  challengeTitle: string,
+  oldStatus: string,
+  newStatus: string,
+  reason: string,
+  sqlOverride?: SqlTag
+): Promise<void> {
+  const { createNotification } = await import('./notification-service')
+
+  await createNotification({
+    userId,
+    type: 'verification',
+    title: '🔄 Verification Decision Reversed',
+    message: `The decision for your proof in "${challengeTitle}" was reversed from ${oldStatus} to ${newStatus}.`,
+    actionUrl: `/challenge/${challengeId}`,
+    metadata: {
+      challengeId,
+      challengeTitle,
+      oldStatus,
+      newStatus,
+      reason,
+      eventType: 'verification_reversed'
+    },
+    sendEmail: true,
+    emailSubject: `Update: Verification Decision for "${challengeTitle}"`,
+    emailBody: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">🔄 Verification Update</h2>
+        <p>The verification decision for your proof in <strong>"${challengeTitle}"</strong> has been reversed.</p>
+
+        <div style="background-color: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
+          <h3 style="margin-top: 0; color: #1e40af;">Status Change:</h3>
+          <p><strong>From:</strong> <span style="text-transform: capitalize;">${oldStatus}</span></p>
+          <p><strong>To:</strong> <span style="text-transform: capitalize; font-weight: bold;">${newStatus}</span></p>
+          <p><strong>Reason:</strong> ${reason}</p>
+        </div>
+
+        <p>Please check the challenge page for more details regarding this change.</p>
+
+        <a href="${process.env.NEXT_PUBLIC_BASE_URL}/challenge/${challengeId}"
+           style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+          View Challenge
+        </a>
+      </div>
+    `
+  }, sqlOverride)
+}
