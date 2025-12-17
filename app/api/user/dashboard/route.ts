@@ -2,14 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createDbConnection } from '@/lib/db'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { 
- 
-  getDemoUserData, 
-  getDemoActiveChallenges, 
-  getDemoCompletedChallenges, 
-  getDemoTransactions, 
-  getDemoNotifications 
-} from '@/lib/demo-data'
+import { isValidUUID } from '@/lib/utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,16 +26,15 @@ export async function GET(request: NextRequest) {
     const sql = await createDbConnection()
     console.log('🔌 Database connection established')
     
-    // QUICK FIX: Handle UUID format issue
+    // Standardized user ID handling to support both UUIDs and OAuth numeric IDs
     // The session.user.id might be a numeric string from Google OAuth
-    // but the database expects UUID format. Use email lookup as fallback.
+    // but the database expects UUID format.
     
     let userProfile = []
     let actualUserId: string
     
-    // Try user ID first, fallback to email if UUID format issue
-    try {
-      console.log('📋 Trying user ID lookup first...')
+    if (isValidUUID(session.user.id)) {
+      console.log('📋 Valid UUID detected, trying user ID lookup first...')
       userProfile = await sql`
         SELECT 
           id,
@@ -67,40 +59,42 @@ export async function GET(request: NextRequest) {
         WHERE id = ${session.user.id}
         LIMIT 1
       `
-      console.log('✅ User found by ID')
-    } catch (idError) {
-      console.log('⚠️ User ID lookup failed (likely UUID format issue), trying email lookup...')
-      console.log('🔍 ID Error:', idError instanceof Error ? idError.message : 'Unknown error')
-      
-      try {
-        userProfile = await sql`
-          SELECT 
-            id,
-            email,
-            name,
-            avatar_url,
-            credits,
-            trust_score,
-            verification_tier,
-            challenges_completed,
-            false_claims,
-            current_streak,
-            longest_streak,
-            premium_subscription,
-            premium_expires_at,
-            is_dev,
-            dev_mode_enabled,
-            xp,
-            level,
-            created_at
-          FROM users 
-          WHERE email = ${session.user.email}
-          LIMIT 1
-        `
+      if (userProfile.length > 0) {
+        console.log('✅ User found by ID')
+      }
+    } else {
+      console.log('⚠️ Invalid UUID (likely OAuth numeric ID), skipping ID lookup...')
+    }
+
+    // Fallback to email lookup if ID lookup skipped or failed to find user
+    if (userProfile.length === 0 && session.user.email) {
+      console.log('📋 Trying email lookup...')
+      userProfile = await sql`
+        SELECT
+          id,
+          email,
+          name,
+          avatar_url,
+          credits,
+          trust_score,
+          verification_tier,
+          challenges_completed,
+          false_claims,
+          current_streak,
+          longest_streak,
+          premium_subscription,
+          premium_expires_at,
+          is_dev,
+          dev_mode_enabled,
+          xp,
+          level,
+          created_at
+        FROM users
+        WHERE email = ${session.user.email}
+        LIMIT 1
+      `
+      if (userProfile.length > 0) {
         console.log('✅ User found by email')
-      } catch (emailError) {
-        console.log('❌ Both ID and email lookup failed')
-        throw emailError
       }
     }
     
