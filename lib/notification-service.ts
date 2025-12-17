@@ -347,3 +347,153 @@ export async function notifyBatchRewards(
   console.log(`✅ All reward notifications sent`)
 }
 
+/**
+ * Create notification for verification decision
+ */
+export async function notifyVerificationDecision(
+  userId: string,
+  challengeTitle: string,
+  decision: 'approved' | 'rejected',
+  reason: string,
+  verificationId: string,
+  sqlOverride?: SqlTag
+): Promise<void> {
+  const isApproved = decision === 'approved'
+  const title = isApproved ? '✅ Verification Approved' : '❌ Verification Rejected'
+  const message = isApproved
+    ? `Your proof for "${challengeTitle}" has been approved!`
+    : `Your proof for "${challengeTitle}" was rejected. Reason: ${reason}`
+
+  const emailSubject = `Stakr - ${title}`
+  const emailColor = isApproved ? '#10b981' : '#ef4444'
+  const emailIcon = isApproved ? '✅' : '❌'
+
+  const emailBody = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: ${emailColor};">${emailIcon} Verification ${isApproved ? 'Approved' : 'Rejected'}</h2>
+      <p>Your proof submission for <strong>${challengeTitle}</strong> has been ${decision}.</p>
+
+      <div style="background-color: ${isApproved ? '#ecfdf5' : '#fef2f2'}; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${emailColor};">
+        <h3 style="margin-top: 0; color: ${isApproved ? '#065f46' : '#991b1b'};">Decision Details</h3>
+        <p style="margin: 10px 0;">
+          <strong>Status:</strong>
+          <span style="color: ${emailColor}; font-weight: bold; text-transform: uppercase;">${decision}</span>
+        </p>
+        ${reason ? `
+        <p style="margin: 10px 0;">
+          <strong>Admin Note:</strong><br/>
+          ${reason}
+        </p>
+        ` : ''}
+        <p style="margin: 10px 0; color: #6b7280; font-size: 14px;">
+          Verification ID: ${verificationId}
+        </p>
+      </div>
+
+      ${isApproved ? `
+      <p style="color: #6b7280;">
+        Great job! You're one step closer to completing the challenge.
+      </p>
+      ` : `
+      <p style="color: #6b7280;">
+        Don't give up! Check the reason above and try to submit better proof next time if the challenge allows.
+      </p>
+      `}
+
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://stakr.app'}/dashboard"
+           style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+          Go to Dashboard
+        </a>
+      </div>
+    </div>
+  `
+
+  const notification: NotificationData = {
+    userId,
+    type: 'verification',
+    title,
+    message,
+    actionUrl: `/dashboard`, // Ideally link to specific challenge or verification view
+    metadata: {
+      challengeTitle,
+      decision,
+      reason,
+      verificationId,
+      timestamp: new Date().toISOString()
+    },
+    sendEmail: true,
+    emailSubject,
+    emailBody
+  }
+
+  await createNotification(notification, sqlOverride)
+}
+
+/**
+ * Create notification for verification reversal
+ */
+export async function notifyVerificationReversal(
+  userId: string,
+  challengeTitle: string,
+  newStatus: 'approved' | 'rejected',
+  reason: string,
+  verificationId: string,
+  sqlOverride?: SqlTag
+): Promise<void> {
+  const isApproved = newStatus === 'approved'
+  const title = '⚠️ Verification Decision Reversed'
+  const message = `The decision for your proof in "${challengeTitle}" has been reversed to: ${newStatus.toUpperCase()}. Reason: ${reason}`
+
+  const emailColor = '#f59e0b' // Amber for warning/change
+
+  const emailBody = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: ${emailColor};">⚠️ Decision Reversed</h2>
+      <p>The previous decision on your proof for <strong>${challengeTitle}</strong> has been reversed.</p>
+
+      <div style="background-color: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${emailColor};">
+        <h3 style="margin-top: 0; color: #92400e;">Updated Status</h3>
+        <p style="margin: 10px 0;">
+          <strong>New Status:</strong>
+          <span style="font-weight: bold; text-transform: uppercase;">${newStatus}</span>
+        </p>
+        <p style="margin: 10px 0;">
+          <strong>Reason for Reversal:</strong><br/>
+          ${reason}
+        </p>
+        <p style="margin: 10px 0; color: #6b7280; font-size: 14px;">
+          Verification ID: ${verificationId}
+        </p>
+      </div>
+
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://stakr.app'}/dashboard"
+           style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+          Check Status
+        </a>
+      </div>
+    </div>
+  `
+
+  const notification: NotificationData = {
+    userId,
+    type: 'system', // Using system type for administrative actions
+    title,
+    message,
+    actionUrl: `/dashboard`,
+    metadata: {
+      challengeTitle,
+      newStatus,
+      reason,
+      verificationId,
+      isReversal: true,
+      timestamp: new Date().toISOString()
+    },
+    sendEmail: true,
+    emailSubject: 'Stakr - Verification Decision Update',
+    emailBody
+  }
+
+  await createNotification(notification, sqlOverride)
+}
