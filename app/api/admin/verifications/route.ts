@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 
 import { systemLogger } from '@/lib/system-logger'
+import { notifyVerificationDecision, notifyVerificationReversal } from '@/lib/notification-service'
 
 // Mock verification data for demo accounts
 const getDemoVerifications = () => ({
@@ -322,7 +323,31 @@ export async function POST(request: NextRequest) {
     })
 
     // TODO: If approved, process reward payout
-    // TODO: Send notification to user about decision
+
+    // Send notification to user about decision
+    // We need to fetch the challenge title and user ID to send the notification
+    try {
+      const verificationDetails = await sql`
+        SELECT ps.user_id, c.title as challenge_title
+        FROM proof_submissions ps
+        JOIN challenges c ON ps.challenge_id = c.id
+        WHERE ps.id = ${verificationId}
+      `
+
+      if (verificationDetails.length > 0) {
+        await notifyVerificationDecision(
+          verificationDetails[0].user_id,
+          verificationDetails[0].challenge_title,
+          decision,
+          reason || '',
+          verificationId,
+          sql
+        )
+      }
+    } catch (notifError) {
+      console.error('Failed to send verification notification:', notifError)
+      // Don't fail the request if notification fails
+    }
 
     return NextResponse.json({
       success: true,
@@ -436,7 +461,30 @@ export async function PUT(request: NextRequest) {
     `
 
     // TODO: Process financial implications (refund/charge stakes, recalculate rewards)
-    // TODO: Send notification to user about reversal
+
+    // Send notification to user about reversal
+    try {
+      const verificationDetails = await sql`
+        SELECT ps.user_id, c.title as challenge_title
+        FROM proof_submissions ps
+        JOIN challenges c ON ps.challenge_id = c.id
+        WHERE ps.id = ${verificationId}
+      `
+
+      if (verificationDetails.length > 0) {
+        await notifyVerificationReversal(
+          verificationDetails[0].user_id,
+          verificationDetails[0].challenge_title,
+          newStatus,
+          reason,
+          verificationId,
+          sql
+        )
+      }
+    } catch (notifError) {
+      console.error('Failed to send verification reversal notification:', notifError)
+      // Don't fail the request if notification fails
+    }
 
     return NextResponse.json({
       success: true,
