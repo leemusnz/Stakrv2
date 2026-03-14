@@ -33,7 +33,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       const mockSession = {
         id: `demo-session-${Date.now()}`,
         challenge_id: challengeId,
-        user_id: session.user.id,
+        user_id: session?.user?.id || '',
         session_date: new Date().toISOString().split('T')[0],
         started_at: new Date().toISOString(),
         planned_duration: planned_duration,

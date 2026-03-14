@@ -290,7 +290,7 @@ export async function POST(request: NextRequest) {
           id: verificationId,
           status: decision,
           decidedAt: new Date().toISOString(),
-          decidedBy: session.user.name,
+          decidedBy: session?.user?.name || 'Admin',
           reason: reason || `Verification ${decision} by admin`
         }
       })
@@ -314,10 +314,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Log admin action
-    systemLogger.info(`Admin ${session.user.name} ${decision} verification ${verificationId}`, 'admin', {
+    systemLogger.info(`Admin ${session?.user?.name || 'Unknown'} ${decision} verification ${verificationId}`, 'admin', {
       verificationId,
       decision,
-      adminId: session.user.id,
+      adminId: session?.user?.id,
       reason
     })
 
@@ -331,7 +331,7 @@ export async function POST(request: NextRequest) {
         id: verificationId,
         status: decision,
         decidedAt: updatedVerification[0].updated_at,
-        decidedBy: session.user.name,
+        decidedBy: session?.user?.name || 'Admin',
         reason: reason || `Verification ${decision} by admin`
       }
     })
@@ -380,7 +380,7 @@ export async function PUT(request: NextRequest) {
           id: verificationId,
           status: 'reversed',
           reversedAt: new Date().toISOString(),
-          reversedBy: session.user.name,
+          reversedBy: session?.user?.name || 'Admin',
           reversalReason: reason
         }
       })

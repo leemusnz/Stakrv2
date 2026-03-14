@@ -36,7 +36,7 @@ export async function POST(
 
     // Demo user handling
     if (false) { // Demo user check removed
-      return handleDemoNudge(session.user, targetUserId, type, message)
+      return handleDemoNudge(session?.user, targetUserId, type, message)
     }
 
     // Real user handling

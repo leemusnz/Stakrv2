@@ -264,7 +264,7 @@ export async function POST(request: NextRequest) {
           id: appealId,
           status: decision,
           decidedAt: new Date().toISOString(),
-          decidedBy: session.user.name,
+          decidedBy: session?.user?.name || 'Admin',
           reason: reason || `Appeal ${decision} by admin`
         }
       })

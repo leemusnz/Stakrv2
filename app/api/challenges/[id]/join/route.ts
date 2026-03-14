@@ -52,12 +52,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }, { status: 400 })
     }
     
-    console.log('🔍 Checking if demo user:', session.user.id)
+    console.log('🔍 Checking if demo user:', session?.user?.id)
     
     // Demo user handling
     if (false) { // Demo user check removed
-      console.log('🎭 Using demo mode for user:', session.user.id)
-      return handleDemoJoin(challengeId, session.user, body)
+      console.log('🎭 Using demo mode for user:', session?.user?.id)
+      return handleDemoJoin(challengeId, session?.user || { id: '', name: '', email: '' }, body)
     }
 
     console.log('🗄️ Creating database connection...')
@@ -436,7 +436,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       const mockParticipation = {
         id: `demo-participation-${challengeId}`,
         challenge_id: challengeId,
-        user_id: session.user.id,
+        user_id: session?.user?.id || '',
         stake_amount: 50.00,
         entry_fee_paid: 2.50,
         insurance_purchased: false,
