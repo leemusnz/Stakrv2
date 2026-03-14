@@ -2,14 +2,15 @@
 // Centralized database connection using Neon PostgreSQL
 
 import { neon } from '@neondatabase/serverless'
+import type { Sql } from '@neondatabase/serverless'
 
-let db: any = null
+let db: Sql | null = null
 
 /**
  * Creates and returns a cached Neon database connection
  * @returns SQL query function
  */
-export function createDbConnection() {
+export function createDbConnection(): Sql {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set')
   }

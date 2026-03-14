@@ -1,6 +1,18 @@
 // Stakr Wearable Integration System
 // Support for Apple Health, Google Fit, Fitbit, Garmin, Strava, and more
 
+// Native bridge interface for webkit (iOS)
+interface WebKitMessageHandlers {
+  getAppleHealth?: { postMessage?: (data: unknown) => void }
+  [key: string]: unknown
+}
+
+interface WindowWithWebKit extends Window {
+  webkit?: {
+    messageHandlers?: WebKitMessageHandlers
+  }
+}
+
 export interface WearableData {
   id: string
   userId: string
@@ -91,7 +103,8 @@ export class AppleHealthIntegration {
   async connect(): Promise<boolean> {
     try {
       // Check if Apple Health is available
-      if (typeof window !== 'undefined' && 'webkit' in window && 'messageHandlers' in (window as any).webkit) {
+      const winWithWebKit = window as WindowWithWebKit
+      if (typeof window !== 'undefined' && 'webkit' in window && 'messageHandlers' in (winWithWebKit.webkit || {})) {
         console.log('🍎 Apple Health available')
         return true
       }

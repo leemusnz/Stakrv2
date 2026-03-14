@@ -23,7 +23,7 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
       SELECT host_id FROM challenges WHERE id = ${challengeId}
     `
     const isHost = rows.length > 0 && String(rows[0].host_id) === String(session.user.id)
-    const isAdmin = (session.user as any)?.role === 'admin' || (session.user as any)?.is_admin === true
+    const isAdmin = session.user.isAdmin === true
     if (!isHost && !isAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }

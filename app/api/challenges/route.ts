@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
       }
       query += ` ORDER BY c.created_at DESC LIMIT ${limit}`
       // @ts-ignore - mockSql in tests accepts a single string
-      challenges = await (sql as any)(query)
+      challenges = await sql(query as any)
     } else {
       challenges = await sql`
         SELECT 
@@ -351,7 +351,7 @@ export async function POST(request: NextRequest) {
       const thumbnailValue = challengeData.thumbnailUrl ? `'${challengeData.thumbnailUrl}'` : 'null'
       const query = `INSERT INTO challenges (title, description, category, duration, difficulty, min_stake, max_stake, host_id, host_contribution, start_date, end_date, status, rules, daily_instructions, general_instructions, proof_instructions, privacy_type, tags, thumbnail_url, min_participants, max_participants, start_date_type, start_date_days, allow_points_only, reward_distribution, selected_proof_types, camera_only, allow_late_submissions, late_submission_hours, bonus_rewards, invite_code, enable_team_mode, team_assignment_method, number_of_teams, winning_criteria, losing_team_outcome, enable_referral_bonus, referral_bonus_percentage, max_referrals, require_timer, timer_min_duration, timer_max_duration, random_checkin_enabled, random_checkin_probability, verification_type, proof_requirements, ai_analysis) VALUES ('${challengeData.title}', '${challengeData.description}', '${challengeData.category}', '${challengeData.duration}', '${challengeData.difficulty}', ${challengeData.allowPointsOnly ? 0 : challengeData.minStake || 0}, ${challengeData.allowPointsOnly ? 0 : challengeData.maxStake || 0}, '${session.user.id}', ${challengeData.hostContribution || 0}, ${startDate ? `'${startDate.toISOString()}'` : 'null'}, ${endDate ? `'${endDate.toISOString()}'` : 'null'}, 'pending', '${JSON.stringify(rules)}', '${dailyInstructions}', '${generalInstructions}', '${proofInstructions}', '${challengeData.privacyType}', '${JSON.stringify(challengeData.tags || [])}', ${thumbnailValue}, ${challengeData.minParticipants || 1}, ${challengeData.maxParticipants || null}, '${challengeData.startDateType || 'days'}', ${challengeData.startDateDays || 0}, ${challengeData.allowPointsOnly || false}, '${challengeData.rewardDistribution || 'equal-split'}', '${JSON.stringify(selectedProofTypes)}', ${!!challengeData.cameraOnly}, ${!!challengeData.allowLateSubmissions}, ${challengeData.lateSubmissionHours || 0}, '${JSON.stringify(challengeData.bonusRewards || [])}', ${inviteCode ? `'${inviteCode}'` : 'null'}, ${!!challengeData.enableTeamMode}, '${challengeData.teamAssignmentMethod || 'auto-balance'}', ${challengeData.numberOfTeams || 2}, '${challengeData.winningCriteria || 'completion-rate'}', '${challengeData.losingTeamOutcome || 'lose-stake'}', ${!!challengeData.enableReferralBonus}, ${challengeData.referralBonusPercentage || 20}, ${challengeData.maxReferrals || 3}, ${!!challengeData.requireTimer}, ${challengeData.timerMinDuration || 15}, ${challengeData.timerMaxDuration || 120}, ${!!challengeData.randomCheckinsEnabled}, ${challengeData.randomCheckinProbability || 30}, '${selectedProofTypes[0]}', '${JSON.stringify({})}', ${challengeData.aiAnalysis ? `'${JSON.stringify(challengeData.aiAnalysis)}'` : 'null'}) RETURNING id, invite_code, created_at`
       // @ts-ignore
-      newChallenge = await (sql as any)(query)
+      newChallenge = await sql(query as any)
     } else {
       newChallenge = await sql`
         INSERT INTO challenges (

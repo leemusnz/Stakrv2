@@ -11,6 +11,11 @@ export interface RetryOptions {
   onRetry?: (error: Error, attempt: number) => void
 }
 
+interface HttpError extends Error {
+  status?: number
+  response?: Response
+}
+
 const DEFAULT_OPTIONS: Required<RetryOptions> = {
   maxAttempts: 3,
   backoff: 'exponential',
@@ -85,9 +90,9 @@ export async function retry<T>(
       if (error instanceof Error) {
         // For fetch errors, check status code
         if ('status' in error) {
-          const status = (error as any).status
-          if (!opts.retryOn.includes(status)) {
-            console.log(`❌ Non-retryable status ${status}, throwing immediately`)
+          const httpError = error as HttpError
+          if (httpError.status && !opts.retryOn.includes(httpError.status)) {
+            console.log(`❌ Non-retryable status ${httpError.status}, throwing immediately`)
             throw error // Don't retry non-retryable status codes
           }
         }
@@ -130,7 +135,7 @@ export async function fetchWithRetry(
     const response = await fetch(url, options)
     
     if (!response.ok) {
-      const error: any = new Error(`HTTP ${response.status}: ${response.statusText}`)
+      const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as HttpError
       error.status = response.status
       error.response = response
       throw error

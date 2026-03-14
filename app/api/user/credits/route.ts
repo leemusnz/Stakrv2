@@ -3,6 +3,30 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 
+interface UserRow {
+  id: string
+  credits: string | number
+  email: string
+  name: string
+}
+
+interface CreditTransaction {
+  id: string
+  amount: string | number
+  transaction_type: string
+  description: string
+  related_challenge_id: string | null
+  created_at: Date | string
+}
+
+interface ActiveStake {
+  id: string
+  title: string
+  stake_amount: string | number
+  end_date: Date | string | null
+  completion_status: string
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -13,7 +37,7 @@ export async function GET(request: NextRequest) {
     const sql = await createDbConnection()
 
     // Resolve actual user id from DB (handle OAuth id format edge-cases)
-    let userRows = [] as any[]
+    let userRows: UserRow[] = []
     try {
       userRows = await sql`SELECT id, credits, email, name FROM users WHERE id = ${session.user.id} LIMIT 1`
     } catch {
@@ -23,7 +47,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
     const userId = userRows[0].id as string
-    const balance = parseFloat(userRows[0].credits || '0')
+    const balance = parseFloat(String(userRows[0].credits || '0'))
 
     // Parse query params for pagination and filters
     const { searchParams } = new URL(request.url)
@@ -49,7 +73,7 @@ export async function GET(request: NextRequest) {
     const ledgerTypeFilters: string[] = typeFilters.flatMap(t => uiToLedgerTypes[t] || [])
 
     // Credit ledger transactions
-    let creditTx = [] as any[]
+    let creditTx: CreditTransaction[] = []
     let totalCount = 0
     try {
       // Build dynamic filter clauses
@@ -87,7 +111,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Active stakes overview
-    let activeStakes = [] as any[]
+    let activeStakes: ActiveStake[] = []
     try {
       activeStakes = await sql`
         SELECT c.id, c.title, cp.stake_amount, c.end_date, cp.completion_status
@@ -103,20 +127,20 @@ export async function GET(request: NextRequest) {
 
     const totalStaked = activeStakes.reduce((sum: number, s: any) => sum + parseFloat(s.stake_amount || '0'), 0)
 
-    const mappedTransactions = creditTx.map((t: any) => ({
+    const mappedTransactions = creditTx.map((t) => ({
       id: t.id,
       type: mapLedgerTypeToUi(t.transaction_type),
-      amount: parseFloat(t.amount),
+      amount: parseFloat(String(t.amount)),
       description: t.description || t.transaction_type,
       date: t.created_at,
       status: 'completed',
       challengeId: t.related_challenge_id || null,
     }))
 
-    const mappedActiveStakes = activeStakes.map((s: any) => ({
+    const mappedActiveStakes = activeStakes.map((s) => ({
       id: s.id,
       challengeTitle: s.title,
-      amount: parseFloat(s.stake_amount || '0'),
+      amount: parseFloat(String(s.stake_amount || '0')),
       progress: 0,
       daysLeft: s.end_date ? Math.max(0, Math.ceil((new Date(s.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0,
       potentialReward: 0,
@@ -125,10 +149,10 @@ export async function GET(request: NextRequest) {
 
     // Basic aggregates
     const totalEarned = mappedTransactions
-      .filter(t => t.type === 'reward')
+      .filter((t) => t.type === 'reward')
       .reduce((sum, t) => sum + t.amount, 0)
     const totalSpent = mappedTransactions
-      .filter(t => t.amount < 0)
+      .filter((t) => t.amount < 0)
       .reduce((sum, t) => sum + Math.abs(t.amount), 0)
 
     return NextResponse.json({

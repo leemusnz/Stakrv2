@@ -736,7 +736,7 @@ This is for a social challenge platform - focus on safety, not professionalism. 
     // If content needs review or is rejected, add to moderation queue
     if (overallAction !== 'approve' && content.userId && content.contentId) {
       await this.addToModerationQueue({
-        contentType: content.context as any,
+        contentType: content.context as 'text' | 'image' | 'video' | 'profile' | 'post' | 'challenge',
         contentId: content.contentId,
         userId: content.userId,
         priority: overallAction === 'reject' ? 1 : 3,

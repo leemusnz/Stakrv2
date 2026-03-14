@@ -324,9 +324,9 @@ export const validateTrustScoreForVerificationEnhanced = (
 export const formatValidationErrors = (error: z.ZodError): Record<string, string> => {
   const formattedErrors: Record<string, string> = {}
   
-  error.errors.forEach((err: unknown) => {
-    const path = (err as any).path.join('.')
-    formattedErrors[path] = (err as any).message
+  error.errors.forEach((err) => {
+    const path = err.path.join('.')
+    formattedErrors[path] = err.message
   })
   
   return formattedErrors

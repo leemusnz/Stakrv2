@@ -5,6 +5,15 @@ import { systemLogger } from './system-logger'
 import { createDbConnection } from '@/lib/db'
 import { EnhancedAIVerification } from '@/lib/enhanced-ai-verification'
 
+// Jest mock structure for testing
+interface JestMockResult {
+  value?: unknown
+}
+
+interface JestMock {
+  results?: JestMockResult[]
+}
+
 // Types for the AI detection system
 export interface ProofSubmission {
   id: string
@@ -362,9 +371,9 @@ export class AIAntiCheatEngine {
         challenges = sql
       } else {
         // If running under Jest, scan mocked return values for one instrumented by the test
-        const maybeMock: any = (createDbConnection as any)?.mock
-        const results: any[] = maybeMock?.results || []
-        let chosen: any | undefined
+        const maybeMock = (createDbConnection as unknown as { mock?: JestMock })?.mock
+        const results: JestMockResult[] = maybeMock?.results || []
+        let chosen: unknown | undefined
         for (const r of results) {
           const v = r?.value
           if (v && (typeof v === 'function' || typeof v?.[Symbol.for('sql')] === 'function')) {

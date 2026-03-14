@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { triggerAutoSync, SYNC_TRIGGERS, requiresAutoSync, type ChallengeData, syncChallengeData } from '@/lib/auto-sync-service'
+import { triggerAutoSync, SYNC_TRIGGERS, requiresAutoSync, type ChallengeData, syncChallengeData, type SyncResult } from '@/lib/auto-sync-service'
 import { createDbConnection } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const allResults = [] as any[]
+    const allResults: SyncResult[] = []
     for (const ch of autoChallenges) {
       const results = await syncChallengeData(ch.id, session.user.id, trigger)
       // Optionally filter by provider in summary display only (actual sync currently runs all user's providers)

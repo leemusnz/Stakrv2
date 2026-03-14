@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const total = Number(stakeAmount) + entryFee
 
     const result = await createCheckoutSession(
-      sql as any,
+      sql,
       String(session.user.id),
       String(challengeId),
       Number(stakeAmount),

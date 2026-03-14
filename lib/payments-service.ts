@@ -1,7 +1,9 @@
 // Payments service - extracts logic from route handlers for easier testing
 // Functions here avoid importing next/server or next-auth, and operate on provided sql and env.
 
-type SqlTag = (strings: TemplateStringsArray, ...values: any[]) => Promise<any[]>
+import type { Sql } from '@neondatabase/serverless'
+
+type SqlTag = Sql
 
 export interface CheckoutSessionResult {
   success: boolean
@@ -128,9 +130,9 @@ export async function processCheckoutCompleted(
 
   if (event.type === 'checkout.session.completed') {
     const data = event.data?.object || {}
-    const userId = (data as any)?.metadata?.userId
-    const challengeId = (data as any)?.metadata?.challengeId
-    const stakeAmount = Number((data as any)?.metadata?.stakeAmount || 0)
+    const userId = data.metadata?.userId
+    const challengeId = data.metadata?.challengeId
+    const stakeAmount = Number(data.metadata?.stakeAmount || 0)
     if (userId && challengeId && stakeAmount > 0) {
       const existingParticipant = await sql`
         SELECT id FROM challenge_participants WHERE challenge_id = ${challengeId} AND user_id = ${userId}
@@ -147,7 +149,7 @@ export async function processCheckoutCompleted(
           )
         `
       }
-      const stripeId = (data as any)?.id || (data as any)?.payment_intent || null
+      const stripeId = data?.id || data?.payment_intent || null
       if (stripeId) {
         await sql`UPDATE transactions SET status = 'succeeded' WHERE stripe_payment_id = ${stripeId}`
       }

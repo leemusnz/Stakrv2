@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const sql = await createDbConnection()
 
     // Idempotency: skip if event already processed
-    const result = await processCheckoutCompleted(sql as any, event)
+    const result = await processCheckoutCompleted(sql, event)
     return NextResponse.json(result)
   } catch (error) {
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
