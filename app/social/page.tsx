@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, TrendingUp, Trophy, UserPlus } from "lucide-react"
 import { FloatingAmbientGlows } from '@/components/floating-ambient-glows'
+import { BackgroundImage } from '@/components/ui/background-image'
 
 export default function SocialPage() {
   const { data: session } = useSession()
@@ -19,10 +20,9 @@ export default function SocialPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
-        <img 
-          src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1920&q=80" 
-          alt="Background"
-          className="w-full h-full object-cover grayscale-[40%] dark:grayscale-[60%]"
+        <BackgroundImage 
+          src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1920&q=80"
+          alt="Social feed background"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/75 to-white/85 dark:from-black/85 dark:via-black/75 dark:to-black/85"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-white/50 dark:to-black/50"></div>
