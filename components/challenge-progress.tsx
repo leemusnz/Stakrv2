@@ -6,8 +6,17 @@ import { Calendar, Camera, CheckCircle, Clock, Flag, RotateCcw } from "lucide-re
 import { getChallengeActionText } from "@/lib/challenge-utils"
 
 interface Challenge {
+  id: string
   title: string
   duration: string
+  verificationType?: 'auto' | 'manual' | 'ai'
+  proofRequirements?: Array<{
+    type: 'photo' | 'video' | 'file' | 'text' | 'auto_sync' | 'wearable' | 'fitness_apps' | 'learning_apps'
+    required: boolean
+    instructions?: string
+  }>
+  selectedProofTypes?: string[]
+  proof_types?: string[]
 }
 
 interface ChallengeProgressProps {

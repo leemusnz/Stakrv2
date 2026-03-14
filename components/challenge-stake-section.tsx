@@ -41,6 +41,8 @@ interface Challenge {
   status: string
   title: string
   isHost?: boolean
+  difficulty?: 'easy' | 'medium' | 'hard' | 'Easy' | 'Medium' | 'Hard'
+  duration?: string | number
 }
 
 interface ChallengeStakeSectionProps {
