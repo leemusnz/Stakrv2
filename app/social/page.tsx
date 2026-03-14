@@ -17,6 +17,17 @@ export default function SocialPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img 
+          src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1920&q=80" 
+          alt="Background"
+          className="w-full h-full object-cover grayscale-[40%] dark:grayscale-[60%]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/75 to-white/85 dark:from-black/85 dark:via-black/75 dark:to-black/85"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-white/50 dark:to-black/50"></div>
+      </div>
+
       {/* Ambient Glows */}
       <FloatingAmbientGlows />
 
@@ -43,30 +54,34 @@ export default function SocialPage() {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-primary">10,247</div>
-                <div className="text-sm text-muted-foreground">Active Users</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-success">89%</div>
-                <div className="text-sm text-muted-foreground">Success Rate</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-secondary">$2.3M</div>
-                <div className="text-sm text-muted-foreground">Total Earned</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-orange-500">47K</div>
-                <div className="text-sm text-muted-foreground">Challenges Done</div>
-              </CardContent>
-            </Card>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+              <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+                <div className="text-2xl font-heading font-bold text-[#F46036]">10,247</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Active Users</div>
+              </div>
+            </div>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+              <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+                <div className="text-2xl font-heading font-bold text-green-600 dark:text-green-400">89%</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Success Rate</div>
+              </div>
+            </div>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+              <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+                <div className="text-2xl font-heading font-bold text-slate-900 dark:text-white">$2.3M</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Total Earned</div>
+              </div>
+            </div>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+              <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+                <div className="text-2xl font-heading font-bold text-orange-500 dark:text-orange-400">47K</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Challenges Done</div>
+              </div>
+            </div>
           </div>
         </div>
 
