@@ -1,7 +1,9 @@
 // Service Worker for Stakr PWA
-const CACHE_NAME = 'stakr-v1.0.0'
-const urlsToCache = [
-  '/',
+// Auto-versioned to force cache invalidation on updates
+const CACHE_NAME = 'stakr-v2.0.0-' + Date.now()
+const STATIC_CACHE = 'stakr-static-v2'
+
+const staticAssets = [
   '/manifest.json',
   '/logos/stakr-icon.png',
   '/logos/stakr-icon-white.png',
@@ -9,39 +11,47 @@ const urlsToCache = [
   '/logos/stakr-full-white.png'
 ]
 
-// Install event - cache resources
+// Install event - cache static resources
 self.addEventListener('install', (event) => {
   console.log('🔧 Service Worker installing...')
+  // Skip waiting to activate immediately
+  self.skipWaiting()
+  
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('📦 Caching app resources')
-        return cache.addAll(urlsToCache)
+        console.log('📦 Caching static assets')
+        return cache.addAll(staticAssets)
       })
       .catch((error) => {
-        console.error('❌ Failed to cache resources:', error)
+        console.error('❌ Failed to cache static assets:', error)
       })
   )
 })
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and take control
 self.addEventListener('activate', (event) => {
   console.log('✅ Service Worker activated')
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('🗑️ Deleting old cache:', cacheName)
-            return caches.delete(cacheName)
-          }
-        })
-      )
-    })
+    Promise.all([
+      // Clean up old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE) {
+              console.log('🗑️ Deleting old cache:', cacheName)
+              return caches.delete(cacheName)
+            }
+          })
+        )
+      }),
+      // Take control of all clients immediately
+      clients.claim()
+    ])
   )
 })
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - NETWORK FIRST for HTML, cache for assets
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
@@ -53,18 +63,47 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // NETWORK-FIRST for HTML documents (pages)
+  if (event.request.destination === 'document' || 
+      event.request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Cache the fresh HTML for offline fallback
+          const responseClone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone)
+          })
+          return response
+        })
+        .catch(() => {
+          // Offline: try cache, then fallback to root
+          return caches.match(event.request).then((cached) => {
+            return cached || caches.match('/')
+          })
+        })
+    )
+    return
+  }
+
+  // CACHE-FIRST for static assets (images, fonts, etc.)
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request)
-      })
-      .catch((error) => {
-        console.error('❌ Fetch failed:', error)
-        // Return offline page for navigation requests
-        if (event.request.destination === 'document') {
-          return caches.match('/')
+        if (response) {
+          return response
         }
+        // Not in cache: fetch from network and cache it
+        return fetch(event.request).then((response) => {
+          // Only cache successful responses
+          if (response && response.status === 200) {
+            const responseClone = response.clone()
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(event.request, responseClone)
+            })
+          }
+          return response
+        })
       })
   )
 })
@@ -105,4 +144,12 @@ self.addEventListener('appinstalled', (event) => {
       })
     })
   })
+})
+
+// Handle messages from clients (e.g., SKIP_WAITING command)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('⏩ Client requested skip waiting - activating new service worker')
+    self.skipWaiting()
+  }
 })
