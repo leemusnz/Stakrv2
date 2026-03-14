@@ -445,7 +445,7 @@ export async function PUT(request: NextRequest) {
         id: verificationId,
         status: newStatus,
         reversedAt: updatedVerification[0].updated_at,
-        reversedBy: session.user.name,
+        reversedBy: session?.user?.name || 'Admin',
         reversalReason: reason,
         originalStatus: currentStatus
       }

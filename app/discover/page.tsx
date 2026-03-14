@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
 import { useApi } from "@/hooks/use-api"
 import { LoadingSpinner, SkeletonLoader } from "@/components/loading-spinner"
 import { DiscoverMobile } from "@/components/discover-mobile"
