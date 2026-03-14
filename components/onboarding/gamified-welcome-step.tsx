@@ -42,7 +42,7 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
       )}
 
       {/* Hero Section with Floating Cards */}
-      <div className="grid lg:grid-cols-2 gap-12 items-center pt-8 pb-8">
+      <div className="grid lg:grid-cols-2 gap-12 items-center pt-8 pb-16 lg:pb-24">
         
         {/* Left: Copy */}
         <div className="text-left space-y-6 relative z-10">
@@ -110,7 +110,7 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
         </div>
 
         {/* Right: Floating Cards Visual */}
-        <div className="relative h-[500px] w-full hidden lg:block">
+        <div className="relative h-[600px] w-full hidden lg:block">
           {/* Background Blob */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-br from-orange-500/20 to-blue-600/20 rounded-full blur-[100px] animate-pulse-slow pointer-events-none" />
 
