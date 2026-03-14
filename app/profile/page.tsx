@@ -179,10 +179,24 @@ export default function ProfilePage() {
         }}
       />
 
+      {/* Background Image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img 
+          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=80" 
+          alt="Background"
+          className="w-full h-full object-cover grayscale-[40%] dark:grayscale-[60%]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/75 to-white/85 dark:from-black/85 dark:via-black/75 dark:to-black/85"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-white/50 dark:to-black/50"></div>
+      </div>
+
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
         {/* Profile Header */}
-        <Card className="mb-8">
-          <CardContent className="pt-6">
+        <div className="relative group mb-8">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500"></div>
+          <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl dark:shadow-2xl overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 dark:via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            <div className="relative pt-6 px-6 pb-6">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Avatar and Basic Info */}
               <div className="flex flex-col items-center md:items-start">
@@ -344,8 +358,9 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </div>
 
         {/* Profile Tabs */}
         {isMobile ? (
@@ -364,15 +379,18 @@ export default function ProfilePage() {
                       <Badge variant="secondary">{user.posts.length} posts</Badge>
                     </div>
                     {user.posts.length === 0 ? (
-                      <Card className="p-8 text-center">
-                        <div className="space-y-4">
-                          <Users className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
-                          <h3 className="text-lg font-medium">No Posts Yet</h3>
-                          <p className="text-muted-foreground">
-                            Share your challenge progress and motivate others!
-                          </p>
+                      <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-2xl opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500"></div>
+                        <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl p-8 text-center">
+                          <div className="space-y-4">
+                            <Users className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-500 opacity-50" />
+                            <h3 className="text-lg font-heading font-bold text-slate-900 dark:text-white">No Posts Yet</h3>
+                            <p className="text-slate-600 dark:text-slate-400 font-body">
+                              Share your challenge progress and motivate others!
+                            </p>
+                          </div>
                         </div>
-                      </Card>
+                      </div>
                     ) : (
                       <UserPosts posts={user.posts} user={user} isOwnProfile={true} />
                     )}
@@ -389,18 +407,24 @@ export default function ProfilePage() {
                       <Badge variant="secondary">{user.activeChallenges.length} active</Badge>
                     </div>
                     {user.activeChallenges.length === 0 ? (
-                      <Card className="p-8 text-center">
-                        <div className="space-y-4">
-                          <Trophy className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
-                          <h3 className="text-lg font-medium">No Active Challenges</h3>
-                          <p className="text-muted-foreground">
-                            Join your first challenge to start building better habits!
-                          </p>
-                          <Button onClick={() => window.location.href = '/discover'}>
-                            Browse Challenges
-                          </Button>
+                      <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-2xl opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500"></div>
+                        <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl p-8 text-center">
+                          <div className="space-y-4">
+                            <Trophy className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-500 opacity-50" />
+                            <h3 className="text-lg font-heading font-bold text-slate-900 dark:text-white">No Active Challenges</h3>
+                            <p className="text-slate-600 dark:text-slate-400 font-body">
+                              Join your first challenge to start building better habits!
+                            </p>
+                            <Button 
+                              onClick={() => window.location.href = '/discover'}
+                              className="bg-gradient-to-r from-[#F46036] to-[#D74E25] hover:from-[#ff724c] hover:to-[#e85a30] text-white font-heading font-bold shadow-lg shadow-orange-500/20"
+                            >
+                              Browse Challenges
+                            </Button>
+                          </div>
                         </div>
-                      </Card>
+                      </div>
                     ) : (
                       <div className="grid grid-cols-1 gap-6">
                         {/* Mobile-optimized challenge cards */}
@@ -419,40 +443,47 @@ export default function ProfilePage() {
                       <Badge variant="secondary">{user.achievements.length} unlocked</Badge>
                     </div>
                     {user.achievements.length === 0 ? (
-                      <Card className="p-8 text-center">
-                        <div className="space-y-4">
-                          <Trophy className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
-                          <h3 className="text-lg font-medium">No Achievements Yet</h3>
-                          <p className="text-muted-foreground">
-                            Complete challenges to unlock achievements and show off your progress!
-                          </p>
-                          <Button onClick={() => window.location.href = '/discover'}>
-                            Start Your First Challenge
-                          </Button>
+                      <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-2xl opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500"></div>
+                        <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl p-8 text-center">
+                          <div className="space-y-4">
+                            <Trophy className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-500 opacity-50" />
+                            <h3 className="text-lg font-heading font-bold text-slate-900 dark:text-white">No Achievements Yet</h3>
+                            <p className="text-slate-600 dark:text-slate-400 font-body">
+                              Complete challenges to unlock achievements and show off your progress!
+                            </p>
+                            <Button 
+                              onClick={() => window.location.href = '/discover'}
+                              className="bg-gradient-to-r from-[#F46036] to-[#D74E25] hover:from-[#ff724c] hover:to-[#e85a30] text-white font-heading font-bold shadow-lg shadow-orange-500/20"
+                            >
+                              Start Your First Challenge
+                            </Button>
+                          </div>
                         </div>
-                      </Card>
+                      </div>
                     ) : (
                       <div className="grid grid-cols-1 gap-4">
                         {user.achievements.map((achievement) => (
-                          <Card key={achievement.id}>
-                            <CardContent className="p-4">
+                          <div key={achievement.id} className="relative group">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-10 blur transition-opacity duration-300"></div>
+                            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-xl shadow-lg p-4">
                               <div className="flex items-center space-x-3">
                                 <div className="text-3xl">{achievement.icon}</div>
                                 <div className="flex-1">
-                                  <h3 className="font-semibold">{achievement.title}</h3>
-                                  <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                                  <h3 className="font-heading font-semibold text-slate-900 dark:text-white">{achievement.title}</h3>
+                                  <p className="text-sm text-slate-600 dark:text-slate-400 font-body">{achievement.description}</p>
                                   <div className="flex items-center gap-2 mt-2">
                                     <Badge className={getRarityColor(achievement.rarity)} variant="outline">
                                       {achievement.rarity}
                                     </Badge>
-                                    <span className="text-xs text-muted-foreground">
+                                    <span className="text-xs text-slate-500 dark:text-slate-400 font-body">
                                       {new Date(achievement.unlockedDate).toLocaleDateString()}
                                     </span>
                                   </div>
                                 </div>
                               </div>
-                            </CardContent>
-                          </Card>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     )}
@@ -467,70 +498,79 @@ export default function ProfilePage() {
                     <h2 className="text-2xl font-bold">Statistics</h2>
                     <div className="space-y-4">
                       {/* Mobile-optimized stats cards */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Trophy className="w-5 h-5" />
-                            Challenge Statistics
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Challenges Completed</span>
-                            <span className="font-bold text-green-600">{user.stats.challengesCompleted}</span>
+                      <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-2xl opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500"></div>
+                        <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden">
+                          <div className="p-6 border-b border-slate-200 dark:border-white/10">
+                            <h3 className="flex items-center gap-2 text-lg font-heading font-bold text-slate-900 dark:text-white">
+                              <Trophy className="w-5 h-5 text-[#F46036]" />
+                              Challenge Statistics
+                            </h3>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Success Rate</span>
-                            <span className="font-bold text-orange-600">{user.stats.successRate}%</span>
+                          <div className="p-6 space-y-4">
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-600 dark:text-slate-400 font-body">Challenges Completed</span>
+                              <span className="font-heading font-bold text-green-600 dark:text-green-400">{user.stats.challengesCompleted}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-600 dark:text-slate-400 font-body">Success Rate</span>
+                              <span className="font-heading font-bold text-orange-600 dark:text-orange-400">{user.stats.successRate}%</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-600 dark:text-slate-400 font-body">Total Earned</span>
+                              <span className="font-heading font-bold text-[#F46036]">${user.stats.totalEarned}</span>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Total Earned</span>
-                            <span className="font-bold text-secondary">${user.stats.totalEarned}</span>
-                          </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
+                    </div>
 
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Flame className="w-5 h-5" />
-                            Streak Statistics
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Current Streak</span>
-                            <span className="font-bold text-red-600">{user.stats.currentStreak} days</span>
+                      <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-2xl opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500"></div>
+                        <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden">
+                          <div className="p-6 border-b border-slate-200 dark:border-white/10">
+                            <h3 className="flex items-center gap-2 text-lg font-heading font-bold text-slate-900 dark:text-white">
+                              <Flame className="w-5 h-5 text-[#F46036]" />
+                              Streak Statistics
+                            </h3>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Longest Streak</span>
-                            <span className="font-bold text-orange-600">{user.stats.longestStreak} days</span>
+                          <div className="p-6 space-y-4">
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-600 dark:text-slate-400 font-body">Current Streak</span>
+                              <span className="font-heading font-bold text-red-600 dark:text-red-400">{user.stats.currentStreak} days</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-600 dark:text-slate-400 font-body">Longest Streak</span>
+                            <span className="font-heading font-bold text-orange-600 dark:text-orange-400">{user.stats.longestStreak} days</span>
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
+                    </div>
 
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Users className="w-5 h-5" />
-                            Social Statistics
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Followers</span>
-                            <span className="font-bold text-primary">{user.stats.followers.toLocaleString()}</span>
+                      <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-2xl opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500"></div>
+                        <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden">
+                          <div className="p-6 border-b border-slate-200 dark:border-white/10">
+                            <h3 className="flex items-center gap-2 text-lg font-heading font-bold text-slate-900 dark:text-white">
+                              <Users className="w-5 h-5 text-[#F46036]" />
+                              Social Statistics
+                            </h3>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Following</span>
-                            <span className="font-bold text-secondary">{user.stats.following}</span>
+                          <div className="p-6 space-y-4">
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-600 dark:text-slate-400 font-body">Followers</span>
+                              <span className="font-heading font-bold text-[#F46036]">{user.stats.followers.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-600 dark:text-slate-400 font-body">Following</span>
+                              <span className="font-heading font-bold text-slate-900 dark:text-white">{user.stats.following}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-600 dark:text-slate-400 font-body">Posts</span>
+                              <span className="font-heading font-bold text-green-600 dark:text-green-400">{user.posts.length}</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Posts</span>
-                            <span className="font-bold text-green-600">{user.posts.length}</span>
-                          </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )
