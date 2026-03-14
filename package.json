@@ -6,6 +6,9 @@
     "node": ">=18.17.0",
     "pnpm": ">=8.0.0"
   },
+  "overrides": {
+    "preact": "^10.29.0"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
@@ -39,7 +42,7 @@
     ]
   },
   "dependencies": {
-    "@auth/core": "latest",
+    "@auth/core": "^0.34.3",
     "@aws-sdk/client-rds-data": "latest",
     "@aws-sdk/client-rekognition": "latest",
     "@aws-sdk/client-s3": "latest",
