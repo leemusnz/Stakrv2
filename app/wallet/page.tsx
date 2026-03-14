@@ -353,6 +353,17 @@ export default function WalletPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img 
+          src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=1920&q=80" 
+          alt="Background"
+          className="w-full h-full object-cover grayscale-[40%] dark:grayscale-[60%]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/75 to-white/85 dark:from-black/85 dark:via-black/75 dark:to-black/85"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-white/50 dark:to-black/50"></div>
+      </div>
+
       {/* Ambient Glows */}
       <FloatingAmbientGlows />
 
@@ -374,68 +385,72 @@ export default function WalletPage() {
         {/* Balance Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Credits Balance */}
-          <Card>
-            <CardContent className="p-6">
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Available Balance</p>
-                  <p className="text-3xl font-bold text-primary">${data.balance}</p>
+                  <p className="text-sm font-body font-medium text-slate-600 dark:text-slate-400">Available Balance</p>
+                  <p className="text-3xl font-heading font-bold text-[#F46036]">${data.balance}</p>
                 </div>
-                <Wallet className="w-8 h-8 text-primary" />
+                <Wallet className="w-8 h-8 text-[#F46036]" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Total Earned */}
-          <Card>
-            <CardContent className="p-6">
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Earned</p>
-                  <p className="text-3xl font-bold text-green-600">${data.totalEarned ?? 0}</p>
+                  <p className="text-sm font-body font-medium text-slate-600 dark:text-slate-400">Total Earned</p>
+                  <p className="text-3xl font-heading font-bold text-green-600 dark:text-green-400">${data.totalEarned ?? 0}</p>
                 </div>
-                <TrendingUp className="w-8 h-8 text-green-600" />
+                <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Active Stakes */}
-          <Card>
-            <CardContent className="p-6">
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Stakes</p>
-                  <p className="text-3xl font-bold text-orange-600">${data.totalStaked ?? 0}</p>
+                  <p className="text-sm font-body font-medium text-slate-600 dark:text-slate-400">Active Stakes</p>
+                  <p className="text-3xl font-heading font-bold text-orange-600 dark:text-orange-400">${data.totalStaked ?? 0}</p>
                 </div>
-                <Target className="w-8 h-8 text-orange-600" />
+                <Target className="w-8 h-8 text-orange-600 dark:text-orange-400" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Pending Rewards and Cash Account */}
-          <Card>
-            <CardContent className="p-6">
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Pending Rewards</p>
-                  <p className="text-3xl font-bold text-secondary">${data.pendingRewards ?? 0}</p>
+                  <p className="text-sm font-body font-medium text-slate-600 dark:text-slate-400">Pending Rewards</p>
+                  <p className="text-3xl font-heading font-bold text-slate-900 dark:text-white">${data.pendingRewards ?? 0}</p>
                 </div>
-                <Gift className="w-8 h-8 text-secondary" />
+                <Gift className="w-8 h-8 text-[#F46036]" />
               </div>
-              <div className="mt-4 p-3 rounded-md border bg-muted/50">
+              <div className="mt-4 p-3 rounded-md border border-slate-200 dark:border-white/10 bg-slate-100/50 dark:bg-white/5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Cash Account</p>
-                    <p className="text-xl font-semibold">${(data as any).cashAccount?.balance ?? 0}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-body font-medium text-slate-600 dark:text-slate-400">Cash Account</p>
+                    <p className="text-xl font-heading font-semibold text-slate-900 dark:text-white">${(data as any).cashAccount?.balance ?? 0}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-body">
                       {(data as any).cashAccount?.connected ? 'Connected' : 'Not connected'}{(data as any).cashAccount?.lastSync ? ` • Last sync ${(data as any).cashAccount?.lastSync}` : ''}
                     </p>
                   </div>
-                  <CreditCard className="w-6 h-6 text-muted-foreground" />
+                  <CreditCard className="w-6 h-6 text-slate-400 dark:text-slate-500" />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Wallet Tabs */}
