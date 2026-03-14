@@ -207,6 +207,17 @@ export default function MyChallengesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img 
+          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=80" 
+          alt="Background"
+          className="w-full h-full object-cover grayscale-[40%] dark:grayscale-[60%]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/75 to-white/85 dark:from-black/85 dark:via-black/75 dark:to-black/85"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-white/50 dark:to-black/50"></div>
+      </div>
+
       {/* Ambient Glows */}
       <FloatingAmbientGlows />
 
@@ -227,42 +238,48 @@ export default function MyChallengesPage() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{stats.activeChallenges}</div>
-              <div className="text-sm text-muted-foreground">Active</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.completedChallenges}</div>
-              <div className="text-sm text-muted-foreground">Completed</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-orange-600">{stats.successRate}%</div>
-              <div className="text-sm text-muted-foreground">Success Rate</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-secondary">${stats.totalWinnings.toFixed(2)}</div>
-              <div className="text-sm text-muted-foreground">Total Won</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-red-600">{stats.currentStreak}</div>
-              <div className="text-sm text-muted-foreground">Current Streak</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">{stats.longestStreak}</div>
-              <div className="text-sm text-muted-foreground">Best Streak</div>
-            </CardContent>
-          </Card>
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+              <div className="text-2xl font-heading font-bold text-[#F46036]">{stats.activeChallenges}</div>
+              <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Active</div>
+            </div>
+          </div>
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+              <div className="text-2xl font-heading font-bold text-green-600 dark:text-green-400">{stats.completedChallenges}</div>
+              <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Completed</div>
+            </div>
+          </div>
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+              <div className="text-2xl font-heading font-bold text-orange-600 dark:text-orange-400">{stats.successRate}%</div>
+              <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Success Rate</div>
+            </div>
+          </div>
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+              <div className="text-2xl font-heading font-bold text-slate-900 dark:text-white">${stats.totalWinnings.toFixed(2)}</div>
+              <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Total Won</div>
+            </div>
+          </div>
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+              <div className="text-2xl font-heading font-bold text-red-600 dark:text-red-400">{stats.currentStreak}</div>
+              <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Current Streak</div>
+            </div>
+          </div>
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+            <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+              <div className="text-2xl font-heading font-bold text-purple-600 dark:text-purple-400">{stats.longestStreak}</div>
+              <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Best Streak</div>
+            </div>
+          </div>
         </div>
 
         {/* Challenge Tabs */}
