@@ -21,6 +21,9 @@ export function OnboardingLayout({ children, currentStep, totalSteps, onBack, ca
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Solid background to prevent homepage bleed-through */}
+      <div className="absolute inset-0 bg-background z-0" />
+      
       {/* Ambient Background Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px] opacity-60 pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] opacity-60 pointer-events-none" />

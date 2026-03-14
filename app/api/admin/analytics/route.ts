@@ -213,7 +213,7 @@ export async function GET(request: NextRequest) {
     `
 
     const recentActivity = [
-      ...recentUsers.map(user => ({
+      ...recentUsers.map((user: Record<string, any>) => ({
         id: `user-${user.created_at}`,
         type: 'user_registration',
         user: user.name,
@@ -221,7 +221,7 @@ export async function GET(request: NextRequest) {
         timestamp: user.created_at,
         details: { email: user.email }
       })),
-      ...recentCompletions.map(completion => ({
+      ...recentCompletions.map((completion: Record<string, any>) => ({
         id: `completion-${completion.completed_at}`,
         type: 'challenge_completion',
         user: completion.name,
@@ -229,7 +229,7 @@ export async function GET(request: NextRequest) {
         timestamp: completion.completed_at,
         details: { reward: parseFloat(completion.reward_earned) || 0 }
       })),
-      ...recentProofs.map(proof => ({
+      ...recentProofs.map((proof: Record<string, any>) => ({
         id: `proof-${proof.submitted_at}`,
         type: 'verification_pending',
         user: proof.name,

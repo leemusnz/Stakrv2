@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       aiSystem: systemStats,
-      highRiskUsers: highRiskUsers.map(user => ({
+      highRiskUsers: highRiskUsers.map((user: Record<string, any>) => ({
         userId: user.email, // Don't expose actual user ID
         email: user.email,
         name: user.name,
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
         approvalRate: user.approval_rate,
         lastActivity: user.last_analysis_at?.toISOString() || 'Never'
       })),
-      detectionPatterns: detectionPatterns.map(pattern => ({
+      detectionPatterns: detectionPatterns.map((pattern: Record<string, any>) => ({
         id: pattern.pattern_name.toLowerCase().replace(/\s+/g, '-'),
         name: pattern.pattern_name,
         type: pattern.pattern_type,
