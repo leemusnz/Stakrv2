@@ -53,3 +53,14 @@ temp-logos/
 PHASE_*_CLEANUP_COMPLETE.md
 COMPONENT_ANALYSIS.md
 REDUNDANCY_ANALYSIS_REPORT.md
+
+# OpenClaw workspace files (agent-specific, not project code)
+/.openclaw/
+/memory/
+AGENTS.md
+SOUL.md
+IDENTITY.md
+USER.md
+HEARTBEAT.md
+TOOLS.md
+BOOTSTRAP.md
