@@ -241,6 +241,17 @@ export default function MyActivePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img 
+          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=80" 
+          alt="Background"
+          className="w-full h-full object-cover grayscale-[40%] dark:grayscale-[60%]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/75 to-white/85 dark:from-black/85 dark:via-black/75 dark:to-black/85"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-white/50 dark:to-black/50"></div>
+      </div>
+
       {/* Ambient Glows */}
       <FloatingAmbientGlows />
 
@@ -272,37 +283,41 @@ export default function MyActivePage() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Target className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-            <div className="font-semibold">{activeChallengesOnly.length}</div>
-            <div className="text-sm text-muted-foreground">Active</div>
-          </CardContent>
-        </Card>
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+          <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+            <Target className="w-6 h-6 mx-auto mb-2 text-blue-600 dark:text-blue-400" />
+            <div className="font-heading font-semibold text-slate-900 dark:text-white">{activeChallengesOnly.length}</div>
+            <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Active</div>
+          </div>
+        </div>
         
-        <Card>
-          <CardContent className="p-4 text-center">
-            <AlertCircle className="w-6 h-6 mx-auto mb-2 text-orange-600" />
-            <div className="font-semibold">{todayIncomplete.length}</div>
-            <div className="text-sm text-muted-foreground">To Complete</div>
-          </CardContent>
-        </Card>
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+          <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+            <AlertCircle className="w-6 h-6 mx-auto mb-2 text-orange-600 dark:text-orange-400" />
+            <div className="font-heading font-semibold text-slate-900 dark:text-white">{todayIncomplete.length}</div>
+            <div className="text-sm text-slate-600 dark:text-slate-400 font-body">To Complete</div>
+          </div>
+        </div>
         
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Clock className="w-6 h-6 mx-auto mb-2 text-red-600" />
-            <div className="font-semibold">{overdueChallenges.length}</div>
-            <div className="text-sm text-muted-foreground">Overdue</div>
-          </CardContent>
-        </Card>
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+          <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+            <Clock className="w-6 h-6 mx-auto mb-2 text-red-600 dark:text-red-400" />
+            <div className="font-heading font-semibold text-slate-900 dark:text-white">{overdueChallenges.length}</div>
+            <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Overdue</div>
+          </div>
+        </div>
         
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Trophy className="w-6 h-6 mx-auto mb-2 text-green-600" />
-            <div className="font-semibold">{Math.round(activeChallengesOnly.reduce((acc, c) => acc + c.streak, 0) / Math.max(activeChallengesOnly.length, 1))}</div>
-            <div className="text-sm text-muted-foreground">Avg Streak</div>
-          </CardContent>
-        </Card>
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+          <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-xl p-4 text-center shadow-lg">
+            <Trophy className="w-6 h-6 mx-auto mb-2 text-green-600 dark:text-green-400" />
+            <div className="font-heading font-semibold text-slate-900 dark:text-white">{Math.round(activeChallengesOnly.reduce((acc, c) => acc + c.streak, 0) / Math.max(activeChallengesOnly.length, 1))}</div>
+            <div className="text-sm text-slate-600 dark:text-slate-400 font-body">Avg Streak</div>
+          </div>
+        </div>
       </div>
 
       {/* Urgent Actions Alert */}
