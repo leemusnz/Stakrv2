@@ -348,7 +348,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {activeChallenges.map((challenge) => (
+                {activeChallenges.map((challenge: Record<string, any>) => (
                   <div key={challenge.id} className="relative group/item">
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-xl opacity-0 group-hover/item:opacity-10 blur transition-opacity duration-300"></div>
                     <div className="relative flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all duration-300">
@@ -412,7 +412,7 @@ export default function DashboardPage() {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {completedChallenges.slice(0, 5).map((challenge) => (
+                  {completedChallenges.slice(0, 5).map((challenge: Record<string, any>) => (
                     <div key={challenge.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all duration-300">
                       <div>
                         <p className="font-heading font-medium text-slate-900 dark:text-white">{challenge.title}</p>

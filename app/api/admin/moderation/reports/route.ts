@@ -40,7 +40,7 @@ export async function GET() {
     `
 
     // Format the data to match expected structure
-    const formattedReports = reports.map(report => ({
+    const formattedReports = reports.map((report: Record<string, any>) => ({
       id: report.id,
       reporterName: report.reporterName || 'Anonymous',
       reportedUserName: report.reportedUserName,

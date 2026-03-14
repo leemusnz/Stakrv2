@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
       data: {
         withdrawals: {
-          recent: recentWithdrawals.map(w => ({
+          recent: recentWithdrawals.map((w: Record<string, any>) => ({
             id: w.id,
             user: {
               id: w.user_id,
@@ -206,7 +206,7 @@ export async function GET(request: NextRequest) {
           count: recentWithdrawals.length
         },
         insurance: {
-          recent_payouts: insurancePayouts.map(p => ({
+          recent_payouts: insurancePayouts.map((p: Record<string, any>) => ({
             id: p.id,
             user: {
               id: p.user_id,
@@ -237,7 +237,7 @@ export async function GET(request: NextRequest) {
           total: parseFloat(revenueSummary[0].total_revenue || 0),
           transaction_count: parseInt(revenueSummary[0].transaction_count || 0)
         } : null,
-        active_stakes: activeStakes.map(s => ({
+        active_stakes: activeStakes.map((s: Record<string, any>) => ({
           challenge_id: s.challenge_id,
           challenge_title: s.challenge_title,
           end_date: s.end_date,
@@ -248,7 +248,7 @@ export async function GET(request: NextRequest) {
           insured_stakes: parseFloat(s.insured_stakes),
           at_risk: parseFloat(s.total_stakes) - parseFloat(s.insured_stakes)
         })),
-        large_transactions: largeTransactions.map(t => ({
+        large_transactions: largeTransactions.map((t: Record<string, any>) => ({
           id: t.id,
           user: {
             id: t.user_id,
@@ -262,7 +262,7 @@ export async function GET(request: NextRequest) {
           recent_withdrawals: parseInt(t.recent_withdrawals),
           is_suspicious: parseInt(t.recent_withdrawals) > 3 || (parseInt(t.trust_score) < 30 && Math.abs(parseFloat(t.amount)) > 200)
         })),
-        top_earners: topEarners.map(e => ({
+        top_earners: topEarners.map((e: Record<string, any>) => ({
           user: {
             id: e.user_id,
             name: e.name,

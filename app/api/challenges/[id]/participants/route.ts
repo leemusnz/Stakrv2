@@ -101,7 +101,7 @@ export async function GET(
         current_streak DESC -- Then by streak
     `
 
-    const formattedParticipants = participants.map(participant => ({
+    const formattedParticipants = participants.map((participant: Record<string, any>) => ({
       id: participant.user_id,
       name: participant.name,
       avatar: participant.avatar_url,
@@ -122,10 +122,10 @@ export async function GET(
       participants: formattedParticipants,
       stats: {
         total: formattedParticipants.length,
-        active: formattedParticipants.filter(p => p.status === 'active').length,
-        atRisk: formattedParticipants.filter(p => p.status === 'at_risk').length,
+        active: formattedParticipants.filter((p: Record<string, any>) => p.status === 'active').length,
+        atRisk: formattedParticipants.filter((p: Record<string, any>) => p.status === 'at_risk').length,
         avgProgress: Math.round(
-          formattedParticipants.reduce((sum, p) => sum + (p.progress.completed / p.progress.total), 0) / 
+          formattedParticipants.reduce((sum: number, p: Record<string, any>) => sum + (p.progress.completed / p.progress.total), 0) / 
           formattedParticipants.length * 100
         ) || 0
       }

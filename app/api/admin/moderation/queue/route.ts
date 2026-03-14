@@ -38,7 +38,7 @@ export async function GET() {
     `
 
     // Format the data to match expected structure
-    const formattedItems = queueItems.map(item => ({
+    const formattedItems = queueItems.map((item: Record<string, any>) => ({
       id: item.id,
       contentType: item.contentType,
       contentId: item.contentId,

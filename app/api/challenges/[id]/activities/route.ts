@@ -137,7 +137,7 @@ export async function GET(
     `
 
     // Calculate streaks for check-ins
-    const activitiesWithStreaks = await Promise.all(activities.map(async (activity) => {
+    const activitiesWithStreaks = await Promise.all(activities.map(async (activity: Record<string, any>) => {
       let streak = null
       
       if (activity.type === 'check_in') {

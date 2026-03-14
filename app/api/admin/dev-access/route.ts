@@ -110,7 +110,7 @@ export async function GET() {
     `
 
     return NextResponse.json({
-      users: users.map(user => ({
+      users: users.map((user: Record<string, any>) => ({
         id: user.id,
         email: user.email,
         name: user.name,

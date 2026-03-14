@@ -176,7 +176,7 @@ export async function GET(
       LIMIT ${limit}
     `
 
-    const formattedInteractions = interactions.map(interaction => ({
+    const formattedInteractions = interactions.map((interaction: Record<string, any>) => ({
       id: interaction.id,
       type: interaction.interaction_type,
       message: interaction.message,

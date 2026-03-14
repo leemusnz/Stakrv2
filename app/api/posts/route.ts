@@ -227,7 +227,7 @@ export async function GET(request: NextRequest) {
       `
     }
 
-    const formattedPosts = posts.map(post => ({
+    const formattedPosts = posts.map((post: Record<string, any>) => ({
       id: post.id,
       content: post.content,
       isPublic: post.is_public,

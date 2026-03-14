@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      integrations: integrations.map(integration => {
+      integrations: integrations.map((integration: Record<string, any>) => {
         // Check if integration has valid credentials
         let connected = false
         try {

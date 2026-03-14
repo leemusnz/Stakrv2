@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: `Successfully verified ${result.length} users`,
-        verifiedEmails: result.map(user => user.email)
+        verifiedEmails: result.map((user: Record<string, any>) => user.email)
       })
     } else if (email) {
       // Verify specific user

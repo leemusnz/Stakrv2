@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      integrations: integrations.map(integration => ({
+      integrations: integrations.map((integration: Record<string, any>) => ({
         app: integration.app_type,
         enabled: integration.enabled,
         lastSync: integration.last_sync,

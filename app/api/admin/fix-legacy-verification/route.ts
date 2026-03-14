@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       message: `Fixed ${result.length} legacy accounts`,
       updatedAccounts: result.length,
       finalCounts: counts[0],
-      updatedUsers: result.map(u => ({
+      updatedUsers: result.map((u: Record<string, any>) => ({
         id: u.id,
         email: u.email,
         verificationDate: u.verification_date

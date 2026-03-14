@@ -334,7 +334,7 @@ export async function POST(request: NextRequest) {
 
     // Generate invite code for private challenges
     const inviteCode = challengeData.privacyType === 'private' ? 
-      await sql`SELECT generate_invite_code() as code`.then(r => r[0].code) : null
+      await sql`SELECT generate_invite_code() as code`.then((r: Record<string, any>[]) => r[0].code) : null
 
     // Ensure minimal defaults for optional fields
     const rules = Array.isArray(challengeData.rules) ? challengeData.rules : []

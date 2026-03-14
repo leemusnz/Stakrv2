@@ -56,7 +56,7 @@ export default function DevToolsPage() {
       
       const data = await response.json()
       
-      setTestResults(prev => ({
+      setTestResults((prev: Record<string, any>) => ({
         ...prev,
         [testType]: {
           success: data.success,
@@ -65,7 +65,7 @@ export default function DevToolsPage() {
         }
       }))
     } catch (error) {
-      setTestResults(prev => ({
+      setTestResults((prev: Record<string, any>) => ({
         ...prev,
         [testType]: {
           success: false,

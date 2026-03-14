@@ -237,7 +237,7 @@ export async function GET(request: NextRequest) {
         timestamp: proof.submitted_at,
         details: {}
       }))
-    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10)
+    ].sort((a: Record<string, any>, b: Record<string, any>) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10)
 
     // TOP CHALLENGES
     const topChallenges = await sql`
@@ -394,7 +394,7 @@ export async function GET(request: NextRequest) {
         averageStakeAmount: parseFloat(financialStats[0].avg_stake_amount) || 0
       },
       recentActivity,
-      topChallenges: topChallenges.map(challenge => ({
+      topChallenges: topChallenges.map((challenge: Record<string, any>) => ({
         id: challenge.id,
         title: challenge.title,
         participants: parseInt(challenge.participants),
@@ -402,13 +402,13 @@ export async function GET(request: NextRequest) {
         successRate: parseFloat(challenge.success_rate) || 0,
         category: challenge.category
       })),
-      weeklyData: weeklyData.map(day => ({
+      weeklyData: weeklyData.map((day: Record<string, any>) => ({
         day: new Date(day.day).toLocaleDateString('en-US', { weekday: 'short' }),
         users: parseInt(day.users),
         challenges: parseInt(day.challenges),
         revenue: parseFloat(day.revenue)
       })),
-      hourlyData: hourlyData.map(hour => ({
+      hourlyData: hourlyData.map((hour: Record<string, any>) => ({
         hour: parseInt(hour.hour),
         users: parseInt(hour.users),
         challenges: parseInt(hour.challenges),
@@ -421,9 +421,9 @@ export async function GET(request: NextRequest) {
         storageUsage: 0, // Would need S3 metrics
         errorRate: 0, // Would need error tracking
         uptime: 99.9, // Would need uptime monitoring
-        activeConnections: tableStats.reduce((sum, table) => sum + parseInt(table.row_count), 0),
+        activeConnections: tableStats.reduce((sum: number, table: Record<string, any>) => sum + parseInt(table.row_count), 0),
         memoryUsage: 0, // Would need system metrics
-        totalRecords: tableStats.reduce((sum, table) => sum + parseInt(table.row_count), 0)
+        totalRecords: tableStats.reduce((sum: number, table: Record<string, any>) => sum + parseInt(table.row_count), 0)
       }
     }
 

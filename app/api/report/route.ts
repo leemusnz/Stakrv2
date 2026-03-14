@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      reports: reports.map(report => ({
+      reports: reports.map((report: Record<string, any>) => ({
         id: report.id,
         contentType: report.reported_content_type,
         contentId: report.reported_content_id,
