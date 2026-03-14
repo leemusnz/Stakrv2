@@ -93,7 +93,7 @@ export async function calculateXPChallengeRewards(
   `
 
   // Calculate XP rewards for each participant
-  const participantRewards: XPParticipantReward[] = completedParticipants.map(participant => {
+  const participantRewards: XPParticipantReward[] = completedParticipants.map((participant: any) => {
     const baseXP = calculateBaseXP(stats.difficulty, stats.duration)
     const completionBonus = calculateCompletionBonus(completionRate)
     const difficultyBonus = calculateDifficultyBonus(stats.difficulty)

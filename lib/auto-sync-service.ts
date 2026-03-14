@@ -90,12 +90,12 @@ export async function getUserIntegrations(userId: string, challengeTypes: string
     console.log('🔍 App integrations query result:', appIntegrations)
     
     // Decrypt credentials before returning
-    const decryptedWearables = wearableIntegrations.map(w => ({
+    const decryptedWearables = wearableIntegrations.map((w: any) => ({
       ...w,
       api_credentials: decryptCredentials(w.api_credentials)
     }))
     
-    const decryptedApps = appIntegrations.map(a => ({
+    const decryptedApps = appIntegrations.map((a: any) => ({
       ...a,
       api_credentials: decryptCredentials(a.api_credentials)
     }))
@@ -225,7 +225,7 @@ export async function syncStravaData(
     console.log(`📊 Total activities retrieved from Strava: ${activities.length}`)
     
     // Debug: Show all activity dates
-    activities.forEach((activity, index) => {
+    activities.forEach((activity: any, index: number) => {
       const activityDate = new Date(activity.start_date)
       const daysDiff = Math.floor((new Date().getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
       const hoursDiff = Math.floor((new Date().getTime() - activityDate.getTime()) / (1000 * 60 * 60))
@@ -505,8 +505,8 @@ export async function syncChallengeData(
     console.log('🔍 User integrations found:', {
       wearables: integrations.wearables.length,
       apps: integrations.apps.length,
-      wearableTypes: integrations.wearables.map(w => w.device_type),
-      appTypes: integrations.apps.map(a => a.app_type)
+      wearableTypes: integrations.wearables.map((w: any) => w.device_type),
+      appTypes: integrations.apps.map((a: any) => a.app_type)
     })
     
     const results: SyncResult[] = []

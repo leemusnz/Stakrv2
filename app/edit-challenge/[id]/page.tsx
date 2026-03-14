@@ -387,7 +387,7 @@ export default function EditChallengePage() {
             timerMaxDuration={challengeData.timerMaxDuration}
             randomCheckinsEnabled={challengeData.randomCheckinsEnabled}
             randomCheckinProbability={challengeData.randomCheckinProbability}
-            onSelectedProofTypesChange={(selectedProofTypes) =>
+            onSelectedProofTypesChange={(selectedProofTypes: string[]) =>
               setChallengeData({ ...challengeData, selectedProofTypes })
             }
             onProofInstructionsChange={(proofInstructions) =>
