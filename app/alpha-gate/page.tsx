@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { BackgroundImage } from '@/components/ui/background-image'
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -205,9 +206,9 @@ export default function AlphaGatePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden flex items-center justify-center p-4">
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
-        <img 
-          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80" 
-          alt="Background"
+        <BackgroundImage 
+          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80"
+          alt="Alpha gate background"
           className="w-full h-full object-cover grayscale-[30%] dark:grayscale-[50%]"
         />
         {/* Themed overlay with gradient */}

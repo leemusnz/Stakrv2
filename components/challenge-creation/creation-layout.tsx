@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { FloatingAmbientGlows } from "@/components/floating-ambient-glows"
+import { BackgroundImage } from '@/components/ui/background-image'
 
 interface CreationLayoutProps {
   children: ReactNode
@@ -47,9 +48,9 @@ export function CreationLayout({
     >
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
-        <img 
-          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=80" 
-          alt="Background"
+        <BackgroundImage 
+          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=80"
+          alt="Challenge creation background"
           className="w-full h-full object-cover grayscale-[40%] dark:grayscale-[60%]"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/75 to-white/85 dark:from-black/85 dark:via-black/75 dark:to-black/85"></div>
