@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Montserrat, Inter, Space_Grotesk, JetBrains_Mono, Plus_Jakarta_Sans, Oswald, Outfit, Nunito, Chakra_Petch, Teko, Manrope, Bricolage_Grotesque } from "next/font/google"
+import { Teko, Manrope, Bricolage_Grotesque } from "next/font/google"
 import { cn } from "@/lib/utils"
 import "./globals.css"
 import { NavigationWrapper } from "@/components/navigation-wrapper"
@@ -16,25 +16,10 @@ import { PWADebug } from "@/components/pwa-debug"
 import { Footer } from "@/components/footer"
 import { ErrorBoundary } from "@/components/error-boundary"
 
-// Original
-const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: '--font-montserrat' })
-const inter = Inter({ subsets: ["latin"], variable: '--font-inter' })
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: '--font-space-grotesk' })
-const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: '--font-jetbrains-mono' })
-
-// Option A: Premium Editorial / Personality
-const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: '--font-plus-jakarta' })
-const manrope = Manrope({ subsets: ["latin"], variable: '--font-manrope' })
-const oswald = Oswald({ subsets: ["latin"], variable: '--font-oswald' })
-const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: '--font-bricolage' })
-
-// Option B: Friendly
-const outfit = Outfit({ subsets: ["latin"], variable: '--font-outfit' })
-const nunito = Nunito({ subsets: ["latin"], variable: '--font-nunito' })
-
-// Option C: Bold/Hardcore
-const chakraPetch = Chakra_Petch({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: '--font-chakra' })
-const teko = Teko({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: '--font-teko' })
+// Active fonts (used in design system)
+const manrope = Manrope({ subsets: ["latin"], variable: '--font-manrope', display: 'swap' })
+const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: '--font-bricolage', display: 'swap' })
+const teko = Teko({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: '--font-teko', display: 'swap' })
 
 
 export const metadata: Metadata = {
@@ -90,17 +75,8 @@ export default function RootLayout({
       </head>
       <body className={cn(
         "bg-background font-sans antialiased", 
-        montserrat.variable, 
-        inter.variable,
-        spaceGrotesk.variable,
-        jetbrainsMono.variable,
-        plusJakarta.variable,
-        oswald.variable,
         manrope.variable,
         bricolage.variable,
-        outfit.variable,
-        nunito.variable,
-        chakraPetch.variable,
         teko.variable
       )}>
         <MobileAppOptimizer />

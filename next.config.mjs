@@ -17,7 +17,15 @@ const nextConfig = {
       'lucide-react',
       '@radix-ui/react-icons',
       'date-fns',
-      'recharts'
+      'recharts',
+      'framer-motion',
+      'react-day-picker',
+      'zod',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toast',
     ],
   },
   
