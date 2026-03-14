@@ -40,16 +40,16 @@ export async function POST(request: NextRequest) {
     } as File
 
     // Enhanced validation with security checks
-    const validationResult = await validateFileEnhanced(mockFile)
+    const fileValidation = await validateFileEnhanced(mockFile)
     
-    if (!validationResult.valid) {
+    if (!fileValidation.valid) {
       
       return NextResponse.json({ 
         error: 'File validation failed',
-        details: validationResult.errors,
-        warnings: validationResult.warnings,
-        riskScore: validationResult.riskScore,
-        securityFlags: validationResult.securityFlags
+        details: fileValidation.errors,
+        warnings: fileValidation.warnings,
+        riskScore: fileValidation.riskScore,
+        securityFlags: fileValidation.securityFlags
       }, { status: 400 })
     }
     
