@@ -45,6 +45,17 @@ export function CreationLayout({
       className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden flex flex-col has-bottom-cta"
       style={{ ['--bottom-cta-height' as any]: '80px' }}
     >
+      {/* Background Image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img 
+          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=80" 
+          alt="Background"
+          className="w-full h-full object-cover grayscale-[40%] dark:grayscale-[60%]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/75 to-white/85 dark:from-black/85 dark:via-black/75 dark:to-black/85"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-white/50 dark:to-black/50"></div>
+      </div>
+
       {/* Ambient Glows */}
       <FloatingAmbientGlows />
 
@@ -87,25 +98,29 @@ export function CreationLayout({
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-8 flex-1">
-        <Card className="shadow-lg">
-          <CardHeader className="pb-6">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl font-bold text-primary">{stepTitles[currentStep - 1]}</CardTitle>
-              <div className="flex items-center gap-2">
-                {Array.from({ length: totalSteps }, (_, i) => (
-                  <div
-                    key={i}
-                    className={`w-3 h-3 rounded-full ${
-                      i + 1 === currentStep ? "bg-primary" : i + 1 < currentStep ? "bg-secondary" : "bg-gray-200"
-                    }`}
-                  />
-                ))}
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500"></div>
+          <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl dark:shadow-2xl overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 dark:via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            <div className="relative pb-6 pt-6 px-6 border-b border-slate-200 dark:border-white/10">
+              <div className="flex items-center justify-between">
+                <h3 className="text-2xl font-heading font-bold text-[#F46036]">{stepTitles[currentStep - 1]}</h3>
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalSteps }, (_, i) => (
+                    <div
+                      key={i}
+                      className={`w-3 h-3 rounded-full transition-colors ${
+                        i + 1 === currentStep ? "bg-[#F46036]" : i + 1 < currentStep ? "bg-[#D74E25]" : "bg-slate-300 dark:bg-slate-600"
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
-          </CardHeader>
 
-          <CardContent className="pb-8">{children}</CardContent>
-        </Card>
+            <div className="relative pb-8 px-6 pt-6">{children}</div>
+          </div>
+        </div>
 
         {/* Navigation - sticks just above bottom nav */}
         <div
@@ -134,7 +149,7 @@ export function CreationLayout({
             <Button
               onClick={onNext}
               disabled={!canProceed || isLoading}
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold"
+              className="flex items-center gap-2 bg-gradient-to-r from-[#F46036] to-[#D74E25] hover:from-[#ff724c] hover:to-[#e85a30] text-white font-heading font-bold shadow-lg shadow-orange-500/20"
             >
               Next Step
               <ArrowRight className="w-4 h-4" />
@@ -143,7 +158,7 @@ export function CreationLayout({
             <Button
               onClick={onNext}
               disabled={!canProceed || isLoading}
-              className="flex items-center gap-2 bg-secondary hover:bg-secondary/90 text-white font-bold"
+              className="flex items-center gap-2 bg-gradient-to-r from-[#F46036] to-[#D74E25] hover:from-[#ff724c] hover:to-[#e85a30] text-white font-heading font-bold shadow-lg shadow-orange-500/20"
             >
               {isLoading ? "Publishing..." : "Publish Challenge"}
               <ArrowRight className="w-4 h-4" />
