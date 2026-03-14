@@ -18,28 +18,14 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log('🤖 Analyzing challenge:', body.title)
-  console.log('📝 Description includes Additional Context:', body.description?.includes('Additional Context:'))
-  console.log('📝 Description length:', body.description?.length)
-  console.log('📝 Request keys:', Object.keys(body))
-  console.log('📝 Has stakes:', !!body.minStake)
-  console.log('📝 Has team mode:', !!body.enableTeamMode)
-  console.log('📝 Has difficulty:', !!body.difficulty)
-  console.log('🛠️ Has dev settings:', !!body.devSettings)
 
     // Log dev settings if present
     if (body.devSettings) {
-      console.log('🛠️ Dev settings:', body.devSettings)
     }
 
     // Analyze challenge with AI
     const analysis = await AIChallengeAnalyzer.analyzeChallengeDescription(body)
     
-    console.log('✅ Challenge analysis completed:', {
-      dailyRequirement: analysis.dailyRequirement,
-      confidence: analysis.confidence,
-      validationMethod: analysis.validationMethod
-    })
 
     // Generate user-friendly summary  
     const summaryText = `AI understands your challenge as: "${analysis.interpretation}"`

@@ -373,7 +373,6 @@ export async function POST(request: NextRequest) {
       `
     } catch (dbError) {
       // Table might not exist, log but don't fail
-      console.log('Could not log to admin_actions table:', dbError)
     }
 
     return NextResponse.json({

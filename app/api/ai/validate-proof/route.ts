@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log(`🤖 AI validating proof submission for user ${session.user.id}`)
 
     // Initialize AI system if not already done
     await aiAntiCheat.initialize()
@@ -48,11 +47,6 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    console.log(`🧠 AI Analysis Result:`, {
-      confidence: detectionResult.confidence,
-      action: detectionResult.action,
-      processingTime: detectionResult.processingTime
-    })
 
     // Handle the result based on AI decision
     let responseMessage = ''
@@ -126,7 +120,6 @@ export async function POST(request: NextRequest) {
           )
         `
         
-        console.log(`💾 Proof submission saved with status: ${submissionStatus}`)
         
       } catch (dbError) {
         console.error('❌ Failed to save proof submission:', dbError)

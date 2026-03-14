@@ -171,7 +171,6 @@ export async function POST(request: NextRequest) {
         updated_at = NOW()
     `
 
-    console.log(`✅ Wearable integration added: ${device} for user ${session.user.id}`)
 
     return NextResponse.json({
       success: true,
@@ -222,7 +221,6 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Integration not found' }, { status: 404 })
     }
 
-    console.log(`🗑️ Wearable integration removed: ${device} for user ${session.user.id}`)
 
     return NextResponse.json({
       success: true,

@@ -156,7 +156,6 @@ export const AI_CAPABILITIES = {
 async function callLLM(prompt: string): Promise<string> {
   // This would be replaced with actual OpenAI/Claude API call
   if (process.env.NODE_ENV === 'development') {
-    console.log('🤖 AI Prompt:', prompt)
     
     // Mock intelligent responses for common cases
     if (prompt.includes('Waiai for 10')) {

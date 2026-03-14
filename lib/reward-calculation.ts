@@ -232,13 +232,6 @@ function calculateRewardDistribution(
   // Note: Platform has already taken its cut (e.g., 20%) before this amount is passed
   const bonusPool = failedStakesForWinners + host_contribution
 
-  console.log(`🎯 Calculating ${reward_distribution} rewards:`, {
-    totalFailedStakes: failed_stakes,
-    failedStakesForWinners: failedStakesForWinners,
-    hostContribution: host_contribution,
-    bonusPool: bonusPool,
-    participants: participants.length
-  })
 
   switch (reward_distribution) {
     case 'winner-takes-all':
@@ -378,7 +371,6 @@ export async function distributeRewards(
   challengeId: string,
   sqlOverride?: SqlTag
 ): Promise<RewardDistributionResult> {
-  console.log(`💰 Starting reward distribution for challenge: ${challengeId}`)
   
   // Calculate the rewards
   const sql = sqlOverride || (await createDbConnection())
@@ -390,13 +382,11 @@ export async function distributeRewards(
       SELECT status FROM challenges WHERE id = ${challengeId}
     `
     if (statusRows.length > 0 && statusRows[0].status === 'rewards_distributed') {
-      console.log('ℹ️ Rewards already distributed – idempotent return')
       return rewardResult
     }
 
     // Begin transaction for atomic reward distribution
     await sql`BEGIN`
-    console.log('🔒 Transaction started for reward distribution')
 
     // Update each participant's reward and user credits
     for (const reward of rewardResult.participant_rewards) {
@@ -488,7 +478,6 @@ export async function distributeRewards(
     }
 
     // Process insurance refunds for failed participants
-    console.log('🛡️ Processing insurance refunds...')
     const failedWithInsurance = await sql`
       SELECT 
         cp.id as participant_id,
@@ -543,7 +532,6 @@ export async function distributeRewards(
       `
       
       totalInsurancePayouts += refundAmount
-      console.log(`✅ Insurance payout: $${refundAmount} to user ${participant.user_id}`)
       
       // Send insurance payout notification
       await notifyInsurancePayout(
@@ -559,7 +547,6 @@ export async function distributeRewards(
     }
 
     if (failedWithInsurance.length > 0) {
-      console.log(`🛡️ Total insurance payouts: $${totalInsurancePayouts} to ${failedWithInsurance.length} participants`)
     }
 
     // Mark challenge as rewards distributed
@@ -572,7 +559,6 @@ export async function distributeRewards(
     `
 
     // Send reward notifications to all winners
-    console.log('📬 Sending reward notifications to winners...')
     const rewardsToNotify = rewardResult.participant_rewards.map(reward => ({
       user_id: reward.user_id,
       challenge_title: rewardResult.challenge_stats.title,
@@ -588,12 +574,7 @@ export async function distributeRewards(
 
     // Commit transaction
     await sql`COMMIT`
-    console.log('✅ Transaction committed successfully')
 
-    console.log('✅ Rewards distributed successfully for challenge:', challengeId)
-    console.log('💰 Total distributed:', rewardResult.summary.total_distributed)
-    console.log('📊 Platform revenue:', rewardResult.platform_revenue.total)
-    console.log('🛡️ Insurance payouts:', totalInsurancePayouts)
 
     return rewardResult
 
@@ -603,7 +584,6 @@ export async function distributeRewards(
     // Rollback transaction to prevent partial updates
     try {
       await sql`ROLLBACK`
-      console.log('🔄 Transaction rolled back successfully')
     } catch (rollbackError) {
       console.error('❌ Rollback failed:', rollbackError)
     }

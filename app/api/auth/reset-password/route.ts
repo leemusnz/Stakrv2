@@ -40,7 +40,6 @@ export async function POST(request: NextRequest) {
     const result = verificationResult[0]
 
     if (!result.success) {
-      console.log('❌ Password reset failed:', result.message)
       systemLogger.warning(`Password reset failed: ${result.message}`, 'auth')
       
       return NextResponse.json({
@@ -75,7 +74,6 @@ export async function POST(request: NextRequest) {
 
     const updatedUser = updateResult[0]
 
-    console.log('✅ Password reset successful for:', updatedUser.email)
     systemLogger.info(`Password reset successful for user: ${updatedUser.email}`, 'auth')
 
     // Return success response

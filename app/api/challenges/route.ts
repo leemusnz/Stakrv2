@@ -203,11 +203,6 @@ export async function GET(request: NextRequest) {
     }))
     
     // Debug logging for thumbnail URLs
-    console.log('🔍 API Response - Challenges with thumbnails:', formattedChallenges.map(c => ({
-      id: c.id,
-      title: c.title,
-      thumbnail_url: c.thumbnail_url
-    })))
     
     return NextResponse.json({
       success: true,
@@ -453,7 +448,6 @@ export async function POST(request: NextRequest) {
       `
     } catch (error) {
       // Admin logging is optional - don't fail challenge creation if admin_actions table doesn't exist
-      console.log('Admin logging skipped:', error instanceof Error ? error.message : 'Unknown error')
     }
 
     return NextResponse.json({

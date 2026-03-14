@@ -92,7 +92,6 @@ export async function retry<T>(
         if ('status' in error) {
           const httpError = error as HttpError
           if (httpError.status && !opts.retryOn.includes(httpError.status)) {
-            console.log(`❌ Non-retryable status ${httpError.status}, throwing immediately`)
             throw error // Don't retry non-retryable status codes
           }
         }
@@ -100,13 +99,11 @@ export async function retry<T>(
       
       // Don't retry on last attempt
       if (attempt === opts.maxAttempts) {
-        console.log(`❌ Max attempts (${opts.maxAttempts}) reached, giving up`)
         break
       }
       
       // Calculate delay and wait
       const delay = calculateDelay(attempt, opts)
-      console.log(`⏱️  Retry attempt ${attempt}/${opts.maxAttempts} after ${delay}ms delay...`)
       
       // Call retry callback
       opts.onRetry(error as Error, attempt)
@@ -160,7 +157,6 @@ export async function fetchWithRetry(
  *   maxAttempts: 5,
  *   backoff: 'exponential',
  *   onRetry: (error, attempt) => {
- *     console.log(`Retry ${attempt}: ${error.message}`)
  *   }
  * })
  */

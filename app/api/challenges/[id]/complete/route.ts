@@ -69,9 +69,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Distribute rewards based on challenge type
-    console.log(`🏁 Completing challenge: ${challenge.title} (${challengeId})`)
-    console.log(`📊 Stats: ${challenge.completed_count}/${challenge.total_participants} completed`)
-    console.log(`🎯 Challenge type: ${challenge.allow_points_only ? 'XP Challenge' : 'Cash Challenge'}`)
 
     let rewardResult
     let isXPChallenge = challenge.allow_points_only

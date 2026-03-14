@@ -136,7 +136,6 @@ export function useAnalyzerDevSettings(): AnalyzerDevSettings | null {
       settings.skipObviousQuestions = true
     }
     
-    console.log('🛠️ URL Dev Settings:', settings)
     return settings
     
   }, [searchParams])

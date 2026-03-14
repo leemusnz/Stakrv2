@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
         RETURNING email
       `
 
-      console.log(`✅ Admin verified ${result.length} users`)
       systemLogger.info(`Admin ${session.user.email} verified ${result.length} users`, 'admin')
 
       return NextResponse.json({
@@ -55,7 +54,6 @@ export async function POST(request: NextRequest) {
         }, { status: 404 })
       }
 
-      console.log(`✅ Admin verified user: ${email}`)
       systemLogger.info(`Admin ${session.user.email} verified user: ${email}`, 'admin')
 
       return NextResponse.json({

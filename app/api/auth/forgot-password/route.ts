@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
 
       // Check if email is verified (security measure)
       if (!user.email_verified) {
-        console.log('🚫 Password reset denied for unverified email:', email)
         systemLogger.warning(`Password reset attempted for unverified email: ${email}`, 'auth')
         
         return NextResponse.json({
@@ -76,7 +75,6 @@ export async function POST(request: NextRequest) {
           }, { status: 500 })
         }
 
-        console.log('✅ Password reset email sent to:', email)
         systemLogger.info(`Password reset email sent to user: ${email}`, 'auth')
 
       } catch (emailError) {
@@ -93,7 +91,6 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
     } else {
-      console.log('🔍 Password reset requested for non-existent email:', email)
       systemLogger.info(`Password reset requested for non-existent email: ${email}`, 'auth')
     }
 

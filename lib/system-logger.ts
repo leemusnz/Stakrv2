@@ -30,7 +30,6 @@ class SystemLogger {
     }
 
     // Also log to console
-    console.log(`[${level.toUpperCase()}] ${service}: ${message}`, metadata || '')
   }
 
   getLogs(limit = 100): LogEntry[] {

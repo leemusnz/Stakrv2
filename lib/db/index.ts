@@ -34,7 +34,6 @@ export async function testDatabaseConnection(): Promise<{
   try {
     const sql = createDbConnection()
     await sql`SELECT 1 as test`
-    console.log('✅ Database connection successful')
     return { 
       success: true, 
       message: 'Database connection successful' 

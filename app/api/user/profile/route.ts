@@ -64,24 +64,19 @@ export async function PATCH(request: NextRequest) {
 
     const { name, username, avatar } = validationResult.data
 
-    console.log('📝 Profile update for user:', session.user.id, { name, username, avatar })
 
     // Validate name with moderation if provided
     if (name !== undefined) {
       try {
-        console.log('🔍 Checking name for moderation:', name)
         const moderationResult = await moderationService.moderateProfileName(name)
-        console.log('🛡️ Name moderation result:', moderationResult)
         
         if (moderationResult.flagged) {
-          console.log('❌ Name flagged, returning error')
           return NextResponse.json({
             error: 'Profile name not allowed',
             reason: moderationResult.reason.join(', '),
             message: 'Please choose a different name that follows our community guidelines'
           }, { status: 400 })
         }
-        console.log('✅ Name passed moderation')
       } catch (moderationError) {
         console.warn('Moderation check failed, allowing name:', moderationError)
       }
@@ -90,19 +85,15 @@ export async function PATCH(request: NextRequest) {
     // Validate username with moderation if provided
     if (username !== undefined) {
       try {
-        console.log('🔍 Checking username for moderation:', username)
         const moderationResult = await moderationService.moderateProfileName(username)
-        console.log('🛡️ Username moderation result:', moderationResult)
         
         if (moderationResult.flagged) {
-          console.log('❌ Username flagged, returning error')
           return NextResponse.json({
             error: 'Username not allowed',
             reason: moderationResult.reason.join(', '),
             message: 'Please choose a different username that follows our community guidelines'
           }, { status: 400 })
         }
-        console.log('✅ Username passed moderation')
       } catch (moderationError) {
         console.warn('Moderation check failed, allowing username:', moderationError)
       }
@@ -134,7 +125,6 @@ export async function PATCH(request: NextRequest) {
         `
         
         if (result.length > 0) {
-          console.log('✅ Database profile updated successfully:', result[0])
           
           return NextResponse.json({
             success: true,
@@ -150,7 +140,6 @@ export async function PATCH(request: NextRequest) {
           })
         }
       } catch (dbError) {
-        console.log('⚠️ Database update failed, using mock response:', dbError)
       }
     }
 

@@ -44,7 +44,6 @@ export async function middleware(request: NextRequest) {
   
   // Debug logging for development
   if (process.env.NODE_ENV === 'development') {
-    console.log('🔧 Middleware processing:', pathname)
   }
   
   // Skip middleware for API routes, static files, and auth routes
@@ -55,7 +54,6 @@ export async function middleware(request: NextRequest) {
     pathname.includes('.')
   ) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('⏭️ Skipping middleware for:', pathname)
     }
     return NextResponse.next()
   }
@@ -72,14 +70,11 @@ export async function middleware(request: NextRequest) {
     const hasAlphaAccess = alphaAccess?.value === 'true'
 
     if (!hasAlphaAccess) {
-      console.log('🚫 No alpha access detected, redirecting to alpha gate')
-      console.log('🍪 Alpha access cookie:', alphaAccess?.value)
       const alphaGateUrl = new URL('/alpha-gate', request.url)
       return NextResponse.redirect(alphaGateUrl)
     }
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('✅ Alpha access verified')
     }
   }
 
@@ -96,7 +91,6 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users who have completed onboarding away from onboarding to dashboard
   if (pathname.startsWith('/onboarding') && token && token.onboardingCompleted) {
-    console.log('🚀 Authenticated user with completed onboarding accessing onboarding, redirecting to dashboard')
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -118,13 +112,9 @@ export async function middleware(request: NextRequest) {
 
   // If user is not email verified and not on exempt route, redirect to verification
   if (!isVerificationExempt && !token.emailVerified) {
-    console.log('🚫 Blocking unverified user from accessing:', pathname)
-    console.log('📧 User email verification status:', token.emailVerified)
-    console.log('📧 User email:', token.email)
     const verifyUrl = new URL('/auth/verify-email', request.url)
     verifyUrl.searchParams.set('email', token.email as string)
     verifyUrl.searchParams.set('from', 'access-blocked')
-    console.log('🔄 Redirecting to:', verifyUrl.toString())
     return NextResponse.redirect(verifyUrl)
   }
 

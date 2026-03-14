@@ -107,9 +107,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 })
     }
 
-    console.log(`Admin ${session.user.email} processed report ${reportId} with action: ${action}`)
     if (notes) {
-      console.log(`Notes: ${notes}`)
     }
 
     return NextResponse.json({

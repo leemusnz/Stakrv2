@@ -18,18 +18,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Image URL required' }, { status: 400 })
     }
 
-    console.log('🔍 Server-side image moderation request:', imageUrl, 'context:', context)
-    console.log('🔧 Environment:', process.env.NODE_ENV)
-    console.log('🔑 OpenAI API key configured:', !!process.env.OPENAI_API_KEY)
 
     // DISABLED: Development mode override - ensuring real moderation for security
     // if (isDevelopment) {
-    //   console.log('🔧 Development mode: Using lenient moderation for better UX')
     //   
     //   // Still call moderation service but override result for development
     //   try {
     //     const moderationResult = await moderationService.moderateImage(imageUrl, context)
-    //     console.log('🛡️ Server-side moderation result (dev override):', moderationResult)
     //     
     //     // Force approval in development unless it's a severe case
     //     const forcedResult = {
@@ -61,22 +56,13 @@ export async function POST(request: NextRequest) {
 
     // Production moderation
     const moderationResult = await moderationService.moderateImage(imageUrl, context)
-    console.log('🛡️ DETAILED moderation result from OpenAI:')
-    console.log('   - Flagged:', moderationResult.flagged)
-    console.log('   - Action:', moderationResult.action)
-    console.log('   - Confidence:', moderationResult.confidence)
-    console.log('   - Reasons:', moderationResult.reason)
-    console.log('   - Notes:', moderationResult.notes)
-    console.log('   - Raw result:', JSON.stringify(moderationResult, null, 2))
 
     // Log specific failure reasons for debugging
     if (moderationResult.flagged && moderationResult.reason) {
-      console.log('🚨 Moderation blocked image. Reasons:', moderationResult.reason)
       
       const isTechnicalError = moderationResult.reason.some(r => 
         r.includes('moderation_') || r.includes('api_') || r.includes('download_') || r.includes('parse_')
       )
-      console.log('🚨 Is technical error?', isTechnicalError)
       
              // TEMPORARY FIX: DISABLED DUE TO SECURITY ISSUE
        // TODO: Re-enable with more restrictive logic once moderation issues are resolved

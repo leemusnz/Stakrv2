@@ -105,12 +105,10 @@ export class AppleHealthIntegration {
       // Check if Apple Health is available
       const winWithWebKit = window as WindowWithWebKit
       if (typeof window !== 'undefined' && 'webkit' in window && 'messageHandlers' in (winWithWebKit.webkit || {})) {
-        console.log('🍎 Apple Health available')
         return true
       }
       
       // For web, use HealthKit JS (if available)
-      console.log('🌐 Apple Health Web integration needed')
       return false
     } catch (error) {
       console.error('Apple Health connection failed:', error)
@@ -124,7 +122,6 @@ export class AppleHealthIntegration {
     
     try {
       // This would integrate with Apple HealthKit
-      console.log('📱 Fetching Apple Health workouts...', { startDate, endDate })
       
       // Mock data for development
       if (process.env.NODE_ENV === 'development') {
@@ -175,12 +172,10 @@ export class FitbitIntegration {
     try {
       // In development mode, allow connection without API keys
       if (process.env.NODE_ENV === 'development') {
-        console.log('⌚ Fitbit integration connected (development mode)')
         return true
       }
 
       if (!this.config.clientId) {
-        console.log('⌚ Fitbit Client ID required for production')
         return false
       }
 
@@ -191,7 +186,6 @@ export class FitbitIntegration {
         `scope=activity+heartrate+location+sleep&` +
         `redirect_uri=${encodeURIComponent(window.location.origin + '/auth/fitbit')}`
 
-      console.log('⌚ Fitbit OAuth URL:', authUrl)
       return true
     } catch (error) {
       console.error('Fitbit connection failed:', error)
@@ -265,7 +259,6 @@ export class StravaIntegration {
       // In test/dev, if no token, simulate successful connection to allow OAuth URL generation logic
       if (typeof process !== 'undefined' && (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development')) {
         if (!this.config.accessToken) {
-          console.log('🏃 Strava test mode: simulating successful connect without access token')
           return true
         }
       }
@@ -279,16 +272,13 @@ export class StravaIntegration {
         })
 
         if (response.ok) {
-          console.log('🏃 Strava connection verified')
           return true
         } else {
-          console.log('🏃 Strava token expired or invalid')
           return false
         }
       }
 
       // No access token - need OAuth flow
-      console.log('🏃 Strava OAuth flow required')
       return false
     } catch (error) {
       console.error('Strava connection failed:', error)
@@ -354,7 +344,6 @@ export class GarminIntegration {
   private config: WearableIntegrationConfig
   constructor(config: WearableIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('⌚ Garmin integration via Connect IQ')
     return true
   }
 }
@@ -363,7 +352,6 @@ export class SamsungGalaxyWatchIntegration {
   private config: WearableIntegrationConfig
   constructor(config: WearableIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('⌚ Samsung Galaxy Watch integration via Samsung Health')
     return true
   }
 }
@@ -372,7 +360,6 @@ export class GoogleFitIntegration {
   private config: WearableIntegrationConfig
   constructor(config: WearableIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('📱 Google Fit integration')
     return true
   }
 }
@@ -381,7 +368,6 @@ export class PolarIntegration {
   private config: WearableIntegrationConfig
   constructor(config: WearableIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('⌚ Polar integration via AccessLink API')
     return true
   }
 }
@@ -390,7 +376,6 @@ export class WithingsIntegration {
   private config: WearableIntegrationConfig
   constructor(config: WearableIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('⚖️ Withings integration via Health Mate API')
     return true
   }
 }
@@ -399,7 +384,6 @@ export class OuraRingIntegration {
   private config: WearableIntegrationConfig
   constructor(config: WearableIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('💍 Oura Ring integration via Oura API')
     return true
   }
 }
@@ -419,12 +403,10 @@ export class WhoopIntegration {
     try {
       // In development mode, allow connection without API keys
       if (process.env.NODE_ENV === 'development') {
-        console.log('💪 Whoop integration connected (development mode)')
         return true
       }
 
       if (!this.config.clientId || !this.config.clientSecret) {
-        console.log('💪 Whoop Client ID and Secret required for production')
         return false
       }
 
@@ -437,17 +419,14 @@ export class WhoopIntegration {
         })
 
         if (response.ok) {
-          console.log('💪 Whoop connection verified')
           return true
         } else if (response.status === 401) {
           // Token invalid, need to refresh or re-authenticate
-          console.log('💪 Whoop token expired or invalid')
           return false
         }
       }
 
       // No access token - need OAuth flow
-      console.log('💪 Whoop OAuth flow required')
       return false
     } catch (error) {
       console.error('Whoop connection failed:', error)
@@ -721,7 +700,6 @@ export class WearableManager {
 
   private initializeIntegrations() {
     // Initialize available integrations
-    console.log('⌚ Initializing wearable integrations...')
   }
 
   async addIntegration(device: WearableDevice, config: WearableIntegrationConfig): Promise<boolean> {
@@ -767,7 +745,6 @@ export class WearableManager {
       if (connected) {
         this.integrations.set(device, integration)
         this.configs.set(device, config)
-        console.log(`✅ ${device} integration added successfully`)
         return true
       } else {
         console.error(`❌ Failed to connect ${device}`)
@@ -784,7 +761,6 @@ export class WearableManager {
 
     for (const [device, integration] of this.integrations) {
       try {
-        console.log(`📊 Fetching data from ${device}...`)
         const data = await integration.fetchWorkoutData(startDate, endDate)
         allData.push(...data)
       } catch (error) {

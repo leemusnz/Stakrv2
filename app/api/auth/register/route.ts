@@ -47,12 +47,6 @@ export async function POST(request: NextRequest) {
     
     // Log onboarding data for analytics
     if (onboardingData) {
-      console.log('📊 Onboarding data received:', {
-        goals: onboardingData.goals?.length || 0,
-        hasExperience: !!onboardingData.experience,
-        hasMotivation: !!onboardingData.motivation,
-        hasStakeRange: !!onboardingData.preferredStakeRange
-      })
     }
 
     // Generate username if not provided
@@ -95,7 +89,6 @@ export async function POST(request: NextRequest) {
     const saltRounds = 12
     const passwordHash = await bcrypt.hash(password, saltRounds)
     
-    console.log(`🔧 Creating user: email=${email}, username=${username}, name=${name}`)
 
     // Create user in database
     let newUsers
@@ -149,7 +142,6 @@ export async function POST(request: NextRequest) {
 
     const newUser = newUsers[0]
 
-    console.log('✅ User created successfully:', newUser.email, 'with username:', newUser.username)
 
     // Generate verification token and send email
     const verificationToken = generateVerificationToken()
@@ -169,7 +161,6 @@ export async function POST(request: NextRequest) {
         console.error('❌ Failed to send verification email:', emailResult.error)
         // Note: We don't fail registration if email fails to send
       } else {
-        console.log('✅ Verification email sent to:', email)
         emailSent = true
       }
     } catch (emailError) {

@@ -85,7 +85,6 @@ export async function GET(request: NextRequest) {
         last_sync = NOW()
     `
 
-    console.log(`✅ Google Fit OAuth completed for user ${session.user.id}`)
     return NextResponse.redirect(new URL('/settings?tab=integrations&success=googlefit_connected', request.url))
 
   } catch (error) {

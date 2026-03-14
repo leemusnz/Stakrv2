@@ -30,15 +30,8 @@ export async function uploadFile(
   onProgress?: (progress: UploadProgress) => void
 ): Promise<UploadResult> {
   try {
-    console.log('🚀 Starting file upload process:', {
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-      challengeId: options.challengeId
-    })
 
     // Step 1: Get presigned URL from our API
-    console.log('📡 Step 1: Requesting presigned URL...')
     const presignedResponse = await fetch('/api/upload/presigned-url', {
       method: 'POST',
       headers: {
@@ -52,7 +45,6 @@ export async function uploadFile(
       }),
     })
 
-    console.log('📡 Presigned URL response status:', presignedResponse.status)
 
     if (!presignedResponse.ok) {
       const error = await presignedResponse.json()
@@ -65,14 +57,8 @@ export async function uploadFile(
     }
 
     const { uploadUrl, fileKey, fileUrl } = await presignedResponse.json()
-    console.log('✅ Presigned URL received successfully:', {
-      fileKey,
-      fileUrl,
-      uploadUrlPrefix: uploadUrl.substring(0, 50) + '...'
-    })
 
     // Step 2: Upload directly to S3 using presigned URL
-    console.log('☁️ Step 2: Uploading to S3...')
     const uploadResponse = await fetch(uploadUrl, {
       method: 'PUT',
       body: file,
@@ -81,7 +67,6 @@ export async function uploadFile(
       },
     })
 
-    console.log('☁️ S3 upload response status:', uploadResponse.status)
 
     // Track upload progress if callback provided
     if (onProgress) {
@@ -100,10 +85,8 @@ export async function uploadFile(
       }
     }
 
-    console.log('✅ S3 upload completed successfully')
 
     // Step 3: Confirm upload and save metadata to our database
-    console.log('💾 Step 3: Confirming upload with database...')
     const confirmResponse = await fetch('/api/upload/confirm', {
       method: 'POST',
       headers: {
@@ -125,7 +108,6 @@ export async function uploadFile(
       }),
     })
 
-    console.log('💾 Confirm upload response status:', confirmResponse.status)
 
     if (!confirmResponse.ok) {
       console.warn('⚠️ File uploaded but confirmation failed:', {
@@ -134,10 +116,8 @@ export async function uploadFile(
       })
       // Still return success since the file was uploaded
     } else {
-      console.log('✅ Upload confirmation completed successfully')
     }
 
-    console.log('🎉 Complete upload process finished successfully!')
     return { 
       success: true, 
       fileKey, 

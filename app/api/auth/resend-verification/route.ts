@@ -13,7 +13,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log('🔄 Resending verification email for:', email)
 
     // Check if user exists and is not already verified
     const sql = await createDbConnection()
@@ -62,7 +61,6 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
 
-      console.log('✅ Verification email resent to:', email)
 
       return NextResponse.json({
         success: true,

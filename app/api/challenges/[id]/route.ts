@@ -100,19 +100,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
       
       // Debug: Log what we're returning for host data
-      console.log('🔍 API returning host data:', {
-        host_name: challengeData.host_name,
-        host_id: challengeData.host_id,
-        host_avatar_url: challengeData.host_avatar_url
-      })
       
       // Debug: Log proof requirements transformation
-      console.log('🔍 API transforming proof requirements:', {
-        original_proof_requirements: challengeData.proof_requirements,
-        selected_proof_types: challengeData.selected_proof_types,
-        camera_only: challengeData.camera_only,
-        transformed_proofRequirements: challengeData.proofRequirements
-      })
       
       return NextResponse.json({
         success: true,

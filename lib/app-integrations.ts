@@ -89,7 +89,6 @@ export class MyFitnessPalIntegration {
     try {
       // MyFitnessPal uses Under Armour's API
       if (!this.config.accessToken) {
-        console.log('🍎 MyFitnessPal OAuth required')
         return false
       }
 
@@ -171,7 +170,6 @@ export class HeadspaceIntegration {
       // 2. Screen time API (iOS/Android)
       // 3. Manual verification with screenshots
       
-      console.log('🧘 Headspace integration via email/manual verification')
       return true
     } catch (error) {
       console.error('Headspace connection failed:', error)
@@ -229,7 +227,6 @@ export class DuolingoIntegration {
   async connect(): Promise<boolean> {
     try {
       if (!this.config.username) {
-        console.log('🦉 Duolingo username required')
         return false
       }
 
@@ -340,16 +337,13 @@ export class SpotifyIntegration {
         })
 
         if (response.ok) {
-          console.log('🎵 Spotify connection verified')
           return true
         } else {
-          console.log('🎵 Spotify token expired or invalid')
           return false
         }
       }
 
       // No access token - need OAuth flow
-      console.log('🎵 Spotify OAuth flow required')
       return false
     } catch (error) {
       console.error('Spotify connection failed:', error)
@@ -410,7 +404,6 @@ export class NoomIntegration {
   async connect(): Promise<boolean> {
     try {
       // Noom doesn't have a public API, manual verification
-      console.log('⚖️ Noom integration via manual verification')
       return true
     } catch (error) {
       console.error('Noom connection failed:', error)
@@ -460,12 +453,10 @@ export class TodoistIntegration {
     try {
       // In development mode, allow connection without API keys
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ Todoist integration connected (development mode)')
         return true
       }
 
       if (!this.config.accessToken) {
-        console.log('✅ Todoist API token required for production')
         return false
       }
 
@@ -535,12 +526,10 @@ export class GitHubIntegration {
     try {
       // In development mode, allow connection without API keys
       if (process.env.NODE_ENV === 'development') {
-        console.log('🐙 GitHub integration connected (development mode)')
         return true
       }
 
       if (!this.config.accessToken) {
-        console.log('🐙 GitHub access token required for production')
         return false
       }
 
@@ -640,7 +629,6 @@ export class CourseraIntegration {
   private config: AppIntegrationConfig
   constructor(config: AppIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('🎓 Coursera integration via manual verification')
     return true
   }
 }
@@ -649,7 +637,6 @@ export class KhanAcademyIntegration {
   private config: AppIntegrationConfig
   constructor(config: AppIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('📚 Khan Academy integration via manual verification')
     return true
   }
 }
@@ -658,7 +645,6 @@ export class YouTubeMusicIntegration {
   private config: AppIntegrationConfig
   constructor(config: AppIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('🎶 YouTube Music integration via manual verification')
     return true
   }
 }
@@ -667,7 +653,6 @@ export class GoodreadsIntegration {
   private config: AppIntegrationConfig
   constructor(config: AppIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('📖 Goodreads integration via manual verification')
     return true
   }
 }
@@ -676,7 +661,6 @@ export class NotionIntegration {
   private config: AppIntegrationConfig
   constructor(config: AppIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('📝 Notion integration via manual verification')
     return true
   }
 }
@@ -685,7 +669,6 @@ export class LinkedInLearningIntegration {
   private config: AppIntegrationConfig
   constructor(config: AppIntegrationConfig) { this.config = config }
   async connect(): Promise<boolean> {
-    console.log('💼 LinkedIn Learning integration via manual verification')
     return true
   }
 }
@@ -700,7 +683,6 @@ export class AppIntegrationManager {
   }
 
   private initializeIntegrations() {
-    console.log('📱 Initializing app integrations...')
   }
 
   async addIntegration(app: IntegratedApp, config: AppIntegrationConfig): Promise<boolean> {
@@ -755,7 +737,6 @@ export class AppIntegrationManager {
       if (connected) {
         this.integrations.set(app, integration)
         this.configs.set(app, config)
-        console.log(`✅ ${app} integration added successfully`)
         return true
       } else {
         console.error(`❌ Failed to connect ${app}`)
@@ -772,7 +753,6 @@ export class AppIntegrationManager {
 
     for (const [app, integration] of this.integrations) {
       try {
-        console.log(`📊 Fetching data from ${app}...`)
         
         let data: AppIntegrationData[] = []
         

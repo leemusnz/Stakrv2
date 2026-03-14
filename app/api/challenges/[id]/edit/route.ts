@@ -126,7 +126,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       delete updates.end_date
     }
     
-    console.log('🔄 Updating fields:', Object.keys(updates))
     
     // Now update all other fields
     const updateResult = await sql`
@@ -161,17 +160,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     
     // The result should be an array of updated records
     if (!Array.isArray(updateResult) || updateResult.length === 0) {
-      console.log('❌ No results returned from update query')
       return NextResponse.json({ error: 'Failed to update challenge' }, { status: 500 })
     }
     
     const updatedChallenge = updateResult[0]
     
-    console.log('✅ Challenge updated successfully:', {
-      challengeId,
-      updatedFields: Object.keys(updates),
-      hasParticipants
-    })
     
     return NextResponse.json({
       success: true,

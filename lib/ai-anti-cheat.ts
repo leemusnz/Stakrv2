@@ -80,7 +80,6 @@ export class AIAntiCheatEngine {
     if (this.isInitialized) return
 
     try {
-      console.log('🧠 Initializing AI Anti-Cheat Engine...')
       
       // Initialize ML models (placeholder for now)
       await this.loadModels()
@@ -89,7 +88,6 @@ export class AIAntiCheatEngine {
       await this.setupMonitoring()
       
       this.isInitialized = true
-      console.log('✅ AI Anti-Cheat Engine initialized successfully')
       systemLogger.info('AI Anti-Cheat Engine initialized', 'ai-anticheat')
       
     } catch (error) {
@@ -106,7 +104,6 @@ export class AIAntiCheatEngine {
     const startTime = Date.now()
     
     try {
-      console.log(`🔍 Analyzing submission ${submission.id} for user ${submission.userId}`)
       
       // Get user risk profile
       const userProfile = await this.getUserRiskProfile(submission.userId)
@@ -190,15 +187,9 @@ export class AIAntiCheatEngine {
 
   // Layer 1: Proof Validation AI
   private async validateProof(submission: ProofSubmission): Promise<number> {
-    console.log('🔍 Layer 1: Validating proof authenticity...')
     
     // CRITICAL: Get challenge analysis data for context-aware validation
     const challengeContext = await this.getChallengeAnalysisContext(submission.challengeId)
-    console.log('📊 Retrieved challenge analysis context:', {
-      hasAnalysis: !!challengeContext,
-      dailyRequirement: challengeContext?.dailyRequirement,
-      validationMethod: challengeContext?.validationMethod
-    })
     
     const checks = {
       // Metadata validation
@@ -220,13 +211,11 @@ export class AIAntiCheatEngine {
     const totalChecks = Object.keys(checks).length
     const confidence = (passedChecks / totalChecks) * 100
     
-    console.log(`✅ Proof validation confidence: ${confidence}%`)
     return Math.round(confidence)
   }
 
   // Layer 2: Behavioral Analysis
   private async analyzeBehavior(submission: ProofSubmission, userProfile: UserRiskProfile): Promise<number> {
-    console.log('📊 Layer 2: Analyzing behavioral patterns...')
     
     // Analyze submission timing patterns
     const timingScore = await this.analyzeSubmissionTiming(submission.userId)
@@ -246,25 +235,21 @@ export class AIAntiCheatEngine {
       (timingScore + completionScore + textScore) / 3 * riskAdjustment
     )
     
-    console.log(`✅ Behavioral analysis confidence: ${behavioralConfidence}%`)
     return behavioralConfidence
   }
 
   // Layer 3, 4, 5 implementations (simplified for now)
   private async analyzeSocialNetworks(submission: ProofSubmission): Promise<number> {
-    console.log('🕸️ Layer 3: Analyzing social networks...')
     // Placeholder - implement graph analysis
     return 85
   }
 
   private async analyzeContext(submission: ProofSubmission): Promise<number> {
-    console.log('🧩 Layer 4: Analyzing context intelligence...')
     // Placeholder - implement challenge-specific validation
     return 90
   }
 
   private async analyzeEconomicFraud(submission: ProofSubmission): Promise<number> {
-    console.log('💰 Layer 5: Analyzing economic fraud...')
     // Placeholder - implement financial pattern analysis
     return 95
   }
@@ -445,7 +430,6 @@ export class AIAntiCheatEngine {
     challengeContext: any
   ): Promise<boolean> {
     if (!challengeContext) {
-      console.log('⚠️ No challenge context available - attempting minimal enhanced verification')
       try {
         const minimalRequest = {
           challengeId: submission.challengeId,
@@ -468,11 +452,6 @@ export class AIAntiCheatEngine {
       }
     }
 
-    console.log('🎯 Validating submission against challenge context:', {
-      dailyRequirement: challengeContext.dailyRequirement,
-      validationMethod: challengeContext.validationMethod,
-      activityType: challengeContext.activityType
-    })
 
     // Use Enhanced AI Verification system with challenge context
     try {
@@ -500,11 +479,6 @@ export class AIAntiCheatEngine {
       }
 
       const result = await EnhancedAIVerification.verify(enhancedRequest)
-      console.log('🧠 Enhanced AI verification result:', {
-        approved: result.approved,
-        confidence: result.confidence,
-        reasoning: result.reasoning
-      })
 
       // Surface enhanced confidence to overall calculation
       this.lastEnhancedConfidence = result.confidence
@@ -566,13 +540,11 @@ export class AIAntiCheatEngine {
 
   // Initialization helpers
   private async loadModels(): Promise<void> {
-    console.log('📦 Loading AI models...')
     // Placeholder - implement model loading
     await new Promise(resolve => setTimeout(resolve, 1000))
   }
 
   private async setupMonitoring(): Promise<void> {
-    console.log('📊 Setting up monitoring...')
     // Placeholder - implement monitoring setup
   }
 }
@@ -611,7 +583,6 @@ export async function processDetectionResult(
   submissionId: string
 ): Promise<void> {
   if (result.action === 'ban') {
-    console.log(`🚫 Auto-banning user ${userId} for submission ${submissionId}`)
     systemLogger.warning('User auto-banned for cheating', 'ai-anticheat', {
       userId,
       submissionId,

@@ -30,7 +30,6 @@ setup('authenticate as test user', async ({ page }) => {
   // Save authenticated state
   await page.context().storageState({ path: authFile })
   
-  console.log('✅ Authentication state saved')
 })
 
 

@@ -65,7 +65,6 @@ export async function createNotification(
     
     const notificationId = result[0]?.id
     
-    console.log(`📬 Notification created for user ${data.userId}: ${data.title}`)
     
     // Send email notification if requested
     if (data.sendEmail && data.emailSubject && data.emailBody) {
@@ -86,7 +85,6 @@ export async function createNotification(
           // Don't fail the whole notification if email fails
         })
         
-        console.log(`📧 Email notification sent to ${user.email}`)
       }
     }
     
@@ -327,7 +325,6 @@ export async function notifyBatchRewards(
   }>,
   sqlOverride?: SqlTag
 ): Promise<void> {
-  console.log(`📬 Sending ${participantRewards.length} reward notifications...`)
   
   for (const reward of participantRewards) {
     await notifyRewardEarned(
@@ -344,6 +341,5 @@ export async function notifyBatchRewards(
     )
   }
   
-  console.log(`✅ All reward notifications sent`)
 }
 

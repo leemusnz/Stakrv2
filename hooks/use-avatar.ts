@@ -44,7 +44,6 @@ export function useAvatar() {
       // Notify all components
       avatarEvents.notify(newAvatarUrl)
       
-      console.log('✅ Avatar updated successfully:', newAvatarUrl)
     } catch (error) {
       console.error('❌ Failed to update avatar:', error)
     } finally {
@@ -64,7 +63,6 @@ export function useAvatar() {
   // Listen for avatar events from other components
   useEffect(() => {
     const unsubscribe = avatarEvents.subscribe((newAvatarUrl) => {
-      console.log('🔄 Avatar event received in useAvatar:', newAvatarUrl)
       setAvatarUrl(processAvatarUrl(newAvatarUrl))
     })
 

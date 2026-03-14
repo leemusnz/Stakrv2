@@ -11,7 +11,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('🔧 Granting dev access to user:', session.user.email)
 
     const sql = await createDbConnection()
 
@@ -34,7 +33,6 @@ export async function POST(request: NextRequest) {
 
     const user = result[0]
     
-    console.log('✅ Dev access granted to:', user.email)
 
     return NextResponse.json({
       success: true,

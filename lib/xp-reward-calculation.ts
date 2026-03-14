@@ -42,7 +42,6 @@ export async function calculateXPChallengeRewards(
 ): Promise<XPRewardDistributionResult> {
   const sql = sqlOverride || (await createDbConnection())
   
-  console.log(`🎯 Calculating XP rewards for challenge: ${challengeId}`)
 
   // Get challenge stats
   const challengeStats = await sql`
@@ -192,7 +191,6 @@ export async function distributeXPRewards(
   challengeId: string,
   sqlOverride?: SqlTag
 ): Promise<XPRewardDistributionResult> {
-  console.log(`🎯 Starting XP reward distribution for challenge: ${challengeId}`)
   
   const sql = sqlOverride || (await createDbConnection())
   const rewardResult = await calculateXPChallengeRewards(challengeId, sql)
@@ -203,13 +201,11 @@ export async function distributeXPRewards(
       SELECT status FROM challenges WHERE id = ${challengeId}
     `
     if (statusRows.length > 0 && statusRows[0].status === 'rewards_distributed') {
-      console.log('ℹ️ XP rewards already distributed – idempotent return')
       return rewardResult
     }
 
     // Begin transaction for atomic XP distribution
     await sql`BEGIN`
-    console.log('🔒 Transaction started for XP reward distribution')
 
     // Award XP to each participant
     for (const reward of rewardResult.participant_rewards) {
@@ -227,7 +223,6 @@ export async function distributeXPRewards(
       const xpAwarded = xpAwardResult[0]?.success
       
       if (xpAwarded) {
-        console.log(`✅ Awarded ${reward.total_xp} XP to user ${reward.user_id}`)
         
         // Update participant record with XP earned
         await sql`
@@ -238,7 +233,6 @@ export async function distributeXPRewards(
           WHERE id = ${reward.participant_id}
         `
       } else {
-        console.log(`⚠️ XP already awarded to user ${reward.user_id} for this challenge`)
       }
     }
 
@@ -253,15 +247,7 @@ export async function distributeXPRewards(
 
     // Commit transaction
     await sql`COMMIT`
-    console.log('✅ Transaction committed successfully')
 
-    console.log(`🎉 XP reward distribution completed for challenge: ${challengeId}`)
-    console.log(`📊 Summary:`, {
-      totalParticipants: rewardResult.challenge_stats.total_participants,
-      completedParticipants: rewardResult.challenge_stats.completed_count,
-      totalXPAwarded: rewardResult.summary.total_xp_awarded,
-      averageXPPerParticipant: rewardResult.summary.average_xp_per_participant
-    })
 
     return rewardResult
 
@@ -271,7 +257,6 @@ export async function distributeXPRewards(
     // Rollback transaction to prevent partial updates
     try {
       await sql`ROLLBACK`
-      console.log('🔄 Transaction rolled back successfully')
     } catch (rollbackError) {
       console.error('❌ Rollback failed:', rollbackError)
     }

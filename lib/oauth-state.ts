@@ -30,7 +30,6 @@ export async function generateOAuthState(
         created_at = NOW()
     `
     
-    console.log(`✅ OAuth state generated for ${provider}: ${state.substring(0, 8)}...`)
     return state
   } catch (error) {
     console.error('Failed to generate OAuth state:', error)
@@ -71,7 +70,6 @@ export async function validateOAuthState(
       WHERE user_id = ${userId} AND provider = ${provider}
     `
     
-    console.log(`✅ OAuth state validated for ${provider}`)
     return true
   } catch (error) {
     console.error('Failed to validate OAuth state:', error)
@@ -94,7 +92,6 @@ export async function cleanupExpiredStates(): Promise<number> {
     
     const deletedCount = result.count || 0
     if (deletedCount > 0) {
-      console.log(`🧹 Cleaned up ${deletedCount} expired OAuth states`)
     }
     
     return deletedCount

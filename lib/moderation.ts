@@ -166,7 +166,6 @@ export class MVPModerationService {
   }) {
     // Just log to database for manual review
     // No AI processing = $0 cost
-    console.log('Content reported:', params);
     return { success: true, reportId: Date.now().toString() };
   }
 }
@@ -187,10 +186,6 @@ export class ContentModerationService {
 
   constructor() {
     this.openaiApiKey = process.env.OPENAI_API_KEY || ''
-    console.log('🔧 ContentModerationService initialized:', {
-      hasOpenAIKey: !!this.openaiApiKey,
-      keyPrefix: this.openaiApiKey ? this.openaiApiKey.substring(0, 7) + '...' : 'none'
-    })
   }
 
   static getInstance(): ContentModerationService {
@@ -299,7 +294,6 @@ export class ContentModerationService {
   // Image moderation using OpenAI Vision API
   async moderateImage(imageUrl: string, context: string = 'profile_picture'): Promise<ModerationResult> {
     try {
-      console.log('🔑 Checking OpenAI API key:', this.openaiApiKey ? 'Present' : 'Missing')
       
       if (!this.openaiApiKey) {
         console.warn('OpenAI API key not configured for image moderation')
@@ -336,7 +330,6 @@ export class ContentModerationService {
       }
 
       // Download image and convert to base64 (needed because localhost URLs aren't accessible to OpenAI)
-      console.log('📥 Downloading image for base64 conversion:', imageUrl)
       let base64Image: string
       
       try {
@@ -350,26 +343,21 @@ export class ContentModerationService {
         
         // Handle proxy URLs that wrap S3 URLs
         if (imageUrl.includes('/api/image-proxy?url=')) {
-          console.log('🔗 Detected proxy URL, extracting S3 URL')
           const urlParams = new URL(imageUrl)
           const wrappedUrl = urlParams.searchParams.get('url')
           if (wrappedUrl && wrappedUrl.includes('stakr-verification-files.s3.ap-southeast-2.amazonaws.com')) {
             actualS3Url = wrappedUrl
             isS3Url = true
-            console.log('📤 Extracted S3 URL from proxy:', actualS3Url)
           }
         } else if (imageUrl.includes('stakr-verification-files.s3.ap-southeast-2.amazonaws.com')) {
           isS3Url = true
-          console.log('🪣 Detected direct S3 URL')
         }
         
         // If it's an S3 URL (direct or via proxy), we need to handle it specially in production
         if (isS3Url) {
-          console.log('🪣 S3 URL detected, checking AWS credentials for direct access')
           
           // In production, try to access S3 directly if we have credentials
           if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-            console.log('🔑 AWS credentials available, attempting direct S3 access')
             
             try {
               const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3')
@@ -415,7 +403,6 @@ export class ContentModerationService {
                 const contentType = s3Response.ContentType || 'image/jpeg'
                 base64Image = `data:${contentType};base64,${base64Data}`
                 
-                console.log('✅ Direct S3 access successful, image size:', base64Data.length, 'chars')
               } else {
                 throw new Error('No image data in S3 response')
               }
@@ -432,10 +419,8 @@ export class ContentModerationService {
               const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
               base64Image = `data:${contentType};base64,${base64Data}`
               
-              console.log('✅ HTTP fallback successful, image size:', base64Data.length, 'chars')
             }
           } else {
-            console.log('⚠️ No AWS credentials, using HTTP fetch')
             imageResponse = await fetch(downloadUrl)
             if (!imageResponse.ok) {
               throw new Error(`Failed to download image: ${imageResponse.status}`)
@@ -446,7 +431,6 @@ export class ContentModerationService {
             const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
             base64Image = `data:${contentType};base64,${base64Data}`
             
-            console.log('✅ HTTP fetch successful, image size:', base64Data.length, 'chars')
           }
         } else {
           // For non-S3 URLs, use regular fetch
@@ -460,7 +444,6 @@ export class ContentModerationService {
           const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
           base64Image = `data:${contentType};base64,${base64Data}`
           
-          console.log('✅ Image converted to base64, size:', base64Data.length, 'chars')
         }
         
       } catch (downloadError) {
@@ -527,7 +510,6 @@ This is for a social challenge platform - focus on safety, not professionalism. 
         temperature: 0.1
       }
 
-      console.log('🔍 OpenAI Vision API request with base64 image:', { model: requestBody.model, imageSize: base64Image.length })
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -538,16 +520,9 @@ This is for a social challenge platform - focus on safety, not professionalism. 
         body: JSON.stringify(requestBody),
       })
 
-      console.log('📡 OpenAI API response status:', response.status, response.statusText)
       
       if (response.ok) {
         const data = await response.json()
-        console.log('📥 OpenAI API response structure:', {
-          choices: data.choices?.length || 0,
-          hasContent: !!data.choices?.[0]?.message?.content,
-          usage: data.usage,
-          model: data.model
-        })
         
         const content = data.choices[0]?.message?.content
 
@@ -569,7 +544,6 @@ This is for a social challenge platform - focus on safety, not professionalism. 
           cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '')
         }
         
-        console.log('🧹 Cleaned OpenAI response for parsing:', cleanContent)
 
         try {
           
@@ -587,7 +561,6 @@ This is for a social challenge platform - focus on safety, not professionalism. 
             }
           }
 
-          console.log('✅ Successfully parsed moderation result:', result)
 
           await this.logModeration({
             content: imageUrl,
@@ -676,12 +649,6 @@ This is for a social challenge platform - focus on safety, not professionalism. 
     try {
       // Check if database URL is available before attempting to queue
       if (!process.env.DATABASE_URL) {
-        console.log('📋 Moderation queue item (no DB):', {
-          contentType: item.contentType,
-          priority: item.priority,
-          flaggedReasons: item.flaggedReasons,
-          aiConfidence: item.aiConfidence
-        })
         return
       }
 
@@ -872,14 +839,6 @@ This is for a social challenge platform - focus on safety, not professionalism. 
     try {
       // Check if database URL is available before attempting to log
       if (!process.env.DATABASE_URL) {
-        console.log('📝 Moderation result (no DB):', {
-          type: log.type,
-          context: log.context,
-          service: log.service,
-          flagged: log.result.flagged,
-          confidence: log.result.confidence,
-          action: log.result.action
-        })
         return
       }
 

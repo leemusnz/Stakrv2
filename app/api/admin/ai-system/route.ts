@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
       }, { status: 403 })
     }
 
-    console.log('📊 Admin fetching AI system stats...')
     
     const sql = await createDbConnection()
     
@@ -109,7 +108,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log('✅ AI system stats loaded successfully')
     
     systemLogger.info('AI system stats accessed', 'admin', {
       userId: session.user.id,
@@ -174,7 +172,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { action, data } = body
 
-    console.log(`🔧 Admin AI action: ${action}`)
 
     switch (action) {
       case 'retrain-model':

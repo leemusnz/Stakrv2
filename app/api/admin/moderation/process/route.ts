@@ -91,9 +91,7 @@ export async function POST(request: NextRequest) {
       )
     `
 
-    console.log(`Admin ${session.user.email} processed moderation item ${itemId} with decision: ${decision}`)
     if (notes) {
-      console.log(`Notes: ${notes}`)
     }
 
     return NextResponse.json({

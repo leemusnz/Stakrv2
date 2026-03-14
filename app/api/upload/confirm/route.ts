@@ -25,27 +25,10 @@ export async function POST(request: NextRequest) {
       metadata
     } = await request.json()
 
-    console.log('📝 Confirming upload:', {
-      fileKey,
-      fileUrl,
-      fileName,
-      fileType,
-      fileSize,
-      challengeId,
-      userId: session.user.id
-    })
 
     const sql = await createDbConnection()
 
     // Simplified confirmation for now - just log the upload success
-    console.log('✅ Upload confirmed successfully:', {
-      fileKey,
-      fileUrl,
-      fileName,
-      fileType,
-      fileSize,
-      userId: session.user.id
-    })
 
     // For now, just return success without complex database operations
     // TODO: Implement proper file_uploads table when database schema is ready

@@ -42,17 +42,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     // Log the received data for debugging
-    console.log('📊 Onboarding completion request data:', {
-      name: body.name,
-      hasAvatar: !!body.avatar,
-      goalsCount: body.goals?.length || 0,
-      interestsCount: body.interests?.length || 0,
-      hasExperience: !!body.experience,
-      hasMotivation: !!body.motivation,
-      hasStakeRange: !!body.preferredStakeRange,
-      xp: body.xp,
-      level: body.level
-    })
     
     // Validate input
     const validationResult = onboardingProfileSchema.safeParse(body)
@@ -104,7 +93,6 @@ export async function POST(request: NextRequest) {
     
     // Check if onboarding was already completed
     if (user.onboarding_completed) {
-      console.log('⚠️ User already completed onboarding, skipping XP award:', user.email)
       return NextResponse.json({
         success: true,
         user: {
@@ -127,14 +115,6 @@ export async function POST(request: NextRequest) {
     // Calculate XP to award (only if user hasn't completed onboarding)
     const xpToAward = xp || 300 // Default to full onboarding XP (50 + 100 + 150)
     
-    console.log('🎯 Awarding XP for onboarding completion:', {
-      userId: user.id,
-      email: user.email,
-      currentXP: user.xp || 0,
-      xpToAward,
-      xpBreakdown: 'Full onboarding completion (Welcome: 50 + Goals: 100 + Auth: 150 = 300 XP)',
-      expectedLevel: Math.floor(((user.xp || 0) + xpToAward) / 200) + 1
-    })
     
     // Use the safe XP awarding function to prevent duplicates
     const xpAwardResult = await sql`
@@ -150,7 +130,6 @@ export async function POST(request: NextRequest) {
     const xpAwarded = xpAwardResult[0]?.success
     
     if (!xpAwarded) {
-      console.log('⚠️ XP already awarded for onboarding, skipping XP award')
     }
     
     // Update user profile with onboarding data (XP is handled by the function)
@@ -184,7 +163,6 @@ export async function POST(request: NextRequest) {
       preferredStakeRange: preferredStakeRange || ''
     }
 
-    console.log('✅ Onboarding completed for:', updatedUser.email, onboardingData)
 
     return NextResponse.json({
       success: true,

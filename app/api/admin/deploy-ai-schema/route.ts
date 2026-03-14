@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
-    console.log('🛡️ Starting AI Anti-Cheat Schema Deployment...')
     
     // Read the schema file
     const schemaPath = path.join(process.cwd(), 'ai-anti-cheat-schema.sql')
@@ -26,7 +25,6 @@ export async function POST(request: NextRequest) {
     
     try {
       schemaSQL = fs.readFileSync(schemaPath, 'utf8')
-      console.log('✅ Schema file loaded successfully')
     } catch (error) {
       console.error('❌ Failed to read schema file:', error)
       return NextResponse.json({
@@ -39,7 +37,6 @@ export async function POST(request: NextRequest) {
     // Test database connection
     const sql = await createDbConnection()
     await sql`SELECT 1 as test`
-    console.log('✅ Database connection successful')
 
     // Execute schema statements
     const statements = schemaSQL
@@ -47,7 +44,6 @@ export async function POST(request: NextRequest) {
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0 && !stmt.startsWith('--') && !stmt.startsWith('RAISE NOTICE'))
 
-    console.log(`Executing ${statements.length} SQL statements...`)
 
     const results = []
     let successCount = 0
@@ -125,7 +121,6 @@ export async function POST(request: NextRequest) {
       functionTests.push('❌ log_ai_detection function - ERROR')
     }
 
-    console.log('🎉 AI Schema Deployment Complete!')
     
     systemLogger.info('AI Anti-Cheat Schema deployed', 'admin', {
       userId: session.user.id,

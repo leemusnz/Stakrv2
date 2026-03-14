@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
     
     // Single-challenge path (legacy)
     if (challengeId) {
-      console.log(`🔄 Manual sync requested for challenge ${challengeId} by user ${session.user.id}`)
       const results = await triggerAutoSync(challengeId, session.user.id, trigger)
       const successfulSyncs = results.filter(r => r.success).length
       const failedSyncs = results.filter(r => !r.success).length
@@ -44,7 +43,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Global/per-provider path: sync for all of the user's active auto-sync challenges
-    console.log(`🔄 Global sync requested by user ${session.user.id}${provider ? ` (provider=${provider}, type=${integrationType})` : ''}`)
     const sql = await createDbConnection()
 
     // Fetch user's active challenges

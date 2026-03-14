@@ -23,20 +23,16 @@ interface TeamData {
 // JOIN a challenge
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    console.log('🔄 Join API called')
     
     const session = await getServerSession(authOptions)
-    console.log('👤 Session check:', { userId: session?.user?.id, hasSession: !!session })
     
     if (!session?.user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     const { id: challengeId } = await params
-    console.log('🎯 Challenge ID:', challengeId)
     
     const body = await request.json()
-    console.log('📦 Request body:', body)
 
     // Validate input with Zod
     const validationResult = challengeJoinSchema.safeParse(body)
@@ -63,20 +59,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }, { status: 400 })
     }
     
-    console.log('🔍 Checking if demo user:', session?.user?.id)
     
     // Demo user handling
     if (false) { // Demo user check removed
-      console.log('🎭 Using demo mode for user:', session?.user?.id)
       return handleDemoJoin(challengeId, session?.user || { id: '', name: '', email: '' }, body)
     }
 
-    console.log('🗄️ Creating database connection...')
     // Real user handling
     const sql = await createDbConnection()
-    console.log('✅ Database connection created')
     
-    console.log('🔍 Querying challenge details...')
     // Get challenge details
     const challenge = await sql`
       SELECT 
@@ -89,7 +80,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       WHERE c.id = ${challengeId}
       GROUP BY c.id, u.name
     `
-    console.log('📊 Challenge query result:', { count: challenge.length, challenge: challenge[0] })
     
     if (challenge.length === 0) {
       return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
@@ -202,7 +192,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Handle team assignment for team challenges
     let assignedTeamId = null
     if (challengeData.enable_team_mode) {
-      console.log('🏷️ Team mode enabled, assigning user to team...')
       assignedTeamId = await assignUserToTeam(sql, challengeId, challengeData, teamPreference)
     }
     
@@ -393,7 +382,6 @@ async function assignUserToTeam(sql: any, challengeId: string, challengeData: an
     if (teams.length === 0) {
       // For now, just return null if no teams exist
       // In the future, we can create teams automatically
-      console.log('No teams found for team challenge, skipping team assignment')
       return null
     }
     
@@ -412,7 +400,6 @@ async function assignUserToTeam(sql: any, challengeId: string, challengeData: an
     
     return null // All teams full
   } catch (error) {
-    console.log('Team assignment failed (table may not exist):', error instanceof Error ? error.message : 'Unknown error')
     return null // Gracefully handle missing challenge_teams table
   }
 }

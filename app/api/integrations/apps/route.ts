@@ -158,7 +158,6 @@ export async function POST(request: NextRequest) {
         updated_at = NOW()
     `
 
-    console.log(`✅ App integration added: ${app} for user ${session.user.id}`)
 
     return NextResponse.json({
       success: true,
@@ -225,7 +224,6 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Integration not found' }, { status: 404 })
     }
 
-    console.log(`🗑️ App integration removed: ${app} for user ${session.user.id}`)
 
     return NextResponse.json({
       success: true,

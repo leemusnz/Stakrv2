@@ -189,7 +189,6 @@ export async function POST(request: NextRequest) {
           NOW()
         )
       `
-      console.log(`⚠️ Flagged but allowing withdrawal for user ${session.user.id}`)
     }
 
     // Continue with normal withdrawal process...
@@ -325,7 +324,6 @@ export async function POST(request: NextRequest) {
       )
     `
 
-    console.log(`💸 Withdrawal processed: $${amount} for user ${session.user.id} (fee: $${fee})`)
 
     // Send notification to user
     await notifyWithdrawalProcessed(

@@ -145,7 +145,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the report for analytics
-    console.log(`Content report created: ${contentType}:${contentId} by user ${session.user.id} for ${reason}`)
 
     return NextResponse.json({
       success: true,

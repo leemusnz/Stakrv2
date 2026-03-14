@@ -95,7 +95,6 @@ export async function GET(request: NextRequest) {
         last_sync = NOW()
     `
 
-    console.log(`✅ GitHub OAuth completed for user ${session.user.id}`)
     return NextResponse.redirect(new URL('/settings?tab=integrations&success=github_connected', request.url))
 
   } catch (error) {

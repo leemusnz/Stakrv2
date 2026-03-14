@@ -13,10 +13,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('Upload request received for user:', session.user.id)
 
     const body = await request.json()
-    console.log('Request data:', body)
 
     // Validate input with Zod
     const validationResult = uploadPresignedUrlSchema.safeParse(body)
@@ -42,16 +40,9 @@ export async function POST(request: NextRequest) {
     } as File
 
     // Enhanced validation with security checks
-    console.log('🔒 Running enhanced file validation...')
     const validationResult = await validateFileEnhanced(mockFile)
     
     if (!validationResult.valid) {
-      console.log('❌ Enhanced validation failed:', {
-        errors: validationResult.errors,
-        warnings: validationResult.warnings,
-        riskScore: validationResult.riskScore,
-        securityFlags: validationResult.securityFlags
-      })
       
       return NextResponse.json({ 
         error: 'File validation failed',
@@ -63,17 +54,9 @@ export async function POST(request: NextRequest) {
     }
     
     if (validationResult.warnings.length > 0) {
-      console.log('⚠️ Validation warnings:', validationResult.warnings)
     }
     
-    console.log('✅ Enhanced validation passed with risk score:', validationResult.riskScore)
 
-    console.log('AWS Config Check:', {
-      region: STORAGE_CONFIG.AWS_REGION,
-      bucket: STORAGE_CONFIG.AWS_BUCKET_NAME,
-      hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
-      hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY
-    })
 
     // Check if AWS credentials are available
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
@@ -91,7 +74,6 @@ export async function POST(request: NextRequest) {
       mockFile
     )
 
-    console.log('S3 Success:', { fileKey, uploadUrl: uploadUrl.substring(0, 50) + '...' })
 
     return NextResponse.json({
       uploadUrl,

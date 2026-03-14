@@ -33,7 +33,6 @@ interface UseApiReturn<T> {
  * 
  * // With options
  * const { execute: saveProfile } = useApi('/api/user/profile', {
- *   onSuccess: (data) => console.log('Saved!', data),
  *   showSuccessToast: 'Profile saved successfully!'
  * })
  */

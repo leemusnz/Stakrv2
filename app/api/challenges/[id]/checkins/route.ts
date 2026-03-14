@@ -72,7 +72,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     } catch {}
 
     // 🛡️ AI ANTI-CHEAT VALIDATION
-    console.log('🤖 Running AI anti-cheat validation...')
     
     let aiValidationResult = null
     let verificationStatus = 'pending'
@@ -110,11 +109,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         }
       )
 
-      console.log('🧠 AI Analysis Result:', {
-        confidence: aiValidationResult.confidence,
-        action: aiValidationResult.action,
-        processingTime: aiValidationResult.processingTime
-      })
 
       // Set verification status based on AI decision
       switch (aiValidationResult.action) {
@@ -136,7 +130,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           verificationStatus = 'pending'
       }
 
-      console.log(`✅ AI validation complete: ${aiValidationResult.action} (${aiValidationResult.confidence}% confidence)`)
 
     } catch (aiError) {
       console.error('❌ AI validation failed:', aiError)

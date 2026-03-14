@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
     `
 
     if (tokenResult.length === 0) {
-      console.log('❌ Email verification failed: Invalid or expired token')
       systemLogger.warning(`Email verification failed: Invalid or expired token`, 'auth')
       
       return NextResponse.json({
@@ -55,7 +54,6 @@ export async function GET(request: NextRequest) {
       WHERE token = ${token}
     `
 
-    console.log('✅ Email verified successfully for:', email)
     systemLogger.info(`Email verified successfully for user: ${email}`, 'auth')
 
     // Award XP for email verification completion
@@ -71,10 +69,8 @@ export async function GET(request: NextRequest) {
       `
       
       if (xpAwardResult[0]?.award_xp) {
-        console.log('🎯 Awarded 50 XP for email verification to user:', email)
         systemLogger.info(`Awarded 50 XP for email verification to user: ${email}`, 'xp')
       } else {
-        console.log('⚠️ XP already awarded for email verification to user:', email)
       }
     } catch (xpError) {
       console.error('❌ Failed to award XP for email verification:', xpError)
@@ -130,7 +126,6 @@ export async function POST(request: NextRequest) {
     `
 
     if (tokenResult.length === 0) {
-      console.log('❌ Email verification failed: Invalid or expired token')
       systemLogger.warning(`Email verification failed: Invalid or expired token`, 'auth')
       
       return NextResponse.json({
@@ -157,7 +152,6 @@ export async function POST(request: NextRequest) {
       WHERE token = ${token}
     `
 
-    console.log('✅ Email verified successfully for:', email)
     systemLogger.info(`Email verified successfully for user: ${email}`, 'auth')
 
     // Award XP for email verification completion
@@ -173,10 +167,8 @@ export async function POST(request: NextRequest) {
       `
       
       if (xpAwardResult[0]?.award_xp) {
-        console.log('🎯 Awarded 50 XP for email verification to user:', email)
         systemLogger.info(`Awarded 50 XP for email verification to user: ${email}`, 'xp')
       } else {
-        console.log('⚠️ XP already awarded for email verification to user:', email)
       }
     } catch (xpError) {
       console.error('❌ Failed to award XP for email verification:', xpError)

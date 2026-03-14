@@ -26,7 +26,6 @@ class AvatarEventManager {
 
   notify(newAvatarUrl: string) {
     this.lastAvatarUrl = newAvatarUrl
-    console.log('🔄 Avatar event system notifying listeners:', newAvatarUrl)
     
     this.listeners.forEach(listener => {
       try {

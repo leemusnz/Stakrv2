@@ -374,8 +374,6 @@ export async function sendEmail(template: EmailTemplate): Promise<{ success: boo
   try {
     // Check if we have a valid API key
     if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'dummy-key-for-development') {
-      console.log('⚠️ Email service not configured (missing RESEND_API_KEY), skipping email send')
-      console.log('📧 Would send email to:', template.to, 'Subject:', template.subject)
       return { success: true } // Return success in development to not break auth flow
     }
 
@@ -389,7 +387,6 @@ export async function sendEmail(template: EmailTemplate): Promise<{ success: boo
       html: template.html,
     })
     
-    console.log('📧 Sending email from:', fromAddress, 'to:', template.to)
 
     if (error) {
       console.error('❌ Email sending failed:', error)
@@ -411,7 +408,6 @@ export async function sendEmail(template: EmailTemplate): Promise<{ success: boo
       return { success: false, error: helpfulMessage }
     }
 
-    console.log('✅ Email sent successfully:', data?.id)
     return { success: true }
   } catch (error) {
     console.error('❌ Email service error:', error)

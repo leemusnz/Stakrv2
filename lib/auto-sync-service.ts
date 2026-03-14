@@ -65,7 +65,6 @@ export async function getUserIntegrations(userId: string, challengeTypes: string
   try {
     const sql = await createDbConnection()
     
-    console.log('🔍 Fetching integrations for user:', userId)
     
     // Get wearable integrations
     const wearableIntegrations = await sql`
@@ -76,7 +75,6 @@ export async function getUserIntegrations(userId: string, challengeTypes: string
         AND api_credentials IS NOT NULL
     `
     
-    console.log('🔍 Wearable integrations query result:', wearableIntegrations)
     
     // Get app integrations  
     const appIntegrations = await sql`
@@ -87,7 +85,6 @@ export async function getUserIntegrations(userId: string, challengeTypes: string
         AND api_credentials IS NOT NULL
     `
     
-    console.log('🔍 App integrations query result:', appIntegrations)
     
     // Decrypt credentials before returning
     const decryptedWearables = wearableIntegrations.map((w: any) => ({
@@ -121,23 +118,14 @@ export async function syncStravaData(
   challengeTextForAI: string
 ): Promise<SyncResult> {
   try {
-    console.log('🔍 Strava sync debug:', {
-      challengeId,
-      userId,
-      hasCredentials: !!credentials,
-      hasAccessToken: !!credentials?.access_token,
-      credentialsKeys: credentials ? Object.keys(credentials) : 'no credentials'
-    })
     
     if (!credentials.access_token) {
-      console.log('❌ Strava sync failed: No access token available')
       return { success: false, error: 'No access token available', provider: 'strava' }
     }
     
     // Helper to call Strava API with a given access token (with retry logic)
     const fetchActivities = async (accessToken: string) => {
       const thirtyDaysAgo = Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)
-      console.log('🌐 Calling Strava API for recent activities...')
       return fetchWithRetry(
         `https://www.strava.com/api/v3/athlete/activities?per_page=50&after=${thirtyDaysAgo}`, 
         {
@@ -148,7 +136,6 @@ export async function syncStravaData(
           backoff: 'exponential',
           initialDelay: 1000,
           onRetry: (error, attempt) => {
-            console.log(`🔄 Strava API retry ${attempt}/3:`, error.message)
           }
         }
       )
@@ -160,7 +147,6 @@ export async function syncStravaData(
     // If unauthorized, attempt token refresh once
     if (response.status === 401 || response.status === 403) {
       try {
-        console.log('🔄 Access token expired/invalid. Attempting Strava token refresh...')
         const refreshRes = await fetch('https://www.strava.com/oauth/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -203,7 +189,6 @@ export async function syncStravaData(
     }
     
     const activities = await response.json()
-    console.log(`📡 Strava API response: ${activities.length} activities received`)
     
     // Process and store the activities
     const sql = await createDbConnection()
@@ -221,15 +206,12 @@ export async function syncStravaData(
         : challengeDetails[0].ai_analysis)
       : null
     
-    console.log('🏃 Processing Strava activities for challenge:', challengeTitle)
-    console.log(`📊 Total activities retrieved from Strava: ${activities.length}`)
     
     // Debug: Show all activity dates
     activities.forEach((activity: any, index: number) => {
       const activityDate = new Date(activity.start_date)
       const daysDiff = Math.floor((new Date().getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
       const hoursDiff = Math.floor((new Date().getTime() - activityDate.getTime()) / (1000 * 60 * 60))
-      console.log(`📅 Activity ${index + 1}: ${activity.type} - ${activity.start_date} (${daysDiff} days, ${hoursDiff} hours ago)`)
     })
     
     let validActivities = 0
@@ -242,13 +224,10 @@ export async function syncStravaData(
       const daysDiff = Math.floor((today.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
       
       if (daysDiff > 30) {
-        console.log(`⏰ Skipping old activity: ${activity.type} from ${daysDiff} days ago`)
         continue
       }
       
-      console.log(`🕐 Activity found: ${activity.type} from ${daysDiff} days ago (${activity.start_date})`)
       
-      console.log(`🤖 AI validating: ${activity.type} for challenge "${challengeTitle}"`)
       
       // Use AI to validate if this activity meets challenge requirements
       try {
@@ -276,16 +255,12 @@ export async function syncStravaData(
           }
         })
         
-        console.log(`🧠 AI decision: ${aiVerification.approved ? '✅ APPROVED' : '❌ REJECTED'} (${aiVerification.confidence}% confidence)`)
-        console.log(`💭 AI reasoning: ${aiVerification.reasoning}`)
         
         if (!aiVerification.approved) {
-          console.log(`⏭️ Skipping activity: ${aiVerification.reasoning}`)
           continue
         }
         
         if (aiVerification.flags.length > 0) {
-          console.log(`⚠️ AI flags: ${aiVerification.flags.join(', ')}`)
         }
       
         // Store as automatic proof submission with AI verification data
@@ -364,7 +339,6 @@ export async function syncStravaData(
 
         `
         
-        console.log(`⚠️ Activity stored for manual review due to AI failure`)
         validActivities++
       }
     }
@@ -502,12 +476,6 @@ export async function syncChallengeData(
     
     // Get user's integrations
     const integrations = await getUserIntegrations(userId, [])
-    console.log('🔍 User integrations found:', {
-      wearables: integrations.wearables.length,
-      apps: integrations.apps.length,
-      wearableTypes: integrations.wearables.map((w: any) => w.device_type),
-      appTypes: integrations.apps.map((a: any) => a.app_type)
-    })
     
     const results: SyncResult[] = []
     
@@ -592,11 +560,9 @@ export async function triggerAutoSync(
   userId: string, 
   trigger: SyncTrigger
 ) {
-  console.log(`🔄 Auto-sync triggered: ${trigger} for challenge ${challengeId}, user ${userId}`)
   
   const results = await syncChallengeData(challengeId, userId, trigger)
   
-  console.log(`✅ Sync completed:`, results)
   
   return results
 }

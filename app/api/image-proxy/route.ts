@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid S3 URL' }, { status: 400 })
     }
 
-    console.log('🖼️ Proxying image with AWS SDK:', imageUrl, 'version:', version)
 
     // Extract the S3 key from the URL
     const urlParts = imageUrl.split('.amazonaws.com/')
@@ -41,7 +40,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid S3 URL' }, { status: 400 })
     }
 
-    console.log('📁 S3 Key extracted:', s3Key)
 
     // Configure S3 client with credentials
     const s3Client = new S3Client({
@@ -52,12 +50,6 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    console.log('🔐 AWS Config:', {
-      region: process.env.AWS_REGION || 'ap-southeast-2',
-      bucket: 'stakr-verification-files',
-      hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
-      hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
-    })
 
     // Get the object from S3 using authenticated request
     const command = new GetObjectCommand({
@@ -87,7 +79,6 @@ export async function GET(request: NextRequest) {
 
     const contentType = response.ContentType || 'image/png'
 
-    console.log('✅ Image fetched successfully via AWS SDK, content-type:', contentType, 'size:', imageBuffer.length)
 
     // Return the image with proper headers and cache busting
     return new NextResponse(imageBuffer, {

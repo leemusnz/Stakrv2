@@ -114,14 +114,11 @@ export class AIChallengeAnalyzer {
    */
   static async analyzeChallengeDescription(request: ChallengeAnalysisRequest): Promise<ChallengeAnalysis> {
     try {
-      console.log('🔍 AI Analysis Input - Has Additional Context:', request.description?.includes('Additional Context:'))
-      console.log('🔍 AI Analysis Input - Description preview:', request.description?.substring(0, 200) + '...')
       
       const prompt = this.buildAnalysisPrompt(request)
       
       // Apply dev settings if provided
       if (request.devSettings) {
-        console.log('🛠️ Applying dev settings to analysis:', request.devSettings)
       }
       const aiResponse = await this.callAIService(prompt)
       const analysis = this.parseAIResponse(aiResponse)

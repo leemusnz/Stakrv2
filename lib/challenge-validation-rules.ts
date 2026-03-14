@@ -148,7 +148,6 @@ export function testChallengeRules() {
   
   examples.forEach(title => {
     const rule = parseChallenge(title, "")
-    console.log(`"${title}" →`, rule)
   })
 }
 

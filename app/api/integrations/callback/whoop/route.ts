@@ -111,7 +111,6 @@ export async function GET(request: NextRequest) {
         last_sync = NOW()
     `
 
-    console.log(`✅ Whoop OAuth completed for user ${session.user.id}`)
     
     // Redirect back to integrations page with success message
     const redirectUrl = new URL('/settings', request.url)

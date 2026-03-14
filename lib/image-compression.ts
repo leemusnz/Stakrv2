@@ -73,7 +73,6 @@ export async function compressImage(
       ...customOptions
     }
 
-    console.log(`🖼️ Compressing image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB) with ${preset} preset`)
     
     // Compress the image
     const compressedFile = await imageCompression(file, options)
@@ -82,7 +81,6 @@ export async function compressImage(
     const compressedSizeMB = (compressedFile.size / 1024 / 1024).toFixed(2)
     const compressionRatio = ((1 - compressedFile.size / file.size) * 100).toFixed(1)
     
-    console.log(`✅ Image compressed: ${originalSizeMB}MB → ${compressedSizeMB}MB (${compressionRatio}% reduction)`)
     
     return compressedFile
   } catch (error) {
@@ -147,7 +145,6 @@ export async function smartCompressImage(
   
   // Check if compression is needed
   if (!shouldCompressImage(file, preset)) {
-    console.log(`📄 Image ${file.name} (${formatFileSize(file.size)}) is already within size limits`)
     return file
   }
   
