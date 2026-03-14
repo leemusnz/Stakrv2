@@ -79,6 +79,10 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   return (
     <style
       dangerouslySetInnerHTML={{
+        // SAFE: CSS is generated from hardcoded THEMES and developer-provided ChartConfig.
+        // No user input is included. Content is CSS-only, limiting XSS risk to CSS injection vectors.
+        // Values come exclusively from theme prefixes (hardcoded) and itemConfig.theme/color
+        // (developer-provided configuration, not user-controlled).
         __html: Object.entries(THEMES)
           .map(
             ([theme, prefix]) => `

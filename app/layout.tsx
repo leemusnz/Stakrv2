@@ -79,7 +79,14 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <AppleSplashScreen />
-        <style dangerouslySetInnerHTML={{ __html: mobileAppStyles }} />
+        <style
+          dangerouslySetInnerHTML={{
+            // SAFE: mobileAppStyles is a hardcoded CSS string exported from mobile-app-optimizer.tsx.
+            // It contains only static CSS rules for mobile optimization (viewport handling, touch targets, scrolling behavior, safe area insets).
+            // No user input or dynamic content is included. Content is CSS-only with no user-controlled data.
+            __html: mobileAppStyles,
+          }}
+        />
       </head>
       <body className={cn(
         "bg-background font-sans antialiased", 
