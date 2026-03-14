@@ -57,18 +57,19 @@ export async function POST(request: NextRequest) {
           await sql.unsafe(statement + ';')
           results.push(`✅ Statement ${i + 1}: Success`)
           successCount++
-        } catch (error: any) {
-          if (error.message && (
-            error.message.includes('already exists') || 
-            error.message.includes('does not exist') ||
-            error.message.includes('duplicate key')
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error)
+          if (message && (
+            message.includes('already exists') || 
+            message.includes('does not exist') ||
+            message.includes('duplicate key')
           )) {
             results.push(`⚠️ Statement ${i + 1}: Already exists (skipped)`)
             skipCount++
           } else {
-            results.push(`❌ Statement ${i + 1}: ${error.message}`)
+            results.push(`❌ Statement ${i + 1}: ${message}`)
             errorCount++
-            console.error(`Statement ${i + 1} failed:`, error.message)
+            console.error(`Statement ${i + 1} failed:`, message)
           }
         }
       }

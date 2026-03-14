@@ -60,8 +60,9 @@ export async function GET(request: NextRequest) {
     let response
     try {
       response = await s3Client.send(command)
-    } catch (err: any) {
-      if (err?.name === 'NoSuchKey') {
+    } catch (err: unknown) {
+      const errorName = err instanceof Error && 'name' in err ? (err as any).name : undefined
+      if (errorName === 'NoSuchKey') {
         return NextResponse.json({ error: 'Image not found' }, { status: 404 })
       }
       return NextResponse.json({ error: 'Failed to fetch image' }, { status: 500 })
