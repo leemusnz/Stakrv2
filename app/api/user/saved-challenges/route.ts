@@ -3,7 +3,13 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { neon } from '@neondatabase/serverless'
 
-const sql = neon(process.env.DATABASE_URL!)
+// Lazy initialization to avoid build-time database connection
+const getSql = () => {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not defined')
+  }
+  return neon(process.env.DATABASE_URL)
+}
 
 /**
  * GET /api/user/saved-challenges
@@ -21,7 +27,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get saved challenges
-    const savedChallenges = await sql`
+    const savedChallenges = await getSql()`
       SELECT 
         sc.challenge_id,
         sc.saved_at,
@@ -70,7 +76,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if challenge exists
-    const challenge = await sql`
+    const challenge = await getSql()`
       SELECT id FROM challenges WHERE id = ${challengeId}
     `
 
@@ -82,7 +88,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already saved
-    const existing = await sql`
+    const existing = await getSql()`
       SELECT id FROM saved_challenges 
       WHERE user_id = ${session.user.id} AND challenge_id = ${challengeId}
     `
@@ -96,7 +102,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Save the challenge
-    await sql`
+    await getSql()`
       INSERT INTO saved_challenges (user_id, challenge_id, saved_at)
       VALUES (${session.user.id}, ${challengeId}, NOW())
     `
@@ -140,7 +146,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the saved challenge
-    const result = await sql`
+    const result = await getSql()`
       DELETE FROM saved_challenges 
       WHERE user_id = ${session.user.id} AND challenge_id = ${challengeId}
     `
