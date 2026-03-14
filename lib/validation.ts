@@ -35,6 +35,7 @@ export const userRegistrationSchema = z.object({
 
 export const userProfileUpdateSchema = z.object({
   name: z.string().min(2).max(50).optional(),
+  username: z.string().min(3).max(50).optional(),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
   avatar: z.string().url('Please enter a valid URL').optional(),
 })
@@ -87,7 +88,21 @@ export const challengeCreationSchema = z.object({
   path: ['endDate']
 })
 
+// Challenge join schema
+export const challengeJoinSchema = z.object({
+  stakeAmount: z.number().positive('Stake amount must be positive').optional(),
+  insurancePurchased: z.boolean().default(false),
+  referralCode: z.string().optional(),
+  teamPreference: z.string().optional(),
+  pointsOnly: z.boolean().default(false)
+})
+
 // Payment schemas
+export const checkoutSessionSchema = z.object({
+  challengeId: z.string().min(1, 'Challenge ID is required'),
+  stakeAmount: z.number().positive('Stake amount must be positive')
+})
+
 export const creditPurchaseSchema = z.object({
   amount: z.number().min(10, 'Minimum purchase is $10').max(10000, 'Maximum purchase is $10,000'),
   paymentMethodId: z.string().min(1, 'Please select a payment method')
@@ -152,6 +167,22 @@ export const insuranceClaimSchema = z.object({
   participantId: z.string().uuid('Invalid participant ID'),
   claimReason: z.string().min(20, 'Claim reason must be at least 20 characters').max(1000, 'Claim reason must be less than 1000 characters'),
   supportingEvidence: z.array(z.any()).optional()
+})
+
+// Upload presigned URL schema
+export const uploadPresignedUrlSchema = z.object({
+  fileName: z.string().min(1, 'File name is required').max(255, 'File name is too long'),
+  fileType: z.string().min(1, 'File type is required'),
+  fileSize: z.number().positive('File size must be positive').max(10 * 1024 * 1024, 'File size must be less than 10MB'),
+  challengeId: z.string().min(1, 'Challenge ID is required')
+})
+
+// Social follow schema
+export const socialFollowSchema = z.object({
+  targetUserId: z.string().min(1, 'Target user ID is required'),
+  action: z.enum(['follow', 'unfollow'], {
+    errorMap: () => ({ message: 'Action must be "follow" or "unfollow"' })
+  })
 })
 
 // Admin schemas
@@ -305,10 +336,14 @@ export const formatValidationErrors = (error: z.ZodError): Record<string, string
 export type UserRegistrationInput = z.infer<typeof userRegistrationSchema>
 export type UserProfileUpdateInput = z.infer<typeof userProfileUpdateSchema>
 export type ChallengeCreationInput = z.infer<typeof challengeCreationSchema>
+export type ChallengeJoinInput = z.infer<typeof challengeJoinSchema>
+export type CheckoutSessionInput = z.infer<typeof checkoutSessionSchema>
 export type CreditPurchaseInput = z.infer<typeof creditPurchaseSchema>
 export type WithdrawalInput = z.infer<typeof withdrawalSchema>
 export type ProofSubmissionInput = z.infer<typeof proofSubmissionSchema>
 export type InsuranceClaimInput = z.infer<typeof insuranceClaimSchema>
+export type UploadPresignedUrlInput = z.infer<typeof uploadPresignedUrlSchema>
+export type SocialFollowInput = z.infer<typeof socialFollowSchema>
 
 // Keep original function for backward compatibility
 export const validateTrustScoreForVerification = (

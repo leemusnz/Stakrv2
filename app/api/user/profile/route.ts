@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { moderationService } from '@/lib/moderation'
+import { userProfileUpdateSchema } from '@/lib/validation'
 
 // GET user profile
 export async function GET(request: NextRequest) {
@@ -50,8 +51,18 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const updates = await request.json()
-    const { name, username, avatar } = updates
+    const body = await request.json()
+    
+    // Validate input with Zod
+    const validationResult = userProfileUpdateSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        details: validationResult.error.issues
+      }, { status: 400 })
+    }
+
+    const { name, username, avatar } = validationResult.data
 
     console.log('📝 Profile update for user:', session.user.id, { name, username, avatar })
 

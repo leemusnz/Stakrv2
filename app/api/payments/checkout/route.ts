@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { createCheckoutSession } from '@/lib/payments-service'
+import { checkoutSessionSchema } from '@/lib/validation'
 
 // Stub endpoint for creating a Stripe Checkout session for CASH joins
 // In development, returns a mock session and 202 to indicate further action
@@ -13,10 +14,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { challengeId, stakeAmount } = await request.json()
-    if (!challengeId || !stakeAmount) {
-      return NextResponse.json({ error: 'challengeId and stakeAmount required' }, { status: 400 })
+    const body = await request.json()
+    
+    // Validate input with Zod
+    const validationResult = checkoutSessionSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        details: validationResult.error.issues
+      }, { status: 400 })
     }
+
+    const { challengeId, stakeAmount } = validationResult.data
 
     // Lookup challenge for entry fee percentage
     const sql = await createDbConnection()

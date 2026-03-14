@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
+import { socialFollowSchema } from '@/lib/validation'
 
 // POST - Follow/Unfollow a user
 export async function POST(request: NextRequest) {
@@ -13,15 +14,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { targetUserId, action } = body
-
-    if (!targetUserId || !action) {
-      return NextResponse.json({ error: 'Target user ID and action are required' }, { status: 400 })
+    
+    // Validate input with Zod
+    const validationResult = socialFollowSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        details: validationResult.error.issues
+      }, { status: 400 })
     }
 
-    if (!['follow', 'unfollow'].includes(action)) {
-      return NextResponse.json({ error: 'Action must be "follow" or "unfollow"' }, { status: 400 })
-    }
+    const { targetUserId, action } = validationResult.data
 
     if (targetUserId === session.user.id) {
       return NextResponse.json({ error: 'Cannot follow yourself' }, { status: 400 })

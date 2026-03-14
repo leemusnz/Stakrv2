@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getPresignedUploadUrl, STORAGE_CONFIG } from '@/lib/storage'
 import { validateFileEnhanced } from '@/lib/enhanced-file-validation'
+import { uploadPresignedUrlSchema } from '@/lib/validation'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,16 +15,19 @@ export async function POST(request: NextRequest) {
 
     console.log('Upload request received for user:', session.user.id)
 
-    const { fileName, fileType, fileSize, challengeId } = await request.json()
+    const body = await request.json()
+    console.log('Request data:', body)
 
-    console.log('Request data:', { fileName, fileType, fileSize, challengeId })
-
-    // Validation
-    if (!fileName || !fileType || !fileSize || !challengeId) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: fileName, fileType, fileSize, challengeId' 
+    // Validate input with Zod
+    const validationResult = uploadPresignedUrlSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        details: validationResult.error.issues
       }, { status: 400 })
     }
+
+    const { fileName, fileType, fileSize, challengeId } = validationResult.data
 
     // Create a mock File object for enhanced validation
     const mockFile = {

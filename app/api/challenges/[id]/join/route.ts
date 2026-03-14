@@ -5,6 +5,7 @@ import { createDbConnection } from '@/lib/db'
 import { triggerAutoSync, SYNC_TRIGGERS } from '@/lib/auto-sync-service'
 
 import { calculatePotentialReward } from '@/lib/reward-calculation'
+import { challengeJoinSchema } from '@/lib/validation'
 import { calculatePotentialXPReward } from '@/lib/xp-reward-calculation'
 
 interface RouteParams {
@@ -36,14 +37,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     
     const body = await request.json()
     console.log('📦 Request body:', body)
-    
+
+    // Validate input with Zod
+    const validationResult = challengeJoinSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        details: validationResult.error.issues
+      }, { status: 400 })
+    }
+    const validatedData = validationResult.data
+        
     const { 
-      stakeAmount, 
-      insurancePurchased = false, 
+      stakeAmount,
+      insurancePurchased,
       referralCode,
       teamPreference,
-      pointsOnly = false 
-    } = body
+      pointsOnly
+    } = validatedData
     
     // Validate required fields for money challenges
     if (!pointsOnly && !stakeAmount) {
