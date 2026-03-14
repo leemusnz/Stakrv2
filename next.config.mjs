@@ -7,7 +7,14 @@ const nextConfig = {
     ignoreBuildErrors: true, // Skip type checking during builds for faster deployment
   },
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+    ],
+    formats: ['image/webp', 'image/avif'],
   },
   
   // Performance optimizations

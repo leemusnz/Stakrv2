@@ -17,6 +17,7 @@ import { ProfilePictureUpload } from "@/components/profile-picture-upload"
 import { getPersonalizedAvatar } from "@/lib/avatars"
 import { MapPin, Calendar, ExternalLink, Trophy, Users, TrendingUp, Settings, Share2, Edit, Flame } from "lucide-react"
 import { FloatingAmbientGlows } from '@/components/floating-ambient-glows'
+import { BackgroundImage } from '@/components/ui/background-image'
 
 export default function ProfilePage() {
   const { isMobile } = useEnhancedMobile()
@@ -181,10 +182,10 @@ export default function ProfilePage() {
 
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
-        <img 
-          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=80" 
-          alt="Background"
-          className="w-full h-full object-cover grayscale-[40%] dark:grayscale-[60%]"
+        <BackgroundImage 
+          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=80"
+          alt="Fitness background"
+          priority={false}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/75 to-white/85 dark:from-black/85 dark:via-black/75 dark:to-black/85"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-white/50 dark:to-black/50"></div>
