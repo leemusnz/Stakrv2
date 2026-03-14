@@ -1,0 +1,102 @@
+{
+  "project": "Stakr",
+  "focus": "Code quality, security, UX polish, testing, performance. New features and improvements ARE allowed if they match Stakr's direction (gamified self-improvement, social challenges, commitment contracts).",
+  "tasks": [
+    {
+      "id": "stakr-01",
+      "title": "Fix TypeScript null safety errors",
+      "description": "Fix 8 'session is possibly null' errors across the codebase. Add proper null checks/guards before accessing session properties. Run: npx tsc --noEmit 2>&1 | grep TS18047",
+      "priority": "critical",
+      "category": "code-quality",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-02",
+      "title": "Fix missing 'toast' references",
+      "description": "7 files reference 'toast' without importing it. Either import from the toast hook or add the missing useToast() calls. Run: npx tsc --noEmit 2>&1 | grep TS2304.*toast",
+      "priority": "critical",
+      "category": "code-quality",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-03",
+      "title": "Fix implicit any parameters",
+      "description": "~30 parameters have implicit 'any' types (user, p, w, sum, item, challenge etc). Add explicit types. Run: npx tsc --noEmit 2>&1 | grep TS7006",
+      "priority": "high",
+      "category": "code-quality",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-04",
+      "title": "Fix Challenge type mismatches",
+      "description": "Properties 'duration', 'difficulty' missing from Challenge type but used in code. Update the Challenge interface or fix the property access. Run: npx tsc --noEmit 2>&1 | grep 'Challenge'",
+      "priority": "high",
+      "category": "code-quality",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-05",
+      "title": "Fix ChallengeStats union type narrowing",
+      "description": "Properties like total_distributed, reward_distribution, completed_participants, platform_revenue accessed on union types without narrowing. Add type guards. Run: npx tsc --noEmit 2>&1 | grep 'ChallengeStats\\|XPChallengeStats\\|RewardDistribution'",
+      "priority": "high",
+      "category": "code-quality",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-06",
+      "title": "Add error.tsx boundaries to all route groups",
+      "description": "Zero error.tsx files found. Add error boundaries to at least: app/dashboard, app/challenge, app/profile, app/discover, app/create-challenge, app/my-challenges, app/settings, app/admin",
+      "priority": "high",
+      "category": "ux-polish",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-07",
+      "title": "Reduce 'as any' assertions \u2014 top offenders",
+      "description": "907 'as any' assertions in the codebase. Start with lib/ and app/api/ directories \u2014 replace with proper types. Target: reduce by 50% in lib/ and app/api/. Run: grep -rn 'as any' lib/ app/api/ | wc -l",
+      "priority": "medium",
+      "category": "code-quality",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-08",
+      "title": "Clean up console.log statements in production code",
+      "description": "688 console.log/error calls in lib/ and app/api/. Remove debug logs, keep intentional error logging. Run: grep -rn 'console.log' lib/ app/api/ | head -30",
+      "priority": "medium",
+      "category": "code-quality",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-09",
+      "title": "Fix catch(error: any) patterns",
+      "description": "42 catch blocks use 'any' type. Replace with 'unknown' and add proper error narrowing. Run: grep -rn 'catch (.*: any)' --include='*.ts' --include='*.tsx'",
+      "priority": "medium",
+      "category": "code-quality",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-10",
+      "title": "Audit dangerouslySetInnerHTML usage",
+      "description": "Found in components/ui/chart.tsx and app/layout.tsx. Verify XSS safety \u2014 ensure content is sanitised or from trusted sources only. Add DOMPurify if needed.",
+      "priority": "high",
+      "category": "security",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-11",
+      "title": "Add loading.tsx to key pages",
+      "description": "Only 4 loading.tsx files for 30+ pages. Add loading states to: dashboard, discover, challenge/[id], profile, my-challenges, my-active, notifications, settings, admin",
+      "priority": "medium",
+      "category": "ux-polish",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-12",
+      "title": "API route input validation \u2014 add Zod schemas",
+      "description": "Check app/api/ routes for missing input validation. Add Zod schemas to at least: auth/register, challenges/[id]/join, payments/checkout, user/profile, upload/presigned-url, social/follow",
+      "priority": "high",
+      "category": "security",
+      "status": "completed"
+    }
+  ]
+}
