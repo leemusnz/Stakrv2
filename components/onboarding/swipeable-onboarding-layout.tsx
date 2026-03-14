@@ -47,7 +47,7 @@ export function SwipeableOnboardingLayout({
 
   return (
     <div
-      className={cn("min-h-screen bg-background flex flex-col", className)}
+      className={cn("fixed inset-0 min-h-screen bg-[hsl(var(--background))] flex flex-col overflow-y-auto z-[100]", className)}
       style={{
         paddingBottom: "calc(var(--bottom-nav-safe-space, 0px) + 80px)", // Add extra space for the navigation footer
         ['--bottom-cta-height' as any]: '80px',
