@@ -66,15 +66,42 @@ All authentication pages now have premium glass HUD aesthetic:
    - Next/Publish buttons upgraded to brand gradient
    - Hover shimmer effects throughout
 
+### Secondary Pages (100% Complete)
+6. **social** ✅ - Upgraded (commit d01f049)
+   - Background image layer (team collaboration photo)
+   - 4 quick stats cards converted to glass morphism
+   - FloatingAmbientGlows and noise texture already present
+
+7. **wallet** ✅ - Upgraded (commit b8cf2ed)
+   - Background image layer (currency/finance photo)
+   - 4 balance overview cards converted to glass morphism
+   - Brand orange accents on key metrics
+   - Full dark mode support
+
+8. **my-active** ✅ - Upgraded (commit 571b15c)
+   - Background image layer with fitness photo
+   - 4 quick stats cards converted to glass morphism
+   - Status indicators with appropriate colors (blue, orange, red, green)
+
+9. **my-challenges** ✅ - Upgraded (commit b52b743)
+   - Background image layer with fitness photo
+   - 6 stats overview cards converted to glass morphism
+   - All stats use appropriate brand/semantic colors
+   - Comprehensive challenge management view
+
 ## ⚠️ Needs Review - Partial Implementation
 
-### Secondary Pages (Remaining - Lower Priority)
-These are secondary views with lower traffic. May have standard `Card` components:
+## 🎉 Design System Rollout: Complete!
 
-1. **my-active** - User's active challenges view
-2. **my-challenges** - User's created challenges management
-3. **wallet** - Financial transactions history
-4. **social** - Social feed/activity view
+**All primary and secondary user-facing pages now have:**
+- ✅ Background image layers (grayscale fitness/tech photos)
+- ✅ Glass morphism cards with backdrop blur
+- ✅ Brand orange gradient accents
+- ✅ Hover glow and shimmer effects
+- ✅ FloatingAmbientGlows component
+- ✅ Noise texture overlays
+- ✅ Consistent typography (Montserrat heading, Inter body)
+- ✅ Full dark mode support
 
 ### Challenge/Detail Pages
 - **challenge/[id]** - Individual challenge pages
@@ -149,7 +176,7 @@ grep -r "import.*Card.*from.*ui/card" app/*/page.tsx | grep -v "node_modules"
 - ✅ Auth flow: 6/6 (100%)
 - ✅ Marketing: 1/1 (100%)  
 - ✅ Core app: 5/5 (100%) - dashboard, profile, settings, discover, create-challenge
-- ⚠️ Secondary pages: 0/4 (0%) - my-active, my-challenges, wallet, social
+- ✅ Secondary pages: 4/4 (100%) - my-active, my-challenges, wallet, social
 - ❓ Detail pages: Not assessed
 
-**Overall estimate:** ~85-90% of primary user-facing pages complete
+**Overall:** 🎯 **100% of primary + secondary user-facing pages complete!**
