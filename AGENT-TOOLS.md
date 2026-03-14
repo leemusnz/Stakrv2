@@ -21,11 +21,21 @@ NEVER commit as STAX, KIP, NEXUS, or any agent name. Always commit as Leemus.
 
 1. `git pull --rebase origin main` (sync first)
 2. Make changes
-3. `npm run lint` (fix any errors)
-4. `npm run type-check` (fix any errors)
-5. Set git identity (see above)
-6. `SKIP_PRE_COMMIT=1 git commit -m "fix/chore: description" --no-verify`
-7. Auto-push cron handles pushing to GitHub
+3. `npm run lint` (fix any errors you introduced)
+4. `npm run type-check` (fix any errors you introduced — do NOT increase the error count)
+5. `npm test` (ensure tests pass — do NOT break existing tests)
+6. Set git identity (see above)
+7. `SKIP_PRE_COMMIT=1 git commit -m "fix/feat/chore: description" --no-verify`
+8. Auto-push cron handles pushing to GitHub
+
+## ⚠️ CRITICAL: Don't Break CI
+
+Before committing, verify:
+- `npm run lint` passes (or has same/fewer errors than before)
+- `npm run type-check` has same or fewer errors than before your changes
+- `npm test` passes (don't break existing tests)
+
+If your changes introduce NEW failures, fix them before committing.
 
 ## Key Directories
 
