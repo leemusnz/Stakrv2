@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -131,7 +132,9 @@ const mockCreator = {
   ],
 }
 
-export default function CreatorProfilePage({ params }: { params: { id: string } }) {
+export default function CreatorProfilePage() {
+  const params = useParams()
+  const creatorId = params.id as string
   const [selectedTab, setSelectedTab] = useState("challenges")
   const [creator, setCreator] = useState(mockCreator)
 

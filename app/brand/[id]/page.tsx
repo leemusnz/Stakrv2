@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -144,7 +145,9 @@ const mockBrand = {
   ],
 }
 
-export default function BrandProfilePage({ params }: { params: { id: string } }) {
+export default function BrandProfilePage() {
+  const params = useParams()
+  const brandId = params.id as string
   const [selectedTab, setSelectedTab] = useState("challenges")
   const [brand, setBrand] = useState(mockBrand)
 

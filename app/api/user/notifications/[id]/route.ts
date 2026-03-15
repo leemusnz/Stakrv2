@@ -4,13 +4,19 @@ import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { shouldUseDemoData, createDemoResponse } from '@/lib/demo-mode'
 
+interface RouteParams {
+  params: Promise<{
+    id: string
+  }>
+}
+
 /**
  * PATCH /api/user/notifications/[id]
  * Mark a specific notification as read
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -21,7 +27,7 @@ export async function PATCH(
       }, { status: 401 })
     }
 
-    const notificationId = params.id
+    const { id: notificationId } = await params
 
     // Demo mode - just return success
     if (shouldUseDemoData(request, session)) {
@@ -69,7 +75,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -80,7 +86,7 @@ export async function DELETE(
       }, { status: 401 })
     }
 
-    const notificationId = params.id
+    const { id: notificationId } = await params
 
     // Demo mode - just return success
     if (shouldUseDemoData(request, session)) {

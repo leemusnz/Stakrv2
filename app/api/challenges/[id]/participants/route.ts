@@ -3,11 +3,16 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 
+interface RouteParams {
+  params: Promise<{
+    id: string
+  }>
+}
 
 // GET challenge participants with detailed info
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -16,7 +21,7 @@ export async function GET(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const challengeId = params.id
+    const { id: challengeId } = await params
 
     // Demo user handling
     if (false) { // Demo user check removed

@@ -10,10 +10,16 @@ interface NudgeRequest {
   message?: string
 }
 
+interface RouteParams {
+  params: Promise<{
+    id: string
+  }>
+}
+
 // POST - Send a nudge or cheer to another participant
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -22,7 +28,7 @@ export async function POST(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const challengeId = params.id
+    const { id: challengeId } = await params
     const body: NudgeRequest = await request.json()
     const { targetUserId, type, message } = body
 
@@ -139,7 +145,7 @@ export async function POST(
 // GET - Get interaction history for a challenge
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -148,7 +154,7 @@ export async function GET(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const challengeId = params.id
+    const { id: challengeId } = await params
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '20')
 

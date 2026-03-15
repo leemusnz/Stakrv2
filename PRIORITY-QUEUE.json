@@ -120,7 +120,7 @@
       "description": "3 instances of 'Property PanelResizeHandle does not exist on type react-resizable-panels'. Update import statements or package version. Check components using Panel/PanelGroup/PanelResizeHandle.",
       "priority": "high",
       "category": "type-safety",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-016",
@@ -128,7 +128,7 @@
       "description": "3 route files have type constraint errors with ParamCheck<RouteContext>. Likely Next.js 15 route param type changes. Update route signatures to match new Next.js patterns. Check app/api routes with [id] params.",
       "priority": "high",
       "category": "type-safety",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-017",
