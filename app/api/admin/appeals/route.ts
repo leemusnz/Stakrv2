@@ -309,7 +309,155 @@ export async function POST(request: NextRequest) {
         WHERE id = ${appeal[0].verification_id}
       `
 
-      // TODO: Process financial implications (refund stakes, recalculate rewards)
+      // Process financial implications (refund stakes, recalculate rewards)
+      if (newVerificationStatus === 'approved') {
+        // Get the user and challenge details
+        const userAndChallenge = await sql`
+          SELECT 
+            ps.user_id,
+            c.id as challenge_id,
+            c.title as challenge_title,
+            c.min_stake,
+            cp.stake_amount,
+            cp.id as participant_id
+          FROM proof_submissions ps
+          JOIN challenges c ON ps.challenge_id = c.id
+          JOIN challenge_participants cp ON cp.challenge_id = c.id AND cp.user_id = ps.user_id
+          WHERE ps.id = ${appeal[0].verification_id}
+        `
+
+        if (userAndChallenge.length > 0) {
+          const userId = userAndChallenge[0].user_id
+          const challengeId = userAndChallenge[0].challenge_id
+          const challengeTitle = userAndChallenge[0].challenge_title
+          const stakeAmount = parseFloat(userAndChallenge[0].stake_amount)
+          const minStake = parseFloat(userAndChallenge[0].min_stake)
+          const participantId = userAndChallenge[0].participant_id
+
+          // Refund the stake to the user's wallet
+          await sql`
+            UPDATE users 
+            SET 
+              credits = credits + ${stakeAmount},
+              updated_at = NOW()
+            WHERE id = ${userId}
+          `
+
+          // Record the refund transaction
+          await sql`
+            INSERT INTO credit_transactions (
+              user_id, amount, transaction_type, related_challenge_id, description, created_at
+            ) VALUES (
+              ${userId}, 
+              ${stakeAmount}, 
+              'appeal_refund', 
+              ${challengeId},
+              'Stake refunded due to successful appeal: ${challengeTitle}',
+              NOW()
+            )
+          `
+
+          // Calculate and award the challenge reward (10% bonus on stake, capped at 150% of min_stake)
+          const baseReward = Math.min(minStake * 1.5, stakeAmount * 1.1)
+          
+          // Award the reward
+          await sql`
+            UPDATE users 
+            SET 
+              credits = credits + ${baseReward},
+              updated_at = NOW()
+            WHERE id = ${userId}
+          `
+
+          // Record the reward transaction
+          await sql`
+            INSERT INTO credit_transactions (
+              user_id, amount, transaction_type, related_challenge_id, description, created_at
+            ) VALUES (
+              ${userId}, 
+              ${baseReward}, 
+              'appeal_reward', 
+              ${challengeId},
+              'Reward earned from successful appeal: ${challengeTitle}',
+              NOW()
+            )
+          `
+
+          // Update the challenge participant to reflect the completion and reward
+          await sql`
+            UPDATE challenge_participants 
+            SET 
+              completion_status = 'completed',
+              verification_status = 'approved',
+              reward_earned = ${baseReward},
+              completed_at = NOW(),
+              updated_at = NOW()
+            WHERE id = ${participantId}
+          `
+
+          // Send notification to user about successful appeal and rewards
+          const { createNotification } = await import('@/lib/notification-service')
+          
+          await createNotification({
+            userId,
+            type: 'financial',
+            title: '✅ Appeal Approved - Reward Received',
+            message: `Your appeal has been approved! You've received a $${baseReward.toFixed(2)} reward plus your $${stakeAmount.toFixed(2)} stake refund.`,
+            actionUrl: '/wallet',
+            metadata: {
+              amount: baseReward + stakeAmount,
+              reason: `Appeal approved: ${reason || 'Successful appeal'}`,
+              challengeTitle,
+              eventType: 'appeal_approved'
+            },
+            sendEmail: true,
+            emailSubject: `Appeal Approved - Reward Received`,
+            emailBody: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #10b981;">✅ Appeal Approved</h2>
+                <p>Great news! Your appeal for the challenge <strong>"${challengeTitle}"</strong> has been approved.</p>
+                
+                <div style="background-color: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+                  <h3 style="margin-top: 0; color: #047857;">Financial Summary</h3>
+                  <p style="font-size: 16px; margin: 10px 0;">
+                    <strong>Stake Refunded:</strong> 
+                    <span style="color: #10b981; font-size: 18px;">+$${stakeAmount.toFixed(2)}</span>
+                  </p>
+                  <p style="font-size: 16px; margin: 10px 0;">
+                    <strong>Reward Earned:</strong> 
+                    <span style="color: #10b981; font-size: 18px;">+$${baseReward.toFixed(2)}</span>
+                  </p>
+                  <hr style="border: none; border-top: 1px solid #d1fae5; margin: 15px 0;">
+                  <p style="font-size: 18px; margin: 10px 0;">
+                    <strong>Total Added to Wallet:</strong> 
+                    <span style="color: #10b981; font-size: 20px;">$${(baseReward + stakeAmount).toFixed(2)}</span>
+                  </p>
+                </div>
+                
+                <p><strong>Reason:</strong> ${reason || 'Appeal approved'}</p>
+                
+                <p style="color: #6b7280;">
+                  Thank you for providing additional evidence. Your wallet has been updated with the refund and reward.
+                </p>
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                  <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://stakr.app'}/wallet" 
+                     style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-right: 10px;">
+                    View Wallet
+                  </a>
+                  <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://stakr.app'}/discover" 
+                     style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+                    Find New Challenges
+                  </a>
+                </div>
+              </div>
+            `
+          }).catch(error => {
+            console.error('Failed to send appeal notification:', error)
+            // Don't fail the appeal if notification fails
+          })
+        }
+      }
     }
 
     return NextResponse.json({
