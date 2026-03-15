@@ -4,14 +4,18 @@ import { NextRequest, NextResponse } from 'next/server'
 // Mock the database connection
 const mockSql = jest.fn()
 jest.mock('@/lib/db', () => ({
-  createDbConnection: jest.fn(() => mockSql)
+  createDbConnection: () => mockSql,
+  testDatabaseConnection: jest.fn(),
+  dbConfig: {},
+  db: null
 }))
 
-// Mock auth
-jest.mock('next-auth/next', () => ({
-  getServerSession: jest.fn(() => Promise.resolve({
-    user: { id: 'test-user-id', email: 'test@example.com' }
-  }))
+// Mock auth - use a mock function that resolves with user data
+const mockGetServerSession = jest.fn().mockResolvedValue({
+  user: { id: 'test-user-id', email: 'test@example.com' }
+})
+jest.mock('next-auth', () => ({
+  getServerSession: mockGetServerSession
 }))
 
 // Mock the auth options
@@ -25,6 +29,10 @@ const { GET, POST } = require('@/app/api/challenges/route')
 describe('Challenges API Thumbnail Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    // Re-establish the getServerSession mock after clearing
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 'test-user-id', email: 'test@example.com' }
+    })
   })
 
   describe('GET /api/challenges - Thumbnail URL Mapping', () => {
