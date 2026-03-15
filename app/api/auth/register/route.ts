@@ -3,6 +3,7 @@ import { createDbConnection } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { sendEmail, createVerificationEmail, generateVerificationToken } from '@/lib/email'
+import { checkRateLimit, createRateLimitResponse, getClientIp } from '@/lib/rate-limit'
 
 // Validation schema for user registration
 const registerSchema = z.object({
@@ -31,6 +32,15 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 5 requests per minute per IP for auth routes
+    const clientIp = getClientIp(request)
+    const rateLimitResult = checkRateLimit(`register:${clientIp}`, 'auth-strict')
+    
+    const rateLimitResponse = createRateLimitResponse(rateLimitResult)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     const body = await request.json()
     
     // Validate input

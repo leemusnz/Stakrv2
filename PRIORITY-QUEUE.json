@@ -168,7 +168,7 @@
       "description": "app/api/payments/withdraw/route.ts has TODO: 'Integrate with Stripe Connect or banking API for actual payout'. Currently mocked. Research Stripe Connect setup, implement real withdrawal flow with proper status tracking.",
       "priority": "high",
       "category": "payments",
-      "status": "queued"
+      "status": "completed"
     },
     {
       "id": "stakr-022",
@@ -200,7 +200,7 @@
       "description": "No rate limiting detected on API routes. Implement rate limiting middleware using upstash/ratelimit or similar. Protect: auth/register, payments/checkout, ai/validate-proof, social/follow. Prevent abuse and API spam.",
       "priority": "high",
       "category": "security",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-026",

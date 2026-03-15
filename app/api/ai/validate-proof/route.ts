@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { aiAntiCheat, validateProofSubmission, processDetectionResult } from '@/lib/ai-anti-cheat'
 import { createDbConnection } from '@/lib/db'
 import { systemLogger } from '@/lib/system-logger'
+import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +16,14 @@ export async function POST(request: NextRequest) {
         error: 'Unauthorized',
         message: 'You must be logged in to submit proof'
       }, { status: 401 })
+    }
+
+    // Rate limiting: 5 requests per minute per user for AI validation routes
+    const rateLimitResult = checkRateLimit(`validate-proof:${session.user.id}`, 'ai-validation')
+    
+    const rateLimitResponse = createRateLimitResponse(rateLimitResult)
+    if (rateLimitResponse) {
+      return rateLimitResponse
     }
 
     const body = await request.json()

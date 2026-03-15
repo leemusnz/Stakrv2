@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { socialFollowSchema } from '@/lib/validation'
+import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limit'
 
 // POST - Follow/Unfollow a user
 export async function POST(request: NextRequest) {
@@ -11,6 +12,14 @@ export async function POST(request: NextRequest) {
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    // Rate limiting: 20 requests per minute per user for social routes
+    const rateLimitResult = checkRateLimit(`follow:${session.user.id}`, 'social')
+    
+    const rateLimitResponse = createRateLimitResponse(rateLimitResult)
+    if (rateLimitResponse) {
+      return rateLimitResponse
     }
 
     const body = await request.json()

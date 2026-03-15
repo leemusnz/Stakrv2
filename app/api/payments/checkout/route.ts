@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { createCheckoutSession } from '@/lib/payments-service'
 import { checkoutSessionSchema } from '@/lib/validation'
+import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limit'
 
 // Stub endpoint for creating a Stripe Checkout session for CASH joins
 // In development, returns a mock session and 202 to indicate further action
@@ -12,6 +13,14 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Rate limiting: 10 requests per minute per user for payment routes
+    const rateLimitResult = checkRateLimit(`checkout:${session.user.id}`, 'payment')
+    
+    const rateLimitResponse = createRateLimitResponse(rateLimitResult)
+    if (rateLimitResponse) {
+      return rateLimitResponse
     }
 
     const body = await request.json()
