@@ -229,6 +229,8 @@ export function ChallengeCard({
   return (
     <Link href={`/challenge/${challengeData.id || id}`}>
       <Card
+        role="article"
+        aria-label={`${challengeData.title || title} challenge${joined ? ' (joined)' : ''}`}
         className={`
           w-full max-w-sm transition-all duration-300 
           hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 
@@ -250,6 +252,7 @@ export function ChallengeCard({
             variant="ghost"
             size="sm"
             onClick={handleSave}
+            aria-label={saved ? `Remove ${challengeData.title || title} from saved` : `Save ${challengeData.title || title}`}
             className={`
               p-2 h-10 w-10 rounded-full touch-manipulation
               ${saved ? "text-primary bg-primary/10" : "text-muted-foreground bg-background/80"}
@@ -331,6 +334,11 @@ export function ChallengeCard({
                   max={challengeData.maxStake || maxStake}
                   value={stakeAmount}
                   onChange={(e) => setStakeAmount(Number(e.target.value))}
+                  aria-label="Stake amount"
+                  aria-valuemin={challengeData.minStake || minStake}
+                  aria-valuemax={challengeData.maxStake || maxStake}
+                  aria-valuenow={stakeAmount}
+                  aria-valuetext={`$${stakeAmount}`}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                   style={{
                     background: `linear-gradient(to right, #F46036 0%, #F46036 ${((stakeAmount - (challengeData.minStake || minStake)) / ((challengeData.maxStake || maxStake) - (challengeData.minStake || minStake))) * 100}%, #e5e5e5 ${((stakeAmount - (challengeData.minStake || minStake)) / ((challengeData.maxStake || maxStake) - (challengeData.minStake || minStake))) * 100}%, #e5e5e5 100%)`,
@@ -347,6 +355,7 @@ export function ChallengeCard({
                 variant="ghost"
                 size="sm"
                 onClick={handleLike}
+                aria-label={liked ? `Unlike this challenge (${likeCount} likes)` : `Like this challenge (${likeCount} likes)`}
                 className={`
                   flex items-center gap-1 min-h-[44px] px-3 touch-manipulation
                   ${liked ? "text-red-500" : "text-muted-foreground"}
@@ -359,6 +368,7 @@ export function ChallengeCard({
               <Button 
                 variant="ghost" 
                 size="sm" 
+                aria-label={`View comments (${comments} comments)`}
                 className="flex items-center gap-1 min-h-[44px] px-3 touch-manipulation text-muted-foreground active:scale-95"
               >
                 <MessageCircle className="w-4 h-4" />
@@ -368,7 +378,8 @@ export function ChallengeCard({
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={handleShare} 
+              onClick={handleShare}
+              aria-label={`Share ${challengeData.title || title}`}
               className="min-h-[44px] px-3 touch-manipulation text-muted-foreground active:scale-95"
             >
               <Share2 className="w-4 h-4" />
@@ -379,6 +390,7 @@ export function ChallengeCard({
           {joined ? (
             isCompleted ? (
               <Button
+                aria-label={`${challengeData.title || title} challenge completed`}
                 className="
                   w-full font-bold text-sm py-4 min-h-[48px] 
                   bg-success hover:bg-success/90 text-white 
@@ -393,6 +405,7 @@ export function ChallengeCard({
               </Button>
             ) : (
               <Button
+                aria-label={`View details for ${challengeData.title || title} (joined)`}
                 variant="outline"
                 className="
                   w-full font-bold text-sm py-4 min-h-[48px]
@@ -412,6 +425,7 @@ export function ChallengeCard({
             )
           ) : (
             <Button
+              aria-label={`View details for ${challengeData.title || title}`}
               className="
                 w-full font-bold text-sm py-4 min-h-[48px]
                 bg-primary hover:bg-primary/90 text-white 

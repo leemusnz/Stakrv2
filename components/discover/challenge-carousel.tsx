@@ -101,6 +101,7 @@ export function ChallengeCarousel({
           <Button
             variant="outline"
             size="icon"
+            aria-label="Previous challenge"
             className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm"
             onClick={goToPrevious}
           >
@@ -112,6 +113,7 @@ export function ChallengeCarousel({
           <Button
             variant="outline"
             size="icon"
+            aria-label="Next challenge"
             className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm"
             onClick={goToNext}
           >
@@ -126,6 +128,8 @@ export function ChallengeCarousel({
           <button
             key={index}
             onClick={() => goToSlide(index)}
+            aria-label={`Go to challenge ${index + 1}`}
+            aria-current={index === currentIndex ? "page" : undefined}
             className={cn(
               "w-2 h-2 rounded-full transition-all duration-200",
               index === currentIndex

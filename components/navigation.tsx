@@ -85,6 +85,7 @@ export function Navigation({ user, onLogout }: NavigationProps) {
               return (
                 <Link key={item.id} href={item.href}>
                   <Button
+                    aria-current={isActive ? "page" : undefined}
                     variant={isActive ? "default" : "ghost"}
                     className={`flex items-center gap-2 font-medium relative ${
                       isActive
@@ -144,7 +145,7 @@ export function Navigation({ user, onLogout }: NavigationProps) {
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full" aria-label={`${user.name} user menu`}>
                   <Avatar 
                     className="h-10 w-10"
                     key={`nav-avatar-${avatarUrl}`} // Force re-render when avatar changes
@@ -246,6 +247,7 @@ export function Navigation({ user, onLogout }: NavigationProps) {
                 return (
                   <Link key={item.id} href={item.href}>
                     <Button
+                      aria-current={isActive ? "page" : undefined}
                       variant={isActive ? "default" : "ghost"}
                       className={cn(
                         "w-full justify-start",

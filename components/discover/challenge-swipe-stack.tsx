@@ -174,6 +174,7 @@ export function ChallengeSwipeStack({
         <Button
           variant="outline"
           size="icon"
+          aria-label="Skip challenge"
           className="w-14 h-14 rounded-full border-red-200 text-red-600 hover:bg-red-50"
           onClick={() => handleAction('pass', getCurrentChallenge())}
         >
@@ -183,6 +184,7 @@ export function ChallengeSwipeStack({
         <Button
           variant="outline"
           size="icon"
+          aria-label="Save challenge"
           className="w-12 h-12 rounded-full border-blue-200 text-blue-600 hover:bg-blue-50"
           onClick={() => handleAction('bookmark', getCurrentChallenge())}
         >
@@ -191,6 +193,7 @@ export function ChallengeSwipeStack({
         
         <Button
           size="icon"
+          aria-label="Like challenge"
           className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600"
           onClick={() => handleAction('like', getCurrentChallenge())}
         >

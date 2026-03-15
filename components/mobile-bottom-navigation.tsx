@@ -119,6 +119,8 @@ export function MobileBottomNavigation({
           return (
             <Link key={item.id} href={item.href}>
               <button
+                aria-label={`${item.label}${item.badge ? ` (${item.badge} new)` : ''}`}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "flex flex-col items-center justify-center",
                   "py-2 px-3 rounded-lg",
@@ -139,6 +141,7 @@ export function MobileBottomNavigation({
                     <Badge 
                       variant="destructive" 
                       className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs flex items-center justify-center"
+                      aria-hidden="true"
                     >
                       {item.badge > 99 ? '99+' : item.badge}
                     </Badge>
@@ -165,6 +168,7 @@ export function MobileBottomNavigation({
             <Button
               variant="ghost"
               size="sm"
+              aria-label={`Notifications (${notificationCount} new)`}
               className="h-8 w-8 rounded-full p-0 touch-manipulation active:scale-95"
             >
               <div className="relative">
@@ -172,6 +176,7 @@ export function MobileBottomNavigation({
                 <Badge 
                   variant="destructive" 
                   className="absolute -top-1 -right-1 h-3 w-3 p-0 text-xs flex items-center justify-center"
+                  aria-hidden="true"
                 >
                   {notificationCount > 9 ? '9+' : notificationCount}
                 </Badge>
