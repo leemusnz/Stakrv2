@@ -240,7 +240,7 @@
       "description": "Fix 2 TS2739 errors: ChallengeAnalysis type missing properties like stakesAppropriate, verificationOptimal, evidenceRequirements, designRecommendations, riskFactors. Either add these to the returned objects or update the type definition. Check AI validation routes.",
       "priority": "high",
       "category": "type-safety",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-031",
@@ -257,7 +257,7 @@
       "description": "Fix TS2339: Property 'isLoading' does not exist on type 'NotificationContextType'. Either add isLoading to the context type definition or remove usage. Check notification-provider.tsx and consumers.",
       "priority": "high",
       "category": "type-safety",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-033",

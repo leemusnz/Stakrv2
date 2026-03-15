@@ -18,6 +18,7 @@ interface Notification {
 interface NotificationContextType {
   notifications: Notification[]
   unreadCount: number
+  isLoading: boolean
   markAsRead: (id: string) => void
   markAllAsRead: () => void
   addNotification: (notification: Omit<Notification, "id" | "timestamp" | "read">) => void
@@ -126,6 +127,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       value={{
         notifications,
         unreadCount,
+        isLoading,
         markAsRead,
         markAllAsRead,
         addNotification,
