@@ -3,6 +3,62 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 
+/**
+ * Fetch the previous rank for a user from rank_history
+ */
+async function getPreviousRank(
+  sql: any,
+  userId: string,
+  category: string,
+  timeframe: string
+): Promise<number | null> {
+  try {
+    const result = await sql`
+      SELECT rank FROM rank_history
+      WHERE user_id = ${userId}
+      AND category = ${category}
+      AND timeframe = ${timeframe}
+      ORDER BY recorded_at DESC
+      LIMIT 1
+    `
+    return result.length > 0 ? result[0].rank : null
+  } catch (error) {
+    console.error('Error fetching previous rank:', error)
+    return null
+  }
+}
+
+/**
+ * Store current rank in rank_history
+ */
+async function storeRankHistory(
+  sql: any,
+  userId: string,
+  category: string,
+  timeframe: string,
+  rank: number,
+  score: number | string
+): Promise<void> {
+  try {
+    await sql`
+      INSERT INTO rank_history (user_id, category, timeframe, rank, score)
+      VALUES (${userId}, ${category}, ${timeframe}, ${rank}, ${score})
+    `
+  } catch (error) {
+    console.error('Error storing rank history:', error)
+  }
+}
+
+/**
+ * Calculate rank change (up/down/same)
+ */
+function calculateRankChange(currentRank: number, previousRank: number | null): 'up' | 'down' | 'same' | null {
+  if (previousRank === null) return null
+  if (currentRank < previousRank) return 'up'
+  if (currentRank > previousRank) return 'down'
+  return 'same'
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -209,9 +265,25 @@ export async function GET(request: NextRequest) {
 
     const leaderboardData = await leaderboardQuery
 
+    // Store rank history and fetch previous ranks for leaderboard users
+    const leaderboardWithPreviousRanks = await Promise.all(
+      leaderboardData.map(async (user: any) => {
+        const previousRank = await getPreviousRank(sql, user.id, category, timeframe)
+        
+        // Store current rank in history (async, don't wait)
+        storeRankHistory(sql, user.id, category, timeframe, user.rank, user.score)
+        
+        return {
+          ...user,
+          previousRank,
+          rankChange: calculateRankChange(user.rank, previousRank),
+        }
+      })
+    )
+
     // Find current user's position if not in top results
     let currentUserPosition = null
-    const currentUserInTop = leaderboardData.find((user: any) => user.id === session.user.id)
+    const currentUserInTop = leaderboardWithPreviousRanks.find((user: any) => user.id === session.user.id)
 
     if (!currentUserInTop) {
       // Query for current user's rank
@@ -310,20 +382,31 @@ export async function GET(request: NextRequest) {
       const userRank = await userRankQuery
       if (userRank.length > 0) {
         currentUserPosition = userRank[0]
+        // Also fetch previous rank for current user
+        const previousRank = await getPreviousRank(sql, session.user.id, category, timeframe)
+        currentUserPosition.previousRank = previousRank
+        currentUserPosition.rankChange = calculateRankChange(currentUserPosition.rank, previousRank)
+        
+        // Store current user's rank in history
+        storeRankHistory(sql, session.user.id, category, timeframe, currentUserPosition.rank, currentUserPosition.score)
       }
+    } else {
+      // Current user is in top results, use data from there
+      currentUserPosition = currentUserInTop
     }
 
     return NextResponse.json({
       success: true,
       data: {
-        leaderboard: leaderboardData.map((user: any) => ({
+        leaderboard: leaderboardWithPreviousRanks.map((user: any) => ({
           id: user.id,
           name: user.name,
           email: user.email,
           avatar: user.avatar_url,
           score: formatScore(user.score, category),
           rank: user.rank,
-          previousRank: user.rank, // TODO: Implement rank tracking
+          previousRank: user.previousRank,
+          rankChange: user.rankChange,
           streak: user.current_streak || 0,
           completedChallenges: user.challenges_completed || 0,
           totalEarnings: user.total_earnings || 0,
@@ -336,7 +419,8 @@ export async function GET(request: NextRequest) {
           avatar: currentUserPosition.avatar_url,
           score: formatScore(currentUserPosition.score, category),
           rank: currentUserPosition.rank,
-          previousRank: currentUserPosition.rank // TODO: Implement rank tracking
+          previousRank: currentUserPosition.previousRank,
+          rankChange: currentUserPosition.rankChange
         } : null,
         metadata: {
           timeframe,

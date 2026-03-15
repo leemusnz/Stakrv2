@@ -368,6 +368,24 @@ export const brands = pgTable('brands', {
 }))
 
 // ================================
+// RANK HISTORY TABLE
+// ================================
+export const rankHistory = pgTable('rank_history', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  category: varchar('category', { length: 50 }).notNull(), // 'overall', 'earnings', 'streaks', 'completions'
+  timeframe: varchar('timeframe', { length: 20 }).notNull(), // 'daily', 'weekly', 'monthly', 'all-time'
+  rank: integer('rank').notNull(),
+  score: decimal('score', { precision: 12, scale: 2 }).notNull(),
+  recordedAt: timestamp('recorded_at').defaultNow().notNull(),
+}, (table) => ({
+  userCategoryTimeframeIdx: index('rank_history_user_category_timeframe_idx').on(table.userId, table.category, table.timeframe),
+  userIdx: index('rank_history_user_idx').on(table.userId),
+  recordedAtIdx: index('rank_history_recorded_at_idx').on(table.recordedAt),
+  categoryTimeframeIdx: index('rank_history_category_timeframe_idx').on(table.category, table.timeframe),
+}))
+
+// ================================
 // EXPORT TABLE TYPES
 // ================================
 export type User = typeof users.$inferSelect
@@ -384,3 +402,5 @@ export type Creator = typeof creators.$inferSelect
 export type NewCreator = typeof creators.$inferInsert
 export type Brand = typeof brands.$inferSelect
 export type NewBrand = typeof brands.$inferInsert
+export type RankHistory = typeof rankHistory.$inferSelect
+export type NewRankHistory = typeof rankHistory.$inferInsert
