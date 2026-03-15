@@ -38,19 +38,75 @@ export async function GET(request: NextRequest) {
       }, request, session))
     }
 
-    // For real users, query the database (when implemented)
+    // Query the database for real creators
     const sql = await createDbConnection()
+    const offset = parseInt(searchParams.get('offset') || '0')
     
-    // TODO: Implement real database queries for creators
-    // For now, return empty array for real users
-    return NextResponse.json({
-      success: true,
-      creators: [],
-      count: 0,
-      total_available: 0,
-      filters_applied: { category, limit },
-      message: 'Creators feature coming soon!'
-    })
+    try {
+      // Build query with filters
+      let query = `SELECT * FROM creators WHERE 1=1`
+      const params: any[] = []
+      let paramIndex = 1
+      
+      // Apply category filter if provided
+      if (category) {
+        query += ` AND $${paramIndex}::text = ANY(categories)`
+        params.push(category)
+        paramIndex++
+      }
+      
+      // Get total count
+      let countQuery = `SELECT COUNT(*) as count FROM creators WHERE 1=1`
+      const countParams: any[] = []
+      let countParamIndex = 1
+      
+      if (category) {
+        countQuery += ` AND $${countParamIndex}::text = ANY(categories)`
+        countParams.push(category)
+        countParamIndex++
+      }
+      
+      const countResult = await sql(countQuery, countParams)
+      const totalAvailable = parseInt(countResult[0]?.count || '0')
+      
+      // Apply pagination
+      query += ` ORDER BY "followers" DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
+      params.push(limit, offset)
+      
+      const creators = await sql(query, params)
+      
+      // If no creators found in DB, return demo data as fallback
+      if (creators.length === 0 && totalAvailable === 0) {
+        return NextResponse.json({
+          success: true,
+          creators: getDemoCreators(false),
+          count: getDemoCreators(false).length,
+          total_available: getDemoCreators(false).length,
+          filters_applied: { category, limit, offset },
+          message: 'Returning demo creators - database is empty'
+        })
+      }
+      
+      return NextResponse.json({
+        success: true,
+        creators: creators,
+        count: creators.length,
+        total_available: totalAvailable,
+        filters_applied: { category, limit, offset },
+        message: 'Creators retrieved successfully'
+      })
+    } catch (dbError) {
+      console.error('Database query error:', dbError)
+      // Fall back to demo data on database error
+      return NextResponse.json({
+        success: true,
+        creators: getDemoCreators(false),
+        count: getDemoCreators(false).length,
+        total_available: getDemoCreators(false).length,
+        filters_applied: { category, limit, offset },
+        message: 'Returning demo creators - database unavailable'
+      })
+    }
     
   } catch (error) {
     console.error('Creators fetch error:', error)

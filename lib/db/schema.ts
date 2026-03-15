@@ -323,7 +323,53 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
   }),
 }))
 
-// Export all table types
+// ================================
+// CREATORS TABLE
+// ================================
+export const creators = pgTable('creators', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  username: varchar('username', { length: 50 }).notNull().unique(),
+  avatar: text('avatar'),
+  bio: text('bio'),
+  followers: integer('followers').default(0).notNull(),
+  challengesCreated: integer('challenges_created').default(0).notNull(),
+  successRate: integer('success_rate').default(0).notNull(),
+  totalEarnings: decimal('total_earnings', { precision: 10, scale: 2 }).default('0.00').notNull(),
+  isVerified: boolean('is_verified').default(false).notNull(),
+  categories: varchar('categories', { length: 100 }).array().default([]).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index('creators_user_idx').on(table.userId),
+  usernameIdx: uniqueIndex('creators_username_idx').on(table.username),
+  verifiedIdx: index('creators_verified_idx').on(table.isVerified),
+}))
+
+// ================================
+// BRANDS TABLE
+// ================================
+export const brands = pgTable('brands', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  logo: text('logo'),
+  description: text('description'),
+  industry: varchar('industry', { length: 100 }).notNull(),
+  followers: integer('followers').default(0).notNull(),
+  challengesSponsored: integer('challenges_sponsored').default(0).notNull(),
+  totalRewards: decimal('total_rewards', { precision: 10, scale: 2 }).default('0.00').notNull(),
+  isVerified: boolean('is_verified').default(false).notNull(),
+  categories: varchar('categories', { length: 100 }).array().default([]).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  industryIdx: index('brands_industry_idx').on(table.industry),
+  verifiedIdx: index('brands_verified_idx').on(table.isVerified),
+}))
+
+// ================================
+// EXPORT TABLE TYPES
+// ================================
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type Challenge = typeof challenges.$inferSelect
@@ -334,3 +380,7 @@ export type ProofSubmission = typeof proofSubmissions.$inferSelect
 export type NewProofSubmission = typeof proofSubmissions.$inferInsert
 export type Transaction = typeof transactions.$inferSelect
 export type NewTransaction = typeof transactions.$inferInsert
+export type Creator = typeof creators.$inferSelect
+export type NewCreator = typeof creators.$inferInsert
+export type Brand = typeof brands.$inferSelect
+export type NewBrand = typeof brands.$inferInsert

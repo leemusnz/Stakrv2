@@ -144,7 +144,7 @@
       "description": "Missing dependencies in useEffect hooks: leaderboard (fetchLeaderboardData), social-feed (feedData, fetchFeedFromApi, page), verification-modal (capturePhotoFromStream, startVideoRecording). Add deps or refactor to avoid stale closures.",
       "priority": "medium",
       "category": "code-quality",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-019",
@@ -176,7 +176,7 @@
       "description": "app/api/creators/route.ts and app/api/brands/route.ts return hardcoded mock data (TODO). Create proper DB schemas if needed, query real data, add pagination/filtering.",
       "priority": "medium",
       "category": "backend",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-023",
