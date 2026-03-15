@@ -13,11 +13,10 @@ interface RouteParams {
 // POST daily check-in (manual or session-based)
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    // TEMPORARILY DISABLE AUTH FOR TESTING
-    // const session = await getServerSession(authOptions)
-    // if (!session?.user) {
-    //   return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    // }
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
 
     const challengeId = (await params).id
     const { 
@@ -94,7 +93,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
       // Run AI validation
       aiValidationResult = await validateProofSubmission(
-        'test-user-id', // TODO: Use session.user.id when auth is enabled
+        session.user.id,
         challengeId,
         {
           type: aiProofType,
@@ -124,7 +123,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         case 'ban':
           verificationStatus = 'banned'
           // Process the ban
-          await processDetectionResult(aiValidationResult, 'test-user-id', `checkin-${Date.now()}`)
+          await processDetectionResult(aiValidationResult, session.user.id, `checkin-${Date.now()}`)
           break
         default:
           verificationStatus = 'pending'
@@ -141,8 +140,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const mockCheckin = {
       id: `checkin-${Date.now()}`,
       challenge_id: challengeId,
-      user_id: 'test-user-id', // session.user.id,
-      participant_id: `participant-test-user-id`, // session.user.id,
+      user_id: session.user.id,
+      participant_id: `participant-${session.user.id}`,
       session_id: session_id,
       checkin_date: new Date().toISOString().split('T')[0],
       submission_type: submission_type,
@@ -171,9 +170,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Attempt to persist proof submission to the database (align with /api/ai/validate-proof)
     try {
-      const session = await getServerSession(authOptions)
-      const userId = session?.user?.id || 'test-user-id'
       const sql = createDbConnection()
+      const userId = session.user.id
 
       // Normalize metadata for persistence
       const persistenceMetadata: any = {
@@ -305,11 +303,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 // GET user's check-ins for this challenge
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    // TEMPORARILY DISABLE AUTH FOR TESTING
-    // const session = await getServerSession(authOptions)
-    // if (!session?.user) {
-    //   return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    // }
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
 
     const challengeId = (await params).id
     const { searchParams } = new URL(request.url)

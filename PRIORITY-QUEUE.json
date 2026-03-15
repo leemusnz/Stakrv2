@@ -224,7 +224,7 @@
       "description": "Critical: 7 test suites failed, 55 tests failing. Main issues appear to be in challenge-grid, thumbnail-system, and other core components. Investigate timeout errors, waitFor() failures, and component rendering issues. Check test/__tests__/ directory for specifics. Priority: get test suite green before other work.",
       "priority": "critical",
       "category": "testing",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-029",
@@ -281,7 +281,7 @@
       "description": "app/api/challenges/[id]/checkins/route.ts line 97 uses hardcoded 'test-user-id' instead of session.user.id. Fix by using proper session auth. Verify auth is enabled for this route.",
       "priority": "critical",
       "category": "security",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-036",
