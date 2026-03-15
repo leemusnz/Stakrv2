@@ -273,7 +273,7 @@
       "description": "app/api/admin/appeals/route.ts line 312 TODO: 'Process financial implications (refund stakes, recalculate rewards)'. Critical for proper appeal handling. Implement stake refund logic, reward recalculation, and transaction recording.",
       "priority": "high",
       "category": "backend",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-035",
@@ -297,7 +297,7 @@
       "description": "app/api/moderate/image/route.ts line 68 TODO: 'Re-enable with more restrictive logic once moderation issues are resolved'. Currently disabled. Research what issues caused it to be disabled, implement fix, add tests, re-enable. Critical for content safety.",
       "priority": "high",
       "category": "security",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-038",
