@@ -200,7 +200,7 @@
       "description": "No rate limiting detected on API routes. Implement rate limiting middleware using upstash/ratelimit or similar. Protect: auth/register, payments/checkout, ai/validate-proof, social/follow. Prevent abuse and API spam.",
       "priority": "high",
       "category": "security",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-026",
@@ -216,7 +216,7 @@
       "description": "Type errors: Challenge objects missing hostContribution, entryFeePercentage, failedStakeCut, status. Update Challenge interface in lib/db/schema or fix data creation in components/trending-challenges and similar.",
       "priority": "high",
       "category": "type-safety",
-      "status": "queued"
+      "status": "in-progress"
     }
   ]
 }
