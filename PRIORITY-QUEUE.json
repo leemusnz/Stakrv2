@@ -97,6 +97,126 @@
       "priority": "high",
       "category": "security",
       "status": "completed"
+    },
+    {
+      "id": "stakr-013",
+      "title": "Fix broken Jest test suite (23 failed suites)",
+      "description": "Jest worker is crashing with 'encountered 4 child process exceptions'. Investigate root cause (likely memory/timeout issues or broken imports). Check jest.config.js settings, increase workers/timeout, fix broken test imports. Critical: 23 test suites failing.",
+      "priority": "critical",
+      "category": "testing",
+      "status": "completed"
+    },
+    {
+      "id": "stakr-014",
+      "title": "Fix TypeScript redeclaration errors in notification utils",
+      "description": "Multiple 'Cannot redeclare exported variable' errors for notifyWelcome, notifyStreakMilestone, notifyRewardsMilestone, notifyRefundProcessed, notifyProofSubmitted, notifyProofReminder, notifyProofRejected, notifyProofApproved. These functions are exported multiple times. Consolidate exports.",
+      "priority": "critical",
+      "category": "type-safety",
+      "status": "in-progress"
+    },
+    {
+      "id": "stakr-015",
+      "title": "Fix PanelResizeHandle import issues",
+      "description": "3 instances of 'Property PanelResizeHandle does not exist on type react-resizable-panels'. Update import statements or package version. Check components using Panel/PanelGroup/PanelResizeHandle.",
+      "priority": "high",
+      "category": "type-safety",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-016",
+      "title": "Fix route param type constraints (TS2344)",
+      "description": "3 route files have type constraint errors with ParamCheck<RouteContext>. Likely Next.js 15 route param type changes. Update route signatures to match new Next.js patterns. Check app/api routes with [id] params.",
+      "priority": "high",
+      "category": "type-safety",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-017",
+      "title": "Fix ESLint errors: unescaped entities and image optimization",
+      "description": "5 ESLint errors (unescaped apostrophes/quotes in JSX) in report-content-modal, friend-activity, social-proof, verification-trigger. Also replace 3 <img> tags with Next.js <Image /> in trending-challenges, user-posts, verification-modal for performance.",
+      "priority": "medium",
+      "category": "code-quality",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-018",
+      "title": "Fix useEffect dependency warnings",
+      "description": "Missing dependencies in useEffect hooks: leaderboard (fetchLeaderboardData), social-feed (feedData, fetchFeedFromApi, page), verification-modal (capturePhotoFromStream, startVideoRecording). Add deps or refactor to avoid stale closures.",
+      "priority": "medium",
+      "category": "code-quality",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-019",
+      "title": "Remove innerHTML security risk in integration-icon.tsx",
+      "description": "Line 91 uses target.parentElement.innerHTML with fallback emojis. Replace with textContent or React state update. Current implementation has XSS risk if provider names aren't sanitized.",
+      "priority": "high",
+      "category": "security",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-020",
+      "title": "Implement real notification loading",
+      "description": "notification-provider.tsx has TODO: 'Load real notifications from /api/user/notifications'. Currently returns empty array. Build endpoint, fetch notifications on mount, implement polling/SSE for real-time updates.",
+      "priority": "high",
+      "category": "ux-polish",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-021",
+      "title": "Implement Stripe withdrawal/payout integration",
+      "description": "app/api/payments/withdraw/route.ts has TODO: 'Integrate with Stripe Connect or banking API for actual payout'. Currently mocked. Research Stripe Connect setup, implement real withdrawal flow with proper status tracking.",
+      "priority": "high",
+      "category": "payments",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-022",
+      "title": "Implement real database queries for creators and brands",
+      "description": "app/api/creators/route.ts and app/api/brands/route.ts return hardcoded mock data (TODO). Create proper DB schemas if needed, query real data, add pagination/filtering.",
+      "priority": "medium",
+      "category": "backend",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-023",
+      "title": "Implement leaderboard rank tracking",
+      "description": "social/leaderboard/route.ts has 2 TODOs: 'Implement rank tracking' for previousRank. Add rank history table, track daily/weekly rank changes, enable up/down arrows in UI.",
+      "priority": "medium",
+      "category": "social-features",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-024",
+      "title": "Improve accessibility: add ARIA labels to interactive components",
+      "description": "Only 25 aria-* attributes found across 174 components (14% coverage). Audit key components: buttons, modals, forms, navigation. Add aria-label, aria-describedby, role attributes. Focus on challenge cards, verification modal, settings.",
+      "priority": "medium",
+      "category": "accessibility",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-025",
+      "title": "Add API route rate limiting",
+      "description": "No rate limiting detected on API routes. Implement rate limiting middleware using upstash/ratelimit or similar. Protect: auth/register, payments/checkout, ai/validate-proof, social/follow. Prevent abuse and API spam.",
+      "priority": "high",
+      "category": "security",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-026",
+      "title": "Add E2E test file upload implementation",
+      "description": "tests/e2e/pages/challenge.page.ts line 120 TODO: 'Implement file upload for E2E tests'. Required for testing proof submission flow end-to-end. Use Playwright's setInputFiles() method.",
+      "priority": "medium",
+      "category": "testing",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-027",
+      "title": "Fix Challenge type missing properties",
+      "description": "Type errors: Challenge objects missing hostContribution, entryFeePercentage, failedStakeCut, status. Update Challenge interface in lib/db/schema or fix data creation in components/trending-challenges and similar.",
+      "priority": "high",
+      "category": "type-safety",
+      "status": "queued"
     }
   ]
 }
