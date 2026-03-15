@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { useState } from 'react'
 
 interface IntegrationIconProps {
   provider: string
@@ -7,6 +8,7 @@ interface IntegrationIconProps {
 }
 
 export function IntegrationIcon({ provider, size = 24, className = '' }: IntegrationIconProps) {
+  const [imageLoadFailed, setImageLoadFailed] = useState(false)
   // Map providers to their logo URLs (using official brand assets)
   const logoUrls: Record<string, string> = {
     // Wearables
@@ -66,8 +68,8 @@ export function IntegrationIcon({ provider, size = 24, className = '' }: Integra
     linkedin_learning: '💼',
   }
   
-  if (!logoUrl) {
-    // Fallback to emoji if no logo URL
+  if (!logoUrl || imageLoadFailed) {
+    // Fallback to emoji if no logo URL or image fails to load
     return (
       <span className={`text-${size === 16 ? 'sm' : size === 20 ? 'base' : 'xl'} ${className}`}>
         {fallbackEmojis[provider] || '📱'}
@@ -83,13 +85,9 @@ export function IntegrationIcon({ provider, size = 24, className = '' }: Integra
         width={size}
         height={size}
         className="rounded object-contain"
-        onError={(e) => {
-          // Fallback to emoji if image fails to load
-          const target = e.target as HTMLImageElement
-          target.style.display = 'none'
-          if (target.parentElement) {
-            target.parentElement.innerHTML = fallbackEmojis[provider] || '📱'
-          }
+        onError={() => {
+          // Fallback to emoji if image fails to load (using state instead of innerHTML)
+          setImageLoadFailed(true)
         }}
       />
     </div>

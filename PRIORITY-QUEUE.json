@@ -128,7 +128,7 @@
       "description": "3 route files have type constraint errors with ParamCheck<RouteContext>. Likely Next.js 15 route param type changes. Update route signatures to match new Next.js patterns. Check app/api routes with [id] params.",
       "priority": "high",
       "category": "type-safety",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-017",
@@ -152,7 +152,7 @@
       "description": "Line 91 uses target.parentElement.innerHTML with fallback emojis. Replace with textContent or React state update. Current implementation has XSS risk if provider names aren't sanitized.",
       "priority": "high",
       "category": "security",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-020",
