@@ -176,7 +176,7 @@ export async function GET(request: NextRequest) {
     
     // Check if AI tables exist
     const tables = ['proof_submissions', 'user_risk_profiles', 'ai_model_performance', 'cheat_detection_patterns', 'ban_records']
-    const tableStatus = {}
+    const tableStatus: Record<string, boolean> = {}
     
     for (const table of tables) {
       try {

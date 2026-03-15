@@ -232,7 +232,7 @@
       "description": "Fix 3 TS7053 errors where expression of type 'symbol' or 'string' can't index type '{}'. These likely involve dynamic property access. Add proper type assertions or index signatures. Locations: check lib/ files for object indexing patterns.",
       "priority": "high",
       "category": "type-safety",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-030",
@@ -281,7 +281,7 @@
       "description": "app/api/challenges/[id]/checkins/route.ts line 97 uses hardcoded 'test-user-id' instead of session.user.id. Fix by using proper session auth. Verify auth is enabled for this route.",
       "priority": "critical",
       "category": "security",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-036",

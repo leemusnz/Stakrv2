@@ -346,9 +346,9 @@ export class AIAntiCheatEngine {
           FROM challenges 
           WHERE id = ${challengeId}
         `
-      } else if (sql && typeof sql[Symbol.for('sql')] === 'function') {
+      } else if (sql && typeof (sql as Record<symbol, unknown>)[Symbol.for('sql')] === 'function') {
         // Support test harness that attaches a function at Symbol.for('sql')
-        challenges = await sql[Symbol.for('sql')](
+        challenges = await (sql as Record<symbol, unknown>)[Symbol.for('sql')](
           `SELECT title, description, proof_requirements, verification_type, ai_analysis, selected_proof_types, proof_instructions FROM challenges WHERE id = $1`,
           [challengeId]
         )
@@ -361,7 +361,7 @@ export class AIAntiCheatEngine {
         let chosen: unknown | undefined
         for (const r of results) {
           const v = r?.value
-          if (v && (typeof v === 'function' || typeof v?.[Symbol.for('sql')] === 'function')) {
+          if (v && (typeof v === 'function' || typeof (v as Record<symbol, unknown>)?.[Symbol.for('sql')] === 'function')) {
             chosen = v
           }
         }
@@ -370,8 +370,8 @@ export class AIAntiCheatEngine {
             challenges = await chosen`
               SELECT title, description, proof_requirements, verification_type, ai_analysis, selected_proof_types, proof_instructions FROM challenges WHERE id = ${challengeId}
             `
-          } else if (typeof chosen?.[Symbol.for('sql')] === 'function') {
-            challenges = await chosen[Symbol.for('sql')](
+          } else if (typeof (chosen as Record<symbol, unknown>)?.[Symbol.for('sql')] === 'function') {
+            challenges = await (chosen as Record<symbol, unknown>)[Symbol.for('sql')](
               `SELECT title, description, proof_requirements, verification_type, ai_analysis, selected_proof_types, proof_instructions FROM challenges WHERE id = $1`,
               [challengeId]
             )
