@@ -28,6 +28,8 @@ export const users = pgTable('users', {
   devModeEnabled: boolean('dev_mode_enabled').default(false).notNull(),
   devAccessGrantedBy: uuid('dev_access_granted_by').references(() => users.id),
   devAccessGrantedAt: timestamp('dev_access_granted_at'),
+  // Stripe Connect for payouts
+  stripeConnectAccountId: text('stripe_connect_account_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
@@ -36,6 +38,7 @@ export const users = pgTable('users', {
   trustScoreIdx: index('users_trust_score_idx').on(table.trustScore),
   premiumIdx: index('users_premium_idx').on(table.premiumSubscription),
   devIdx: index('users_dev_idx').on(table.isDev),
+  stripeConnectIdx: index('users_stripe_connect_account_idx').on(table.stripeConnectAccountId),
 }))
 
 // ================================

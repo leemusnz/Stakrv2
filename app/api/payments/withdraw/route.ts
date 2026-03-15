@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 import { notifyWithdrawalProcessed } from '@/lib/notification-service'
+import { processWithdrawalPayout } from '@/lib/payout-service'
 
 /**
  * POST /api/payments/withdraw
@@ -306,7 +307,7 @@ export async function POST(request: NextRequest) {
     `
 
     // Create main transaction record for the withdrawal
-    await sql`
+    const transactionResult = await sql`
       INSERT INTO transactions (
         user_id, 
         transaction_type, 
@@ -322,7 +323,9 @@ export async function POST(request: NextRequest) {
         'pending',
         NOW()
       )
+      RETURNING id
     `
+    const transactionId = transactionResult[0]?.id || ''
 
 
     // Send notification to user
@@ -338,12 +341,77 @@ export async function POST(request: NextRequest) {
       // Don't fail the withdrawal if notification fails
     })
 
-    // TODO: Integrate with Stripe Connect or banking API for actual payout
-    // For now, we're just recording the transaction and updating the balance
-    // In production, you would:
-    // 1. Create a Stripe payout or bank transfer
-    // 2. Wait for confirmation
-    // 3. Update transaction status to 'completed' or 'failed'
+    // Process payout via Stripe Connect
+    let payoutStatus = 'pending'
+    let payoutMessage = 'Your withdrawal is being processed. Funds will be transferred to your linked bank account.'
+    
+    try {
+      const stripeSecret = process.env.STRIPE_SECRET_KEY
+      if (stripeSecret && transactionId) {
+        // Initialize Stripe client
+        const stripeMod: any = await import('stripe')
+        const Stripe = stripeMod.default || stripeMod
+        const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' })
+        
+        // Process the withdrawal payout
+        const payoutResult = await processWithdrawalPayout(
+          sql,
+          stripe,
+          session.user.id,
+          amount,
+          transactionId,
+          process.env
+        )
+        
+        if (payoutResult.success) {
+          payoutStatus = 'processing'
+          payoutMessage = `Your withdrawal is being processed. Transfer ID: ${payoutResult.transferId}`
+        } else {
+          // Payout failed - but transaction is already marked as failed in DB
+          console.warn(`⚠️ Withdrawal payout failed for user ${session.user.id}: ${payoutResult.error}`)
+          
+          // If no Stripe Connect account, provide helpful message
+          if (payoutResult.error === 'NO_STRIPE_CONNECT') {
+            return NextResponse.json({
+              success: false,
+              error: 'Stripe account required',
+              message: 'Please connect your Stripe account to receive payouts',
+              details: {
+                reason: 'stripe_connect_required',
+                setupUrl: '/settings/payments/connect-stripe'
+              }
+            }, { status: 400 })
+          }
+          
+          return NextResponse.json({
+            success: false,
+            error: 'Payout processing failed',
+            message: payoutResult.message,
+            details: {
+              reason: payoutResult.error,
+              transactionId
+            }
+          }, { status: 500 })
+        }
+      } else {
+        console.warn(`⚠️ Stripe not configured or missing transaction ID for user ${session.user.id}`)
+      }
+    } catch (payoutError) {
+      console.error('❌ Error processing payout:', payoutError)
+      
+      // Update transaction status to failed
+      if (transactionId) {
+        await sql`UPDATE transactions SET status = 'failed' WHERE id = ${transactionId}`
+      }
+      
+      return NextResponse.json({
+        error: 'Payout processing error',
+        message: 'An error occurred while processing your payout. Please contact support.',
+        details: process.env.NODE_ENV === 'development' 
+          ? (payoutError instanceof Error ? payoutError.message : 'Unknown error') 
+          : undefined
+      }, { status: 500 })
+    }
 
     return NextResponse.json({ 
       success: true,
@@ -354,9 +422,9 @@ export async function POST(request: NextRequest) {
         total_deducted: totalRequired,
         new_balance: newBalance,
         withdrawal_method: withdrawalMethodId || 'default',
-        status: 'pending', // In production, this would be 'processing'
+        status: payoutStatus,
         estimated_arrival: '3-5 business days',
-        note: 'Your withdrawal is being processed. Funds will be transferred to your linked bank account.'
+        note: payoutMessage
       },
       balance_details: {
         previous_balance: currentBalance,
