@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // QUICK FIX: Handle UUID format issue
     // The session.user.id might be a numeric string from Google OAuth

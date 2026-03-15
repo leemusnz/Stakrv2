@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category') || 'overall' // overall, earnings, streaks, completions
     const limit = parseInt(searchParams.get('limit') || '50')
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Calculate timeframe conditions
     let timeCondition = ''

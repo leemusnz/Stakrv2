@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const { challengeId, stakeAmount } = validationResult.data
 
     // Lookup challenge for entry fee percentage
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const rows = await sql`
       SELECT title, entry_fee_percentage FROM challenges WHERE id = ${challengeId}
     `

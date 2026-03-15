@@ -102,7 +102,7 @@ export async function PATCH(request: NextRequest) {
     // Try to update database if available
     if (name !== undefined || username !== undefined || avatar !== undefined) {
       try {
-        const sql = await createDbConnection()
+        const sql = createDbConnection()
         
         // Update fields individually to avoid SQL syntax issues
         let result: any[] = []

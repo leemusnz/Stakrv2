@@ -46,7 +46,7 @@ export async function POST(
     }
 
     // Real user handling
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Verify both users are participants in this challenge
     const participantCheck = await sql`
@@ -164,7 +164,7 @@ export async function GET(
     }
 
     // Real user handling
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Get recent interactions
     const interactions = await sql`

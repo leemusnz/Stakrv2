@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Global/per-provider path: sync for all of the user's active auto-sync challenges
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Fetch user's active challenges
     const raw = await sql`

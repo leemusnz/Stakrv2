@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // ========================================
     // SECURITY & FRAUD DETECTION CHECKS
@@ -461,7 +461,7 @@ export async function GET(request: NextRequest) {
       }, { status: 401 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Get user's balance and locked stakes
     const userBalance = await sql`

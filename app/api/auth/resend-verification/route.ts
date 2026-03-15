@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
 
     // Check if user exists and is not already verified
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const users = await sql`
       SELECT id, email, name, email_verified 
       FROM users 

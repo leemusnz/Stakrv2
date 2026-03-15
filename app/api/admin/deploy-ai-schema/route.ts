@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Test database connection
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     await sql`SELECT 1 as test`
 
     // Execute schema statements
@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
       }, { status: 403 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Check if AI tables exist
     const tables = ['proof_submissions', 'user_risk_profiles', 'ai_model_performance', 'cheat_detection_patterns', 'ban_records']

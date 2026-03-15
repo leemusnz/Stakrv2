@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
     }
 
     // For real users, query database
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     const hostedChallenges = await sql`
       SELECT 

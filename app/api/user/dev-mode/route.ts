@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const { enabled } = devModeSchema.parse(body)
 
     // Connect to database
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Update user's dev mode status
     const updatedUser = await sql`
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
     }
 
     // For real users, query database
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const users = await sql`
       SELECT 
         id,

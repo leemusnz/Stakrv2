@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId') || session.user.id
     const category = searchParams.get('category') // optional: consistency, completion, performance, social
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     let achievementsQuery = sql`
       SELECT 
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Check if user already has this achievement
     const existingAchievement = await sql`
@@ -211,7 +211,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const userId = session.user.id
 
     // Get current user stats

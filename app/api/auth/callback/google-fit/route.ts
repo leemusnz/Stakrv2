@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Store the tokens
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     await sql`
       INSERT INTO wearable_integrations (

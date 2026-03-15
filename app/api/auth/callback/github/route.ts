@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     const profileData = await profileResponse.json()
 
     // Store the tokens and user info
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     await sql`
       INSERT INTO app_integrations (

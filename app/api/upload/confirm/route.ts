@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Simplified confirmation for now - just log the upload success
 

@@ -11,7 +11,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Fetch real user reports from database
     const reports = await sql`
@@ -88,7 +88,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Report ID and action are required' }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Update the report in the database
     const result = await sql`

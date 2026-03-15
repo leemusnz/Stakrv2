@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Decision must be approve or reject' }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Get the queue item details first
     const queueItem = await sql`

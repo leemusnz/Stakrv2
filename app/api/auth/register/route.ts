@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     const existingUsers = await sql`
       SELECT id, email, username FROM users 

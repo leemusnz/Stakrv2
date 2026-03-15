@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       }, request, session))
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Get or create preferences
     let preferences = await sql`
@@ -207,7 +207,7 @@ export async function PATCH(request: NextRequest) {
       }, request, session))
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Build update query dynamically
     const allowedFields = [

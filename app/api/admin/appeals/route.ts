@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user has admin access
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const adminCheck = await sql`
       SELECT has_dev_access FROM users WHERE id = ${session.user.id}
     `
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has admin access
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const adminCheck = await sql`
       SELECT has_dev_access FROM users WHERE id = ${session.user.id}
     `

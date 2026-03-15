@@ -18,7 +18,7 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
     const { id: challengeId } = await params
 
     // Authorization: only host or admin may settle
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const rows = await sql`
       SELECT host_id FROM challenges WHERE id = ${challengeId}
     `

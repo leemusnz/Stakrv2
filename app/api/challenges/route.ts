@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     }
 
     // For real users, query the database
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Build the query with filters
     let whereClause = 'WHERE privacy_type = \'public\'' // Only show public challenges in discovery
@@ -298,7 +298,7 @@ export async function POST(request: NextRequest) {
     }
 
     // For real users, create in database
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Calculate start/end dates
     let startDate, endDate

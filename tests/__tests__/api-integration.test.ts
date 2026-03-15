@@ -11,7 +11,10 @@ import { NextRequest } from 'next/server'
 // Mock database
 const mockSql = jest.fn()
 jest.mock('@/lib/db', () => ({
-  createDbConnection: jest.fn(() => mockSql)
+  createDbConnection: () => mockSql,
+  testDatabaseConnection: jest.fn(),
+  dbConfig: {},
+  db: null
 }))
 
 // Mock NextAuth

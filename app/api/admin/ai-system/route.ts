@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     }
 
     
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Get today's submission stats
     const todayStats = await sql`
@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
 
       case 'update-pattern':
         // Placeholder for pattern updates
-        const sql = await createDbConnection()
+        const sql = createDbConnection()
         await sql`
           UPDATE cheat_detection_patterns 
           SET is_active = ${data.isActive}
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
       case 'reset-user-risk':
         // Reset a user's risk profile
         if (data.userId) {
-          const sql = await createDbConnection()
+          const sql = createDbConnection()
           await sql`
             UPDATE user_risk_profiles 
             SET risk_score = 0, risk_level = 'low', active_flags = '[]'

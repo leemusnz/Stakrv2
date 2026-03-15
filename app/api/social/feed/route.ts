@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const userId = session.user.id
 
     let feedQuery: any
@@ -243,7 +243,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Activity type and title are required' }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Create the feed item
     const feedItem = await sql`

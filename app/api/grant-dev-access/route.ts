@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Update user to have dev access
     const result = await sql`
@@ -65,7 +65,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     const result = await sql`
       SELECT id, email, name, is_dev, has_dev_access, dev_mode_enabled

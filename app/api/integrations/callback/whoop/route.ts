@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Store the tokens and user info with encryption
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     await sql`
       INSERT INTO wearable_integrations (

@@ -66,7 +66,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Real user handling
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Get challenge details
     const challenge = await sql`
@@ -467,7 +467,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
     
     // Real user handling
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Try querying with all features, fallback to basic query if tables don't exist
     try {

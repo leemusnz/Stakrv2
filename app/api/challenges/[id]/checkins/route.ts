@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Enforce camera-only if configured for the challenge
     try {
-      const sql = await createDbConnection()
+      const sql = createDbConnection()
       const challengeRows = await sql`
         SELECT proof_requirements FROM challenges WHERE id = ${challengeId}
       `
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
       const session = await getServerSession(authOptions)
       const userId = session?.user?.id || 'test-user-id'
-      const sql = await createDbConnection()
+      const sql = createDbConnection()
 
       // Normalize metadata for persistence
       const persistenceMetadata: any = {

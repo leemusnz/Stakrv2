@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Real user handling
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Fetch challenge with host info and participant count (gracefully handle missing tables)
     try {
@@ -184,7 +184,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Check if user owns this challenge
     const challenge = await sql`
@@ -284,7 +284,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Check if user owns this challenge
     const challenge = await sql`

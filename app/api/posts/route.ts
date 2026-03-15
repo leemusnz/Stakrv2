@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     const moderationStatus = moderationResult.flagged ? 'rejected' : 'approved'
 
     // Real user handling
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Get user stats if requested
     let userStats = null
@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Real user handling
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Build query based on filters
     let posts

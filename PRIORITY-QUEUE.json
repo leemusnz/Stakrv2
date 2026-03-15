@@ -160,7 +160,7 @@
       "description": "notification-provider.tsx has TODO: 'Load real notifications from /api/user/notifications'. Currently returns empty array. Build endpoint, fetch notifications on mount, implement polling/SSE for real-time updates.",
       "priority": "high",
       "category": "ux-polish",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-021",
@@ -176,7 +176,7 @@
       "description": "app/api/creators/route.ts and app/api/brands/route.ts return hardcoded mock data (TODO). Create proper DB schemas if needed, query real data, add pagination/filtering.",
       "priority": "medium",
       "category": "backend",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-023",
@@ -184,7 +184,7 @@
       "description": "social/leaderboard/route.ts has 2 TODOs: 'Implement rank tracking' for previousRank. Add rank history table, track daily/weekly rank changes, enable up/down arrows in UI.",
       "priority": "medium",
       "category": "social-features",
-      "status": "queued"
+      "status": "completed"
     },
     {
       "id": "stakr-024",
@@ -192,7 +192,7 @@
       "description": "Only 25 aria-* attributes found across 174 components (14% coverage). Audit key components: buttons, modals, forms, navigation. Add aria-label, aria-describedby, role attributes. Focus on challenge cards, verification modal, settings.",
       "priority": "medium",
       "category": "accessibility",
-      "status": "queued"
+      "status": "completed"
     },
     {
       "id": "stakr-025",
@@ -208,7 +208,7 @@
       "description": "tests/e2e/pages/challenge.page.ts line 120 TODO: 'Implement file upload for E2E tests'. Required for testing proof submission flow end-to-end. Use Playwright's setInputFiles() method.",
       "priority": "medium",
       "category": "testing",
-      "status": "queued"
+      "status": "completed"
     },
     {
       "id": "stakr-027",
@@ -217,6 +217,131 @@
       "priority": "high",
       "category": "type-safety",
       "status": "completed"
+    },
+    {
+      "id": "stakr-028",
+      "title": "Fix failing test suite - 7 test suites failing",
+      "description": "Critical: 7 test suites failed, 55 tests failing. Main issues appear to be in challenge-grid, thumbnail-system, and other core components. Investigate timeout errors, waitFor() failures, and component rendering issues. Check test/__tests__/ directory for specifics. Priority: get test suite green before other work.",
+      "priority": "critical",
+      "category": "testing",
+      "status": "in-progress"
+    },
+    {
+      "id": "stakr-029",
+      "title": "Fix TypeScript implicit 'any' index errors",
+      "description": "Fix 3 TS7053 errors where expression of type 'symbol' or 'string' can't index type '{}'. These likely involve dynamic property access. Add proper type assertions or index signatures. Locations: check lib/ files for object indexing patterns.",
+      "priority": "high",
+      "category": "type-safety",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-030",
+      "title": "Fix missing ChallengeAnalysis properties",
+      "description": "Fix 2 TS2739 errors: ChallengeAnalysis type missing properties like stakesAppropriate, verificationOptimal, evidenceRequirements, designRecommendations, riskFactors. Either add these to the returned objects or update the type definition. Check AI validation routes.",
+      "priority": "high",
+      "category": "type-safety",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-031",
+      "title": "Fix PanelGroup import from react-resizable-panels",
+      "description": "Fix 2 TS2339 errors: 'PanelGroup' does not exist on react-resizable-panels. Either update import syntax or package version. Check components using Panel/PanelGroup/PanelResizeHandle - likely in admin or dashboard layouts.",
+      "priority": "high",
+      "category": "type-safety",
+      "status": "completed",
+      "note": "duplicate of stakr-015 (PanelResizeHandle/PanelGroup)"
+    },
+    {
+      "id": "stakr-032",
+      "title": "Fix NotificationContextType missing isLoading property",
+      "description": "Fix TS2339: Property 'isLoading' does not exist on type 'NotificationContextType'. Either add isLoading to the context type definition or remove usage. Check notification-provider.tsx and consumers.",
+      "priority": "high",
+      "category": "type-safety",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-033",
+      "title": "Implement admin route TODOs: reward payout and notifications",
+      "description": "app/api/admin/verifications/route.ts has 4 TODOs: (1) Process reward payout on approval (line 324), (2) Send notification to user about decision (line 325), (3) Process financial implications on reversal (line 438), (4) Send notification about reversal (line 439). Implement these to complete the admin verification workflow.",
+      "priority": "high",
+      "category": "backend",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-034",
+      "title": "Implement admin appeals financial processing",
+      "description": "app/api/admin/appeals/route.ts line 312 TODO: 'Process financial implications (refund stakes, recalculate rewards)'. Critical for proper appeal handling. Implement stake refund logic, reward recalculation, and transaction recording.",
+      "priority": "high",
+      "category": "backend",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-035",
+      "title": "Remove hardcoded test-user-id in checkins route",
+      "description": "app/api/challenges/[id]/checkins/route.ts line 97 uses hardcoded 'test-user-id' instead of session.user.id. Fix by using proper session auth. Verify auth is enabled for this route.",
+      "priority": "critical",
+      "category": "security",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-036",
+      "title": "Implement challenge edit functionality",
+      "description": "app/api/challenges/[id]/route.ts line 251 TODO: 'Implement full edit functionality when edit form is created'. Currently only partial implementation. Create edit form UI and complete backend logic for updating challenges (title, description, rules, stakes, etc). Consider constraints: can't edit active challenges significantly.",
+      "priority": "medium",
+      "category": "feature",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-037",
+      "title": "Re-enable image moderation with proper logic",
+      "description": "app/api/moderate/image/route.ts line 68 TODO: 'Re-enable with more restrictive logic once moderation issues are resolved'. Currently disabled. Research what issues caused it to be disabled, implement fix, add tests, re-enable. Critical for content safety.",
+      "priority": "high",
+      "category": "security",
+      "status": "queued"
+    },
+    {
+      "id": "stakr-038",
+      "title": "Improve accessibility: increase ARIA coverage from 14%",
+      "description": "Only 53 aria-* attributes found across 173+ components (14% coverage). Target 50%+ coverage. Priority components: challenge cards, verification modal, settings forms, navigation, social feed, leaderboard. Add aria-label, aria-describedby, role, aria-live for dynamic content.",
+      "priority": "medium",
+      "category": "accessibility",
+      "status": "completed",
+      "note": "duplicate of stakr-024 (ARIA accessibility)"
+    },
+    {
+      "id": "stakr-039",
+      "title": "Fix ESLint errors: escape entities in JSX",
+      "description": "Multiple react/no-unescaped-entities errors: unescaped apostrophes and quotes in random-checkin-modal, pwa-install-prompt, report-content-modal, friend-activity, social-proof, verification-trigger. Replace ' with &apos; or {\"'\"}, \" with &quot; or {\"\\\"\"}.",
+      "priority": "medium",
+      "category": "code-quality",
+      "status": "completed",
+      "note": "duplicate of stakr-017 (ESLint entities)"
+    },
+    {
+      "id": "stakr-040",
+      "title": "Add API route rate limiting for abuse prevention",
+      "description": "No rate limiting detected on API routes. Implement middleware using @upstash/ratelimit or similar. Priority routes: auth/register (prevent spam accounts), payments/checkout (prevent abuse), ai/validate-proof (expensive AI calls), social/follow (prevent spam), report/route (prevent spam reports). Use sliding window, different limits per endpoint.",
+      "priority": "critical",
+      "category": "security",
+      "status": "completed",
+      "note": "duplicate of stakr-025 (rate limiting)"
+    },
+    {
+      "id": "stakr-041",
+      "title": "Add comprehensive input validation with Zod to API routes",
+      "description": "Audit all 20 API routes for input validation. Priority routes missing validation: payments/checkout (amount, items), social/follow (userId), report/route (contentType, reason), posts/route (content), upload/confirm. Create Zod schemas, validate request bodies, return 400 with clear errors on invalid input.",
+      "priority": "critical",
+      "category": "security",
+      "status": "completed",
+      "note": "duplicate of stakr-012 (Zod validation)"
+    },
+    {
+      "id": "stakr-042",
+      "title": "Performance: implement lazy loading for heavy components",
+      "description": "Identify and lazy-load heavy components to reduce initial bundle size. Candidates: admin panels, verification modal (with camera), chart components, social feed (infinite scroll), challenge creation wizard. Use next/dynamic with loading states. Target: reduce initial JS by 20%+.",
+      "priority": "medium",
+      "category": "performance",
+      "status": "queued"
     }
   ]
 }

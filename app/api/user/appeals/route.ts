@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     // For real users, process with database
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Check if proof submission exists and belongs to the user
     const verification = await sql`
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
     }
 
     // For real users, query database
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     const appeals = await sql`
       SELECT 

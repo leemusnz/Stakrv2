@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Resolve actual user id from DB (handle OAuth id format edge-cases)
     let userRows: UserRow[] = []

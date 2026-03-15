@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const { id: challengeId } = await params
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Check if challenge exists and is eligible for completion
     const challengeCheck = await sql`
@@ -170,7 +170,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const { id: challengeId } = await params
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Check challenge type first
     const challengeType = await sql`

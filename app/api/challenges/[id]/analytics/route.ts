@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return getMockAnalytics(challengeId)
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Check if user owns this challenge
     const challenge = await sql`

@@ -29,7 +29,7 @@ export async function GET(
     }
 
     // Real user handling
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Verify user has access to this challenge
     const accessCheck = await sql`

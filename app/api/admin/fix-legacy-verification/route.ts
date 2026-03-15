@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Fix legacy email verification
     const result = await sql`

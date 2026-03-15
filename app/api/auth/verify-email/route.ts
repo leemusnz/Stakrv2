@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Verify the token directly with database operations
     // First, check if the token exists and is valid
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Verify the token directly with database operations
     // First, check if the token exists and is valid

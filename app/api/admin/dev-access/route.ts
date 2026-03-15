@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const { userId, action, reason } = devAccessSchema.parse(body)
 
     // Connect to database
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Update user's dev access
     const isDev = action === 'grant'
@@ -95,7 +95,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const users = await sql`
       SELECT 
         id,

@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, verifyAll } = body
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     if (verifyAll) {
       // Verify all unverified users (be careful with this!)
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       }, { status: 403 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Get list of unverified users
     const unverifiedUsers = await sql`

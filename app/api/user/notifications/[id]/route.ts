@@ -37,7 +37,7 @@ export async function PATCH(
       }, request, session))
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Mark specific notification as read (ensure it belongs to the user)
     const result = await sql`
@@ -96,7 +96,7 @@ export async function DELETE(
       }, request, session))
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Delete specific notification (ensure it belongs to the user)
     const result = await sql`

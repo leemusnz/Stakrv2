@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       }, request, session))
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Get user's notifications with proper ordering
     const notifications = await sql`
@@ -121,7 +121,7 @@ export async function PATCH(request: NextRequest) {
       }, request, session))
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Mark all notifications as read for this user
     await sql`
@@ -168,7 +168,7 @@ export async function DELETE(request: NextRequest) {
       }, request, session))
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Delete all read notifications for this user
     const result = await sql`

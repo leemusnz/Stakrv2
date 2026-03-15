@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
     }
 
     // For real users, query the database
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const userId = session.user.id
     
     // Get user profile

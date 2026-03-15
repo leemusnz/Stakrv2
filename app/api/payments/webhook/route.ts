@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing event id' }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Idempotency: skip if event already processed
     const result = await processCheckoutCompleted(sql, event)

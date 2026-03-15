@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const { token, password } = validationResult.data
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Verify the reset token
     const verificationResult = await sql`
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Check if token is valid without marking it as used
     const tokenCheck = await sql`

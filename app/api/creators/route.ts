@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Query the database for real creators
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     const offset = parseInt(searchParams.get('offset') || '0')
     
     try {

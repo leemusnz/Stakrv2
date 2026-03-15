@@ -11,7 +11,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Insert sample data into moderation_queue
     await sql`

@@ -11,7 +11,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Fetch real moderation queue items from database
     const queueItems = await sql`

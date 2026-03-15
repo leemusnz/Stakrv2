@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     // Save to database if appropriate
     if (shouldSaveSubmission) {
-      const sql = await createDbConnection()
+      const sql = createDbConnection()
       
       try {
         await sql`

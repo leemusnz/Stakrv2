@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Get user's wearable integrations from database
     const integrations = await sql`
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Save integration to database with encrypted credentials
     await sql`
@@ -208,7 +208,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Device parameter is required' }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Remove from database
     const result = await sql`

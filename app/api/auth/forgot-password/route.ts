@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     const { email } = validationResult.data
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Check if user exists
     const users = await sql`

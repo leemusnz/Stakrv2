@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Add team_id column to challenge_participants
     await sql`

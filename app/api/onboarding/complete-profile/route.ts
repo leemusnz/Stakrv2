@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       console.warn('Moderation check failed during onboarding, allowing name:', moderationError)
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // First, check if user has already completed onboarding to prevent duplicate XP
     const existingUser = await sql`

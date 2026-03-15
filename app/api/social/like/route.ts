@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Action must be "like" or "unlike"' }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Check if feed item exists
     const feedItem = await sql`
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Feed item ID is required' }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Get users who liked this item
     const likes = await sql`

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     // Check if user has already reported this content
     const existingReport = await sql`
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
 
     const reports = await sql`
       SELECT 

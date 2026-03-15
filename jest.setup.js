@@ -1,6 +1,9 @@
 import React from 'react'
 import '@testing-library/jest-dom'
 
+// Set NODE_ENV to test for proper conditional logic in APIs
+process.env.NODE_ENV = 'test'
+
 // Ensure React.act is available for testing library
 if (typeof React.act !== 'function') {
   React.act = async (fn) => {
@@ -86,9 +89,7 @@ jest.mock('@aws-sdk/s3-request-presigner', () => ({
 
 // Mock database
 jest.mock('@neondatabase/serverless', () => ({
-  neon: jest.fn(() => ({
-    sql: jest.fn(),
-  })),
+  neon: jest.fn(() => jest.fn()),
 }))
 
 // Global test utilities

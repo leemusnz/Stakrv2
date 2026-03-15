@@ -21,7 +21,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const { id: challengeId } = await params
     const updateData = await request.json()
     
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // First, verify ownership and editability
     const challenge = await sql`
@@ -196,7 +196,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const { id: challengeId } = await params
-    const sql = await createDbConnection()
+    const sql = createDbConnection()
     
     // Get challenge with ownership verification
     const challenge = await sql`
