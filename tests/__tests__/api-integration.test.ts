@@ -323,7 +323,7 @@ describe('Social Feed API Integration', () => {
   let GET: any
 
   beforeAll(async () => {
-    const { getServerSession } = await import('next-auth/next')
+    const { getServerSession } = await import('next-auth')
     ;(getServerSession as jest.Mock).mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' }
     })

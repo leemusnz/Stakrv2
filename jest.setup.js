@@ -64,8 +64,14 @@ jest.mock('next-auth/react', () => ({
 }))
 
 // Mock next-auth server module to avoid ESM/jose imports in tests
+const mockGetServerSession = jest.fn(async () => ({ user: { id: 'test-user', email: 'test@example.com' } }))
 jest.mock('next-auth', () => ({
-  getServerSession: jest.fn(async () => ({ user: { id: 'test-user' } })),
+  getServerSession: mockGetServerSession,
+}))
+
+// Also mock next-auth/next for compatibility with tests that import from there
+jest.mock('next-auth/next', () => ({
+  getServerSession: mockGetServerSession,
 }))
 
 // Mock environment variables
