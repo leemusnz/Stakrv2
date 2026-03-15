@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
+import { challengeUpdateSchema, challengeRestrictedUpdateSchema, formatValidationErrors } from '@/lib/validation'
+import { z } from 'zod'
 
 
 interface RouteParams {
@@ -176,7 +178,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const updateData = await request.json()
     
     // For demo users, return mock success
-    if ( challengeId.startsWith('demo-')) {
+    if (challengeId.startsWith('demo-')) {
       return NextResponse.json({
         success: true,
         message: 'Challenge updated successfully! (Demo Mode)',
@@ -186,39 +188,41 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const sql = createDbConnection()
     
-    // Check if user owns this challenge
+    // Fetch challenge with participant count
     const challenge = await sql`
-      SELECT host_id, status, start_date 
-      FROM challenges 
-      WHERE id = ${challengeId}
+      SELECT 
+        c.id,
+        c.host_id, 
+        c.status, 
+        c.start_date,
+        c.title,
+        c.description,
+        c.rules,
+        c.category,
+        c.difficulty,
+        c.duration,
+        COUNT(DISTINCT cp.id) as participant_count
+      FROM challenges c
+      LEFT JOIN challenge_participants cp ON c.id = cp.challenge_id
+      WHERE c.id = ${challengeId}
+      GROUP BY c.id, c.host_id, c.status, c.start_date, c.title, c.description, c.rules, c.category, c.difficulty, c.duration
     `
     
     if (challenge.length === 0) {
       return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
     }
     
-    if (challenge[0].host_id !== session.user.id) {
-      return NextResponse.json({ error: 'Not authorized to edit this challenge' }, { status: 403 })
-    }
+    const challengeRecord = challenge[0]
     
-    // Check if challenge can be edited
-    const challengeStarted = new Date(challenge[0].start_date) <= new Date()
-    if (challengeStarted && challenge[0].status !== 'pending') {
-      return NextResponse.json({ error: 'Cannot edit challenge that has already started' }, { status: 400 })
+    // Check ownership
+    if (challengeRecord.host_id !== session.user.id) {
+      return NextResponse.json({ error: 'Not authorized to edit this challenge' }, { status: 403 })
     }
     
     // Handle different update types
     if (updateData.action === 'start') {
       // Manual start functionality - calculate end date based on duration
-      const challengeDetails = await sql`
-        SELECT duration FROM challenges WHERE id = ${challengeId}
-      `
-      
-      if (challengeDetails.length === 0) {
-        return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
-      }
-      
-      const duration = challengeDetails[0].duration
+      const duration = challengeRecord.duration
       const durationMatch = duration.match(/(\d+)\s*(day|week|month)s?/)
       let endDate = new Date()
       
@@ -247,13 +251,101 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         challenge: { id: challengeId, status: 'active', start_date: new Date().toISOString(), end_date: endDate.toISOString() }
       })
     } else {
-      // Regular edit functionality - for now just return success
-      // TODO: Implement full edit functionality when edit form is created
-      return NextResponse.json({
-        success: true,
-        message: 'Edit functionality coming soon!',
-        challenge: { id: challengeId, ...updateData }
-      })
+      // Regular edit functionality
+      // Determine if challenge is active with participants
+      const hasParticipants = challengeRecord.participant_count > 0
+      const isActive = challengeRecord.status === 'active'
+      
+      // Choose validation schema based on challenge state
+      const validationSchema = (isActive && hasParticipants) ? 
+        challengeRestrictedUpdateSchema : 
+        challengeUpdateSchema
+      
+      // Validate input
+      const parseResult = validationSchema.safeParse(updateData)
+      
+      if (!parseResult.success) {
+        const errors = formatValidationErrors(parseResult.error)
+        return NextResponse.json({
+          error: 'Validation failed',
+          details: errors
+        }, { status: 400 })
+      }
+      
+      const validatedData = parseResult.data
+      
+      // Check restrictions for active challenges with participants
+      if (isActive && hasParticipants) {
+        // Only description and rules can be updated on active challenges with participants
+        const canUpdate = validatedData.description !== undefined || validatedData.rules !== undefined
+        
+        if (!canUpdate) {
+          return NextResponse.json({
+            error: 'Cannot edit active challenge',
+            details: 'Once participants have joined, only description and rules can be updated'
+          }, { status: 400 })
+        }
+        
+        // Perform updates
+        if (validatedData.description !== undefined || validatedData.rules !== undefined) {
+          await sql`
+            UPDATE challenges
+            SET 
+              description = COALESCE(${validatedData.description}, description),
+              rules = COALESCE(${validatedData.rules}, rules),
+              updated_at = NOW()
+            WHERE id = ${challengeId}
+          `
+        }
+        
+        // Fetch updated challenge
+        const updated = await sql`
+          SELECT * FROM challenges WHERE id = ${challengeId}
+        `
+        
+        return NextResponse.json({
+          success: true,
+          message: 'Challenge updated successfully!',
+          challenge: updated[0]
+        })
+      } else {
+        // Draft challenges can be fully edited
+        // Cast to the full update type since we validated with challengeUpdateSchema
+        const fullData = validatedData as z.infer<typeof challengeUpdateSchema>
+        
+        // Build conditional SET clause
+        await sql`
+          UPDATE challenges
+          SET 
+            title = COALESCE(${fullData.title}, title),
+            description = COALESCE(${fullData.description}, description),
+            long_description = COALESCE(${fullData.longDescription}, long_description),
+            rules = COALESCE(${fullData.rules}, rules),
+            category = COALESCE(${fullData.category}, category),
+            difficulty = COALESCE(${fullData.difficulty}, difficulty),
+            duration = COALESCE(${fullData.duration}, duration),
+            updated_at = NOW()
+          WHERE id = ${challengeId}
+        `
+        
+        // Fetch updated challenge
+        const updated = await sql`
+          SELECT * FROM challenges WHERE id = ${challengeId}
+        `
+        
+        if (updated.length === 0) {
+          return NextResponse.json({
+            error: 'Challenge not found after update',
+            details: 'The challenge was deleted or is no longer accessible'
+          }, { status: 404 })
+        }
+        
+        return NextResponse.json({
+          success: true,
+          message: 'Challenge updated successfully!',
+          challenge: updated[0]
+        })
+      }
     }
     
   } catch (error) {
@@ -264,6 +356,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }, { status: 500 })
   }
 }
+
+// PATCH - Alias for PUT (semantic HTTP method for partial updates)
+export const PATCH = PUT
 
 // DELETE challenge
 export async function DELETE(request: NextRequest, { params }: RouteParams) {

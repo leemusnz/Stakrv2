@@ -289,7 +289,7 @@
       "description": "app/api/challenges/[id]/route.ts line 251 TODO: 'Implement full edit functionality when edit form is created'. Currently only partial implementation. Create edit form UI and complete backend logic for updating challenges (title, description, rules, stakes, etc). Consider constraints: can't edit active challenges significantly.",
       "priority": "medium",
       "category": "feature",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-037",
@@ -297,7 +297,7 @@
       "description": "app/api/moderate/image/route.ts line 68 TODO: 'Re-enable with more restrictive logic once moderation issues are resolved'. Currently disabled. Research what issues caused it to be disabled, implement fix, add tests, re-enable. Critical for content safety.",
       "priority": "high",
       "category": "security",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-038",

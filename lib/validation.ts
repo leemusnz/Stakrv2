@@ -97,6 +97,23 @@ export const challengeJoinSchema = z.object({
   pointsOnly: z.boolean().default(false)
 })
 
+// Challenge update schema (for edit functionality)
+export const challengeUpdateSchema = z.object({
+  title: z.string().min(5, 'Title must be at least 5 characters').max(100, 'Title must be less than 100 characters').optional(),
+  description: z.string().min(20, 'Description must be at least 20 characters').max(500, 'Description must be less than 500 characters').optional(),
+  longDescription: z.string().max(2000, 'Long description must be less than 2000 characters').optional(),
+  rules: z.array(z.string().min(5, 'Each rule must be at least 5 characters')).optional(),
+  category: z.string().min(1, 'Please select a category').optional(),
+  difficulty: z.enum(['Easy', 'Medium', 'Hard']).optional(),
+  duration: z.string().min(1, 'Please select a duration').optional()
+}).strict()
+
+// Restricted update schema (only for active challenges with participants)
+export const challengeRestrictedUpdateSchema = z.object({
+  description: z.string().min(20, 'Description must be at least 20 characters').max(500, 'Description must be less than 500 characters').optional(),
+  rules: z.array(z.string().min(5, 'Each rule must be at least 5 characters')).optional()
+}).strict()
+
 // Payment schemas
 export const checkoutSessionSchema = z.object({
   challengeId: z.string().min(1, 'Challenge ID is required'),
@@ -337,6 +354,8 @@ export type UserRegistrationInput = z.infer<typeof userRegistrationSchema>
 export type UserProfileUpdateInput = z.infer<typeof userProfileUpdateSchema>
 export type ChallengeCreationInput = z.infer<typeof challengeCreationSchema>
 export type ChallengeJoinInput = z.infer<typeof challengeJoinSchema>
+export type ChallengeUpdateInput = z.infer<typeof challengeUpdateSchema>
+export type ChallengeRestrictedUpdateInput = z.infer<typeof challengeRestrictedUpdateSchema>
 export type CheckoutSessionInput = z.infer<typeof checkoutSessionSchema>
 export type CreditPurchaseInput = z.infer<typeof creditPurchaseSchema>
 export type WithdrawalInput = z.infer<typeof withdrawalSchema>
