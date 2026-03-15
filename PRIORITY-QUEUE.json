@@ -112,7 +112,7 @@
       "description": "Multiple 'Cannot redeclare exported variable' errors for notifyWelcome, notifyStreakMilestone, notifyRewardsMilestone, notifyRefundProcessed, notifyProofSubmitted, notifyProofReminder, notifyProofRejected, notifyProofApproved. These functions are exported multiple times. Consolidate exports.",
       "priority": "critical",
       "category": "type-safety",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-015",
@@ -120,7 +120,7 @@
       "description": "3 instances of 'Property PanelResizeHandle does not exist on type react-resizable-panels'. Update import statements or package version. Check components using Panel/PanelGroup/PanelResizeHandle.",
       "priority": "high",
       "category": "type-safety",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-016",
