@@ -35,19 +35,45 @@ export function useNotifications() {
 }
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "welcome",
-      type: "system",
-      title: "Welcome to Stakr! 🎉",
-      message: "Start your first challenge to begin your journey",
-      timestamp: new Date(),
-      read: false,
-      actionUrl: "/discover",
-    }
-  ])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const unreadCount = notifications.filter((n) => !n.read).length
+
+  const fetchNotifications = async () => {
+    try {
+      setError(null)
+      const response = await fetch('/api/user/notifications')
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch notifications: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data.success && data.notifications) {
+        setNotifications(
+          data.notifications.map((n: any) => ({
+            id: n.id,
+            type: n.type,
+            title: n.title,
+            message: n.message,
+            timestamp: new Date(n.timestamp),
+            read: n.read,
+            actionUrl: n.actionUrl,
+            metadata: n.metadata,
+          }))
+        )
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch notifications'
+      setError(errorMessage)
+      console.error('Error fetching notifications:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const markAsRead = (id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
@@ -83,10 +109,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     setNotifications((prev) => prev.filter((n) => n.id !== id))
   }
 
-  // Load real notifications from API
+  // Load real notifications from API on mount and set up polling
   useEffect(() => {
-    // TODO: Load real notifications from /api/user/notifications
-    // For now, just show the welcome notification for new users
+    // Fetch notifications immediately on mount
+    fetchNotifications()
+
+    // Set up polling interval (every 30 seconds)
+    const pollInterval = setInterval(fetchNotifications, 30000)
+
+    // Cleanup interval on unmount
+    return () => clearInterval(pollInterval)
   }, [])
 
   return (

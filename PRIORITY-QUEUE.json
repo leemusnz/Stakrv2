@@ -152,7 +152,7 @@
       "description": "Line 91 uses target.parentElement.innerHTML with fallback emojis. Replace with textContent or React state update. Current implementation has XSS risk if provider names aren't sanitized.",
       "priority": "high",
       "category": "security",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-020",
@@ -160,7 +160,7 @@
       "description": "notification-provider.tsx has TODO: 'Load real notifications from /api/user/notifications'. Currently returns empty array. Build endpoint, fetch notifications on mount, implement polling/SSE for real-time updates.",
       "priority": "high",
       "category": "ux-polish",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-021",
