@@ -11,7 +11,7 @@ jest.mock('@aws-sdk/client-s3', () => ({
 }))
 
 // Mock auth
-jest.mock('next-auth/next', () => ({
+jest.mock('next-auth', () => ({
   getServerSession: jest.fn()
 }))
 
