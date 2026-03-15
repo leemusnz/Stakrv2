@@ -141,7 +141,7 @@ This isn't just about sitting quietly - it's about rewiring your brain for succe
     entryFeePercentage: 5,
     failedStakeCut: 20,
     status: "active",
-    verificationType: "auto_sync",
+    verificationType: "auto",
     insuranceAvailable: true,
     createdAt: "2024-01-05T00:00:00Z",
     updatedAt: "2024-03-10T00:00:00Z",
