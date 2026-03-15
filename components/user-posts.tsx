@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -205,10 +206,12 @@ export function UserPosts({ posts, user, isOwnProfile }: UserPostsProps) {
 
               {/* Post Image */}
               {post.image && (
-                <div className="mb-4">
-                  <img
+                <div className="mb-4 relative w-full max-h-96">
+                  <Image
                     src={post.image || "/placeholder.svg"}
                     alt="Post content"
+                    width={500}
+                    height={400}
                     className="w-full rounded-lg max-h-96 object-cover"
                   />
                 </div>

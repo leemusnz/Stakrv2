@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useCallback } from "react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
@@ -445,7 +446,7 @@ export function VerificationModal({ isOpen, onOpenChange, challenge, onSubmit }:
         ) : (
           <div className="relative bg-muted rounded-lg overflow-hidden">
             {capturedFile?.type.startsWith("image/") && (
-              <img src={previewUrl || "/placeholder.svg"} alt="Proof preview" className="w-full h-64 object-cover" />
+              <Image src={previewUrl || "/placeholder.svg"} alt="Proof preview" width={500} height={256} className="w-full h-64 object-cover" />
             )}
             {capturedFile?.type.startsWith("video/") && (
               <video ref={videoRef} src={previewUrl} controls className="w-full h-64 object-cover" />

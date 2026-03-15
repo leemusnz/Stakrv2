@@ -136,7 +136,7 @@
       "description": "5 ESLint errors (unescaped apostrophes/quotes in JSX) in report-content-modal, friend-activity, social-proof, verification-trigger. Also replace 3 <img> tags with Next.js <Image /> in trending-challenges, user-posts, verification-modal for performance.",
       "priority": "medium",
       "category": "code-quality",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-018",
@@ -216,7 +216,7 @@
       "description": "Type errors: Challenge objects missing hostContribution, entryFeePercentage, failedStakeCut, status. Update Challenge interface in lib/db/schema or fix data creation in components/trending-challenges and similar.",
       "priority": "high",
       "category": "type-safety",
-      "status": "in-progress"
+      "status": "completed"
     }
   ]
 }

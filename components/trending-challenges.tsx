@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -96,13 +97,14 @@ export function TrendingChallenges() {
               {/* Thumbnail Image */}
               {challenge.thumbnail_url && (
                 <div className="relative w-full h-32 bg-gradient-to-br from-blue-50 to-purple-50">
-                  <img
+                  <Image
                     src={challenge.thumbnail_url.includes('stakr-verification-files.s3') 
                       ? `/api/image-proxy?url=${encodeURIComponent(challenge.thumbnail_url)}&v=${challenge.thumbnail_url.split('/').pop()?.split('-')[0] || 'default'}`
                       : challenge.thumbnail_url
                     }
                     alt={challenge.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                     onLoad={() => {
                       console.log('✅ Trending thumbnail loaded successfully:', challenge.thumbnail_url)
                     }}

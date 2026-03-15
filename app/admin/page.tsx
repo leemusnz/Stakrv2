@@ -431,7 +431,7 @@ export default function AdminDashboard() {
                       ${analytics.financialStats.totalRevenue.toLocaleString()} total revenue
                     </p>
                     <div className="mt-2">
-                      <div className="text-xs text-muted-foreground">Today's Revenue</div>
+                      <div className="text-xs text-muted-foreground">Today&apos;s Revenue</div>
                       <div className="flex items-center gap-1">
                         <TrendingUp className="w-3 h-3 text-yellow-600" />
                         <span className="text-sm font-medium text-yellow-600">
@@ -1393,7 +1393,7 @@ export default function AdminDashboard() {
 
                                 {/* User's Appeal */}
                                 <div className="mb-4 p-4 bg-muted/50 rounded-lg">
-                                  <h4 className="font-medium mb-2">User's Appeal:</h4>
+                                  <h4 className="font-medium mb-2">User&apos;s Appeal:</h4>
                                   <p className="text-sm">{appeal.appealReason}</p>
                                   {appeal.additionalEvidence && (
                                     <div className="mt-2">

@@ -94,7 +94,7 @@ export default function ForgotPasswordPage() {
                 <div className="bg-green-500/10 border border-green-500/20 backdrop-blur-sm rounded-xl p-4 flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                   <p className="text-green-700 dark:text-green-300 text-sm font-medium">
-                    If an account with <strong>{email}</strong> exists, we've sent you a password reset link.
+                    If an account with <strong>{email}</strong> exists, we&apos;ve sent you a password reset link.
                   </p>
                 </div>
 
@@ -102,7 +102,7 @@ export default function ForgotPasswordPage() {
                   <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2 bg-slate-100/50 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-xl p-4">
                     <p className="flex items-center gap-2">📧 Check your inbox for a reset link</p>
                     <p className="flex items-center gap-2">⏰ The link expires in 1 hour</p>
-                    <p className="flex items-center gap-2">📁 Don't forget to check your spam folder</p>
+                    <p className="flex items-center gap-2">📁 Don&apos;t forget to check your spam folder</p>
                   </div>
 
                   <div className="flex flex-col gap-3">

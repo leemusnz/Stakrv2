@@ -354,7 +354,7 @@ export default function AlphaGatePage() {
 
         {/* Footer */}
         <div className="text-center mt-10 space-y-3">
-          <p className="text-slate-600 dark:text-slate-400 text-sm font-body">Don't have access? Contact us for an exclusive invitation.</p>
+          <p className="text-slate-600 dark:text-slate-400 text-sm font-body">Don&apos;t have access? Contact us for an exclusive invitation.</p>
           <div className="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-500 text-xs font-medium">
             <span className="w-1.5 h-1.5 bg-[#F46036] rounded-full animate-pulse"></span>
             <span>Private Alpha</span>
