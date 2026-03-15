@@ -88,18 +88,14 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
 
   // Load initial data when filter changes
   useEffect(() => {
-    fetchFeedFromApi().then(() => {
-      if (feedData) {
-        if (page === 1) {
-          setFeedItems(feedData.items)
-        } else {
-          setFeedItems(prev => [...prev, ...feedData.items])
-        }
-        setHasMore(feedData.pagination.hasMore)
+    setPage(1)
+    fetchFeedFromApi().then((result) => {
+      if (result?.items) {
+        setFeedItems(result.items)
+        setHasMore(result.pagination.hasMore)
       }
     })
-    setPage(1)
-  }, [activeFilter])
+  }, [activeFilter, fetchFeedFromApi])
 
   // Handle filter change
   const handleFilterChange = (newFilter: "all" | "friends" | "following" | "trending") => {

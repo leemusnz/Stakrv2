@@ -136,7 +136,7 @@
       "description": "5 ESLint errors (unescaped apostrophes/quotes in JSX) in report-content-modal, friend-activity, social-proof, verification-trigger. Also replace 3 <img> tags with Next.js <Image /> in trending-challenges, user-posts, verification-modal for performance.",
       "priority": "medium",
       "category": "code-quality",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-018",
@@ -144,7 +144,7 @@
       "description": "Missing dependencies in useEffect hooks: leaderboard (fetchLeaderboardData), social-feed (feedData, fetchFeedFromApi, page), verification-modal (capturePhotoFromStream, startVideoRecording). Add deps or refactor to avoid stale closures.",
       "priority": "medium",
       "category": "code-quality",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-019",

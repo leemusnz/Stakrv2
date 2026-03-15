@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -35,7 +35,7 @@ export function Leaderboard({ timeframe = "weekly", category = "overall", showCu
   const [isLoading, setIsLoading] = useState(false)
 
   // Fetch leaderboard data from API
-  const fetchLeaderboardData = async () => {
+  const fetchLeaderboardData = useCallback(async () => {
     setIsLoading(true)
     try {
       const response = await fetch(`/api/social/leaderboard?timeframe=${timeframe}&category=${category}&limit=50`)
@@ -52,12 +52,12 @@ export function Leaderboard({ timeframe = "weekly", category = "overall", showCu
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [timeframe, category])
 
   // Load data when filters change
   useEffect(() => {
     fetchLeaderboardData()
-  }, [timeframe, category])
+  }, [fetchLeaderboardData])
 
   const getRankIcon = (rank: number, badge?: string) => {
     if (rank === 1) return <Crown className="w-5 h-5 text-yellow-500" />

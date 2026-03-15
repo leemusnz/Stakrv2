@@ -110,41 +110,6 @@ export function VerificationModal({ isOpen, onOpenChange, challenge, onSubmit }:
     }
   }
 
-  // Enhanced live camera capture for camera-only mode
-  const handleLiveCameraCapture = useCallback(async () => {
-    if (!selectedProofType?.cameraOnly) return
-
-    try {
-      // Request camera access with strict constraints
-      const constraints: MediaStreamConstraints = {
-        video: {
-          facingMode: 'environment', // Prefer back camera
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: selectedProofType.type === 'video'
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints)
-      streamRef.current = stream
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        
-        if (selectedProofType.type === 'photo') {
-          // For photos, auto-capture after a short delay
-          setTimeout(() => capturePhotoFromStream(), 2000)
-        } else if (selectedProofType.type === 'video') {
-          // For videos, start recording immediately
-          startVideoRecording(stream)
-        }
-      }
-    } catch (error) {
-      console.error('Failed to access camera:', error)
-      alert('Camera access is required for this verification. Please allow camera permissions and try again.')
-    }
-  }, [selectedProofType])
-
   const capturePhotoFromStream = useCallback(() => {
     if (!videoRef.current || !canvasRef.current || !streamRef.current) return
 
@@ -192,6 +157,41 @@ export function VerificationModal({ isOpen, onOpenChange, challenge, onSubmit }:
     // For now, show a placeholder message
     alert('Live video recording will be implemented. This ensures videos are captured in real-time.')
   }, [])
+
+  // Enhanced live camera capture for camera-only mode
+  const handleLiveCameraCapture = useCallback(async () => {
+    if (!selectedProofType?.cameraOnly) return
+
+    try {
+      // Request camera access with strict constraints
+      const constraints: MediaStreamConstraints = {
+        video: {
+          facingMode: 'environment', // Prefer back camera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: selectedProofType.type === 'video'
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      streamRef.current = stream
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        
+        if (selectedProofType.type === 'photo') {
+          // For photos, auto-capture after a short delay
+          setTimeout(() => capturePhotoFromStream(), 2000)
+        } else if (selectedProofType.type === 'video') {
+          // For videos, start recording immediately
+          startVideoRecording(stream)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to access camera:', error)
+      alert('Camera access is required for this verification. Please allow camera permissions and try again.')
+    }
+  }, [selectedProofType, capturePhotoFromStream, startVideoRecording])
 
   const handleClose = () => {
     onOpenChange(false)
