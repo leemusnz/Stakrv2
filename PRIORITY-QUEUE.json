@@ -257,7 +257,7 @@
       "description": "Fix TS2339: Property 'isLoading' does not exist on type 'NotificationContextType'. Either add isLoading to the context type definition or remove usage. Check notification-provider.tsx and consumers.",
       "priority": "high",
       "category": "type-safety",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-033",
@@ -265,7 +265,7 @@
       "description": "app/api/admin/verifications/route.ts has 4 TODOs: (1) Process reward payout on approval (line 324), (2) Send notification to user about decision (line 325), (3) Process financial implications on reversal (line 438), (4) Send notification about reversal (line 439). Implement these to complete the admin verification workflow.",
       "priority": "high",
       "category": "backend",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-034",

@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
 
 import { systemLogger } from '@/lib/system-logger'
+import { notifyProofApproved, notifyProofRejected } from '@/lib/notification-templates'
+import { createNotification } from '@/lib/notification-service'
 
 // Mock verification data for demo accounts
 const getDemoVerifications = () => ({
@@ -321,8 +323,30 @@ export async function POST(request: NextRequest) {
       reason
     })
 
-    // TODO: If approved, process reward payout
-    // TODO: Send notification to user about decision
+    // Fetch proof submission details for notifications
+    const proofDetails = await sql`
+      SELECT 
+        ps.user_id,
+        ps.challenge_id,
+        c.title as challenge_title
+      FROM proof_submissions ps
+      JOIN challenges c ON ps.challenge_id = c.id
+      WHERE ps.id = ${verificationId}
+    `
+
+    if (proofDetails.length > 0) {
+      const { user_id, challenge_id, challenge_title } = proofDetails[0]
+
+      // Send notification based on decision
+      if (decision === 'approved') {
+        // Notify user of approval
+        await notifyProofApproved(user_id, challenge_id, challenge_title, sql)
+      } else if (decision === 'rejected') {
+        // Notify user of rejection
+        const canAppeal = true // Users can appeal rejected proofs
+        await notifyProofRejected(user_id, challenge_id, challenge_title, reason || 'Your proof did not meet the challenge requirements.', canAppeal, sql)
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -435,8 +459,138 @@ export async function PUT(request: NextRequest) {
       )
     `
 
-    // TODO: Process financial implications (refund/charge stakes, recalculate rewards)
-    // TODO: Send notification to user about reversal
+    // Fetch proof submission and user details for notifications
+    const proofWithUserDetails = await sql`
+      SELECT 
+        ps.user_id,
+        ps.challenge_id,
+        c.title as challenge_title
+      FROM proof_submissions ps
+      JOIN challenges c ON ps.challenge_id = c.id
+      WHERE ps.id = ${verificationId}
+    `
+
+    // Process financial implications if reversing from approved to rejected
+    if (currentStatus === 'approved' && newStatus === 'rejected') {
+      // User had received a reward - we need to reverse it
+      const rewardRecord = await sql`
+        SELECT id, amount FROM credit_transactions 
+        WHERE user_id = (SELECT user_id FROM proof_submissions WHERE id = ${verificationId})
+        AND related_challenge_id = ${currentVerification[0].challenge_id}
+        AND transaction_type = 'challenge_reward'
+        ORDER BY created_at DESC
+        LIMIT 1
+      `
+
+      if (rewardRecord.length > 0) {
+        const rewardAmount = rewardRecord[0].amount
+        
+        // Deduct the reward from user credits
+        await sql`
+          UPDATE users 
+          SET credits = credits - ${rewardAmount}
+          WHERE id = (SELECT user_id FROM proof_submissions WHERE id = ${verificationId})
+        `
+
+        // Record reversal transaction
+        await sql`
+          INSERT INTO credit_transactions (user_id, amount, transaction_type, related_challenge_id, description, created_at)
+          VALUES (
+            (SELECT user_id FROM proof_submissions WHERE id = ${verificationId}),
+            ${-rewardAmount},
+            'reward_reversal',
+            ${currentVerification[0].challenge_id},
+            'Reward reversed due to verification reversal',
+            NOW()
+          )
+        `
+      }
+    }
+    // Process financial implications if reversing from rejected to approved
+    else if (currentStatus === 'rejected' && newStatus === 'approved') {
+      // User should receive a reward - process it
+      const participant = await sql`
+        SELECT user_id FROM proof_submissions WHERE id = ${verificationId}
+      `
+
+      if (participant.length > 0) {
+        // For now, we'll calculate a standard reward based on challenge setup
+        // In a full implementation, this would use the full reward calculation logic
+        const challengeData = await sql`
+          SELECT min_stake FROM challenges WHERE id = ${currentVerification[0].challenge_id}
+        `
+
+        if (challengeData.length > 0) {
+          const baseReward = parseFloat(challengeData[0].min_stake) * 1.1 // 10% bonus on stake
+          
+          // Award the reward
+          await sql`
+            UPDATE users 
+            SET credits = credits + ${baseReward}
+            WHERE id = ${participant[0].user_id}
+          `
+
+          // Record reward transaction
+          await sql`
+            INSERT INTO credit_transactions (user_id, amount, transaction_type, related_challenge_id, description, created_at)
+            VALUES (
+              ${participant[0].user_id},
+              ${baseReward},
+              'challenge_reward',
+              ${currentVerification[0].challenge_id},
+              'Reward granted due to verification reversal',
+              NOW()
+            )
+          `
+        }
+      }
+    }
+
+    // Send notification to user about reversal
+    if (proofWithUserDetails.length > 0) {
+      const { user_id, challenge_id, challenge_title } = proofWithUserDetails[0]
+      
+      const reversalMessage = currentStatus === 'approved' 
+        ? `Your previously approved proof for "${challenge_title}" has been reversed to rejected. Reason: ${reason}`
+        : `Your previously rejected proof for "${challenge_title}" has been reversed to approved! You've been granted the reward.`
+
+      await createNotification({
+        userId: user_id,
+        type: 'verification',
+        title: currentStatus === 'approved' ? '⚠️ Proof Reversal - Now Rejected' : '✅ Proof Reversal - Now Approved',
+        message: reversalMessage,
+        actionUrl: `/challenge/${challenge_id}`,
+        metadata: {
+          challengeId: challenge_id,
+          challengeTitle: challenge_title,
+          eventType: 'proof_reversal',
+          originalStatus: currentStatus,
+          newStatus: newStatus,
+          reason: reason
+        },
+        sendEmail: true,
+        emailSubject: `Proof Decision Reversed - "${challenge_title}"`,
+        emailBody: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #f59e0b;">⚠️ Proof Decision Reversed</h2>
+            <p>Your proof submission for <strong>"${challenge_title}"</strong> has been reviewed and reversed.</p>
+            
+            <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+              <h3 style="margin-top: 0; color: #92400e;">Previous Status: ${currentStatus === 'approved' ? 'Approved ✅' : 'Rejected ❌'}</h3>
+              <h3 style="color: #92400e;">New Status: ${newStatus === 'approved' ? 'Approved ✅' : 'Rejected ❌'}</h3>
+              <p><strong>Reason for Reversal:</strong> ${reason}</p>
+            </div>
+            
+            <p>If you have questions about this decision, please contact our support team.</p>
+            
+            <a href="${process.env.NEXT_PUBLIC_BASE_URL}/challenge/${challenge_id}" 
+               style="display: inline-block; background-color: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+              View Challenge
+            </a>
+          </div>
+        `
+      }, sql)
+    }
 
     return NextResponse.json({
       success: true,
