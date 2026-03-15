@@ -117,7 +117,11 @@ export class ChallengePage {
     
     // Upload image if requested
     if (uploadImage) {
-      // TODO: Implement file upload for E2E tests
+      // Upload file using setInputFiles()
+      await this.page.setInputFiles('input[type="file"]', 'tests/e2e/fixtures/test-proof.png')
+      
+      // Wait for image preview to appear (component shows preview after file selection)
+      await expect(this.page.locator('img[alt="Proof preview"]')).toBeVisible({ timeout: 5000 })
     }
     
     // Submit
