@@ -1,4 +1,33 @@
+import React from 'react'
 import '@testing-library/jest-dom'
+
+// Ensure React.act is available for testing library
+if (typeof React.act !== 'function') {
+  React.act = async (fn) => {
+    return fn()
+  }
+}
+
+// Polyfill TextEncoder/TextDecoder for jsdom environment (needed by postal-mime and other libs)
+const { TextEncoder, TextDecoder } = require('util')
+if (typeof globalThis.TextEncoder === 'undefined') {
+  globalThis.TextEncoder = TextEncoder
+}
+if (typeof globalThis.TextDecoder === 'undefined') {
+  globalThis.TextDecoder = TextDecoder
+}
+
+// Polyfill TransformStream for jsdom environment
+const { TransformStream, ReadableStream, WritableStream } = require('stream/web')
+if (typeof globalThis.TransformStream === 'undefined') {
+  globalThis.TransformStream = TransformStream
+}
+if (typeof globalThis.ReadableStream === 'undefined') {
+  globalThis.ReadableStream = ReadableStream
+}
+if (typeof globalThis.WritableStream === 'undefined') {
+  globalThis.WritableStream = WritableStream
+}
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({

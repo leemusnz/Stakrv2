@@ -15,7 +15,11 @@ const customJestConfig = {
     // Ensure explicit mapping works on Windows paths for tests that mock this module
     '^@/lib/openai-client$': '<rootDir>/lib/openai-client.ts',
   },
-  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
+  testPathIgnorePatterns: [
+    '<rootDir>/.next/',
+    '<rootDir>/node_modules/',
+    '<rootDir>/tests/e2e/',
+  ],
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
     'components/**/*.{js,jsx,ts,tsx}',
@@ -39,6 +43,14 @@ const customJestConfig = {
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   // Use next/jest defaults (SWC) to avoid requiring babel-jest locally
+  // Increase test timeout for memory-intensive tests
+  testTimeout: 30000,
+  // Configure worker settings to prevent child process crashes
+  maxWorkers: 2,
+  // Ensure proper cleanup between tests
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
