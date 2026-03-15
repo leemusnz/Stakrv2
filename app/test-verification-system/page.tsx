@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
 
@@ -13,7 +14,11 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AlertCircle, CheckCircle, Camera, Upload, Clock, Shield, Database, Zap, Activity } from 'lucide-react'
 import { ProofSubmission } from '@/components/proof-submission'
-import { VerificationModal } from '@/components/verification-modal'
+
+const VerificationModal = dynamic(() => import('@/components/verification-modal').then(mod => ({ default: mod.VerificationModal })), {
+  loading: () => <div className="animate-pulse h-40 bg-muted rounded" />,
+  ssr: false
+})
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function TestVerificationSystem() {

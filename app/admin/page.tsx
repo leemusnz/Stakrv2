@@ -1,13 +1,27 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { DevAccessManager } from "@/components/admin/dev-access-manager"
-import { UserManagement } from "@/components/admin/user-management"
-import { ModerationDashboard } from "@/components/admin/moderation-dashboard"
-import { AIAntiCheatDashboard } from "@/components/admin/ai-anti-cheat-dashboard"
+
+const DevAccessManager = dynamic(() => import("@/components/admin/dev-access-manager").then(mod => ({ default: mod.DevAccessManager })), {
+  loading: () => <div className="animate-pulse h-40 bg-muted rounded" />,
+  ssr: false
+})
+const UserManagement = dynamic(() => import("@/components/admin/user-management").then(mod => ({ default: mod.UserManagement })), {
+  loading: () => <div className="animate-pulse h-40 bg-muted rounded" />,
+  ssr: false
+})
+const ModerationDashboard = dynamic(() => import("@/components/admin/moderation-dashboard").then(mod => ({ default: mod.ModerationDashboard })), {
+  loading: () => <div className="animate-pulse h-40 bg-muted rounded" />,
+  ssr: false
+})
+const AIAntiCheatDashboard = dynamic(() => import("@/components/admin/ai-anti-cheat-dashboard").then(mod => ({ default: mod.AIAntiCheatDashboard })), {
+  loading: () => <div className="animate-pulse h-40 bg-muted rounded" />,
+  ssr: false
+})
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"

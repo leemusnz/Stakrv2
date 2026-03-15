@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -11,8 +12,15 @@ import { SwipeableTabs } from "@/components/ui/swipeable-tabs"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { ChallengeCard } from "@/components/challenge-card"
 import { UserPosts } from "@/components/user-posts"
-import { PostCreationModal } from "@/components/post-creation/post-creation-modal"
-import { SocialShareModal } from "@/components/social-sharing/social-share-modal"
+
+const PostCreationModal = dynamic(() => import("@/components/post-creation/post-creation-modal").then(mod => ({ default: mod.PostCreationModal })), {
+  loading: () => <div className="animate-pulse h-40 bg-muted rounded" />,
+  ssr: false
+})
+const SocialShareModal = dynamic(() => import("@/components/social-sharing/social-share-modal").then(mod => ({ default: mod.SocialShareModal })), {
+  loading: () => <div className="animate-pulse h-40 bg-muted rounded" />,
+  ssr: false
+})
 import { ProfilePictureUpload } from "@/components/profile-picture-upload"
 import { getPersonalizedAvatar } from "@/lib/avatars"
 import { MapPin, Calendar, ExternalLink, Trophy, Users, TrendingUp, Settings, Share2, Edit, Flame } from "lucide-react"

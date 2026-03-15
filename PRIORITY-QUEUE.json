@@ -289,7 +289,7 @@
       "description": "app/api/challenges/[id]/route.ts line 251 TODO: 'Implement full edit functionality when edit form is created'. Currently only partial implementation. Create edit form UI and complete backend logic for updating challenges (title, description, rules, stakes, etc). Consider constraints: can't edit active challenges significantly.",
       "priority": "medium",
       "category": "feature",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-037",
@@ -341,7 +341,7 @@
       "description": "Identify and lazy-load heavy components to reduce initial bundle size. Candidates: admin panels, verification modal (with camera), chart components, social feed (infinite scroll), challenge creation wizard. Use next/dynamic with loading states. Target: reduce initial JS by 20%+.",
       "priority": "medium",
       "category": "performance",
-      "status": "queued"
+      "status": "in-progress"
     }
   ]
 }

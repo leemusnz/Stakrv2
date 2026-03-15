@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -11,8 +12,15 @@ import { SwipeableTabs } from "@/components/ui/swipeable-tabs"
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile"
 import { Progress } from "@/components/ui/progress"
 import { Clock, Calendar, DollarSign, CheckCircle, XCircle, MessageSquare, Plus } from "lucide-react"
-import { VerificationAppealModal } from "@/components/verification-appeal-modal"
-import { ChallengeAnalyticsModal } from "@/components/challenge-analytics-modal"
+
+const VerificationAppealModal = dynamic(() => import("@/components/verification-appeal-modal").then(mod => ({ default: mod.VerificationAppealModal })), {
+  loading: () => <div className="animate-pulse h-40 bg-muted rounded" />,
+  ssr: false
+})
+const ChallengeAnalyticsModal = dynamic(() => import("@/components/challenge-analytics-modal").then(mod => ({ default: mod.ChallengeAnalyticsModal })), {
+  loading: () => <div className="animate-pulse h-40 bg-muted rounded" />,
+  ssr: false
+})
 import { toast } from "sonner"
 import { FloatingAmbientGlows } from '@/components/floating-ambient-glows'
 import { BackgroundImage } from '@/components/ui/background-image'
