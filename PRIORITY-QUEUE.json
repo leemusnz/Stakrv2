@@ -232,7 +232,7 @@
       "description": "Fix 3 TS7053 errors where expression of type 'symbol' or 'string' can't index type '{}'. These likely involve dynamic property access. Add proper type assertions or index signatures. Locations: check lib/ files for object indexing patterns.",
       "priority": "high",
       "category": "type-safety",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": "stakr-030",
@@ -240,7 +240,7 @@
       "description": "Fix 2 TS2739 errors: ChallengeAnalysis type missing properties like stakesAppropriate, verificationOptimal, evidenceRequirements, designRecommendations, riskFactors. Either add these to the returned objects or update the type definition. Check AI validation routes.",
       "priority": "high",
       "category": "type-safety",
-      "status": "queued"
+      "status": "in-progress"
     },
     {
       "id": "stakr-031",
