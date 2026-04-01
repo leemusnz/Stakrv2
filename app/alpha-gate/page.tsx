@@ -203,7 +203,7 @@ export default function AlphaGatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden flex items-center justify-center p-4">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden flex items-center justify-center p-4">
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
         <BackgroundImage 
@@ -365,6 +365,6 @@ export default function AlphaGatePage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

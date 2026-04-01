@@ -50,8 +50,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false, // Prevents zoom on form focus
   themeColor: '#F46036'
 }
 
