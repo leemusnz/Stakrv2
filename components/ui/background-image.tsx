@@ -28,10 +28,14 @@ export function BackgroundImage({
       alt={alt}
       fill
       priority={priority}
-      quality={80}
-      sizes="100vw"
+      quality={75}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
       className={className}
       style={{ objectFit: 'cover' }}
+      placeholder="blur"
+      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMzMzIi8+PC9zdmc+"
+      // @ts-ignore - fetchPriority is valid but not in Next.js types yet
+      fetchPriority={priority ? "high" : "auto"}
     />
   )
 }

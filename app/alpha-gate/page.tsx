@@ -207,8 +207,9 @@ export default function AlphaGatePage() {
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
         <BackgroundImage 
-          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80"
+          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=75"
           alt="Alpha gate background"
+          priority={true}
           className="w-full h-full object-cover grayscale-[30%] dark:grayscale-[50%]"
         />
         {/* Themed overlay with gradient */}

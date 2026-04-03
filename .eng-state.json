@@ -1,8 +1,6 @@
 {
-  "activeAgents": 1,
-  "activeTaskLabels": [
-    "stakr-042"
-  ],
+  "activeAgents": 0,
+  "activeTaskLabels": [],
   "completedTaskLabels": [
     "stakr-01",
     "stakr-02",
@@ -44,7 +42,8 @@
     "stakr-038",
     "stakr-039",
     "stakr-040",
-    "stakr-041"
+    "stakr-041",
+    "stakr-042"
   ],
-  "lastUpdated": "2026-03-15T06:36:27.219018Z"
+  "lastUpdated": "2026-03-15T06:38:52.127404Z"
 }
