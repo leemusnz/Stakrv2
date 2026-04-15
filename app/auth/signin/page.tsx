@@ -81,25 +81,12 @@ function SignInContent() {
       console.log('🔐 Sign in result:', result)
 
       if (result?.ok) {
-        // Success - wait for session cookie to be readable before navigating
-        // to protected routes, otherwise middleware can bounce the user back.
-        let sessionReady = false
-        for (let attempt = 0; attempt < 8; attempt++) {
-          const session = await getSession()
-          if (session?.user) {
-            sessionReady = true
-            break
-          }
-          await new Promise((resolve) => setTimeout(resolve, 150))
-        }
-
-        if (!sessionReady) {
-          setError("Signed in, but session is still initializing. Please try again.")
-          return
-        }
-
+        // Credentials POST already set session cookies. Do not poll getSession() here:
+        // the PWA service worker used to cache-first GET /api/auth/session, which could
+        // serve a stale unauthenticated body and make polling fail with a false error.
         console.log('✅ Sign in successful, redirecting to:', callbackUrl)
         window.location.href = callbackUrl
+        return
       } else {
         // Handle specific error types
         const errorCode = result?.error

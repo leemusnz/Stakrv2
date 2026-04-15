@@ -1,7 +1,8 @@
 // Service Worker for Stakr PWA
 // Auto-versioned to force cache invalidation on updates
 const CACHE_NAME = 'stakr-v2.0.0-' + Date.now()
-const STATIC_CACHE = 'stakr-static-v2'
+// Bump when cache policy changes (v3: never intercept /api — was caching /api/auth/session).
+const STATIC_CACHE = 'stakr-static-v3'
 
 const staticAssets = [
   '/manifest.json',
@@ -60,6 +61,13 @@ self.addEventListener('fetch', (event) => {
 
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
+    return
+  }
+
+  const pathname = new URL(event.request.url).pathname
+  // Never intercept API traffic. Cache-first for /api/auth/session returned a stale
+  // unauthenticated JSON body after login, breaking NextAuth getSession() on the client.
+  if (pathname.startsWith('/api/')) {
     return
   }
 
