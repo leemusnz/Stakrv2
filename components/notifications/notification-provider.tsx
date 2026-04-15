@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 
 interface Notification {
@@ -36,6 +37,7 @@ export function useNotifications() {
 }
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
+  const { status } = useSession()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -46,7 +48,15 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     try {
       setError(null)
       const response = await fetch('/api/user/notifications')
-      
+
+      // Signed-out users will get 401 from this endpoint by design.
+      // Treat this as a normal state, not an error.
+      if (response.status === 401) {
+        setNotifications([])
+        setError(null)
+        return
+      }
+
       if (!response.ok) {
         throw new Error(`Failed to fetch notifications: ${response.statusText}`)
       }
@@ -112,6 +122,17 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   // Load real notifications from API on mount and set up polling
   useEffect(() => {
+    if (status === "loading") {
+      return
+    }
+
+    if (status === "unauthenticated") {
+      setNotifications([])
+      setError(null)
+      setIsLoading(false)
+      return
+    }
+
     // Fetch notifications immediately on mount
     fetchNotifications()
 
@@ -120,7 +141,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     // Cleanup interval on unmount
     return () => clearInterval(pollInterval)
-  }, [])
+  }, [status])
 
   return (
     <NotificationContext.Provider
