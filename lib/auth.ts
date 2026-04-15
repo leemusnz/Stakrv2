@@ -153,6 +153,28 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
+          // In development, allow known demo credentials to sign in reliably
+          // even if a database user record with the same email exists.
+          const isDevEnvironment = process.env.NODE_ENV === "development"
+          if (isDevEnvironment) {
+            const demoUser = demoUsers.find((u) => u.email === credentials.email)
+            if (demoUser && credentials.password === demoUser.password) {
+              return {
+                id: demoUser.id,
+                email: demoUser.email,
+                name: demoUser.name,
+                credits: demoUser.credits,
+                trustScore: demoUser.trustScore,
+                verificationTier: demoUser.verificationTier,
+                isAdmin: demoUser.isAdmin,
+                onboardingCompleted: demoUser.onboardingCompleted,
+                isDev: demoUser.email === "alex@stakr.app",
+                devModeEnabled: false,
+                emailVerified: true,
+              }
+            }
+          }
+
           // First, try to find user in database
           const dbUser = await findUserInDatabase(credentials.email)
           

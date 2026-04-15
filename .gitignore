@@ -64,3 +64,4 @@ USER.md
 HEARTBEAT.md
 TOOLS.md
 BOOTSTRAP.md
+.env*.local

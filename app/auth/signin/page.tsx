@@ -81,9 +81,25 @@ function SignInContent() {
       console.log('🔐 Sign in result:', result)
 
       if (result?.ok) {
-        // Success - redirect to callback URL
+        // Success - wait for session cookie to be readable before navigating
+        // to protected routes, otherwise middleware can bounce the user back.
+        let sessionReady = false
+        for (let attempt = 0; attempt < 8; attempt++) {
+          const session = await getSession()
+          if (session?.user) {
+            sessionReady = true
+            break
+          }
+          await new Promise((resolve) => setTimeout(resolve, 150))
+        }
+
+        if (!sessionReady) {
+          setError("Signed in, but session is still initializing. Please try again.")
+          return
+        }
+
         console.log('✅ Sign in successful, redirecting to:', callbackUrl)
-        router.push(callbackUrl)
+        window.location.href = callbackUrl
       } else {
         // Handle specific error types
         const errorCode = result?.error

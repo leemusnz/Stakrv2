@@ -12,7 +12,6 @@ import { AppleSplashScreen } from "./apple-splash-screen"
 import { MobileAppOptimizer, mobileAppStyles } from "@/components/mobile-app-optimizer"
 import { PWARegistration } from "@/components/pwa-registration"
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt"
-import { PWADebug } from "@/components/pwa-debug"
 import { Footer } from "@/components/footer"
 import { ErrorBoundary } from "@/components/error-boundary"
 
@@ -95,7 +94,6 @@ export default function RootLayout({
             </ErrorBoundary>
             <Toaster />
             <PWAInstallPrompt />
-            <PWADebug />
           </Providers>
         </ThemeProvider>
       </body>
