@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { nextAuthSecret } from '@/lib/nextauth-secret'
 
 // Routes that require authentication
 const protectedRoutes = [
@@ -84,9 +85,9 @@ export async function middleware(request: NextRequest) {
   )
 
   // Get the user's session token for all routes (needed for onboarding redirect)
-  const token = await getToken({ 
-    req: request, 
-    secret: process.env.NEXTAUTH_SECRET 
+  const token = await getToken({
+    req: request,
+    secret: nextAuthSecret(),
   })
 
   // Redirect authenticated users who have completed onboarding away from onboarding to dashboard
