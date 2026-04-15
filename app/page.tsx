@@ -21,18 +21,18 @@ export default function HomePage() {
       // If user hasn't completed onboarding, redirect to onboarding
       if (!session.user.onboardingCompleted) {
         console.log('🚀 Redirecting to onboarding...')
-        router.push('/onboarding')
+        router.replace('/onboarding')
         return
       }
       
       // If user has completed onboarding, redirect to Dashboard (home page)
       console.log('✅ User has completed onboarding, redirecting to Dashboard')
-      router.push('/dashboard')
+      router.replace('/dashboard')
       return
     } else {
-      // If not authenticated, redirect to alpha gate (which will handle auth flow)
-      console.log('🔒 No session, redirecting to alpha gate...')
-      router.push('/alpha-gate')
+      // Middleware handles alpha-gate enforcement. Continue to auth from home.
+      console.log('🔒 No session, redirecting to sign in...')
+      router.replace('/auth/signin?callbackUrl=/onboarding')
       return
     }
   }, [session, status, router])

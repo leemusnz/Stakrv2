@@ -28,8 +28,9 @@ export default function AlphaGatePage() {
         console.log("✅ Has alpha access:", hasAccess)
         
         if (hasAccess) {
-          console.log("✅ User already has alpha access, redirecting to onboarding...")
-          router.push("/onboarding") // Redirect directly to onboarding to avoid redirect loop
+          // Route through home to keep one entry redirect path.
+          console.log("✅ User already has alpha access, redirecting to home routing...")
+          router.replace("/")
         }
       } catch (error) {
         console.log("⚠️ Could not check alpha access cookie:", error)
@@ -108,17 +109,14 @@ export default function AlphaGatePage() {
           console.warn("⚠️ Could not set client-side cookie:", cookieError)
         }
 
-        // Use window.location for a full page reload to ensure cookie is processed
         setTimeout(() => {
           console.log("🔄 Redirecting to onboarding...")
           console.log("🍪 Current cookies before redirect:", document.cookie)
           
           try {
-            // Redirect directly to onboarding to avoid redirect loop
-            window.location.href = "/onboarding"
+            router.replace("/onboarding")
           } catch (redirectError) {
             console.error("❌ Redirect failed:", redirectError)
-            // Fallback: try to reload the current page
             window.location.reload()
           }
         }, 2000) // Increased delay to ensure cookie is set
@@ -176,7 +174,7 @@ export default function AlphaGatePage() {
         
         document.cookie = cookieString
         setTimeout(() => {
-          window.location.href = "/onboarding" // Redirect directly to onboarding to avoid redirect loop
+          router.replace("/onboarding")
         }, 500)
       } else {
         setError(data.error || "Dev bypass failed")
