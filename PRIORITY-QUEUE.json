@@ -192,7 +192,7 @@
       "description": "Only 25 aria-* attributes found across 174 components (14% coverage). Audit key components: buttons, modals, forms, navigation. Add aria-label, aria-describedby, role attributes. Focus on challenge cards, verification modal, settings.",
       "priority": "medium",
       "category": "accessibility",
-      "status": "completed"
+      "status": "in-progress"
     },
     {
       "id": "stakr-025",
