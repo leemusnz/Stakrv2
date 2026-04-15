@@ -29,7 +29,7 @@ const verificationExemptRoutes = [
   '/onboarding'
 ]
 
-// Routes that bypass the alpha gate
+// Routes that bypass the alpha gate (public marketing / legal without invite cookie)
 const alphaGateExemptRoutes = [
   '/alpha-gate',
   '/api/alpha-access',
@@ -37,8 +37,15 @@ const alphaGateExemptRoutes = [
   '/api/auth',
   '/api/test', // AI system testing endpoints
   '/_next',
-  '/favicon'
+  '/favicon',
+  '/privacy',
+  '/terms',
+  '/pricing',
 ]
+
+function isAlphaGateDisabled(): boolean {
+  return process.env.STAKR_ALPHA_GATE_DISABLED === 'true'
+}
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
@@ -59,23 +66,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 🔒 ALPHA GATE ENFORCEMENT
-  // Check if this route should bypass the alpha gate
-  const isAlphaGateExempt = alphaGateExemptRoutes.some(route => 
-    pathname.startsWith(route)
-  )
+  // 🔒 ALPHA GATE — set STAKR_ALPHA_GATE_DISABLED=true on Vercel (Production) to open the app publicly.
+  if (!isAlphaGateDisabled()) {
+    const isAlphaGateExempt = alphaGateExemptRoutes.some((route) =>
+      pathname.startsWith(route),
+    )
 
-  if (!isAlphaGateExempt) {
-    // Check for alpha access cookie
-    const alphaAccess = request.cookies.get('alpha_access')
-    const hasAlphaAccess = alphaAccess?.value === 'true'
+    if (!isAlphaGateExempt) {
+      const alphaAccess = request.cookies.get('alpha_access')
+      const hasAlphaAccess = alphaAccess?.value === 'true'
 
-    if (!hasAlphaAccess) {
-      const alphaGateUrl = new URL('/alpha-gate', request.url)
-      return NextResponse.redirect(alphaGateUrl)
-    }
-
-    if (process.env.NODE_ENV === 'development') {
+      if (!hasAlphaAccess) {
+        const alphaGateUrl = new URL('/alpha-gate', request.url)
+        return NextResponse.redirect(alphaGateUrl)
+      }
     }
   }
 

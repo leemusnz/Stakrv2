@@ -86,6 +86,7 @@
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@react-email/render": "latest",
+    "@sentry/nextjs": "^10.48.0",
     "@testing-library/dom": "latest",
     "@types/jsonwebtoken": "^9.0.10",
     "@upstash/redis": "latest",

@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import * as Sentry from "@sentry/nextjs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertTriangle, RefreshCw } from "lucide-react"
@@ -40,9 +41,12 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       errorInfo,
     })
 
-    // Log error to monitoring service
     this.props.onError?.(error, errorInfo)
-    
+
+    Sentry.captureException(error, {
+      extra: { componentStack: errorInfo.componentStack },
+    })
+
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
       console.error('Error Boundary caught an error:', error, errorInfo)
@@ -115,11 +119,8 @@ function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => voi
 
 // Hook for error handling in functional components
 export function useErrorHandler() {
-  return (error: Error, errorInfo?: Record<string, any>) => {
-    // Log error to monitoring service
-    console.error('Application Error:', error, errorInfo)
-    
-    // You can add monitoring service integration here
-    // e.g., Sentry.captureException(error, { extra: errorInfo })
+  return (error: Error, errorInfo?: Record<string, unknown>) => {
+    console.error("Application Error:", error, errorInfo)
+    Sentry.captureException(error, { extra: errorInfo })
   }
 }
