@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const industry = searchParams.get('industry')
     const category = searchParams.get('category')
-    const limit = parseInt(searchParams.get('limit') || '20')
+    let limit = parseInt(searchParams.get('limit') || '20')
     
     // Check for demo mode (new system) OR demo users (legacy compatibility)
     if (shouldUseDemoData(request, session) || false) {
@@ -48,54 +48,75 @@ export async function GET(request: NextRequest) {
 
     // Query the database for real brands
     const sql = createDbConnection()
-    const offset = parseInt(searchParams.get('offset') || '0')
+    let offset = parseInt(searchParams.get('offset') || '0')
+    if (!Number.isFinite(limit) || limit <= 0) limit = 20
+    if (!Number.isFinite(offset) || offset < 0) offset = 0
     
     try {
-      // Build query with filters
-      let query = `SELECT * FROM brands WHERE 1=1`
-      const params: any[] = []
-      let paramIndex = 1
-      
-      // Apply industry filter if provided
-      if (industry) {
-        query += ` AND industry ILIKE $${paramIndex}`
-        params.push(`%${industry}%`)
-        paramIndex++
+      const industryPattern = industry ? `%${industry}%` : null
+      let countResult
+      let brands
+
+      if (industryPattern && category) {
+        countResult = await sql`
+          SELECT COUNT(*) as count
+          FROM brands
+          WHERE industry ILIKE ${industryPattern}
+          AND ${category} = ANY(categories)
+        `
+        brands = await sql`
+          SELECT *
+          FROM brands
+          WHERE industry ILIKE ${industryPattern}
+          AND ${category} = ANY(categories)
+          ORDER BY followers DESC
+          LIMIT ${limit}
+          OFFSET ${offset}
+        `
+      } else if (industryPattern) {
+        countResult = await sql`
+          SELECT COUNT(*) as count
+          FROM brands
+          WHERE industry ILIKE ${industryPattern}
+        `
+        brands = await sql`
+          SELECT *
+          FROM brands
+          WHERE industry ILIKE ${industryPattern}
+          ORDER BY followers DESC
+          LIMIT ${limit}
+          OFFSET ${offset}
+        `
+      } else if (category) {
+        countResult = await sql`
+          SELECT COUNT(*) as count
+          FROM brands
+          WHERE ${category} = ANY(categories)
+        `
+        brands = await sql`
+          SELECT *
+          FROM brands
+          WHERE ${category} = ANY(categories)
+          ORDER BY followers DESC
+          LIMIT ${limit}
+          OFFSET ${offset}
+        `
+      } else {
+        countResult = await sql`
+          SELECT COUNT(*) as count
+          FROM brands
+        `
+        brands = await sql`
+          SELECT *
+          FROM brands
+          ORDER BY followers DESC
+          LIMIT ${limit}
+          OFFSET ${offset}
+        `
       }
-      
-      // Apply category filter if provided
-      if (category) {
-        query += ` AND $${paramIndex}::text = ANY(categories)`
-        params.push(category)
-        paramIndex++
-      }
-      
-      // Get total count
-      let countQuery = `SELECT COUNT(*) as count FROM brands WHERE 1=1`
-      const countParams: any[] = []
-      let countParamIndex = 1
-      
-      if (industry) {
-        countQuery += ` AND industry ILIKE $${countParamIndex}`
-        countParams.push(`%${industry}%`)
-        countParamIndex++
-      }
-      
-      if (category) {
-        countQuery += ` AND $${countParamIndex}::text = ANY(categories)`
-        countParams.push(category)
-        countParamIndex++
-      }
-      
-      const countResult = await sql(countQuery, countParams)
+
       const totalAvailable = parseInt(countResult[0]?.count || '0')
-      
-      // Apply pagination
-      query += ` ORDER BY "followers" DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
-      params.push(limit, offset)
-      
-      const brands = await sql(query, params)
-      
+
       // If no brands found in DB, return demo data as fallback
       if (brands.length === 0 && totalAvailable === 0) {
         return NextResponse.json({
