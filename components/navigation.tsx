@@ -133,11 +133,15 @@ export function Navigation({ user, onLogout }: NavigationProps) {
               </Button>
             </Link>
 
-            {/* Credits Display */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
-              <Wallet className="w-4 h-4 text-primary" />
+            {/* Balance — tap to open wallet / top up */}
+            <Link
+              href="/wallet"
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg hover:bg-muted/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label="Open wallet and payment details"
+            >
+              <Wallet className="w-4 h-4 text-primary shrink-0" aria-hidden />
               <span className="font-semibold text-sm">${user.credits}</span>
-            </div>
+            </Link>
 
             {/* Notifications */}
             <NotificationDropdown />
