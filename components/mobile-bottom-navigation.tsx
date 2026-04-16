@@ -105,7 +105,8 @@ export function MobileBottomNavigation({
 
   return (
     <div className={cn(
-      "fixed bottom-0 left-0 right-0 z-50",
+      // Below portaled menus (Select/Dropdown z-[100]) so taps hit the list, not the nav bar.
+      "fixed bottom-0 left-0 right-0 z-40",
       "bg-background/95 backdrop-blur-sm border-t border-border",
       "safe-area-bottom",
       className
