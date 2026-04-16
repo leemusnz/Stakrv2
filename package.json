@@ -36,7 +36,8 @@
     "test:mobile": "node scripts/mobile-test.js",
     "lighthouse:mobile": "lighthouse https://stakr.app --preset=mobile --view",
     "lighthouse:desktop": "lighthouse https://stakr.app --preset=desktop --view",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "release:smoke": "node scripts/release-smoke-check.js"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
