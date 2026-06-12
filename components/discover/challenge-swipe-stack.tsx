@@ -95,7 +95,7 @@ export function ChallengeSwipeStack({
           <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4 mx-auto">
             <Heart className="w-10 h-10 text-muted-foreground" />
           </div>
-          <h3 className="text-xl font-bold mb-2">You've seen all challenges!</h3>
+          <h3 className="text-xl font-bold mb-2">You&apos;ve seen all challenges!</h3>
           <p className="text-muted-foreground mb-6">
             Check back later for new challenges or adjust your filters
           </p>

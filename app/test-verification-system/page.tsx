@@ -314,7 +314,7 @@ export default function TestVerificationSystem() {
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Comprehensive testing of Stakr's verification infrastructure, components, and AI systems
+            Comprehensive testing of Stakr&apos;s verification infrastructure, components, and AI systems
           </p>
         </div>
 

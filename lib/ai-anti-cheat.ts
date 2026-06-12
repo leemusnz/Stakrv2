@@ -348,7 +348,11 @@ export class AIAntiCheatEngine {
         `
       } else if (sql && typeof (sql as Record<symbol, unknown>)[Symbol.for('sql')] === 'function') {
         // Support test harness that attaches a function at Symbol.for('sql')
-        challenges = await (sql as Record<symbol, unknown>)[Symbol.for('sql')](
+        const harnessSql = (sql as Record<symbol, unknown>)[Symbol.for('sql')] as (
+          query: string,
+          params: unknown[]
+        ) => Promise<any[]>
+        challenges = await harnessSql(
           `SELECT title, description, proof_requirements, verification_type, ai_analysis, selected_proof_types, proof_instructions FROM challenges WHERE id = $1`,
           [challengeId]
         )
@@ -371,7 +375,11 @@ export class AIAntiCheatEngine {
               SELECT title, description, proof_requirements, verification_type, ai_analysis, selected_proof_types, proof_instructions FROM challenges WHERE id = ${challengeId}
             `
           } else if (typeof (chosen as Record<symbol, unknown>)?.[Symbol.for('sql')] === 'function') {
-            challenges = await (chosen as Record<symbol, unknown>)[Symbol.for('sql')](
+            const chosenSql = (chosen as Record<symbol, unknown>)[Symbol.for('sql')] as (
+              query: string,
+              params: unknown[]
+            ) => Promise<any[]>
+            challenges = await chosenSql(
               `SELECT title, description, proof_requirements, verification_type, ai_analysis, selected_proof_types, proof_instructions FROM challenges WHERE id = $1`,
               [challengeId]
             )
@@ -438,7 +446,9 @@ export class AIAntiCheatEngine {
           aiChallengeAnalysis: undefined,
           manualData: {
             type: submission.type as 'photo' | 'video' | 'text',
-            content: submission.content,
+            content: typeof submission.content === 'string'
+              ? submission.content
+              : submission.content.toString('base64'),
             fileUrl: submission.metadata?.fileUrl,
             metadata: submission.metadata,
           },
@@ -472,7 +482,9 @@ export class AIAntiCheatEngine {
         },
         manualData: {
           type: submission.type as 'photo' | 'video' | 'text',
-          content: submission.content,
+          content: typeof submission.content === 'string'
+            ? submission.content
+            : submission.content.toString('base64'),
           fileUrl: submission.metadata?.fileUrl,
           metadata: submission.metadata
         }

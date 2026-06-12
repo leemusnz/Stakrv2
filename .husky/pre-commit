@@ -1,0 +1,4 @@
+# ESLint 9 defaults to flat config; this repo still uses .eslintrc.json
+# (same legacy mode `next lint` runs in).
+export ESLINT_USE_FLAT_CONFIG=false
+npx lint-staged

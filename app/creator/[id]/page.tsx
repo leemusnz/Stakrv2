@@ -44,7 +44,7 @@ const mockCreator = {
       participants: 1247,
       minStake: 25,
       maxStake: 100,
-      difficulty: "Medium",
+      difficulty: "Medium" as const,
       isActive: true,
       rating: 4.9,
     },
@@ -57,7 +57,7 @@ const mockCreator = {
       participants: 892,
       minStake: 15,
       maxStake: 75,
-      difficulty: "Easy",
+      difficulty: "Easy" as const,
       isActive: true,
       rating: 4.7,
     },
@@ -70,7 +70,7 @@ const mockCreator = {
       participants: 634,
       minStake: 20,
       maxStake: 80,
-      difficulty: "Hard",
+      difficulty: "Hard" as const,
       isActive: true,
       rating: 4.6,
     },
@@ -313,12 +313,6 @@ export default function CreatorProfilePage() {
                   difficulty={challenge.difficulty}
                   isJoined={false}
                   isActive={challenge.isActive}
-                  creator={{
-                    name: creator.name,
-                    avatar: creator.avatar,
-                    isVerified: creator.isVerified,
-                  }}
-                  rating={challenge.rating}
                 />
               ))}
             </div>

@@ -321,7 +321,7 @@ export function ChallengeCard({
               {/* Improved Stake Amount Display */}
               <div className="space-y-3">
                 <div className="text-center space-y-1">
-                  <div className="text-xs text-muted-foreground">You're staking</div>
+                  <div className="text-xs text-muted-foreground">You&apos;re staking</div>
                   <div className="text-3xl font-bold text-primary">${stakeAmount}</div>
                   <div className="text-xs text-muted-foreground">
                     of ${challengeData.minStake || minStake}–${challengeData.maxStake || maxStake} range

@@ -70,6 +70,18 @@ describe('Payments flow (Stripe)', () => {
     const sqlMock = (strings: TemplateStringsArray, ...values: any[]) => {
       const text = strings.join('?')
       sqlCalls.push({ text, values })
+      if (text.includes('FROM webhook_events')) {
+        // duplicate event ids are recognized on replay
+        const seen = sqlCalls.filter(c => c.text.includes('INSERT INTO webhook_events')).length
+        return Promise.resolve(seen > 0 ? [{ id: values[0] }] : [])
+      }
+      if (text.includes('FROM transactions')) {
+        // P0-4: amounts come from the pending row recorded at checkout
+        // creation, never from event metadata
+        return Promise.resolve([
+          { user_id: 'user-1', challenge_id: 'ch_1', amount: '10.5', platform_revenue: '0.5' },
+        ])
+      }
       if (text.includes('FROM challenge_participants')) {
         // first call returns none (no existing participant)
         const already = sqlCalls.filter(c => c.text.includes('FROM challenge_participants')).length

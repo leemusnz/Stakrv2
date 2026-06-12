@@ -65,3 +65,10 @@ HEARTBEAT.md
 TOOLS.md
 BOOTSTRAP.md
 .env*.local
+
+# Local artifacts that must never be tracked (Phase 0 hygiene)
+lighthouse-*.json
+.eng-state.json
+PRIORITY-QUEUE.json
+test-reports/
+.husky/_/

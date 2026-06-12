@@ -12,6 +12,7 @@ import { VerificationTrigger } from "@/components/verification-trigger"
 import { useDevMode } from "@/components/dev-mode-toggle"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import type { ProofRequirement } from "@/lib/types"
 
 export default function VerificationDemo() {

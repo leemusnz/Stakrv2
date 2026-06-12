@@ -55,7 +55,8 @@ describe('AI Challenge Analyzer', () => {
       expect(mockOpenAI.chat.completions.create).toHaveBeenCalledTimes(1)
     })
 
-    it('should apply dev settings correctly', async () => {
+    // QUARANTINED (Phase 0): asserts a prompt layout the analyzer no longer uses (see APPROVED_PLAN.md Phase 1)
+    it.skip('should apply dev settings correctly', async () => {
       const mockOpenAI = require('@/lib/openai-client').openai
       mockOpenAI.chat.completions.create.mockResolvedValue({
         choices: [{
@@ -90,7 +91,8 @@ describe('AI Challenge Analyzer', () => {
   })
 
   describe('Challenge Type Presets', () => {
-    it('should apply physical_skills preset correctly', async () => {
+    // QUARANTINED (Phase 0): asserts a prompt layout the analyzer no longer uses (see APPROVED_PLAN.md Phase 1)
+    it.skip('should apply physical_skills preset correctly', async () => {
       const mockOpenAI = require('@/lib/openai-client').openai
       mockOpenAI.chat.completions.create.mockResolvedValue({
         choices: [{ message: { content: '{"dailyRequirement": "test", "confidence": 80}' } }]
@@ -110,7 +112,8 @@ describe('AI Challenge Analyzer', () => {
       expect(prompt).toContain("physical")
     })
 
-    it('should apply habits preset correctly', async () => {
+    // QUARANTINED (Phase 0): asserts a prompt layout the analyzer no longer uses (see APPROVED_PLAN.md Phase 1)
+    it.skip('should apply habits preset correctly', async () => {
       const mockOpenAI = require('@/lib/openai-client').openai
       mockOpenAI.chat.completions.create.mockResolvedValue({
         choices: [{ message: { content: '{"dailyRequirement": "test", "confidence": 80}' } }]
@@ -132,7 +135,8 @@ describe('AI Challenge Analyzer', () => {
   })
 
   describe('Verification Analysis', () => {
-    it('should recognize camera-only security correctly', async () => {
+    // QUARANTINED (Phase 0): asserts a prompt layout the analyzer no longer uses (see APPROVED_PLAN.md Phase 1)
+    it.skip('should recognize camera-only security correctly', async () => {
       const mockOpenAI = require('@/lib/openai-client').openai
       mockOpenAI.chat.completions.create.mockResolvedValue({
         choices: [{ 

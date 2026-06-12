@@ -46,7 +46,11 @@ const mockChallengeData = {
   proof_instructions: "Record from side showing whole body"
 }
 
-describe('AI Verification Integration', () => {
+// QUARANTINED (Phase 0, June 2026): this suite asserts behavior that has
+// drifted from the implementation (prompt structure and analyzer payloads changed). Explicit quarantine per the approved
+// recovery plan (Phase 1, week 1: "fix the 40 failing tests or quarantine
+// explicitly" — docs/audits/2026-06-engineering-review/APPROVED_PLAN.md).
+describe.skip('AI Verification Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })

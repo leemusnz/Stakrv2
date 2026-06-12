@@ -159,7 +159,7 @@ export function GamefiedAuthStep({ data, onNext }: GamefiedAuthStepProps) {
               Welcome back, {session.user.name || "Champion"}!
             </h3>
             <p className="text-sm text-muted-foreground">
-              You're signed in! Just complete your profile to finish onboarding.
+              You&apos;re signed in! Just complete your profile to finish onboarding.
             </p>
           </div>
 

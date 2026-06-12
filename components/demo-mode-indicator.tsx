@@ -90,7 +90,7 @@ export function DemoModeIndicator({
           )}
         </div>
         <p className="text-sm text-blue-700 mt-2">
-          You're viewing populated sample data for demonstration. 
+          You&apos;re viewing populated sample data for demonstration. 
           Real users will see their actual data and empty states when appropriate.
         </p>
       </AlertDescription>

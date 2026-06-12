@@ -33,14 +33,28 @@ const verificationExemptRoutes = [
 const alphaGateExemptRoutes = [
   '/alpha-gate',
   '/api/alpha-access',
-  '/api/dev-bypass',
   '/api/auth',
-  '/api/test', // AI system testing endpoints
   '/_next',
   '/favicon',
   '/privacy',
   '/terms',
   '/pricing',
+]
+
+// Demo/test/dev scaffolding pages — never served in production builds.
+// Full deletion is scheduled for Phase 1 (board condition 5: deletion manifest);
+// until then they are hard-gated server-side here, not by client-side checks.
+const devOnlyRoutes = [
+  '/demo',
+  '/mobile-demo',
+  '/proof-demo',
+  '/verification-demo',
+  '/test-avatar',
+  '/test-dashboard',
+  '/test-verification-system',
+  '/theme-preview',
+  '/design-preview',
+  '/dev-tools',
 ]
 
 function isAlphaGateDisabled(): boolean {
@@ -66,20 +80,32 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Hard 404 for demo/test scaffolding in production
+  if (
+    process.env.NODE_ENV === 'production' &&
+    devOnlyRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'))
+  ) {
+    return new NextResponse(null, { status: 404 })
+  }
+
   // 🔒 ALPHA GATE — set STAKR_ALPHA_GATE_DISABLED=true on Vercel (Production) to open the app publicly.
   if (!isAlphaGateDisabled()) {
+    const alphaAccess = request.cookies.get('alpha_access')
+    const hasAlphaAccess = alphaAccess?.value === 'true'
+
+    // Cookie is httpOnly, so the gate page can't see it — bounce already-admitted
+    // visitors here instead.
+    if (pathname.startsWith('/alpha-gate') && hasAlphaAccess) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
     const isAlphaGateExempt = alphaGateExemptRoutes.some((route) =>
       pathname.startsWith(route),
     )
 
-    if (!isAlphaGateExempt) {
-      const alphaAccess = request.cookies.get('alpha_access')
-      const hasAlphaAccess = alphaAccess?.value === 'true'
-
-      if (!hasAlphaAccess) {
-        const alphaGateUrl = new URL('/alpha-gate', request.url)
-        return NextResponse.redirect(alphaGateUrl)
-      }
+    if (!isAlphaGateExempt && !hasAlphaAccess) {
+      const alphaGateUrl = new URL('/alpha-gate', request.url)
+      return NextResponse.redirect(alphaGateUrl)
     }
   }
 

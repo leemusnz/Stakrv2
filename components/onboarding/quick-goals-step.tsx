@@ -97,7 +97,7 @@ export function QuickGoalsStep({ data, onNext }: QuickGoalsStepProps) {
         <h1 className="text-2xl font-bold">
           What Do You Want to <span className="text-primary">Improve</span>?
         </h1>
-        <p className="text-sm text-muted-foreground">Pick what matters most. We'll find perfect challenges for you.</p>
+        <p className="text-sm text-muted-foreground">Pick what matters most. We&apos;ll find perfect challenges for you.</p>
       </div>
 
       {/* Goals Grid - Mobile Optimized */}

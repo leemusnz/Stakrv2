@@ -387,7 +387,7 @@ export default function EditChallengePage() {
             timerMaxDuration={challengeData.timerMaxDuration}
             randomCheckinsEnabled={challengeData.randomCheckinsEnabled}
             randomCheckinProbability={challengeData.randomCheckinProbability}
-            onSelectedProofTypesChange={(selectedProofTypes: string[]) =>
+            onProofTypesChange={(selectedProofTypes: string[]) =>
               setChallengeData({ ...challengeData, selectedProofTypes })
             }
             onProofInstructionsChange={(proofInstructions) =>
@@ -511,14 +511,13 @@ export default function EditChallengePage() {
 
       {isMobile ? (
         <SwipeableOnboardingLayout
-          currentStep={currentStep}
+          currentStep={currentStep - 1}
           totalSteps={totalSteps}
+          stepId={`step-${currentStep}`}
           onNext={handleNext}
-          onPrevious={handlePrevious}
-          canProceed={canProceed()}
-          isLoading={isSaving}
-          finalButtonText="Save Changes"
-          stepTitles={["Category", "Info", "Rules", "Proof", "Stakes", "Review"]}
+          onBack={handlePrevious}
+          canGoNext={Boolean(canProceed())}
+          canGoBack={currentStep > 1}
         >
           {renderStep()}
         </SwipeableOnboardingLayout>
@@ -528,9 +527,8 @@ export default function EditChallengePage() {
           totalSteps={totalSteps}
           onNext={handleNext}
           onPrevious={handlePrevious}
-          canProceed={canProceed()}
+          canProceed={Boolean(canProceed())}
           isLoading={isSaving}
-          finalButtonText="Save Changes"
         >
           {renderStep()}
         </CreationLayout>

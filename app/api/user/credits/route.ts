@@ -39,9 +39,9 @@ export async function GET(request: NextRequest) {
     // Resolve actual user id from DB (handle OAuth id format edge-cases)
     let userRows: UserRow[] = []
     try {
-      userRows = await sql`SELECT id, credits, email, name FROM users WHERE id = ${session.user.id} LIMIT 1`
+      userRows = (await sql`SELECT id, credits, email, name FROM users WHERE id = ${session.user.id} LIMIT 1`) as UserRow[]
     } catch {
-      userRows = await sql`SELECT id, credits, email, name FROM users WHERE email = ${session.user.email} LIMIT 1`
+      userRows = (await sql`SELECT id, credits, email, name FROM users WHERE email = ${session.user.email} LIMIT 1`) as UserRow[]
     }
     if (userRows.length === 0) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       const filters: any[] = []
       let whereSql = sql`user_id = ${userId}`
       if (ledgerTypeFilters.length > 0) {
-        whereSql = sql`${whereSql} AND transaction_type IN ${sql(ledgerTypeFilters)}`
+        whereSql = sql`${whereSql} AND transaction_type = ANY(${ledgerTypeFilters})`
       }
       if (fromParam) {
         whereSql = sql`${whereSql} AND created_at >= ${new Date(fromParam)}`
@@ -98,13 +98,13 @@ export async function GET(request: NextRequest) {
       totalCount = countRows?.[0]?.count || 0
 
       // Page of results
-      creditTx = await sql`
+      creditTx = (await sql`
         SELECT id, amount, transaction_type, description, related_challenge_id, created_at
         FROM credit_transactions
         WHERE ${whereSql}
         ORDER BY created_at DESC
         LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
-      `
+      `) as CreditTransaction[]
     } catch {
       creditTx = []
       totalCount = 0
@@ -113,14 +113,14 @@ export async function GET(request: NextRequest) {
     // Active stakes overview
     let activeStakes: ActiveStake[] = []
     try {
-      activeStakes = await sql`
+      activeStakes = (await sql`
         SELECT c.id, c.title, cp.stake_amount, c.end_date, cp.completion_status
         FROM challenge_participants cp
         JOIN challenges c ON c.id = cp.challenge_id
         WHERE cp.user_id = ${userId} AND cp.completion_status IN ('active','pending_verification')
         ORDER BY c.end_date DESC
         LIMIT 20
-      `
+      `) as ActiveStake[]
     } catch {
       activeStakes = []
     }

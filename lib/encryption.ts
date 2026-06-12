@@ -1,27 +1,36 @@
 import crypto from 'crypto'
 
-// Use environment variable or default for development
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'dev-key-change-in-production-32char'
 const ALGORITHM = 'aes-256-gcm'
+const DEV_FALLBACK_KEY = 'dev-key-change-in-production-32char'
 
-// Validate encryption key at runtime (not during build)
-function validateEncryptionKey() {
-  // Only validate when actually using encryption, not during static page generation
-  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production' && ENCRYPTION_KEY === 'dev-key-change-in-production-32char') {
-    console.warn('⚠️ ENCRYPTION_KEY not set - using development key. Set ENCRYPTION_KEY in production!')
-    // Don't throw during build - just warn
+/**
+ * Resolves the AES key at call time (never at module load, so builds without
+ * secrets still compile). Production refuses to run on the source-controlled
+ * development key — credentials encrypted with a public key are plaintext.
+ */
+function encryptionKey(): string {
+  const fromEnv = process.env.ENCRYPTION_KEY
+  if (fromEnv && fromEnv.length >= 32) return fromEnv
+  if (fromEnv) {
+    throw new Error('ENCRYPTION_KEY must be at least 32 characters')
   }
+  const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build'
+  if (process.env.NODE_ENV === 'production' && !isBuildPhase) {
+    throw new Error(
+      'ENCRYPTION_KEY must be set in production — refusing to encrypt credentials with the public development key.',
+    )
+  }
+  return DEV_FALLBACK_KEY
 }
 
 /**
  * Encrypts a string using AES-256-GCM
  */
 export function encrypt(text: string): string {
-  validateEncryptionKey() // Validate at runtime
   const iv = crypto.randomBytes(16)
   const cipher = crypto.createCipheriv(
     ALGORITHM,
-    Buffer.from(ENCRYPTION_KEY.slice(0, 32)),
+    Buffer.from(encryptionKey().slice(0, 32)),
     iv
   )
   
@@ -41,12 +50,11 @@ export function encrypt(text: string): string {
  * Decrypts a string encrypted with encrypt()
  */
 export function decrypt(encryptedData: string): string {
-  validateEncryptionKey() // Validate at runtime
   const { encrypted, iv, authTag } = JSON.parse(encryptedData)
-  
+
   const decipher = crypto.createDecipheriv(
     ALGORITHM,
-    Buffer.from(ENCRYPTION_KEY.slice(0, 32)),
+    Buffer.from(encryptionKey().slice(0, 32)),
     Buffer.from(iv, 'hex')
   )
   

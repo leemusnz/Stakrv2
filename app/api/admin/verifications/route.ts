@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/require-admin'
 import { createDbConnection } from '@/lib/db'
 
 import { systemLogger } from '@/lib/system-logger'
@@ -127,21 +126,10 @@ const getDemoVerifications = () => ({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
-    // Check if user has admin access
     const sql = createDbConnection()
-    const adminCheck = await sql`
-      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
-    `
-    
-    if (!adminCheck[0]?.has_dev_access) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
 
     // For demo users, return mock verification data
     if (false) { // Demo user check removed
@@ -260,21 +248,11 @@ export async function GET(request: NextRequest) {
 // POST endpoint for verification decisions
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
+    const session = admin.session
 
-    // Check if user has admin access
     const sql = createDbConnection()
-    const adminCheck = await sql`
-      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
-    `
-    
-    if (!adminCheck[0]?.has_dev_access) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
 
     const body = await request.json()
     const { verificationId, decision, reason } = body
@@ -372,21 +350,9 @@ export async function POST(request: NextRequest) {
 // PUT endpoint for reversing verification decisions
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-
-    // Check if user has admin access
-    const adminSql = await createDbConnection()
-    const adminCheck = await adminSql`
-      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
-    `
-    
-    if (!adminCheck[0]?.has_dev_access) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
+    const session = admin.session
 
     const body = await request.json()
     const { verificationId, reason } = body

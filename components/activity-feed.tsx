@@ -96,7 +96,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <Users className="w-3 h-3" />
-              <span>You're ahead of 73% of users this week</span>
+              <span>You&apos;re ahead of 73% of users this week</span>
             </div>
             <Button variant="ghost" size="sm" className="text-xs h-auto p-1 hover:text-primary">
               See ranking →

@@ -3,6 +3,8 @@ import { toast } from 'sonner'
 import { errorMessages } from './config'
 import type { ApiResponse } from './types'
 
+export type { ApiResponse }
+
 // Custom error classes
 export class StakrError extends Error {
   constructor(

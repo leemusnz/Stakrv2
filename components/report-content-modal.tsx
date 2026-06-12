@@ -123,7 +123,7 @@ export function ReportContentModal({ contentType, contentId, reportedUserId, chi
         
         <div className="space-y-4">
           <div>
-            <Label className="text-sm font-medium">What's the issue?</Label>
+            <Label className="text-sm font-medium">What&apos;s the issue?</Label>
             <RadioGroup 
               value={selectedReason} 
               onValueChange={setSelectedReason}

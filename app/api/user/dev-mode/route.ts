@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Hybrid demo system: new demo mode OR legacy demo users
     if (shouldUseDemoData(request, session) ) {
-      const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
+      const isAdmin = session.user.isAdmin === true
       
       if (!isAdmin) {
         return NextResponse.json({ 
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
 
     // Hybrid demo system: new demo mode OR legacy demo users
     if (shouldUseDemoData(request, session) ) {
-      const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
+      const isAdmin = session.user.isAdmin === true
       
       return NextResponse.json(createDemoResponse({
         user: {

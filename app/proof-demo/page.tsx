@@ -24,7 +24,7 @@ export default function ProofDemoPage() {
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Experience Stakr's revolutionary verification system with real-time gesture and word verification
+            Experience Stakr&apos;s revolutionary verification system with real-time gesture and word verification
           </p>
         </div>
 
@@ -66,7 +66,7 @@ export default function ProofDemoPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Say specific words like "giraffe" or "elephant" with pronunciation guides provided.
+                Say specific words like &quot;giraffe&quot; or &quot;elephant&quot; with pronunciation guides provided.
               </p>
             </CardContent>
           </Card>
@@ -125,7 +125,7 @@ export default function ProofDemoPage() {
                       <span className="font-medium">Hold Up 3 Fingers</span>
                     </div>
                     <p className="text-xs text-blue-700 dark:text-blue-300">
-                      "Take a photo holding up 3 fingers with your right hand and keep them visible for 3 seconds"
+                      &quot;Take a photo holding up 3 fingers with your right hand and keep them visible for 3 seconds&quot;
                     </p>
                   </div>
                   <div className="p-3 bg-green-50 dark:bg-green-900 rounded-lg border border-green-200 dark:border-green-700">
@@ -134,7 +134,7 @@ export default function ProofDemoPage() {
                       <span className="font-medium">Peace Sign</span>
                     </div>
                     <p className="text-xs text-green-700 dark:text-green-300">
-                      "Take a video making a peace sign (V fingers) with your left hand"
+                      &quot;Take a video making a peace sign (V fingers) with your left hand&quot;
                     </p>
                   </div>
                   <div className="p-3 bg-purple-50 dark:bg-purple-900 rounded-lg border border-purple-200 dark:border-purple-700">
@@ -143,7 +143,7 @@ export default function ProofDemoPage() {
                       <span className="font-medium">Touch Nose</span>
                     </div>
                     <p className="text-xs text-purple-700 dark:text-purple-300">
-                      "Take a photo touching your nose with your right index finger"
+                      &quot;Take a photo touching your nose with your right index finger&quot;
                     </p>
                   </div>
                 </div>
@@ -158,7 +158,7 @@ export default function ProofDemoPage() {
                   <div className="p-3 bg-orange-50 dark:bg-orange-900 rounded-lg border border-orange-200 dark:border-orange-700">
                     <div className="flex items-center gap-2 mb-1">
                       <Volume2 className="h-4 w-4 text-orange-600" />
-                      <span className="font-medium text-lg">"Giraffe"</span>
+                      <span className="font-medium text-lg">&quot;Giraffe&quot;</span>
                     </div>
                     <p className="text-xs text-orange-700 dark:text-orange-300">
                       Pronunciation: juh-RAF • Difficulty: ⭐
@@ -167,7 +167,7 @@ export default function ProofDemoPage() {
                   <div className="p-3 bg-teal-50 dark:bg-teal-900 rounded-lg border border-teal-200 dark:border-teal-700">
                     <div className="flex items-center gap-2 mb-1">
                       <Volume2 className="h-4 w-4 text-teal-600" />
-                      <span className="font-medium text-lg">"Serendipity"</span>
+                      <span className="font-medium text-lg">&quot;Serendipity&quot;</span>
                     </div>
                     <p className="text-xs text-teal-700 dark:text-teal-300">
                       Pronunciation: ser-uhn-DIP-i-tee • Difficulty: ⭐⭐⭐⭐
@@ -176,7 +176,7 @@ export default function ProofDemoPage() {
                   <div className="p-3 bg-pink-50 dark:bg-pink-900 rounded-lg border border-pink-200 dark:border-pink-700">
                     <div className="flex items-center gap-2 mb-1">
                       <Volume2 className="h-4 w-4 text-pink-600" />
-                      <span className="font-medium text-lg">"Perseverance"</span>
+                      <span className="font-medium text-lg">&quot;Perseverance&quot;</span>
                     </div>
                     <p className="text-xs text-pink-700 dark:text-pink-300">
                       Pronunciation: pur-suh-VEER-uhns • Difficulty: ⭐⭐⭐⭐
@@ -213,7 +213,7 @@ export default function ProofDemoPage() {
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold mb-3 text-green-600">✅ Stakr's Enhanced System</h3>
+                <h3 className="font-semibold mb-3 text-green-600">✅ Stakr&apos;s Enhanced System</h3>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
@@ -278,7 +278,7 @@ export default function ProofDemoPage() {
               <h3 className="text-2xl font-bold mb-4">The Future of Accountability Platforms</h3>
               <p className="text-lg opacity-90 max-w-3xl mx-auto">
                 With gesture and word verification, Stakr creates an environment where genuine effort is the only path to success. 
-                This isn't just anti-cheating - it's about building authentic accountability that truly helps people achieve their goals.
+                This isn&apos;t just anti-cheating - it&apos;s about building authentic accountability that truly helps people achieve their goals.
               </p>
               <div className="flex items-center justify-center gap-8 mt-6 text-sm">
                 <div className="flex items-center gap-2">

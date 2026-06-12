@@ -148,7 +148,7 @@ export function ChallengeTypeStep({ selectedType, onTypeSelect }: ChallengeTypeS
             Great Choice!
           </div>
           <p className="text-sm text-muted-foreground">
-            You've selected a <strong>{selectedType} challenge</strong>.
+            You&apos;ve selected a <strong>{selectedType} challenge</strong>.
             {selectedType === "public"
               ? " Your challenge will be discoverable by anyone and can grow through social sharing."
               : " You'll get a shareable invite link to control exactly who can join."}

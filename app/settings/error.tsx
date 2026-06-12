@@ -29,7 +29,7 @@ export default function SettingsError({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            We couldn't retrieve your settings. Please try again, and your preferences will be available.
+            We couldn&apos;t retrieve your settings. Please try again, and your preferences will be available.
           </p>
           {error.message && (
             <div className="rounded-md bg-destructive/10 p-3 border border-destructive/20">

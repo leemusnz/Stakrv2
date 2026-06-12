@@ -177,9 +177,9 @@ function parseChallengeFallback(title: string, description: string) {
   // Use our existing rule-based parsing
   return {
     activityType: title.toLowerCase().includes('walk') ? ['Walk'] : ['Walk', 'Run'],
-    minDistance: null,
-    minDuration: null,
-    other: []
+    minDistance: undefined,
+    minDuration: undefined,
+    other: [] as string[]
   }
 }
 

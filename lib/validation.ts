@@ -47,7 +47,7 @@ export const challengeBasicInfoSchema = z.object({
   category: z.string().min(1, 'Please select a category'),
   duration: z.string().min(1, 'Please select a duration'),
   difficulty: z.enum(['Easy', 'Medium', 'Hard'], {
-    errorMap: () => ({ message: 'Please select a difficulty level' })
+    message: 'Please select a difficulty level'
   })
 })
 
@@ -136,7 +136,7 @@ export const proofSubmissionSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters').max(500, 'Description must be less than 500 characters'),
   file: z.instanceof(File).optional(),
   text: z.string().optional(),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.string(), z.any()).optional()
 }).refine(data => {
   if (data.type === 'text' && !data.text) {
     return false
@@ -156,7 +156,7 @@ export const enhancedProofSubmissionSchema = z.object({
   description: z.string().min(20, 'Description must be at least 20 characters').max(500, 'Description must be less than 500 characters'),
   file: z.instanceof(File).optional(),
   text: z.string().optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   // New anti-fraud fields
   deviceFingerprint: z.string().optional(),
   gpsCoordinates: z.tuple([z.number(), z.number()]).optional(),
@@ -198,7 +198,7 @@ export const uploadPresignedUrlSchema = z.object({
 export const socialFollowSchema = z.object({
   targetUserId: z.string().min(1, 'Target user ID is required'),
   action: z.enum(['follow', 'unfollow'], {
-    errorMap: () => ({ message: 'Action must be "follow" or "unfollow"' })
+    message: 'Action must be "follow" or "unfollow"'
   })
 })
 
@@ -341,7 +341,7 @@ export const validateTrustScoreForVerificationEnhanced = (
 export const formatValidationErrors = (error: z.ZodError): Record<string, string> => {
   const formattedErrors: Record<string, string> = {}
   
-  error.errors.forEach((err) => {
+  error.issues.forEach((err) => {
     const path = err.path.join('.')
     formattedErrors[path] = err.message
   })

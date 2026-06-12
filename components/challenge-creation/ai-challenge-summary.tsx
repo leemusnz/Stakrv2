@@ -305,7 +305,7 @@ export function AiChallengeSummary({
             </AlertDescription>
           </Alert>
           <div className="flex gap-2 mt-4">
-            <Button onClick={analyzeChallenge} variant="outline">
+            <Button onClick={() => analyzeChallenge()} variant="outline">
               <RefreshCw className="w-4 h-4 mr-2" />
               Retry Analysis
             </Button>
@@ -325,7 +325,7 @@ export function AiChallengeSummary({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Dev Tools - only show when explicit dev flags are present (dev menu) */}
-      {Boolean(urlDevSettings?.analyzer_debug || urlDevSettings?.analyzer_quick) && (
+      {Boolean(urlDevSettings?.responseFormat === 'detailed' || urlDevSettings?.responseFormat === 'minimal') && (
         <AIAnalyzerControls
           onSettingsChange={setDevSettings}
           onTestAnalyzer={(testInput) => analyzeChallenge()}
@@ -594,7 +594,7 @@ export function AiChallengeSummary({
               )}
               
               <p className="text-xs text-orange-600 mt-2 italic">
-                💡 Tip: Use "Add Details & Re-analyze" to clarify these points and improve validation accuracy.
+                💡 Tip: Use &quot;Add Details &amp; Re-analyze&quot; to clarify these points and improve validation accuracy.
               </p>
             </AlertDescription>
           </Alert>

@@ -70,7 +70,6 @@ function VerifyEmailContent() {
 
           if (signInResult?.ok) {
             console.log('✅ Auto sign-in successful!')
-            console.log('🎯 User onboarding status after sign-in:', signInResult?.user?.onboardingCompleted)
             console.log('🚀 Redirecting to onboarding page...')
             window.location.href = '/onboarding'
           } else {
@@ -329,7 +328,7 @@ function VerifyEmailContent() {
                   </p>
                 )}
                 <p className="text-sm text-slate-500 dark:text-slate-400 font-body">
-                  Didn't receive the email? Check your spam folder or enter your verification code below.
+                  Didn&apos;t receive the email? Check your spam folder or enter your verification code below.
                 </p>
               </div>
 

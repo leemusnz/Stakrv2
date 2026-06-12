@@ -5,7 +5,7 @@ export function isDemoUser(userId: string): boolean {
 }
 
 export function getDemoUserData(session: any) {
-  const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
+  const isAdmin = session.user.isAdmin === true
   
   return {
     user: {

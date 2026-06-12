@@ -116,7 +116,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Validate stake amount (range check)
     let stake = 0
     if (!challengeData.allow_points_only || !pointsOnly) {
-      stake = parseFloat(stakeAmount)
+      stake = Number(stakeAmount)
       if (isNaN(stake)) {
         return NextResponse.json({ error: 'Invalid stake amount' }, { status: 400 })
       }
@@ -228,16 +228,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ error: 'Insufficient credits' }, { status: 400 })
       }
       // Record ledger rows: stake lock, entry fee, insurance fee
+      // NOTE: descriptions must be passed as whole bound parameters — placing
+      // ${} inside a quoted SQL literal puts the placeholder in the string
+      // itself and the INSERT throws (param count mismatch). See P0-5.
       await sql`
         INSERT INTO credit_transactions (user_id, amount, transaction_type, related_challenge_id, description, created_at)
-        VALUES 
-          (${session.user.id}, ${-stake}, 'stake_lock', ${challengeId}, 'Stake locked for challenge: ${challengeData.title}', NOW()),
-          (${session.user.id}, ${-entryFee}, 'entry_fee', ${challengeId}, 'Entry fee for challenge: ${challengeData.title}', NOW())
+        VALUES
+          (${session.user.id}, ${-stake}, 'stake_lock', ${challengeId}, ${'Stake locked for challenge: ' + challengeData.title}, NOW()),
+          (${session.user.id}, ${-entryFee}, 'entry_fee', ${challengeId}, ${'Entry fee for challenge: ' + challengeData.title}, NOW())
       `
       if (insuranceFee > 0) {
         await sql`
           INSERT INTO credit_transactions (user_id, amount, transaction_type, related_challenge_id, description, created_at)
-          VALUES (${session.user.id}, ${-insuranceFee}, 'insurance_fee', ${challengeId}, 'Insurance fee for challenge: ${challengeData.title}', NOW())
+          VALUES (${session.user.id}, ${-insuranceFee}, 'insurance_fee', ${challengeId}, ${'Insurance fee for challenge: ' + challengeData.title}, NOW())
         `
       }
     }

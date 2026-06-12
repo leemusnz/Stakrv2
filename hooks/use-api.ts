@@ -126,7 +126,7 @@ export function useMutation<T = any, P = any>(
     optimisticUpdate?: (variables: P) => void
     onOptimisticError?: () => void
   } = {}
-): Omit<UseApiReturn<T>, 'data'> & { mutate: (variables: P) => Promise<T | null> } {
+): Omit<UseApiReturn<T>, 'data' | 'execute'> & { mutate: (variables: P) => Promise<T | null> } {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

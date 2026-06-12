@@ -586,7 +586,7 @@ export function ProofSubmission({
                   <div>
                     <h3 className="text-lg font-medium mb-2">Capture Location</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Share your current location to verify you're at the right place
+                      Share your current location to verify you&apos;re at the right place
                     </p>
                   </div>
                   <Button onClick={captureLocation}>

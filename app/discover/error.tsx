@@ -29,7 +29,7 @@ export default function DiscoverError({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            We couldn't fetch the challenge listings. Please try again to explore more challenges.
+            We couldn&apos;t fetch the challenge listings. Please try again to explore more challenges.
           </p>
           {error.message && (
             <div className="rounded-md bg-destructive/10 p-3 border border-destructive/20">

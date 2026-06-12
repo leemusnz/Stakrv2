@@ -798,9 +798,11 @@ export class AppIntegrationManager {
         reasons: this.generateVerificationReasons(appVerified, dataAuthentic, timelineValid, progressConsistent),
         metadata: {
           appVerified,
-          dataAuthentic,
+          // authenticity/consistency are 0-100 scores; report pass/fail at the
+          // same 70 threshold used for overall validity
+          dataAuthentic: dataAuthentic >= 70,
           timelineValid,
-          progressConsistent
+          progressConsistent: progressConsistent >= 70
         }
       }
     } catch (error) {

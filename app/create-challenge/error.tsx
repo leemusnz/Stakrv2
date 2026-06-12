@@ -25,7 +25,7 @@ export default function CreateChallengeError({
             <AlertCircle className="h-5 w-5" />
             <CardTitle>Challenge Creation Error</CardTitle>
           </div>
-          <CardDescription>We couldn't load the challenge creation form</CardDescription>
+          <CardDescription>We couldn&apos;t load the challenge creation form</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">

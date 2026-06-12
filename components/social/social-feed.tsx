@@ -169,10 +169,10 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
     const action = item.engagement.liked ? 'unlike' : 'like'
     
     try {
-      await likeMutate({ feedItemId: itemId, action })
-      
+      const data = await likeMutate({ feedItemId: itemId, action })
+
       // Original success handling (now redundant with optimistic update, but keeping for compatibility)
-      if (true) {
+      if (data) {
         setFeedItems((items) =>
           items.map((item) =>
             item.id === itemId
@@ -469,7 +469,7 @@ export function SocialFeed({ filter = "all", showFilters = true }: SocialFeedPro
                         size="sm" 
                         variant="outline" 
                         className="bg-transparent"
-                        onClick={() => window.location.href = `/challenge/${item.content.challenge.id}`}
+                        onClick={() => window.location.href = `/challenge/${item.content.challenge}`}
                       >
                         {item.type === "challenge_created" ? "Join Challenge" : "View Challenge"}
                       </Button>

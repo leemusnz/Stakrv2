@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // Check for demo mode (new system) OR demo users (legacy compatibility)
     if (shouldUseDemoData(request, session) || false) {
-      const isAdmin = session.user.isAdmin || session.user.email === 'alex@stakr.app'
+      const isAdmin = session.user.isAdmin === true
       
       // Get comprehensive demo data
       const demoUserData = getDemoUserData(session)

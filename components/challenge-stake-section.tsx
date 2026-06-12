@@ -193,7 +193,7 @@ export function ChallengeStakeSection({
         <CardHeader>
           <CardTitle className="text-lg font-bold text-green-600 flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            You're In!
+            You&apos;re In!
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -202,7 +202,7 @@ export function ChallengeStakeSection({
             <p className="text-sm text-green-700 font-medium">
               {challenge.hasTeams ? 'Ready to compete with your team!' : 'Challenge participation confirmed'}
             </p>
-            <p className="text-xs text-green-600 mt-1">You'll receive daily reminders and updates</p>
+            <p className="text-xs text-green-600 mt-1">You&apos;ll receive daily reminders and updates</p>
           </div>
 
           <Button className="w-full" variant="outline">
@@ -305,7 +305,7 @@ export function ChallengeStakeSection({
                 <div>
                   <p className="text-sm font-medium text-blue-800">Team Challenge</p>
                   <p className="text-xs text-blue-600">
-                    You'll be automatically assigned to a balanced team to compete together!
+                    You&apos;ll be automatically assigned to a balanced team to compete together!
                   </p>
                 </div>
               </div>
@@ -534,7 +534,7 @@ export function ChallengeStakeSection({
             <div className="flex items-start gap-2">
               <Trophy className="w-4 h-4 text-green-600 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-green-800">You're the Host!</p>
+                <p className="text-sm font-medium text-green-800">You&apos;re the Host!</p>
                 <p className="text-xs text-green-600">
                   Participate alongside your community and earn both hosting revenue AND potential winnings!
                 </p>
@@ -551,7 +551,7 @@ export function ChallengeStakeSection({
               <div>
                 <p className="text-sm font-medium text-blue-800">Team Challenge</p>
                 <p className="text-xs text-blue-600">
-                  You'll be assigned to a balanced team. Work together to maximize everyone's success!
+                  You&apos;ll be assigned to a balanced team. Work together to maximize everyone&apos;s success!
                 </p>
               </div>
             </div>

@@ -100,7 +100,7 @@ export function StreamlinedGoalsStep({ data, onNext }: StreamlinedGoalsStepProps
           What Areas Do You Want to <span className="text-primary">Improve</span>?
         </h1>
         <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-          Select the categories that matter most to you. We'll recommend challenges that fit your goals.
+          Select the categories that matter most to you. We&apos;ll recommend challenges that fit your goals.
         </p>
       </div>
 
@@ -151,9 +151,9 @@ export function StreamlinedGoalsStep({ data, onNext }: StreamlinedGoalsStepProps
       {selectedCategories.length > 0 && (
         <Card className="bg-primary/5 border-primary/20">
           <CardContent className="p-6 text-center">
-            <h3 className="font-bold mb-2">Perfect! You've selected {selectedCategories.length} focus areas</h3>
+            <h3 className="font-bold mb-2">Perfect! You&apos;ve selected {selectedCategories.length} focus areas</h3>
             <p className="text-sm text-muted-foreground">
-              We'll show you challenges that help you build habits in these areas.
+              We&apos;ll show you challenges that help you build habits in these areas.
             </p>
           </CardContent>
         </Card>

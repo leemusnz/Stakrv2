@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/require-admin'
 import { createDbConnection } from '@/lib/db'
 import { systemLogger } from '@/lib/system-logger'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Admin access required'
-      }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     
     const sql = createDbConnection()
@@ -110,7 +102,7 @@ export async function GET(request: NextRequest) {
 
     
     systemLogger.info('AI system stats accessed', 'admin', {
-      userId: session.user.id,
+      userId: admin.userId,
       statsLoaded: {
         submissions: systemStats.todayStats.totalSubmissions,
         highRiskUsers: highRiskUsers.length,
@@ -160,14 +152,8 @@ export async function GET(request: NextRequest) {
 // POST endpoint for AI system actions (retraining, pattern updates, etc.)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized'
-      }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     const body = await request.json()
     const { action, data } = body
@@ -176,7 +162,7 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'retrain-model':
         // Placeholder for model retraining
-        systemLogger.info('AI model retrain requested', 'admin', { userId: session.user.id })
+        systemLogger.info('AI model retrain requested', 'admin', { userId: admin.userId })
         return NextResponse.json({
           success: true,
           message: 'Model retraining initiated (placeholder)'
@@ -191,8 +177,8 @@ export async function POST(request: NextRequest) {
           WHERE pattern_name = ${data.patternName}
         `
         
-        systemLogger.info('Detection pattern updated', 'admin', { 
-          userId: session.user.id,
+        systemLogger.info('Detection pattern updated', 'admin', {
+          userId: admin.userId,
           pattern: data.patternName,
           active: data.isActive
         })
@@ -212,8 +198,8 @@ export async function POST(request: NextRequest) {
             WHERE user_id = ${data.userId}
           `
           
-          systemLogger.info('User risk profile reset', 'admin', { 
-            userId: session.user.id,
+          systemLogger.info('User risk profile reset', 'admin', {
+            userId: admin.userId,
             targetUser: data.userId
           })
           

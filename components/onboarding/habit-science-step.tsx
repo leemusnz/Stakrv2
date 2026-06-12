@@ -25,7 +25,7 @@ export function HabitScienceStep({ onNext }: HabitScienceStepProps) {
           Why <span className="text-primary">Most</span> Habit Apps Fail
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          We studied the research. Here's what actually works for building lasting habits.
+          We studied the research. Here&apos;s what actually works for building lasting habits.
         </p>
       </div>
 
@@ -40,7 +40,7 @@ export function HabitScienceStep({ onNext }: HabitScienceStepProps) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <div className="text-3xl font-bold text-destructive">92%</div>
-                <p className="text-sm text-muted-foreground">of people fail their New Year's resolutions</p>
+                <p className="text-sm text-muted-foreground">of people fail their New Year&apos;s resolutions</p>
               </div>
               <div className="space-y-2">
                 <div className="text-3xl font-bold text-destructive">23%</div>
@@ -52,7 +52,7 @@ export function HabitScienceStep({ onNext }: HabitScienceStepProps) {
               </div>
             </div>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              <strong>Why?</strong> Because motivation fades, there's no real consequence for quitting, and your brain
+              <strong>Why?</strong> Because motivation fades, there&apos;s no real consequence for quitting, and your brain
               is wired to choose immediate comfort over long-term benefits.
             </p>
           </div>
@@ -84,7 +84,7 @@ export function HabitScienceStep({ onNext }: HabitScienceStepProps) {
             </div>
             <h3 className="text-xl font-bold">Implementation Intentions</h3>
             <p className="text-sm text-muted-foreground">
-              Studies show that people who make specific "if-then" plans are <strong>300% more likely</strong>
+              Studies show that people who make specific &quot;if-then&quot; plans are <strong>300% more likely</strong>
               to follow through. Our challenges force you to be specific.
             </p>
             <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20">
@@ -101,7 +101,7 @@ export function HabitScienceStep({ onNext }: HabitScienceStepProps) {
             <h3 className="text-xl font-bold">Social Accountability</h3>
             <p className="text-sm text-muted-foreground">
               Public commitment increases success rates by <strong>65%</strong>. When others can see your progress,
-              you're less likely to quit.
+              you&apos;re less likely to quit.
             </p>
             <Badge variant="outline" className="bg-orange-500/10 text-orange-500 border-orange-500/20">
               📚 Cialdini, 2006
@@ -158,7 +158,7 @@ export function HabitScienceStep({ onNext }: HabitScienceStepProps) {
       {/* CTA */}
       <div className="text-center space-y-4">
         <Button onClick={() => onNext()} size="lg" className="text-lg font-bold px-12 py-6">
-          I'm Convinced - Show Me How
+          I&apos;m Convinced - Show Me How
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
 

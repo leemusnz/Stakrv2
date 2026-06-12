@@ -71,7 +71,12 @@ const mockChallengesEmpty = {
   challenges: []
 }
 
-describe('Thumbnail System Tests', () => {
+// QUARANTINED (Phase 0, June 2026): this suite asserts behavior that has
+// drifted from the implementation (it renders a YouTubeStyleChallengeCard component that was never
+// created — see the TODO import above). Explicit quarantine per the approved
+// recovery plan (Phase 1, week 1: "fix the 40 failing tests or quarantine
+// explicitly" — docs/audits/2026-06-engineering-review/APPROVED_PLAN.md).
+describe.skip('Thumbnail System Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     // Reset fetch mock

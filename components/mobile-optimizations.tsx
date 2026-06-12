@@ -5,7 +5,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/components/ui/use-mobile"
 
 // 1. MOBILE-FIRST BUTTON SIZES
 // Current: Some buttons might be too small for touch

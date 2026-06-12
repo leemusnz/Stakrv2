@@ -284,7 +284,7 @@ export default function ChallengePage() {
           <AlertDescription className="text-blue-700">
             <div className="flex items-center justify-between">
               <span>
-                <strong>You're the host!</strong> Want to participate alongside your community? 
+                <strong>You&apos;re the host!</strong> Want to participate alongside your community? 
                 You can stake money and compete for rewards just like everyone else.
               </span>
               <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">

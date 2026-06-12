@@ -25,11 +25,11 @@ export default function ProfileError({
             <AlertCircle className="h-5 w-5" />
             <CardTitle>Profile Load Error</CardTitle>
           </div>
-          <CardDescription>We couldn't load the profile information</CardDescription>
+          <CardDescription>We couldn&apos;t load the profile information</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            There was an issue displaying the profile. Please try again, and we'll get you back on track.
+            There was an issue displaying the profile. Please try again, and we&apos;ll get you back on track.
           </p>
           {error.message && (
             <div className="rounded-md bg-destructive/10 p-3 border border-destructive/20">

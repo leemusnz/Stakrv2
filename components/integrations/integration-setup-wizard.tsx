@@ -155,7 +155,7 @@ export function IntegrationSetupWizard({
             <div className="text-center space-y-2">
               <h3 className="text-xl font-semibold">What type of challenges interest you most?</h3>
               <p className="text-muted-foreground">
-                We'll help you connect the right apps and devices for automatic verification.
+                We&apos;ll help you connect the right apps and devices for automatic verification.
               </p>
             </div>
 
@@ -207,7 +207,7 @@ export function IntegrationSetupWizard({
             <div className="text-center space-y-2">
               <h3 className="text-xl font-semibold">Connect Your {selectedCategoryData.title} Apps</h3>
               <p className="text-muted-foreground">
-                Choose which apps and devices you'd like to connect for automatic challenge verification.
+                Choose which apps and devices you&apos;d like to connect for automatic challenge verification.
               </p>
             </div>
 
@@ -384,7 +384,7 @@ export function IntegrationSetupWizard({
             </div>
 
             <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border">
-              <h4 className="font-semibold text-lg mb-3">What's Next?</h4>
+              <h4 className="font-semibold text-lg mb-3">What&apos;s Next?</h4>
               <div className="space-y-2 text-sm text-left">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600" />

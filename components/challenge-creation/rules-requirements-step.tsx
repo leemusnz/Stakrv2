@@ -63,7 +63,7 @@ export function RulesRequirementsStep({
       <div className="text-center space-y-2">
         <h2 className="text-lg font-semibold text-foreground">Set the rules and requirements</h2>
         <p className="text-muted-foreground">
-          Clear rules help participants succeed and ensure fair play. Be specific about what's expected daily.
+          Clear rules help participants succeed and ensure fair play. Be specific about what&apos;s expected daily.
         </p>
       </div>
 
@@ -215,9 +215,9 @@ export function RulesRequirementsStep({
               <div>
                 <p className="font-medium mb-1">Examples:</p>
                 <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• "Meditate for 10+ minutes"</li>
-                  <li>• "Read 20+ pages"</li>
-                  <li>• "Exercise for 30+ minutes"</li>
+                  <li>• &quot;Meditate for 10+ minutes&quot;</li>
+                  <li>• &quot;Read 20+ pages&quot;</li>
+                  <li>• &quot;Exercise for 30+ minutes&quot;</li>
                 </ul>
               </div>
             </CardContent>

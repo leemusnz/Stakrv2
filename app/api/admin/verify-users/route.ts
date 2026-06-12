@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/require-admin'
 import { createDbConnection } from '@/lib/db'
 import { systemLogger } from '@/lib/system-logger'
 
 export async function POST(request: NextRequest) {
   try {
     // Check if user is admin
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Admin access required'
-      }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
+    const session = admin.session
 
     const body = await request.json()
     const { email, verifyAll } = body
@@ -88,14 +82,8 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check if user is admin
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Admin access required'
-      }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     const sql = createDbConnection()
 

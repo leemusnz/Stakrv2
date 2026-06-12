@@ -174,7 +174,7 @@ export function PostCreationModal({
 
           {/* Main Content */}
           <div className="space-y-2">
-            <Label htmlFor="content">What's on your mind?</Label>
+            <Label htmlFor="content">What&apos;s on your mind?</Label>
             <Textarea
               id="content"
               placeholder={challengeContext ? 

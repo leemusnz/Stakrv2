@@ -97,7 +97,7 @@ export function InterestSelectionStep({ data, onNext }: InterestSelectionStepPro
           Step 2 of 5
         </Badge>
         <h1 className="text-4xl font-bold">
-          What's Your <span className="text-primary">Experience</span> Level?
+          What&apos;s Your <span className="text-primary">Experience</span> Level?
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Help us recommend the right challenges for your skill level and interests.
@@ -237,7 +237,7 @@ export function InterestSelectionStep({ data, onNext }: InterestSelectionStepPro
             Smart Matching
           </h3>
           <p className="text-sm text-muted-foreground">
-            Based on your experience level and interests, we'll recommend challenges with the highest success rates for
+            Based on your experience level and interests, we&apos;ll recommend challenges with the highest success rates for
             people like you. <strong>Beginners</strong> get shorter, easier challenges to build confidence.
             <strong>Experts</strong> get more ambitious goals with higher stakes.
           </p>

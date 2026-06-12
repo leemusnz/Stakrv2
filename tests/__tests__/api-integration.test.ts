@@ -17,14 +17,28 @@ jest.mock('@/lib/db', () => ({
   db: null
 }))
 
-// Mock NextAuth
+// Mock NextAuth — routes import getServerSession from either 'next-auth' or
+// 'next-auth/next'; expose the SAME mock through both so per-test overrides
+// (e.g. mockResolvedValueOnce(null)) apply regardless of the import path.
 jest.mock('next-auth/next', () => ({
   getServerSession: jest.fn()
 }))
+jest.mock('next-auth', () => jest.requireMock('next-auth/next'))
 
 jest.mock('@/lib/auth', () => ({
   authOptions: {}
 }))
+
+const { getServerSession: mockGetServerSession } = require('next-auth/next')
+
+// Default: an authenticated user (individual tests override with
+// mockResolvedValueOnce(null) for unauthenticated cases). Re-established
+// before every test because jest.config sets resetMocks: true.
+beforeEach(() => {
+  ;(mockGetServerSession as jest.Mock).mockResolvedValue({
+    user: { id: 'test-user-id', email: 'test@example.com' }
+  })
+})
 
 // Mock demo mode
 jest.mock('@/lib/demo-mode', () => ({
@@ -372,7 +386,7 @@ describe('Social Feed API Integration', () => {
     })
 
     it('should handle pagination parameters', async () => {
-      mockSql.mockResolvedValueOnce([])
+      mockSql.mockResolvedValue([])
 
       const request = new NextRequest('http://localhost:3000/api/social/feed?cursor=post-123&limit=20')
       const response = await GET(request)

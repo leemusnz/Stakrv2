@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
           username,
           accessToken,
           refreshToken,
-          expiresAt: accessToken ? Math.floor(Date.now() / 1000) + 3600 : null // Default 1hr expiry
+          expiresAt: accessToken ? Math.floor(Date.now() / 1000) + 3600 : undefined // Default 1hr expiry
         })},
         ${JSON.stringify(dataTypes)},
         NOW(),
@@ -215,12 +215,13 @@ export async function DELETE(request: NextRequest) {
 
     // Remove from database
     const result = await sql`
-      DELETE FROM app_integrations 
-      WHERE user_id = ${session.user.id} 
+      DELETE FROM app_integrations
+      WHERE user_id = ${session.user.id}
       AND app_type = ${app}
+      RETURNING id
     `
 
-    if (result.count === 0) {
+    if (result.length === 0) {
       return NextResponse.json({ error: 'Integration not found' }, { status: 404 })
     }
 

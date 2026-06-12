@@ -235,7 +235,7 @@ export function BasicInfoStep({
                     <div className="grid grid-cols-1 gap-1">
                       <p className="text-xs text-muted-foreground">• What participants do each day</p>
                       <p className="text-xs text-muted-foreground">• Time commitment required</p>
-                      <p className="text-xs text-muted-foreground">• Benefits they'll experience</p>
+                      <p className="text-xs text-muted-foreground">• Benefits they&apos;ll experience</p>
                       <p className="text-xs text-muted-foreground">• What makes this challenge unique</p>
                     </div>
                   </div>
@@ -391,7 +391,7 @@ export function BasicInfoStep({
                     <ul className="text-blue-600 space-y-1 text-xs">
                       <li>• Use specific tags that describe your challenge type</li>
                       <li>• Include difficulty level and target audience</li>
-                      <li>• Add benefit-focused tags (e.g., "stress-relief", "strength")</li>
+                      <li>• Add benefit-focused tags (e.g., &quot;stress-relief&quot;, &quot;strength&quot;)</li>
                       <li>• Tags help people discover your challenge in search</li>
                     </ul>
                   </div>

@@ -278,7 +278,7 @@ export function RandomCheckinModal({
                   <span className="font-medium text-green-700 dark:text-green-300">Say This Word:</span>
                 </div>
                 <div className="text-lg font-bold text-green-800 dark:text-green-200 mb-1">
-                  "{checkin.required_word}"
+                  &quot;{checkin.required_word}&quot;
                 </div>
                 {checkin.word_pronunciation && (
                   <p className="text-sm text-green-700 dark:text-green-300">
@@ -406,7 +406,7 @@ export function RandomCheckinModal({
           {checkin.checkin_type === 'location_verify' && (
             <div className="space-y-4">
               <div className="text-center text-sm text-muted-foreground">
-                We'll verify your current location to ensure you're actively participating
+                We&apos;ll verify your current location to ensure you&apos;re actively participating
               </div>
               <Button
                 onClick={submitLocationResponse}
@@ -430,7 +430,7 @@ export function RandomCheckinModal({
                 }}
                 className="w-full text-muted-foreground"
               >
-                Can't complete this verification
+                Can&apos;t complete this verification
               </Button>
               <p className="text-xs text-muted-foreground text-center mt-1">
                 This will significantly impact your session quality score

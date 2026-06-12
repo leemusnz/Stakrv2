@@ -323,7 +323,7 @@ export function ProofSettingsStep({
                 </CardHeader>
                 <CardContent className="text-sm">
                   <p className="text-blue-700 mb-3">
-                    You've selected smart verification methods. To use these during your challenge:
+                    You&apos;ve selected smart verification methods. To use these during your challenge:
                   </p>
                   <ol className="text-xs text-blue-600 space-y-1 list-decimal list-inside">
                     <li>Go to Settings → Integrations after creating this challenge</li>
@@ -450,7 +450,7 @@ export function ProofSettingsStep({
                             <ul className="text-xs text-yellow-700 space-y-1">
                               <li>• Participants may be asked to show specific hand gestures</li>
                               <li>• Or say verification words during their session</li>
-                              <li>• Helps ensure they're actually doing the activity</li>
+                              <li>• Helps ensure they&apos;re actually doing the activity</li>
                               <li>• Failed verifications affect their quality score</li>
                             </ul>
                           </div>
@@ -546,9 +546,9 @@ export function ProofSettingsStep({
               <div>
                 <p className="font-medium mb-1">Good Instructions:</p>
                 <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• "Show your workout setup"</li>
-                  <li>• "Include the book title"</li>
-                  <li>• "Write 2-3 sentences"</li>
+                  <li>• &quot;Show your workout setup&quot;</li>
+                  <li>• &quot;Include the book title&quot;</li>
+                  <li>• &quot;Write 2-3 sentences&quot;</li>
                 </ul>
               </div>
             </CardContent>

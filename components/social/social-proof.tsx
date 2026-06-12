@@ -202,7 +202,7 @@ export function SocialProof({
                     </div>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground italic">"{testimonial.text}"</p>
+                <p className="text-sm text-muted-foreground italic">&quot;{testimonial.text}&quot;</p>
               </div>
             ))}
           </CardContent>

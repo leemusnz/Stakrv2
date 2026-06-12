@@ -29,7 +29,7 @@ export default function DashboardError({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            We're sorry for the inconvenience. Please try again, and if the problem persists, contact our support team.
+            We&apos;re sorry for the inconvenience. Please try again, and if the problem persists, contact our support team.
           </p>
           {error.message && (
             <div className="rounded-md bg-destructive/10 p-3 border border-destructive/20">

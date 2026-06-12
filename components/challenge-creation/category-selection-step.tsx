@@ -153,7 +153,7 @@ export function CategorySelectionStep({ selectedCategory, onCategorySelect }: Ca
             Great Choice!
           </div>
           <p className="text-sm text-muted-foreground">
-            You've selected <strong>{challengeCategories.find((c) => c.id === selectedCategory)?.title}</strong>. This
+            You&apos;ve selected <strong>{challengeCategories.find((c) => c.id === selectedCategory)?.title}</strong>. This
             will help participants understand what to expect and make your challenge easier to discover.
           </p>
         </div>

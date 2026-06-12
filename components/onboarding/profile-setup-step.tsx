@@ -120,7 +120,7 @@ export function ProfileSetupStep({ data, onNext }: ProfileSetupStepProps) {
           Step 4 of 5
         </Badge>
         <h1 className="text-4xl font-bold">
-          Let's Set Up Your <span className="text-primary">Profile</span>
+          Let&apos;s Set Up Your <span className="text-primary">Profile</span>
         </h1>
         <p className="text-lg text-muted-foreground">
           What should we call you? Your name will be visible to other challengers for accountability.

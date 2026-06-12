@@ -671,7 +671,7 @@ export function ChallengeFeaturesStep({
                           • <strong>Personal growth focus</strong> - all about your individual journey
                         </li>
                         <li>
-                          • <strong>Flexible timing</strong> - start whenever you're ready
+                          • <strong>Flexible timing</strong> - start whenever you&apos;re ready
                         </li>
                         <li>
                           • <strong>Privacy</strong> - no one else sees your progress unless you share

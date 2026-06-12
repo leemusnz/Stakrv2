@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/require-admin'
 import { createDbConnection } from '@/lib/db'
 
 
@@ -89,21 +88,10 @@ const getDemoAnalytics = () => ({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
-    // Check if user has admin access
     const sql = createDbConnection()
-    const adminCheck = await sql`
-      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
-    `
-    
-    if (!adminCheck[0]?.has_dev_access) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
 
     // Always return real analytics data
 

@@ -121,8 +121,9 @@ async function findUserInDatabase(email: string) {
         xp,
         level,
         is_dev,
+        has_dev_access,
         dev_mode_enabled
-      FROM users 
+      FROM users
       WHERE email = ${email}
       LIMIT 1
     `
@@ -210,12 +211,8 @@ export const authOptions: NextAuthOptions = {
               )) {
                 throw new Error("OAUTH_ACCOUNT_EXISTS")
               }
-              // Fallback to plain text for development (only if hash exists)
-              if (dbUser.password_hash && typeof dbUser.password_hash === 'string') {
-                isValidPassword = credentials.password === dbUser.password_hash
-              } else {
-                throw new Error("OAUTH_ACCOUNT_EXISTS")
-              }
+              // Never fall back to plaintext comparison — fail the login instead
+              return null
             }
             
 
@@ -236,7 +233,7 @@ export const authOptions: NextAuthOptions = {
               currentStreak: dbUser.current_streak || 0,
               longestStreak: dbUser.longest_streak || 0,
               premiumSubscription: dbUser.premium_subscription || false,
-              isAdmin: dbUser.email === 'alex@stakr.app', // Admin check
+              isAdmin: dbUser.is_dev || dbUser.has_dev_access || false,
               onboardingCompleted: dbUser.onboarding_completed || false,
               isDev: dbUser.is_dev || false,
               devModeEnabled: dbUser.dev_mode_enabled || false,
@@ -246,35 +243,8 @@ export const authOptions: NextAuthOptions = {
             }
           }
 
-          // Fallback to demo users if not found in database
-          const demoUser = demoUsers.find((u) => u.email === credentials.email)
-
-          if (!demoUser) {
-            return null
-          }
-
-
-          // Simple password comparison for demo users
-          const isValidPassword = credentials.password === demoUser.password
-
-          if (!isValidPassword) {
-            return null
-          }
-
-
-          return {
-            id: demoUser.id,
-            email: demoUser.email,
-            name: demoUser.name,
-            credits: demoUser.credits,
-            trustScore: demoUser.trustScore,
-            verificationTier: demoUser.verificationTier,
-            isAdmin: demoUser.isAdmin,
-            onboardingCompleted: demoUser.onboardingCompleted,
-            isDev: demoUser.email === "alex@stakr.app",
-            devModeEnabled: false,
-            emailVerified: true,
-          }
+          // No database user found — fail closed (demo users are dev-only, handled above)
+          return null
         } catch (error) {
           console.error("❌ Error in authorize callback:", error)
           
@@ -287,7 +257,10 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
-    CredentialsProvider({
+    // SECURITY: this provider authenticates with only email + userId (no secret).
+    // It exists solely for local development of the post-verification auto-login
+    // flow and must never be enabled in production (see docs/audits/2026-06).
+    ...(process.env.ALLOW_DEV_AUTH === 'true' ? [CredentialsProvider({
       name: "verification",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -318,7 +291,7 @@ export const authOptions: NextAuthOptions = {
               currentStreak: dbUser.current_streak || 0,
               longestStreak: dbUser.longest_streak || 0,
               premiumSubscription: dbUser.premium_subscription || false,
-              isAdmin: dbUser.is_dev || dbUser.has_dev_access || dbUser.email === 'alex@stakr.app',
+              isAdmin: dbUser.is_dev || dbUser.has_dev_access || false,
               isDev: dbUser.is_dev || false,
               devModeEnabled: dbUser.dev_mode_enabled || false,
               xp: dbUser.xp || 0,
@@ -332,7 +305,7 @@ export const authOptions: NextAuthOptions = {
           return null
         }
       },
-    }),
+    })] : []),
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [
           GoogleProvider({
@@ -489,7 +462,7 @@ export const authOptions: NextAuthOptions = {
               user.currentStreak = dbUser.current_streak || 0
               user.longestStreak = dbUser.longest_streak || 0
               user.premiumSubscription = dbUser.premium_subscription || false
-              user.isAdmin = dbUser.is_dev || dbUser.has_dev_access || dbUser.email === 'alex@stakr.app'
+              user.isAdmin = dbUser.is_dev || dbUser.has_dev_access || false
               user.onboardingCompleted = dbUser.onboarding_completed || false
               user.isDev = dbUser.is_dev || false
               user.devModeEnabled = dbUser.dev_mode_enabled || false
