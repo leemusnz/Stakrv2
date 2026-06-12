@@ -107,7 +107,7 @@ export function GoalSelectionStep({ data, onNext }: GoalSelectionStepProps) {
           What Do You Want to <span className="text-primary">Achieve</span>?
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Select the areas where you want to build lasting habits. We'll recommend challenges that match your goals.
+          Select the areas where you want to build lasting habits. We&apos;ll recommend challenges that match your goals.
         </p>
       </div>
 

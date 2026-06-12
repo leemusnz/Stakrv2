@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { triggerAutoSync, SYNC_TRIGGERS, requiresAutoSync, type ChallengeData, syncChallengeData, type SyncResult } from '@/lib/auto-sync-service'
+import { triggerAutoSync, SYNC_TRIGGERS, requiresAutoSync, type ChallengeData, type SyncTrigger, syncChallengeData, type SyncResult } from '@/lib/auto-sync-service'
 import { createDbConnection } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const challengeId: string | undefined = body?.challengeId
-    const trigger: keyof typeof SYNC_TRIGGERS = body?.trigger || 'manual_sync'
+    const trigger: SyncTrigger = body?.trigger || SYNC_TRIGGERS.MANUAL_SYNC
     // Optional provider targeting (not strictly required by backend sync yet, but accepted for API ergonomics)
     const provider: string | undefined = body?.provider // e.g. 'strava', 'spotify'
     const integrationType: 'wearable' | 'app' | undefined = body?.type

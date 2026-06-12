@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
           clientSecret,
           accessToken,
           refreshToken,
-          expiresAt: accessToken ? Math.floor(Date.now() / 1000) + 3600 : null // Default 1hr expiry
+          expiresAt: accessToken ? Math.floor(Date.now() / 1000) + 3600 : undefined // Default 1hr expiry
         })},
         NOW(),
         NOW()
@@ -212,12 +212,13 @@ export async function DELETE(request: NextRequest) {
 
     // Remove from database
     const result = await sql`
-      DELETE FROM wearable_integrations 
-      WHERE user_id = ${session.user.id} 
+      DELETE FROM wearable_integrations
+      WHERE user_id = ${session.user.id}
       AND device_type = ${device}
+      RETURNING id
     `
 
-    if (result.count === 0) {
+    if (result.length === 0) {
       return NextResponse.json({ error: 'Integration not found' }, { status: 404 })
     }
 

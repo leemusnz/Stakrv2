@@ -244,7 +244,7 @@ export async function PATCH(request: NextRequest) {
     
     const values = [session.user.id, ...Object.values(updates)]
     
-    await sql.unsafe(`
+    await sql.query(`
       UPDATE notification_preferences
       SET ${setClause}, updated_at = NOW()
       WHERE user_id = $1

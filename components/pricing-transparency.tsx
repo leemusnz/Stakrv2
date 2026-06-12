@@ -24,7 +24,7 @@ export function PricingTransparency({ variant = "full", showExamples = true }: P
           </Badge>
           <h2 className="text-2xl font-bold">How Stakr Makes Money</h2>
           <p className="text-muted-foreground">
-            We believe in complete transparency. Here's exactly how our platform works financially.
+            We believe in complete transparency. Here&apos;s exactly how our platform works financially.
           </p>
         </div>
       )}
@@ -64,12 +64,12 @@ export function PricingTransparency({ variant = "full", showExamples = true }: P
           <CardContent className="space-y-3">
             <div className="text-center">
               <div className="text-3xl font-bold text-orange-600">20%</div>
-              <div className="text-sm text-orange-700">of non-completers' stakes</div>
+              <div className="text-sm text-orange-700">of non-completers&apos; stakes</div>
             </div>
             <div className="text-xs text-orange-600">
-              <p><strong>When:</strong> Only from people who don't finish</p>
+              <p><strong>When:</strong> Only from people who don&apos;t finish</p>
               <p><strong>Winners get:</strong> 80% of failed stakes</p>
-              <p><strong>Fair:</strong> You only pay if you don't complete</p>
+              <p><strong>Fair:</strong> You only pay if you don&apos;t complete</p>
             </div>
           </CardContent>
         </Card>
@@ -143,8 +143,8 @@ export function PricingTransparency({ variant = "full", showExamples = true }: P
                 <ul className="text-sm text-orange-700 space-y-1">
                   <li>• Entry fees: $500 (to Stakr)</li>
                   <li>• Failed stakes: $4,000</li>
-                  <li>• Stakr's cut: $800 (20%)</li>
-                  <li>• Winners' bonus: $3,200 (80%)</li>
+                  <li>• Stakr&apos;s cut: $800 (20%)</li>
+                  <li>• Winners&apos; bonus: $3,200 (80%)</li>
                 </ul>
               </div>
 

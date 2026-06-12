@@ -34,7 +34,7 @@ export function MobileFirstWelcomeStep({ onNext }: MobileFirstWelcomeStepProps) 
         </h1>
 
         <p className="text-base text-muted-foreground leading-relaxed">
-          Put something on the line. Get <strong>3x better results</strong>. It's that simple.
+          Put something on the line. Get <strong>3x better results</strong>. It&apos;s that simple.
         </p>
       </div>
 

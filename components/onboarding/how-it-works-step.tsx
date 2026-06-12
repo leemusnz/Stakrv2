@@ -37,7 +37,7 @@ export function HowItWorksStep({ onNext }: HowItWorksStepProps) {
           Step 2 of 8 - The System
         </Badge>
         <h1 className="text-4xl font-bold">
-          Here's How <span className="text-primary">Stakr</span> Works
+          Here&apos;s How <span className="text-primary">Stakr</span> Works
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Simple concept, powerful results. Put your money where your goals are.
@@ -71,7 +71,7 @@ export function HowItWorksStep({ onNext }: HowItWorksStepProps) {
             <div className="space-y-2">
               <h3 className="text-xl font-bold">2. Do the Challenge</h3>
               <p className="text-muted-foreground">
-                Complete daily tasks, submit proof, get community support. We're here to help you win.
+                Complete daily tasks, submit proof, get community support. We&apos;re here to help you win.
               </p>
             </div>
             <Badge variant="outline" className="bg-success/10 text-success border-success/20">
@@ -88,7 +88,7 @@ export function HowItWorksStep({ onNext }: HowItWorksStepProps) {
             <div className="space-y-2">
               <h3 className="text-xl font-bold">3. Win or Learn</h3>
               <p className="text-muted-foreground">
-                Complete it? Get your money back + bonus rewards. Don't? We help you bounce back stronger.
+                Complete it? Get your money back + bonus rewards. Don&apos;t? We help you bounce back stronger.
               </p>
             </div>
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
@@ -164,11 +164,11 @@ export function HowItWorksStep({ onNext }: HowItWorksStepProps) {
           <div className="text-center space-y-6">
             <div className="flex items-center justify-center gap-3">
               <Heart className="w-6 h-6 text-orange-600" />
-              <h3 className="text-2xl font-bold">What If You Don't Complete It?</h3>
+              <h3 className="text-2xl font-bold">What If You Don&apos;t Complete It?</h3>
             </div>
 
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              <strong>We're designed to help you win.</strong> But if you don't complete your challenge, we're still
+              <strong>We&apos;re designed to help you win.</strong> But if you don&apos;t complete your challenge, we&apos;re still
               here to help you bounce back stronger.
             </p>
 
@@ -182,7 +182,7 @@ export function HowItWorksStep({ onNext }: HowItWorksStepProps) {
                   <li>• Daily reminders and progress tracking</li>
                   <li>• Community support and accountability partners</li>
                   <li>• Flexible proof submission (missed a day? Make it up!)</li>
-                  <li>• Real-time coaching when you're struggling</li>
+                  <li>• Real-time coaching when you&apos;re struggling</li>
                   <li>• Challenge modifications if life happens</li>
                 </ul>
               </div>
@@ -195,9 +195,9 @@ export function HowItWorksStep({ onNext }: HowItWorksStepProps) {
                 <ul className="space-y-2 text-muted-foreground">
                   <li>• Failure analysis to understand what went wrong</li>
                   <li>• Personalized recommendations for your next attempt</li>
-                  <li>• Community encouragement from others who've been there</li>
+                  <li>• Community encouragement from others who&apos;ve been there</li>
                   <li>• Earned comeback support (complete analysis to unlock help)</li>
-                  <li>• Easier "confidence builder" challenges to get back on track</li>
+                  <li>• Easier &quot;confidence builder&quot; challenges to get back on track</li>
                 </ul>
               </div>
             </div>
@@ -221,7 +221,7 @@ export function HowItWorksStep({ onNext }: HowItWorksStepProps) {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground italic text-center">
-                    "Failure is data, not defeat. We help you learn and come back stronger."
+                    &quot;Failure is data, not defeat. We help you learn and come back stronger.&quot;
                   </p>
                 </div>
               </CardContent>
@@ -277,7 +277,7 @@ export function HowItWorksStep({ onNext }: HowItWorksStepProps) {
       {/* CTA */}
       <div className="text-center space-y-4">
         <Button onClick={() => onNext()} size="lg" className="text-lg font-bold px-12 py-6">
-          I'm Ready to Start
+          I&apos;m Ready to Start
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
         <p className="text-sm text-muted-foreground">

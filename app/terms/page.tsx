@@ -17,7 +17,7 @@ export default function TermsOfServicePage() {
         <section>
           <h2 className="text-2xl font-bold mt-8 mb-4">1. Agreement to Terms</h2>
           <p>
-            By accessing or using Stakr ("Service," "Platform," "we," "us," or "our"), you agree to be bound by these Terms of Service ("Terms"). If you disagree with any part of these terms, you may not access the Service.
+            By accessing or using Stakr (&quot;Service,&quot; &quot;Platform,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;). If you disagree with any part of these terms, you may not access the Service.
           </p>
         </section>
 
@@ -108,7 +108,7 @@ export default function TermsOfServicePage() {
             <li>Submit genuine, unaltered proof</li>
             <li>Ensure proof clearly demonstrates challenge completion</li>
             <li>Submit proof within the challenge timeframe</li>
-            <li>Not submit others' work as your own</li>
+            <li>Not submit others&apos; work as your own</li>
           </ul>
 
           <h3 className="text-xl font-semibold mt-6 mb-3">6.2 Verification Process</h3>
@@ -129,7 +129,7 @@ export default function TermsOfServicePage() {
           
           <h3 className="text-xl font-semibold mt-6 mb-3">7.1 Payment Processing</h3>
           <p>
-            All payments are processed securely through Stripe. We do not store your payment information. By making a payment, you agree to Stripe's terms and conditions.
+            All payments are processed securely through Stripe. We do not store your payment information. By making a payment, you agree to Stripe&apos;s terms and conditions.
           </p>
 
           <h3 className="text-xl font-semibold mt-6 mb-3">7.2 Refund Policy</h3>
@@ -177,7 +177,7 @@ export default function TermsOfServicePage() {
             <li>You grant us permission to access specified data</li>
             <li>We use data solely for challenge verification</li>
             <li>You can disconnect integrations anytime</li>
-            <li>We're not responsible for third-party service failures</li>
+            <li>We&apos;re not responsible for third-party service failures</li>
             <li>Third-party terms and privacy policies apply</li>
           </ul>
 
@@ -207,9 +207,9 @@ export default function TermsOfServicePage() {
           <div className="bg-amber-50 dark:bg-amber-900/20 p-6 rounded-lg space-y-4">
             <p className="font-semibold">IMPORTANT DISCLAIMERS:</p>
             <ul className="list-disc pl-6 space-y-2">
-              <li>Stakr is provided "AS IS" without warranties of any kind</li>
+              <li>Stakr is provided &quot;AS IS&quot; without warranties of any kind</li>
               <li>We do not guarantee challenge outcomes or rewards</li>
-              <li>We're not responsible for user conduct or interactions</li>
+              <li>We&apos;re not responsible for user conduct or interactions</li>
               <li>Third-party integrations may fail or provide inaccurate data</li>
               <li>Platform availability may be interrupted</li>
               <li>Financial transactions carry inherent risks</li>

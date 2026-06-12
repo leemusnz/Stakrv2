@@ -1,5 +1,5 @@
 // Stakr Database Schema - Drizzle ORM
-import { pgTable, uuid, varchar, text, decimal, integer, boolean, timestamp, jsonb, uniqueIndex, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, decimal, integer, boolean, timestamp, jsonb, uniqueIndex, index, type AnyPgColumn } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
 // ================================
@@ -26,7 +26,7 @@ export const users = pgTable('users', {
   // Dev Access Fields
   isDev: boolean('is_dev').default(false).notNull(),
   devModeEnabled: boolean('dev_mode_enabled').default(false).notNull(),
-  devAccessGrantedBy: uuid('dev_access_granted_by').references(() => users.id),
+  devAccessGrantedBy: uuid('dev_access_granted_by').references((): AnyPgColumn => users.id),
   devAccessGrantedAt: timestamp('dev_access_granted_at'),
   // Stripe Connect for payouts
   stripeConnectAccountId: text('stripe_connect_account_id'),

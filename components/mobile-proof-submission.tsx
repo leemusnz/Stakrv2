@@ -248,7 +248,7 @@ export function ProofSubmissionExample() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-medium">Submit Today's Proof</h4>
+                  <h4 className="font-medium">Submit Today&apos;s Proof</h4>
                   <p className="text-sm text-muted-foreground">Daily Reading Habit</p>
                 </div>
                 <div className="flex items-center gap-2">

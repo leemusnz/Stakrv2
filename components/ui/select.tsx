@@ -6,12 +6,8 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-/** Default modal={false} avoids iOS quirks with body pointer-events / scroll lock on small screens. */
-function Select({
-  modal = false,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root modal={modal} {...props} />
+function Select(props: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>) {
+  return <SelectPrimitive.Root {...props} />
 }
 Select.displayName = "Select"
 

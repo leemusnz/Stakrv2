@@ -189,7 +189,7 @@ export function VerificationTrigger({
     <>
       <Button onClick={() => setIsModalOpen(true)} className={`font-bold ${className}`} size="lg">
         <div className="flex items-center gap-1 mr-2">{getRequiredProofIcons()}</div>
-        Submit Today's Proof
+        Submit Today&apos;s Proof
       </Button>
 
       <VerificationModal

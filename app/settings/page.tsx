@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { BackgroundImage } from "@/components/ui/background-image"
 import dynamic from "next/dynamic"
 import { DevModeToggle } from "@/components/dev-mode-toggle"
 import { ProfilePictureUpload } from "@/components/profile-picture-upload"
@@ -549,7 +550,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label htmlFor="friend-activity">Friend Activity</Label>
-                      <p className="text-sm text-muted-foreground">Updates about your friends' challenges</p>
+                      <p className="text-sm text-muted-foreground">Updates about your friends&apos; challenges</p>
                     </div>
                     <Switch
                       id="friend-activity"

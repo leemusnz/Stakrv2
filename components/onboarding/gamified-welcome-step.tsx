@@ -258,7 +258,7 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
           </div>
           <h3 className="font-heading font-bold text-lg mb-2">Squad Up</h3>
           <p className="text-sm text-muted-foreground">
-            Join thousands of others. Accountability is easier when you're not alone.
+            Join thousands of others. Accountability is easier when you&apos;re not alone.
           </p>
         </div>
       </div>

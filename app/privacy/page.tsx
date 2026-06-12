@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="text-2xl font-bold mt-8 mb-4">1. Introduction</h2>
           <p>
-            Welcome to Stakr ("we," "our," or "us"). We respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, disclose, and safeguard your information when you use our challenge-based accountability platform.
+            Welcome to Stakr (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). We respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, disclose, and safeguard your information when you use our challenge-based accountability platform.
           </p>
         </section>
 
@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
             <li><strong>Account Information:</strong> Name, email address, username, password (encrypted), profile picture</li>
             <li><strong>Profile Data:</strong> Bio, interests, goals, achievements</li>
             <li><strong>Challenge Data:</strong> Challenges you create, join, or complete</li>
-            <li><strong>Payment Information:</strong> Processed securely through Stripe (we don't store credit card details)</li>
+            <li><strong>Payment Information:</strong> Processed securely through Stripe (we don&apos;t store credit card details)</li>
             <li><strong>Proof Submissions:</strong> Photos, videos, text descriptions you upload for challenge verification</li>
             <li><strong>Communications:</strong> Messages, support requests, feedback</li>
           </ul>
@@ -120,7 +120,7 @@ export default function PrivacyPolicyPage() {
           </ul>
 
           <h3 className="text-xl font-semibold mt-6 mb-3">4.4 Business Transfers</h3>
-          <p>If Stakr is involved in a merger, acquisition, or sale, your information may be transferred. We'll notify you before this happens.</p>
+          <p>If Stakr is involved in a merger, acquisition, or sale, your information may be transferred. We&apos;ll notify you before this happens.</p>
         </section>
 
         <section>
@@ -136,7 +136,7 @@ export default function PrivacyPolicyPage() {
             <li><strong>Control:</strong> You can disconnect Whoop anytime</li>
           </ul>
           <p className="mt-4 text-sm text-muted-foreground">
-            This integration uses Whoop API. Not affiliated with, endorsed by, or officially supported by Whoop Inc. See Whoop's Privacy Policy: <a href="https://www.whoop.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="underline">https://www.whoop.com/privacy-policy/</a>
+            This integration uses Whoop API. Not affiliated with, endorsed by, or officially supported by Whoop Inc. See Whoop&apos;s Privacy Policy: <a href="https://www.whoop.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="underline">https://www.whoop.com/privacy-policy/</a>
           </p>
 
           <h3 className="text-xl font-semibold mt-6 mb-3">5.2 Other Integrations</h3>
@@ -194,7 +194,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold mt-8 mb-4">9. Children's Privacy</h2>
+          <h2 className="text-2xl font-bold mt-8 mb-4">9. Children&apos;s Privacy</h2>
           <p>
             Stakr is not intended for users under 13 years old. We do not knowingly collect data from children under 13. If you believe a child has provided us with personal information, please contact us immediately and we will delete it.
           </p>

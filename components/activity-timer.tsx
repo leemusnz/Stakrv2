@@ -272,7 +272,7 @@ export function ActivityTimer({
             No Timer Required
           </CardTitle>
           <CardDescription>
-            This challenge doesn't require timed sessions. You can submit proof anytime.
+            This challenge doesn&apos;t require timed sessions. You can submit proof anytime.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -344,7 +344,7 @@ export function ActivityTimer({
                     </div>
                   </div>
                   <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-3">
-                    You may be asked to perform specific gestures (like holding up fingers) or say specific words (like "giraffe") during your session. Respond quickly to maintain your quality score!
+                    You may be asked to perform specific gestures (like holding up fingers) or say specific words (like &quot;giraffe&quot;) during your session. Respond quickly to maintain your quality score!
                   </p>
                 </div>
               )}

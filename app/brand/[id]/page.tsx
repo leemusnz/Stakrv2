@@ -54,7 +54,7 @@ const mockBrand = {
       participants: 2847,
       minStake: 0,
       maxStake: 50,
-      difficulty: "Easy",
+      difficulty: "Easy" as const,
       isActive: true,
       rating: 4.8,
       rewards: "FitTech Pro Smartwatch + $500 cash",
@@ -69,7 +69,7 @@ const mockBrand = {
       participants: 1892,
       minStake: 25,
       maxStake: 100,
-      difficulty: "Medium",
+      difficulty: "Medium" as const,
       isActive: true,
       rating: 4.6,
       rewards: "Team retreat + wellness packages",
@@ -84,7 +84,7 @@ const mockBrand = {
       participants: 1234,
       minStake: 15,
       maxStake: 75,
-      difficulty: "Medium",
+      difficulty: "Medium" as const,
       isActive: true,
       rating: 4.5,
       rewards: "Tech gadgets + mentorship sessions",
@@ -307,14 +307,6 @@ export default function BrandProfilePage() {
                   difficulty={challenge.difficulty}
                   isJoined={false}
                   isActive={challenge.isActive}
-                  creator={{
-                    name: brand.name,
-                    avatar: brand.avatar,
-                    isVerified: brand.isVerified,
-                  }}
-                  rating={challenge.rating}
-                  isSponsored={challenge.isSponsored}
-                  rewards={challenge.rewards}
                 />
               ))}
             </div>

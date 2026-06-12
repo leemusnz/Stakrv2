@@ -1,5 +1,6 @@
 import { createDbConnection } from '@/lib/db'
-import type { SqlTag } from 'drizzle-orm/neon-http'
+
+type SqlTag = (strings: TemplateStringsArray, ...values: any[]) => Promise<any[]>
 
 export interface XPChallengeStats {
   id: string

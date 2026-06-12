@@ -125,10 +125,12 @@ export async function updateUserAvatar(
       }
     }
 
-    // Update session
+    // Refresh the client session so the new avatar is picked up.
+    // (next-auth/react has no imperative update() outside useSession —
+    // getSession() refetches and broadcasts the session to listeners.)
     if (updateSession && typeof window !== 'undefined') {
-      const { update } = await import('next-auth/react')
-      await update({ image: avatarUrl })
+      const { getSession } = await import('next-auth/react')
+      await getSession()
     }
 
     return { success: true }

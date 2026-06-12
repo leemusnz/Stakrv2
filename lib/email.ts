@@ -7,6 +7,8 @@ interface EmailTemplate {
   to: string
   subject: string
   html: string
+  /** Plain-text alternative body */
+  text?: string
 }
 
 // Email verification template
@@ -385,6 +387,7 @@ export async function sendEmail(template: EmailTemplate): Promise<{ success: boo
       to: template.to,
       subject: template.subject,
       html: template.html,
+      ...(template.text ? { text: template.text } : {}),
     })
     
 

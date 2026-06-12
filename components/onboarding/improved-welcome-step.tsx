@@ -31,7 +31,7 @@ export function ImprovedWelcomeStep({ onNext }: ImprovedWelcomeStepProps) {
           </h1>
 
           <p className="text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto">
-            Join thousands who've discovered the secret: <strong>putting something on the line</strong> makes you 3x
+            Join thousands who&apos;ve discovered the secret: <strong>putting something on the line</strong> makes you 3x
             more likely to follow through.
           </p>
         </div>
@@ -149,7 +149,7 @@ export function ImprovedWelcomeStep({ onNext }: ImprovedWelcomeStepProps) {
           size="lg"
           className="text-lg font-bold px-12 py-6 w-full md:w-auto"
         >
-          Let's Build Better Habits
+          Let&apos;s Build Better Habits
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
 

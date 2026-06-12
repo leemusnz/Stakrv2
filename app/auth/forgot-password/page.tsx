@@ -172,7 +172,7 @@ export default function ForgotPasswordPage() {
             Reset Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F46036] to-[#D74E25]">Password</span>
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-lg font-body">
-            Enter your email address and we'll send you a reset link
+            Enter your email address and we&apos;ll send you a reset link
           </p>
         </div>
 
@@ -237,7 +237,7 @@ export default function ForgotPasswordPage() {
               {/* Security Notice */}
               <div className="pt-4 border-t border-slate-200 dark:border-white/10">
                 <div className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100/50 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-lg p-3 text-center">
-                  🔒 For security, we don't reveal whether an email address is registered with us.
+                  🔒 For security, we don&apos;t reveal whether an email address is registered with us.
                 </div>
               </div>
             </div>

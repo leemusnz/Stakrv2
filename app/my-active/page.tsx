@@ -269,7 +269,7 @@ export default function MyActivePage() {
           <div>
             <h1 className="text-4xl font-heading font-bold text-slate-900 dark:text-white tracking-tight">My Active Challenges</h1>
             <p className="text-slate-600 dark:text-slate-400 font-body text-lg mt-2">
-              Track progress and complete today's requirements
+              Track progress and complete today&apos;s requirements
             </p>
           </div>
         
@@ -333,7 +333,7 @@ export default function MyActivePage() {
 
       {/* Active Challenges */}
       <div className="space-y-6">
-        <h2 className="text-xl font-semibold">Today's Challenges</h2>
+        <h2 className="text-xl font-semibold">Today&apos;s Challenges</h2>
         
         {activeChallengesOnly.length === 0 ? (
           <Card>
@@ -421,7 +421,7 @@ export default function MyActivePage() {
                       
                       {/* Today's Instructions */}
                       <div className="p-3 bg-muted rounded-lg">
-                        <h4 className="font-medium text-sm mb-1">Today's Task:</h4>
+                        <h4 className="font-medium text-sm mb-1">Today&apos;s Task:</h4>
                         <p className="text-sm">{challenge.todayInstructions}</p>
                       </div>
                       

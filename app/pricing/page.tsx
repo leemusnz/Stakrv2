@@ -201,7 +201,7 @@ export default function PricingPage() {
                       <h4 className="font-heading font-bold text-slate-900 dark:text-white mb-2">Why do you charge an entry fee?</h4>
                       <p className="text-sm text-slate-600 dark:text-slate-400 font-body">
                         The 5% entry fee covers platform operations, payment processing, 
-                        fraud prevention, and continuous development. It's comparable to 
+                        fraud prevention, and continuous development. It&apos;s comparable to 
                         credit card processing fees but enables our unique reward system.
                       </p>
                     </div>
@@ -209,7 +209,7 @@ export default function PricingPage() {
                     <div className="bg-slate-50 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-xl p-4">
                       <h4 className="font-heading font-bold text-slate-900 dark:text-white mb-2">Is the 20% cut from failed stakes fair?</h4>
                       <p className="text-sm text-slate-600 dark:text-slate-400 font-body">
-                        Yes! This only applies if you don't complete the challenge. Winners 
+                        Yes! This only applies if you don&apos;t complete the challenge. Winners 
                         still get 80% of failed stakes shared among them. This model incentivizes 
                         completion while funding platform sustainability.
                       </p>
@@ -226,10 +226,10 @@ export default function PricingPage() {
                   
                   <div className="space-y-6">
                     <div className="bg-slate-50 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-xl p-4">
-                      <h4 className="font-heading font-bold text-slate-900 dark:text-white mb-2">What's included with premium?</h4>
+                      <h4 className="font-heading font-bold text-slate-900 dark:text-white mb-2">What&apos;s included with premium?</h4>
                       <p className="text-sm text-slate-600 dark:text-slate-400 font-body">
                         Premium gives you advanced analytics, custom rewards from hosts, 
-                        exclusive community features, and priority support. It doesn't 
+                        exclusive community features, and priority support. It doesn&apos;t 
                         affect your success chances - just enhances your experience.
                       </p>
                     </div>

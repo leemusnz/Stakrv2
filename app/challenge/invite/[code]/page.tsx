@@ -327,7 +327,7 @@ export default function ChallengeInvitePage() {
               </Button>
 
               <p className="text-xs text-muted-foreground">
-                We'll send them a personalized invitation with the challenge details.
+                We&apos;ll send them a personalized invitation with the challenge details.
               </p>
             </CardContent>
           </Card>

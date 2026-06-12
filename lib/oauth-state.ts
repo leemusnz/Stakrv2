@@ -88,13 +88,10 @@ export async function cleanupExpiredStates(): Promise<number> {
     const result = await sql`
       DELETE FROM oauth_states
       WHERE expires_at < NOW()
+      RETURNING id
     `
-    
-    const deletedCount = result.count || 0
-    if (deletedCount > 0) {
-    }
-    
-    return deletedCount
+
+    return result.length
   } catch (error) {
     console.error('Failed to cleanup expired OAuth states:', error)
     return 0

@@ -14,13 +14,14 @@ import { SimplifiedStakesStep } from "@/components/challenge-creation/simplified
 import { PreviewPublishStep } from "@/components/challenge-creation/preview-publish-step"
 import { CategorySelectionStep } from "@/components/challenge-creation/category-selection-step"
 import { AiChallengeSummary } from "@/components/challenge-creation/ai-challenge-summary"
+import type { ChallengeAnalysis } from "@/lib/ai-challenge-analyzer"
 
 export default function CreateChallengePage() {
   const { isMobile } = useEnhancedMobile()
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [isPublishing, setIsPublishing] = useState(false)
-  const [aiAnalysis, setAiAnalysis] = useState(null)
+  const [aiAnalysis, setAiAnalysis] = useState<ChallengeAnalysis | null>(null)
 
   // Challenge data state
   const [challengeData, setChallengeData] = useState({

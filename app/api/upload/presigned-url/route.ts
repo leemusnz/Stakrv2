@@ -53,11 +53,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    if (validationResult.warnings.length > 0) {
-    }
-    
-
-
     // Check if AWS credentials are available
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
       console.error('❌ AWS credentials not configured')

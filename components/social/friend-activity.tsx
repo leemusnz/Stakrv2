@@ -198,7 +198,7 @@ export function FriendActivity({ friends = mockFriends, showInviteButton = true 
               <span className="font-medium text-sm">Friend Challenge</span>
             </div>
             <p className="text-xs text-muted-foreground mb-2">
-              You're ahead of 3 friends this week! Keep it up to stay on top.
+              You&apos;re ahead of 3 friends this week! Keep it up to stay on top.
             </p>
             <Button size="sm" variant="outline" className="w-full bg-transparent">
               Challenge Friends

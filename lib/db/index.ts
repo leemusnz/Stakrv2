@@ -2,7 +2,9 @@
 // Centralized database connection using Neon PostgreSQL
 
 import { neon } from '@neondatabase/serverless'
-import type { Sql } from '@neondatabase/serverless'
+import type { NeonQueryFunction } from '@neondatabase/serverless'
+
+export type Sql = NeonQueryFunction<false, false>
 
 let db: Sql | null = null
 

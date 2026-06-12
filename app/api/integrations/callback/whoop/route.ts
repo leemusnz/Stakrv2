@@ -39,6 +39,12 @@ export async function GET(request: NextRequest) {
 
     // Exchange authorization code for access token
     // Whoop uses client_secret_post method (credentials in body, not header)
+    const clientId = process.env.WHOOP_CLIENT_ID
+    const clientSecret = process.env.WHOOP_CLIENT_SECRET
+    if (!clientId || !clientSecret) {
+      console.error('Whoop OAuth is not configured (WHOOP_CLIENT_ID/WHOOP_CLIENT_SECRET)')
+      return NextResponse.redirect(new URL('/settings?tab=integrations&error=whoop_not_configured', request.url))
+    }
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
     const tokenResponse = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
       method: 'POST',
@@ -49,8 +55,8 @@ export async function GET(request: NextRequest) {
         grant_type: 'authorization_code',
         code,
         redirect_uri: `${baseUrl}/api/integrations/callback/whoop`,
-        client_id: process.env.WHOOP_CLIENT_ID,
-        client_secret: process.env.WHOOP_CLIENT_SECRET
+        client_id: clientId,
+        client_secret: clientSecret
       })
     })
 

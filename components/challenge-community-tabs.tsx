@@ -281,7 +281,7 @@ export function ChallengeCommunityTabs({
               <CardHeader className="pb-3">
                 <CardTitle className="text-green-900 flex items-center">
                   <CheckCircle className="w-5 h-5 mr-2" />
-                  You're In!
+                  You&apos;re In!
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -289,7 +289,7 @@ export function ChallengeCommunityTabs({
                   <div className="text-center">
                     <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-2" />
                     <p className="text-sm text-green-700 font-medium">Challenge participation confirmed</p>
-                    <p className="text-xs text-green-600 mt-1">You'll receive daily reminders and updates</p>
+                    <p className="text-xs text-green-600 mt-1">You&apos;ll receive daily reminders and updates</p>
                   </div>
                   {participation?.progress && (
                     <div className="space-y-2 pt-3 border-t border-green-200">
@@ -668,7 +668,7 @@ export function ChallengeCommunityTabs({
                 <CardHeader className="pb-3">
                   <CardTitle className="text-green-900 flex items-center">
                     <CheckCircle className="w-5 h-5 mr-2" />
-                    You're In!
+                    You&apos;re In!
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -676,7 +676,7 @@ export function ChallengeCommunityTabs({
                     <div className="text-center">
                       <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-2" />
                       <p className="text-sm text-green-700 font-medium">Challenge participation confirmed</p>
-                      <p className="text-xs text-green-600 mt-1">You'll receive daily reminders and updates</p>
+                      <p className="text-xs text-green-600 mt-1">You&apos;ll receive daily reminders and updates</p>
                     </div>
                     {participation?.progress && (
                       <div className="space-y-2 pt-3 border-t border-green-200">

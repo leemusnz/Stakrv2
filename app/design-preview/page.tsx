@@ -28,7 +28,7 @@ export default function DesignPreviewPage() {
             Modern <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">Gamification</span>
           </h1>
           <p className="text-slate-500 max-w-2xl mx-auto text-lg">
-            Comparing the new "Juicy" card style with enhanced physics, gradients, and glassmorphism.
+            Comparing the new &quot;Juicy&quot; card style with enhanced physics, gradients, and glassmorphism.
           </p>
         </div>
 
@@ -89,41 +89,43 @@ export default function DesignPreviewPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
           {/* Card 1: Fitness */}
-          <ChallengeCard 
+          <ChallengeCard
+            id="preview-1"
             title="30-Day Abs Blaster"
+            description="Daily core workouts to sculpt your abs in 30 days."
             category="Fitness"
-            stakeAmount={50}
+            minStake={50}
+            maxStake={50}
             participants={2340}
             duration="30 Days"
             difficulty="Hard"
-            isPopular={true}
-            imageUrl="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&auto=format&fit=crop&q=60"
-            hostAvatarUrl="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"
           />
 
           {/* Card 2: Mindfulness (Active) */}
-          <ChallengeCard 
+          <ChallengeCard
+            id="preview-2"
             title="Morning Meditation"
+            description="Start each day with a calm, focused meditation session."
             category="Mindfulness"
-            stakeAmount={25}
+            minStake={25}
+            maxStake={25}
             participants={892}
             duration="21 Days"
             difficulty="Easy"
             progress={65}
-            imageUrl="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=60"
-            hostAvatarUrl="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=60"
           />
 
           {/* Card 3: Productivity - BRAND EXAMPLE */}
-          <ChallengeCard 
+          <ChallengeCard
+            id="preview-3"
             title="Deep Work Protocol"
+            description="Block out distraction-free deep work sessions every day."
             category="Productivity"
-            stakeAmount={100}
+            minStake={100}
+            maxStake={100}
             participants={156}
             duration="14 Days"
             difficulty="Medium"
-            imageUrl="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=60"
-            hostAvatarUrl="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1667px-Apple_logo_black.svg.png"
           />
         </div>
 
@@ -143,7 +145,7 @@ export default function DesignPreviewPage() {
             <div className="space-y-2">
               <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold">3</div>
               <h3 className="font-bold text-slate-900">Juicy Physics</h3>
-              <p className="text-sm text-slate-500">Cards float on hover and "squish" on tap, providing satisfying tactile feedback.</p>
+              <p className="text-sm text-slate-500">Cards float on hover and &quot;squish&quot; on tap, providing satisfying tactile feedback.</p>
             </div>
           </div>
         </div>
