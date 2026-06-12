@@ -1,10 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-// Alpha access password - change this to your desired password
-const ALPHA_PASSWORD = process.env.ALPHA_ACCESS_PASSWORD || "stakr_alpha_2023"
+// Alpha access code comes exclusively from the environment — there is no
+// default, so with the variable unset the gate cannot be opened at all.
+const ALPHA_PASSWORD = process.env.ALPHA_ACCESS_PASSWORD
 
 export async function POST(request: NextRequest) {
   try {
+    if (!ALPHA_PASSWORD) {
+      return NextResponse.json(
+        { success: false, error: "Alpha access is not configured" },
+        { status: 503, headers: { "Content-Type": "application/json" } },
+      )
+    }
 
     // Parse request body safely
     let body
@@ -46,7 +53,7 @@ export async function POST(request: NextRequest) {
         maxAge: 7 * 24 * 60 * 60, // 7 days
         secure: isProduction && isHttps, // Only secure in production with HTTPS
         sameSite: "lax", // Use 'lax' for better mobile browser compatibility
-        httpOnly: false, // Allow client-side access for mobile browsers
+        httpOnly: true, // Middleware reads this server-side; JS never needs it
       })
 
       return response

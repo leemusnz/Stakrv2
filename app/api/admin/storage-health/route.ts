@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/require-admin'
 import { checkStorageHealth, STORAGE_CONFIG } from '@/lib/storage'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
     // Only allow admin access
-    if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     const healthCheck = await checkStorageHealth()
     

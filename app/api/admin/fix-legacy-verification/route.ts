@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createDbConnection } from '@/lib/db'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/require-admin'
 
 export async function POST(request: NextRequest) {
   try {
     // Check admin permissions
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     const sql = createDbConnection()
     

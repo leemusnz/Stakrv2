@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/require-admin'
 import { createDbConnection } from '@/lib/db'
 import { z } from 'zod'
 
@@ -13,10 +12,9 @@ const devAccessSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Check if user is admin
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
+    const session = admin.session
 
     // Parse request body
     const body = await request.json()
@@ -90,10 +88,8 @@ export async function POST(request: NextRequest) {
 // Get list of all users with their dev access status (admin only)
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     const sql = createDbConnection()
     const users = await sql`

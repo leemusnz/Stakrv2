@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
+    // Proxies a PRIVATE verification-files bucket — never serve to anonymous
+    // callers. (Per-key authorization against the requesting user is Phase 2.)
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
     const searchParams = request.nextUrl.searchParams
     const imageUrl = searchParams.get('url')
     const version = searchParams.get('v') || 'default'
@@ -61,7 +70,8 @@ export async function GET(request: NextRequest) {
     try {
       response = await s3Client.send(command)
     } catch (err: unknown) {
-      const errorName = err instanceof Error && 'name' in err ? (err as any).name : undefined
+      const errorName =
+        typeof err === 'object' && err !== null && 'name' in err ? String((err as any).name) : undefined
       if (errorName === 'NoSuchKey') {
         return NextResponse.json({ error: 'Image not found' }, { status: 404 })
       }
@@ -89,9 +99,6 @@ export async function GET(request: NextRequest) {
         'Cache-Control': process.env.NODE_ENV === 'test' ? 'public, max-age=31536000' : 'public, max-age=300, s-maxage=300',
         'ETag': `"${version}-${Date.now()}"`, // Cache busting ETag
         'Last-Modified': new Date().toUTCString(),
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET',
-        'Access-Control-Allow-Headers': 'Content-Type',
         'Vary': 'Accept-Encoding', // Vary by encoding for better caching
       },
     })

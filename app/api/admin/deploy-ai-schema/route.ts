@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/require-admin'
 import { createDbConnection } from '@/lib/db'
 import { systemLogger } from '@/lib/system-logger'
 import fs from 'fs'
@@ -8,15 +7,8 @@ import path from 'path'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Admin access required to deploy database schema'
-      }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     
     // Read the schema file
@@ -124,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     
     systemLogger.info('AI Anti-Cheat Schema deployed', 'admin', {
-      userId: session.user.id,
+      userId: admin.userId,
       successCount,
       skipCount,
       errorCount,
@@ -163,14 +155,8 @@ export async function POST(request: NextRequest) {
 // GET endpoint to check deployment status
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized'
-      }, { status: 403 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     const sql = createDbConnection()
     

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { createDbConnection } from '@/lib/db'
+import { requireAdmin } from '@/lib/require-admin'
 
 /**
  * GET /api/admin/financial-monitor
@@ -15,25 +14,16 @@ import { createDbConnection } from '@/lib/db'
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
-    // Check if user has admin access
     const sql = createDbConnection()
-    const adminCheck = await sql`
-      SELECT has_dev_access FROM users WHERE id = ${session.user.id}
-    `
-    
-    if (!adminCheck[0]?.has_dev_access) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
 
-    // Get query parameters for filtering
+    // Get query parameters for filtering. timeRange must be a bound integer —
+    // interpolating it inside INTERVAL '...' both breaks the tagged-template
+    // parameterization and invites injection.
     const { searchParams } = new URL(request.url)
-    const timeRange = searchParams.get('timeRange') || '7' // days
+    const days = Math.min(Math.max(parseInt(searchParams.get('timeRange') || '7', 10) || 7, 1), 365)
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
 
     // 1. Recent Withdrawals
@@ -54,7 +44,7 @@ export async function GET(request: NextRequest) {
       FROM credit_transactions ct
       JOIN users u ON ct.user_id = u.id
       WHERE ct.transaction_type = 'withdrawal'
-        AND ct.created_at > NOW() - INTERVAL '${timeRange} days'
+        AND ct.created_at > NOW() - (${days} * INTERVAL '1 day')
       ORDER BY ct.created_at DESC
       LIMIT ${limit}
     `
@@ -75,7 +65,7 @@ export async function GET(request: NextRequest) {
       JOIN users u ON ct.user_id = u.id
       LEFT JOIN challenges c ON ct.related_challenge_id = c.id
       WHERE ct.transaction_type = 'insurance_payout'
-        AND ct.created_at > NOW() - INTERVAL '${timeRange} days'
+        AND ct.created_at > NOW() - (${days} * INTERVAL '1 day')
       ORDER BY ct.created_at DESC
       LIMIT ${limit}
     `
@@ -90,7 +80,7 @@ export async function GET(request: NextRequest) {
         SUM(amount) as total_revenue,
         COUNT(*) as transaction_count
       FROM platform_revenue
-      WHERE created_at > NOW() - INTERVAL '${timeRange} days'
+      WHERE created_at > NOW() - (${days} * INTERVAL '1 day')
     `
 
     // 4. Active Stakes (Money at Risk)
@@ -132,7 +122,7 @@ export async function GET(request: NextRequest) {
       JOIN users u ON ct.user_id = u.id
       WHERE ct.transaction_type IN ('withdrawal', 'challenge_reward')
         AND ABS(ct.amount) > 100
-        AND ct.created_at > NOW() - INTERVAL '${timeRange} days'
+        AND ct.created_at > NOW() - (${days} * INTERVAL '1 day')
       ORDER BY ABS(ct.amount) DESC
       LIMIT ${limit}
     `
@@ -169,7 +159,7 @@ export async function GET(request: NextRequest) {
           ELSE NULL 
         END) as avg_completion_rate
       FROM challenges c
-      WHERE c.created_at > NOW() - INTERVAL '${timeRange} days'
+      WHERE c.created_at > NOW() - (${days} * INTERVAL '1 day')
     `
 
     // 8. Insurance Claim Rate
@@ -182,12 +172,12 @@ export async function GET(request: NextRequest) {
         SUM(CASE WHEN cp.completion_status = 'failed' THEN cp.stake_amount ELSE 0 END) as total_payouts
       FROM challenge_participants cp
       WHERE cp.insurance_purchased = true
-        AND cp.joined_at > NOW() - INTERVAL '${timeRange} days'
+        AND cp.joined_at > NOW() - (${days} * INTERVAL '1 day')
     `
 
     return NextResponse.json({
       success: true,
-      timeRange: `${timeRange} days`,
+      timeRange: `${days} days`,
       timestamp: new Date().toISOString(),
       data: {
         withdrawals: {

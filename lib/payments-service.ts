@@ -1,9 +1,9 @@
 // Payments service - extracts logic from route handlers for easier testing
 // Functions here avoid importing next/server or next-auth, and operate on provided sql and env.
 
-import type { Sql } from '@neondatabase/serverless'
+import type { NeonQueryFunction } from '@neondatabase/serverless'
 
-type SqlTag = Sql
+type SqlTag = NeonQueryFunction<false, false>
 
 export interface CheckoutSessionResult {
   success: boolean
@@ -72,10 +72,13 @@ export async function createCheckoutSession(
       sessionId = session.id
       checkoutUrl = session.url || `${baseUrl}/payments/checkout?session_id=${sessionId}`
       message = 'Stripe Checkout session created'
-    } catch {
-      sessionId = `cs_test_${Date.now()}`
-      checkoutUrl = `${baseUrl}/payments/checkout?session_id=${sessionId}`
-      message = 'Checkout session created (mock). Complete payment to finalize your join.'
+    } catch (stripeError) {
+      // With a live Stripe key configured, a failure here must surface to the
+      // caller — silently issuing a mock checkout URL would tell the user a
+      // real-money payment is underway when nothing was created.
+      throw stripeError instanceof Error
+        ? stripeError
+        : new Error('Stripe checkout session creation failed')
     }
   } else {
     sessionId = `cs_test_${Date.now()}`
@@ -130,17 +133,38 @@ export async function processCheckoutCompleted(
 
   if (event.type === 'checkout.session.completed') {
     const data = event.data?.object || {}
-    const userId = data.metadata?.userId
-    const challengeId = data.metadata?.challengeId
-    const stakeAmount = Number(data.metadata?.stakeAmount || 0)
+    const sessionId = data.id
+    if (!sessionId) {
+      return { success: true }
+    }
+
+    // SECURITY: identities and amounts come from the pending transaction row
+    // recorded when the checkout session was created — never from event
+    // metadata, which is attacker-influencable and was previously trusted.
+    const pending = await sql`
+      SELECT user_id, challenge_id, amount, platform_revenue
+      FROM transactions
+      WHERE stripe_payment_id = ${sessionId} AND transaction_type = 'cash_join'
+      LIMIT 1
+    `
+    if (pending.length === 0) {
+      console.error(
+        `Stripe webhook: no recorded checkout for session ${sessionId}; ignoring event ${eventId}`,
+      )
+      return { success: true }
+    }
+
+    const userId = pending[0].user_id
+    const challengeId = pending[0].challenge_id
+    const total = parseFloat(pending[0].amount)
+    const entryFee = parseFloat(pending[0].platform_revenue) || 0
+    const stakeAmount = total - entryFee
+
     if (userId && challengeId && stakeAmount > 0) {
       const existingParticipant = await sql`
         SELECT id FROM challenge_participants WHERE challenge_id = ${challengeId} AND user_id = ${userId}
       `
       if (existingParticipant.length === 0) {
-        const c = await sql`SELECT title, entry_fee_percentage FROM challenges WHERE id = ${challengeId}`
-        const entryFeePct = c.length ? parseFloat(c[0].entry_fee_percentage || '5') : 5
-        const entryFee = stakeAmount * (entryFeePct / 100)
         await sql`
           INSERT INTO challenge_participants (
             challenge_id, user_id, stake_amount, entry_fee_paid, insurance_purchased, insurance_fee_paid, completion_status, joined_at
@@ -149,10 +173,7 @@ export async function processCheckoutCompleted(
           )
         `
       }
-      const stripeId = data?.id || data?.payment_intent || null
-      if (stripeId) {
-        await sql`UPDATE transactions SET status = 'succeeded' WHERE stripe_payment_id = ${stripeId}`
-      }
+      await sql`UPDATE transactions SET status = 'succeeded' WHERE stripe_payment_id = ${sessionId}`
     }
   }
   return { success: true }

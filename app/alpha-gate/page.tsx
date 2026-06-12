@@ -3,7 +3,7 @@
 import type React from "react"
 import { BackgroundImage } from '@/components/ui/background-image'
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,27 +18,8 @@ export default function AlphaGatePage() {
   const [isRedirecting, setIsRedirecting] = useState(false)
   const router = useRouter()
 
-  // Check if user already has alpha access
-  useEffect(() => {
-    const checkAlphaAccess = () => {
-      try {
-        console.log("🔍 Checking alpha access cookie...")
-        console.log("🍪 All cookies:", document.cookie)
-        const hasAccess = document.cookie.includes("alpha_access=true")
-        console.log("✅ Has alpha access:", hasAccess)
-        
-        if (hasAccess) {
-          // Route through home to keep one entry redirect path.
-          console.log("✅ User already has alpha access, redirecting to home routing...")
-          router.replace("/")
-        }
-      } catch (error) {
-        console.log("⚠️ Could not check alpha access cookie:", error)
-      }
-    }
-
-    checkAlphaAccess()
-  }, [router])
+  // Already-admitted visitors are redirected away by the middleware (the
+  // alpha_access cookie is httpOnly and not readable from client JS).
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,8 +33,6 @@ export default function AlphaGatePage() {
         setIsLoading(false)
         return
       }
-
-      console.log("🔐 Attempting alpha access...")
 
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
@@ -70,62 +49,28 @@ export default function AlphaGatePage() {
 
       clearTimeout(timeoutId)
 
-      console.log("📡 API response status:", response.status)
-
       // Check content type before parsing
       const contentType = response.headers.get("content-type")
       if (!contentType || !contentType.includes("application/json")) {
-        console.error("❌ Invalid content type:", contentType)
         throw new Error("Server returned invalid response format")
       }
 
       let data
       try {
         data = await response.json()
-      } catch (parseError) {
-        console.error("❌ Failed to parse JSON response:", parseError)
+      } catch {
         throw new Error("Invalid server response format")
       }
 
-      console.log("📝 Alpha access response:", data)
-      console.log("🌐 Current URL:", window.location.href)
-      console.log("🍪 Cookies before processing:", document.cookie)
-
       if (data.success) {
-        console.log("✅ Alpha access granted")
+        // The httpOnly cookie is already set on the response by the API route.
         setIsRedirecting(true)
-
-        // Set a client-side cookie as backup (environment-aware)
-        try {
-          const isProduction = process.env.NODE_ENV === "production"
-          const isHttps = window.location.protocol === "https:"
-          const cookieString = isProduction && isHttps 
-            ? "alpha_access=true; path=/; max-age=604800; SameSite=None; Secure"
-            : "alpha_access=true; path=/; max-age=604800; SameSite=Lax"
-          
-          document.cookie = cookieString
-          console.log("🍪 Client-side cookie set successfully:", cookieString)
-        } catch (cookieError) {
-          console.warn("⚠️ Could not set client-side cookie:", cookieError)
-        }
-
-        setTimeout(() => {
-          console.log("🔄 Redirecting to onboarding...")
-          console.log("🍪 Current cookies before redirect:", document.cookie)
-          
-          try {
-            router.replace("/onboarding")
-          } catch (redirectError) {
-            console.error("❌ Redirect failed:", redirectError)
-            window.location.reload()
-          }
-        }, 2000) // Increased delay to ensure cookie is set
+        router.replace("/onboarding")
       } else {
-        console.log("❌ Alpha access denied:", data.error)
         setError(data.error || "Access denied")
       }
     } catch (error) {
-      console.error("❌ Alpha access error:", error)
+      console.error("Alpha access error:", error)
 
       if (error instanceof Error) {
         if (error.name === "AbortError") {
@@ -143,58 +88,12 @@ export default function AlphaGatePage() {
     }
   }
 
-  const handleDevBypass = async () => {
-    setIsLoading(true)
-    setError("")
-
-    try {
-      const response = await fetch("/api/dev-bypass", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      })
-
-      const contentType = response.headers.get("content-type")
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned invalid response format")
-      }
-
-      const data = await response.json()
-
-      if (data.success) {
-        setIsRedirecting(true)
-        // Environment-aware cookie for dev bypass
-        const isProduction = process.env.NODE_ENV === "production"
-        const isHttps = window.location.protocol === "https:"
-        const cookieString = isProduction && isHttps 
-          ? "alpha_access=true; path=/; max-age=604800; SameSite=None; Secure"
-          : "alpha_access=true; path=/; max-age=604800; SameSite=Lax"
-        
-        document.cookie = cookieString
-        setTimeout(() => {
-          router.replace("/onboarding")
-        }, 500)
-      } else {
-        setError(data.error || "Dev bypass failed")
-      }
-    } catch (error) {
-      console.error("❌ Dev bypass error:", error)
-      setError("Dev bypass failed")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   if (isRedirecting) {
     return (
       <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-[#F46036] mx-auto mb-4" />
           <p className="text-white text-lg">Access granted! Redirecting...</p>
-          <p className="text-gray-400 text-sm mt-2">Cookies: {document.cookie}</p>
-          <p className="text-gray-400 text-sm">URL: {window.location.href}</p>
         </div>
       </div>
     )
@@ -310,19 +209,6 @@ export default function AlphaGatePage() {
                   )}
                 </Button>
               </form>
-
-              {process.env.NODE_ENV === "development" && (
-                <div className="pt-6 border-t border-slate-200 dark:border-white/10">
-                  <Button
-                    variant="outline"
-                    onClick={handleDevBypass}
-                    disabled={isLoading}
-                    className="w-full h-12 bg-white/50 dark:bg-white/5 border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-white/20 backdrop-blur-sm transition-all duration-300 font-medium"
-                  >
-                    🚀 Dev Bypass
-                  </Button>
-                </div>
-              )}
 
               {/* Features preview */}
               <div className="pt-6 border-t border-slate-200 dark:border-white/10">

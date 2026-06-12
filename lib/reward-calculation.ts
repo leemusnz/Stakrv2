@@ -413,11 +413,11 @@ export async function distributeRewards(
         INSERT INTO credit_transactions (
           user_id, amount, transaction_type, related_challenge_id, description, created_at
         ) VALUES (
-          ${reward.user_id}, 
-          ${reward.net_reward}, 
-          'challenge_reward', 
+          ${reward.user_id},
+          ${reward.net_reward},
+          'challenge_reward',
           ${challengeId},
-          'Challenge completion reward: ${rewardResult.challenge_stats.title}',
+          ${'Challenge completion reward: ' + rewardResult.challenge_stats.title},
           NOW()
         )
       `
@@ -509,11 +509,11 @@ export async function distributeRewards(
         INSERT INTO credit_transactions (
           user_id, amount, transaction_type, related_challenge_id, description, created_at
         ) VALUES (
-          ${participant.user_id}, 
-          ${refundAmount}, 
-          'insurance_payout', 
+          ${participant.user_id},
+          ${refundAmount},
+          'insurance_payout',
           ${challengeId},
-          'Insurance payout for failed challenge: ${rewardResult.challenge_stats.title}',
+          ${'Insurance payout for failed challenge: ' + rewardResult.challenge_stats.title},
           NOW()
         )
       `
