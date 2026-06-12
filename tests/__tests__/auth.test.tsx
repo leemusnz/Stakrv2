@@ -19,10 +19,14 @@ jest.mock('bcryptjs', () => ({
   compare: jest.fn()
 }))
 
+const { createDbConnection } = require('@/lib/db')
+
 describe('Authentication System', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockSql.mockReset()
+    // jest.config sets resetMocks: true, which strips factory implementations
+    ;(createDbConnection as jest.Mock).mockImplementation(() => mockSql)
   })
 
   describe('Auth Configuration', () => {
@@ -127,7 +131,7 @@ describe('Authentication System', () => {
       expect(user).toBeNull()
     })
 
-    it('should authenticate demo users as fallback', async () => {
+    it('should fail closed for unknown users (no demo fallback — P0-9)', async () => {
       mockSql.mockResolvedValueOnce([]) // No database user
 
       const credentialsProvider = authOptions.providers.find(
@@ -139,10 +143,7 @@ describe('Authentication System', () => {
         password: 'demo123'
       }, {} as any)
 
-      expect(user).toBeDefined()
-      expect(user).not.toBeNull()
-      expect(user?.email).toBe('demo@stakr.app')
-      expect(user?.credits).toBe(156.75)
+      expect(user).toBeNull()
     })
 
     it('should reject OAuth accounts without password', async () => {

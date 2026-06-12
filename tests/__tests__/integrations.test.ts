@@ -360,7 +360,7 @@ describe('App Integrations', () => {
       expect(verificationResult.valid).toBe(true)
       expect(verificationResult.confidence).toBeGreaterThan(60)
       expect(verificationResult.metadata.appVerified).toBe(true)
-      expect(verificationResult.metadata.progressConsistent).toBeGreaterThan(80)
+      expect(verificationResult.metadata.progressConsistent).toBe(true)
     })
 
     test('should detect suspicious data values', async () => {

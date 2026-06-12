@@ -421,10 +421,8 @@ describe('Challenges API Thumbnail Tests', () => {
     })
   })
 
-  describe('Debug Logging', () => {
-    it('should log API responses with thumbnail information', async () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
-
+  describe('Response thumbnail mapping', () => {
+    it('should include thumbnail information in the API response', async () => {
       const mockChallenge = {
         id: 'log-test-challenge',
         title: 'Log Test Challenge',
@@ -451,21 +449,15 @@ describe('Challenges API Thumbnail Tests', () => {
       mockSql.mockResolvedValueOnce([mockChallenge])
 
       const mockRequest = new NextRequest('http://localhost:3000/api/challenges')
-      await GET(mockRequest)
+      const response = await GET(mockRequest)
+      const data = await response.json()
 
-      // Verify debug logging includes thumbnail information
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('API Response - Challenges with thumbnails:'),
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: 'log-test-challenge',
-            title: 'Log Test Challenge',
-            thumbnail_url: 'https://example.com/debug-thumb.jpg'
-          })
-        ])
-      )
-
-      consoleSpy.mockRestore()
+      const challenge = data.challenges.find((c: any) => c.id === 'log-test-challenge')
+      expect(challenge).toBeDefined()
+      expect(challenge).toMatchObject({
+        title: 'Log Test Challenge',
+        thumbnail_url: 'https://example.com/debug-thumb.jpg'
+      })
     })
   })
 

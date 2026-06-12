@@ -10,10 +10,15 @@ jest.mock('@aws-sdk/client-s3', () => ({
   GetObjectCommand: jest.fn().mockImplementation((params) => params)
 }))
 
-// Mock auth
+// Mock auth — the proxy serves a PRIVATE bucket and requires a session (P0-12)
 jest.mock('next-auth', () => ({
   getServerSession: jest.fn()
 }))
+jest.mock('@/lib/auth', () => ({
+  authOptions: {}
+}))
+const { getServerSession } = require('next-auth')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
 
 // Mock environment variables
 const originalEnv = process.env
@@ -25,6 +30,12 @@ beforeEach(() => {
     AWS_REGION: 'ap-southeast-2',
     AWS_S3_BUCKET_NAME: 'stakr-verification-files'
   }
+  ;(getServerSession as jest.Mock).mockResolvedValue({
+    user: { id: 'test-user-id', email: 'test@example.com' }
+  })
+  // jest.config sets resetMocks: true, which strips factory implementations
+  ;(S3Client as jest.Mock).mockImplementation(() => ({ send: mockGetObject }))
+  ;(GetObjectCommand as unknown as jest.Mock).mockImplementation((params: any) => params)
 })
 
 afterEach(() => {
@@ -249,8 +260,21 @@ describe('Image Proxy API Tests', () => {
 
       const response = await GET(mockRequest)
 
-      // Should work normally when called (authentication is handled by middleware)
+      // Authenticated requests are served normally
       expect(response.status).toBe(200)
+    })
+
+    it('should reject unauthenticated requests with 401', async () => {
+      ;(getServerSession as jest.Mock).mockResolvedValue(null)
+
+      const mockRequest = new NextRequest(
+        'http://localhost:3000/api/image-proxy?url=' +
+          encodeURIComponent('https://stakr-verification-files.s3.ap-southeast-2.amazonaws.com/verification-files/images/x.webp')
+      )
+
+      const response = await GET(mockRequest)
+      expect(response.status).toBe(401)
+      expect(mockGetObject).not.toHaveBeenCalled()
     })
 
     it('should handle large image files', async () => {
