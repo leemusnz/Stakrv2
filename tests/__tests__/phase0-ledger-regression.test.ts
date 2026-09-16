@@ -30,6 +30,10 @@ const sqlImplementation = async (strings: TemplateStringsArray, ...values: any[]
 }
 const mockSql = jest.fn(sqlImplementation)
 
+jest.mock('@/lib/db/transaction', () => ({
+  withTransaction: (work: any) => work(mockSql),
+}))
+
 jest.mock('@/lib/db', () => ({
   createDbConnection: () => mockSql,
   testDatabaseConnection: jest.fn(),
@@ -114,6 +118,8 @@ beforeEach(() => {
 describe('P0-5: credits join writes participant + debit + ledger rows', () => {
   function joinDispatcher(text: string): any[] {
     if (text.includes('FROM challenges c')) return [CHALLENGE]
+    if (text.includes('AS can_join')) return [{ can_join: true }]
+    if (text.includes('COUNT(*) AS count')) return [{ count: '3' }]
     if (text.includes('SELECT id FROM challenge_participants')) return []
     if (text.includes('SELECT credits FROM users')) return [{ credits: 500 }]
     if (text.includes('INSERT INTO challenge_participants')) {
@@ -147,12 +153,12 @@ describe('P0-5: credits join writes participant + debit + ledger rows', () => {
     expect(ledgerInsert).toBeDefined()
 
     // stake 50 + 5% entry fee = 52.5 debited atomically with a balance guard
-    expect(debit!.values).toContain(52.5)
+    expect(debit!.values).toContain('52.50')
     expect(debit!.text).toContain('credits >=')
 
     // stake_lock −50 and entry_fee −2.5 recorded for the challenge
     expect(ledgerInsert!.values).toEqual(
-      expect.arrayContaining([-50, -2.5, 'user-1', 'challenge-1']),
+      expect.arrayContaining(['-50.00', '-2.50', 'user-1', 'challenge-1']),
     )
   })
 
@@ -175,24 +181,41 @@ describe('P0-5: credits join writes participant + debit + ledger rows', () => {
     expect(ledgerInsert.text).not.toContain('Entry fee for challenge')
   })
 
-  it('records the insurance fee ledger row as a bound parameter too', async () => {
+  it('refuses insurance until its policy is implemented', async () => {
     dispatcher = joinDispatcher
-
     const request = new NextRequest('http://localhost:3000/api/challenges/challenge-1/join', {
       method: 'POST',
       body: JSON.stringify({ stakeAmount: 50, insurancePurchased: true, pointsOnly: false }),
       headers: { 'Content-Type': 'application/json' },
     })
     const response = await joinPost(request, { params: Promise.resolve({ id: 'challenge-1' }) })
-    expect(response.status).toBe(201)
-
-    const insuranceInsert = calls.find(
-      (c) => c.text.includes('INSERT INTO credit_transactions') && c.values.includes(-1),
-    )!
-    expect(insuranceInsert).toBeDefined()
-    expect(insuranceInsert.values).toContain('Insurance fee for challenge: Test Challenge')
-    expect(insuranceInsert.text).not.toContain('Insurance fee')
+    expect(response.status).toBe(400)
+    expect(calls.some(c => c.text.includes('INSERT INTO challenge_participants'))).toBe(false)
   })
+
+  it('returns success when the post-commit reward estimate is unavailable', async () => {
+    dispatcher = joinDispatcher
+    rewardCalculationMock.calculatePotentialReward.mockRejectedValue(new Error('estimate unavailable'))
+    const response = await postJoin()
+    expect(response.status).toBe(201)
+    expect((await response.json()).financial_breakdown.potential_reward).toBeNull()
+  })
+
+  it('refuses an unauthenticated join before database work', async () => {
+    mockGetServerSession.mockResolvedValue(null)
+    const response = await postJoin()
+    expect(response.status).toBe(401)
+    expect(calls).toHaveLength(0)
+  })
+
+  it('returns 400 for malformed JSON without writing', async () => {
+    const response = await joinPost(new NextRequest('http://localhost:3000/api/challenges/challenge-1/join', {
+      method: 'POST', body: '{',
+    }), { params: Promise.resolve({ id: 'challenge-1' }) })
+    expect(response.status).toBe(400)
+    expect(calls).toHaveLength(0)
+  })
+
 })
 
 describe('P0-5: settlement INSERT succeeds with bound descriptions', () => {
@@ -335,7 +358,9 @@ describe('P0-6: Stripe idempotency', () => {
           { user_id: 'user-1', challenge_id: 'challenge-1', amount: '52.5', platform_revenue: '2.5' },
         ]
       }
-      if (text.includes('SELECT id FROM challenge_participants')) return []
+      if (text.includes('AS can_join')) return [{ can_join: true }]
+    if (text.includes('COUNT(*) AS count')) return [{ count: '3' }]
+    if (text.includes('SELECT id FROM challenge_participants')) return []
       return []
     }
 
@@ -369,7 +394,9 @@ describe('P0-6: Stripe idempotency', () => {
           { user_id: 'user-1', challenge_id: 'challenge-1', amount: '52.5', platform_revenue: '2.5' },
         ]
       }
-      if (text.includes('SELECT id FROM challenge_participants')) return []
+      if (text.includes('AS can_join')) return [{ can_join: true }]
+    if (text.includes('COUNT(*) AS count')) return [{ count: '3' }]
+    if (text.includes('SELECT id FROM challenge_participants')) return []
       return []
     }
 

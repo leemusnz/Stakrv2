@@ -100,6 +100,18 @@ export const challengeParticipants = pgTable('challenge_participants', {
 // ================================
 // PROOF SUBMISSIONS TABLE
 // ================================
+export const challengeAuditEvents = pgTable('challenge_audit_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  challengeId: uuid('challenge_id').references(() => challenges.id).notNull(),
+  actorId: uuid('actor_id').references(() => users.id),
+  eventType: varchar('event_type', { length: 50 }).notNull(),
+  reason: text('reason').notNull(),
+  details: jsonb('details').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  challengeIdx: index('challenge_audit_events_challenge_idx').on(table.challengeId, table.createdAt),
+}))
+
 export const proofSubmissions = pgTable('proof_submissions', {
   id: uuid('id').primaryKey().defaultRandom(),
   participantId: uuid('participant_id').references(() => challengeParticipants.id, { onDelete: 'cascade' }).notNull(),
