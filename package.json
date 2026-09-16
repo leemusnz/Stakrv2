@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=18.17.0",
+    "node": ">=22.0.0",
     "npm": ">=10.0.0"
   },
   "overrides": {
@@ -39,7 +39,8 @@
     "type-check": "tsc --noEmit",
     "release:smoke": "node scripts/release-smoke-check.js",
     "prepare": "husky",
-    "test:ci": "jest --ci"
+    "test:ci": "jest --ci",
+    "test:db": "jest --ci --runInBand --runTestsByPath tests/__tests__/challenge-join-postgres.test.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -132,6 +133,7 @@
     "@testing-library/react": "^16.1.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22",
+    "@types/pg": "8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.19.0",
@@ -143,6 +145,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "lighthouse": "^13.0.3",
     "lint-staged": "^15.2.11",
+    "pg": "8.23.0",
     "postcss": "^8.5",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.9",

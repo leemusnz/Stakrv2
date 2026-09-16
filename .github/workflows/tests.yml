@@ -11,6 +11,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  join-database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: stakr_test
+          POSTGRES_USER: stakr
+          POSTGRES_PASSWORD: stakr
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U stakr -d stakr_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: PostgreSQL rollback and concurrent join acceptance
+        run: npm run test:db
+        env:
+          STAKR_TEST_DATABASE_URL: postgresql://stakr:stakr@localhost:5432/stakr_test
+
   verify:
     runs-on: ubuntu-latest
 
