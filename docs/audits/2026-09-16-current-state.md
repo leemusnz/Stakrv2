@@ -1,6 +1,6 @@
 # Follow-up
 
-The lifecycle, evidence, settlement, admin and MVP screen changes are now implemented in the same draft PR. See [the lifecycle implementation and release gates](2026-09-16-mvp-lifecycle.md). The original first-slice findings below are retained as historical context.
+The lifecycle, evidence, settlement, admin and MVP screen changes are now implemented in follow-up draft PR #10. See [the lifecycle implementation and release gates](2026-09-16-mvp-lifecycle.md). The original first-slice findings below are retained as historical context.
 
 # Stakr current state and first repair slice
 

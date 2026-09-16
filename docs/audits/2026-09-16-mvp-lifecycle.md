@@ -1,6 +1,6 @@
 # Credits MVP lifecycle implementation — 16 September 2026
 
-This continues the atomic join repair in PR #9. The app now has a coherent credits challenge loop in code: create, browse, join, submit evidence, neutral review, appeal, determine outcomes, settle and cancel. This document supersedes the “next slices” section of the earlier current-state audit. It does **not** assert production readiness or live deployment.
+This is follow-up draft PR #10, continuing the atomic join repair merged in PR #9. The app now has a coherent credits challenge loop in code: create, browse, join, submit evidence, neutral review, appeal, determine outcomes, settle and cancel. This document supersedes the “next slices” section of the earlier current-state audit. It does **not** assert production readiness or live deployment.
 
 ## Implemented behaviour
 
