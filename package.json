@@ -18,7 +18,7 @@
     "format": "prettier --write .",
     "lint": "next lint",
     "start": "next start",
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:all": "node scripts/run-tests.js",
     "test:components": "jest --testPathPattern=\"components|app\" --testEnvironment=jsdom",
     "test:coverage": "jest --coverage",
@@ -39,8 +39,8 @@
     "type-check": "tsc --noEmit",
     "release:smoke": "node scripts/release-smoke-check.js",
     "prepare": "husky",
-    "test:ci": "jest --ci",
-    "test:db": "jest --ci --runInBand --runTestsByPath tests/__tests__/challenge-join-postgres.test.ts"
+    "test:ci": "npm test -- --ci",
+    "test:db": "npm test -- --ci --runInBand --runTestsByPath tests/__tests__/challenge-join-postgres.test.ts tests/__tests__/mvp-postgres.test.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -128,6 +128,7 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@playwright/test": "^1.57.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
