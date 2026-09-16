@@ -1,31 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { getPresignedUploadUrl, STORAGE_CONFIG } from '@/lib/storage'
-import { validateFileEnhanced } from '@/lib/enhanced-file-validation'
-import { uploadPresignedUrlSchema } from '@/lib/validation'
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { getPresignedUploadUrl, STORAGE_CONFIG } from "@/lib/storage";
+import { createDbConnection } from "@/lib/db";
+import { validateFile } from "@/lib/storage";
+import { uploadPresignedUrlSchema } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
   try {
     // Re-enable authentication for production
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-
-    const body = await request.json()
+    const body = await request.json();
 
     // Validate input with Zod
-    const validationResult = uploadPresignedUrlSchema.safeParse(body)
+    const validationResult = uploadPresignedUrlSchema.safeParse(body);
     if (!validationResult.success) {
-      return NextResponse.json({
-        error: 'Validation failed',
-        details: validationResult.error.issues
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "Validation failed",
+          details: validationResult.error.issues,
+        },
+        { status: 400 },
+      );
     }
 
-    const { fileName, fileType, fileSize, challengeId } = validationResult.data
+    const { fileName, fileType, fileSize, challengeId } = validationResult.data;
 
     // Create a mock File object for enhanced validation
     const mockFile = {
@@ -36,69 +39,88 @@ export async function POST(request: NextRequest) {
       arrayBuffer: async () => new ArrayBuffer(0),
       slice: () => new Blob(),
       stream: () => new ReadableStream(),
-      text: async () => ''
-    } as File
+      text: async () => "",
+    } as File;
 
     // Enhanced validation with security checks
-    const fileValidation = await validateFileEnhanced(mockFile)
-    
+    const sql = createDbConnection();
+    const participation =
+      await sql`SELECT cp.id FROM challenge_participants cp JOIN challenges c ON c.id=cp.challenge_id
+      WHERE cp.user_id=${session.user.id} AND cp.challenge_id=${challengeId} AND c.lifecycle_version=1 AND c.status IN ('pending','active','ended')`;
+    if (!participation.length)
+      return NextResponse.json(
+        { error: "Challenge participation required" },
+        { status: 403 },
+      );
+    const fileValidation = validateFile(mockFile);
+
     if (!fileValidation.valid) {
-      
-      return NextResponse.json({ 
-        error: 'File validation failed',
-        details: fileValidation.errors,
-        warnings: fileValidation.warnings,
-        riskScore: fileValidation.riskScore,
-        securityFlags: fileValidation.securityFlags
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "File validation failed",
+          details: fileValidation.error,
+        },
+        { status: 400 },
+      );
     }
-    
+
     // Check if AWS credentials are available
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      console.error('❌ AWS credentials not configured')
-      return NextResponse.json({ 
-        error: 'File storage service not available. Please contact support.',
-        code: 'STORAGE_CONFIG_ERROR'
-      }, { status: 503 })
+      console.error("❌ AWS credentials not configured");
+      return NextResponse.json(
+        {
+          error: "File storage service not available. Please contact support.",
+          code: "STORAGE_CONFIG_ERROR",
+        },
+        { status: 503 },
+      );
     }
 
     // Get presigned URL using real user ID
     const { uploadUrl, fileKey, fileUrl } = await getPresignedUploadUrl(
       session.user.id,
       challengeId,
-      mockFile
-    )
-
+      mockFile,
+    );
 
     return NextResponse.json({
       uploadUrl,
       fileKey,
       fileUrl,
       expiresIn: STORAGE_CONFIG.PRESIGNED_URL_EXPIRY,
-      message: 'SUCCESS: S3 integration working!'
-    })
-
+      message: "SUCCESS: S3 integration working!",
+    });
   } catch (error) {
-    console.error('Presigned URL generation failed:', error)
-    
+    console.error("Presigned URL generation failed:", error);
+
     // Provide more specific error messages for common issues
-    let errorMessage = 'Failed to generate upload URL'
-    let statusCode = 500
-    
+    let errorMessage = "Failed to generate upload URL";
+    let statusCode = 500;
+
     if (error instanceof Error) {
-      if (error.message.includes('AWS credentials not configured')) {
-        errorMessage = 'File storage service unavailable. Please try again later or contact support.'
-        statusCode = 503
-      } else if (error.message.includes('region')) {
-        errorMessage = 'File storage configuration error. Please contact support.'
-        statusCode = 503
+      if (error.message.includes("AWS credentials not configured")) {
+        errorMessage =
+          "File storage service unavailable. Please try again later or contact support.";
+        statusCode = 503;
+      } else if (error.message.includes("region")) {
+        errorMessage =
+          "File storage configuration error. Please contact support.";
+        statusCode = 503;
       }
     }
-    
-    return NextResponse.json({ 
-      error: errorMessage,
-      code: 'UPLOAD_ERROR',
-      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
-    }, { status: statusCode })
+
+    return NextResponse.json(
+      {
+        error: errorMessage,
+        code: "UPLOAD_ERROR",
+        details:
+          process.env.NODE_ENV === "development"
+            ? error instanceof Error
+              ? error.message
+              : "Unknown error"
+            : undefined,
+      },
+      { status: statusCode },
+    );
   }
 }
