@@ -66,8 +66,11 @@ the subsequent UX slice.
 Baseline unit run: 141 passed, 29 skipped. Repaired unit run: 179 passed,
 29 existing quarantined tests plus 12 database tests skipped in unit-only mode.
 Type-check, lint and production build passed; pre-existing lint warnings remain.
-Hosted CI results are recorded in the PR so this document does not claim
-unobserved database or deployment success.
+GitHub Actions run `35067848737` failed before either job started. The check-run
+annotation says: "The job was not started because your account is locked due to
+a billing issue." The 12 PostgreSQL acceptance tests therefore remain unrun.
+Resolve the GitHub billing lock and rerun CI; no database or deployment success
+is claimed.
 
 `npm run test:db` uses `STAKR_TEST_DATABASE_URL` and a throwaway schema in a
 dedicated database whose name ends `_test`. CI provisions PostgreSQL 16. Tests
