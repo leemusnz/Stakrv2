@@ -2,6 +2,18 @@
 
 This directory contains all database migration files for the Stakr application.
 
+## September 2026 execution
+
+The credit-ledger prerequisite, atomic joins, and MVP lifecycle migrations were
+applied to Stakr Neon `main` / `neondb` on 27 September 2026 after rehearsal.
+See [the execution record](../docs/release/2026-09-27-database-migrations.md)
+for ordering, checksums, verification, and backup references. Run
+`2026-09-16_credit-ledger-prerequisite.sql` before the lifecycle migration when
+the baseline credit ledger is absent. Legacy challenges remain version 0.
+
+The migration status list below is historical; it is not an authoritative pending
+migration queue for a live database. Inspect its schema before applying older SQL.
+
 ## Migration Files
 
 ### Current Migrations (in chronological order):

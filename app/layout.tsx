@@ -1,61 +1,75 @@
-import type React from "react"
-import type { Metadata, Viewport } from "next"
-import { Teko, Manrope, Bricolage_Grotesque } from "next/font/google"
-import { cn } from "@/lib/utils"
-import "./globals.css"
-import { NavigationWrapper } from "@/components/navigation-wrapper"
-import { MobileContentSpacer } from "@/components/mobile-content-spacer"
-import { Toaster } from "@/components/ui/sonner"
-import { Providers } from "@/components/providers"
-import { ThemeProvider } from "@/components/theme-provider"
-import { AppleSplashScreen } from "./apple-splash-screen"
-import { MobileAppOptimizer, mobileAppStyles } from "@/components/mobile-app-optimizer"
-import { PWARegistration } from "@/components/pwa-registration"
-import { PWAInstallPrompt } from "@/components/pwa-install-prompt"
-import { Footer } from "@/components/footer"
-import { ErrorBoundary } from "@/components/error-boundary"
+import type React from "react";
+import type { Metadata, Viewport } from "next";
+import { Teko, Manrope, Bricolage_Grotesque } from "next/font/google";
+import { cn } from "@/lib/utils";
+import "./globals.css";
+import { ApplicationFrame } from "@/components/application-frame";
+import { Toaster } from "@/components/ui/sonner";
+import { Providers } from "@/components/providers";
+import { ThemeProvider } from "@/components/theme-provider";
+import { AppleSplashScreen } from "./apple-splash-screen";
+import {
+  MobileAppOptimizer,
+  mobileAppStyles,
+} from "@/components/mobile-app-optimizer";
+import { PWARegistration } from "@/components/pwa-registration";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 // Active fonts (used in design system)
-const manrope = Manrope({ subsets: ["latin"], variable: '--font-manrope', display: 'swap' })
-const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: '--font-bricolage', display: 'swap' })
-const teko = Teko({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: '--font-teko', display: 'swap' })
-
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
+  display: "swap",
+});
+const teko = Teko({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-teko",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Stakr - Challenge-Based Self-Improvement",
-  description: "Build better habits through accountable challenges with real stakes",
+  description:
+    "Build better habits through accountable challenges with real stakes",
   // PWA and mobile app metadata
-  manifest: '/manifest.json',
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
-    title: 'Stakr'
+    statusBarStyle: "default",
+    title: "Stakr",
   },
   // Apple-specific icons and splash screens
   icons: {
     apple: [
-      { url: '/logos/stakr-icon.png', sizes: '180x180', type: 'image/png' },
-      { url: '/logos/stakr-icon.png', sizes: '152x152', type: 'image/png' },
-      { url: '/logos/stakr-icon.png', sizes: '120x120', type: 'image/png' }
+      { url: "/logos/stakr-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/logos/stakr-icon.png", sizes: "152x152", type: "image/png" },
+      { url: "/logos/stakr-icon.png", sizes: "120x120", type: "image/png" },
     ],
     icon: [
-      { url: '/logos/stakr-icon.png', sizes: '192x192', type: 'image/png' },
-      { url: '/logos/stakr-icon.png', sizes: '512x512', type: 'image/png' }
-    ]
+      { url: "/logos/stakr-icon.png", sizes: "192x192", type: "image/png" },
+      { url: "/logos/stakr-icon.png", sizes: "512x512", type: "image/png" },
+    ],
   },
   generator: "v0.dev",
-}
+};
 
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
-  themeColor: '#F46036'
-}
+  themeColor: "#F46036",
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -73,24 +87,20 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={cn(
-        "bg-background font-sans antialiased", 
-        manrope.variable,
-        bricolage.variable,
-        teko.variable
-      )}>
+      <body
+        className={cn(
+          "bg-background font-sans antialiased",
+          manrope.variable,
+          bricolage.variable,
+          teko.variable,
+        )}
+      >
         <MobileAppOptimizer />
         <PWARegistration />
         <ThemeProvider>
           <Providers>
             <ErrorBoundary>
-              <NavigationWrapper />
-              <main style={{ paddingBottom: "var(--bottom-nav-safe-space, 0px)" }}>
-                {children}
-                {/* Spacer to prevent content from being hidden behind bottom nav on mobile */}
-                <MobileContentSpacer />
-              </main>
-              <Footer />
+              <ApplicationFrame>{children}</ApplicationFrame>
             </ErrorBoundary>
             <Toaster />
             <PWAInstallPrompt />
@@ -98,5 +108,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
