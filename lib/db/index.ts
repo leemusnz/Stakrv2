@@ -1,12 +1,13 @@
 // Database connection and configuration for Stakr
 // Centralized database connection using Neon PostgreSQL
 
-import { neon } from '@neondatabase/serverless'
-import type { NeonQueryFunction } from '@neondatabase/serverless'
+import { neon } from "@neondatabase/serverless";
+import type { NeonQueryFunction } from "@neondatabase/serverless";
+import { configureLocalNeon } from "./local-neon";
 
-export type Sql = NeonQueryFunction<false, false>
+export type Sql = NeonQueryFunction<false, false>;
 
-let db: Sql | null = null
+let db: Sql | null = null;
 
 /**
  * Creates and returns a cached Neon database connection
@@ -14,38 +15,39 @@ let db: Sql | null = null
  */
 export function createDbConnection(): Sql {
   if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL environment variable is not set')
+    throw new Error("DATABASE_URL environment variable is not set");
   }
 
   if (!db) {
-    db = neon(process.env.DATABASE_URL)
+    configureLocalNeon(process.env.DATABASE_URL);
+    db = neon(process.env.DATABASE_URL);
   }
 
-  return db
+  return db;
 }
 
 /**
  * Tests the database connection
  * @returns Promise with success status and message
  */
-export async function testDatabaseConnection(): Promise<{ 
-  success: boolean
-  error?: string
-  message?: string 
+export async function testDatabaseConnection(): Promise<{
+  success: boolean;
+  error?: string;
+  message?: string;
 }> {
   try {
-    const sql = createDbConnection()
-    await sql`SELECT 1 as test`
-    return { 
-      success: true, 
-      message: 'Database connection successful' 
-    }
+    const sql = createDbConnection();
+    await sql`SELECT 1 as test`;
+    return {
+      success: true,
+      message: "Database connection successful",
+    };
   } catch (error) {
-    console.error('❌ Database connection failed:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    }
+    console.error("❌ Database connection failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
@@ -54,8 +56,8 @@ export async function testDatabaseConnection(): Promise<{
  */
 export const dbConfig = {
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production',
-}
+  ssl: process.env.NODE_ENV === "production",
+};
 
 // Export db instance for backward compatibility
-export { db }
+export { db };

@@ -1,7 +1,12 @@
 import { withSentryConfig } from "@sentry/nextjs"
+import securityConfig from "./config/security-headers.cjs"
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Do not advertise the framework.
+  poweredByHeader: false,
+  headers: securityConfig.headers,
+
   images: {
     remotePatterns: [
       {
