@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { createDbConnection } from "@/lib/db";
 import { createChallenge, createChallengeInput } from "@/lib/challenge-create";
 import { challengeErrorResponse } from "@/lib/challenge-http";
+import { enforce, LIMITS, tooManyRequests } from "@/lib/rate-limit-db";
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -56,6 +57,11 @@ export async function POST(request: NextRequest) {
         { error: "Authentication required" },
         { status: 401 },
       );
+    // Every published challenge joins the lifecycle queue and Discover: cap it per host.
+    const limited = await enforce([
+      [LIMITS.createChallengePerUser, session.user.id],
+    ]);
+    if (!limited.allowed) return tooManyRequests(limited.retryAfterSeconds);
     const challenge = await createChallenge(
       session.user.id,
       createChallengeInput.parse(await request.json()),

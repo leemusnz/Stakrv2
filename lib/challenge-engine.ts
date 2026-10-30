@@ -51,9 +51,28 @@ export async function audit(
   await sql`INSERT INTO challenge_audit_events (challenge_id, actor_id, event_type, reason, details)
     VALUES (${id}, ${actor}, ${event}, ${reason}, ${JSON.stringify(details)}::jsonb)`;
 }
+/** Wakes the challenge now, or at its start if that is still ahead: an unstarted challenge has nothing to evaluate. */
 export async function enqueue(sql: TransactionSql, id: string) {
-  await sql`INSERT INTO challenge_lifecycle_queue (challenge_id) VALUES (${id})
-    ON CONFLICT (challenge_id) DO UPDATE SET next_attempt_at = now(), last_error = NULL`;
+  await sql`INSERT INTO challenge_lifecycle_queue (challenge_id,next_attempt_at)
+    SELECT id, greatest(now(), start_date AT TIME ZONE 'UTC') FROM challenges WHERE id = ${id}
+    ON CONFLICT (challenge_id) DO UPDATE SET next_attempt_at = excluded.next_attempt_at, last_error = NULL`;
+}
+/**
+ * Sleeps a not-yet-settled challenge until something can change: its start, its
+ * end, the end of its grace period, then every 5 minutes while reviews and appeal
+ * windows run out. Reviews and submissions wake it sooner through enqueue. Before
+ * this every unstarted or running challenge took one of the batch's 3 slots every
+ * 5 minutes, so the backlog grew with challenges created, not with work to do.
+ * Called under the challenge lock, so it cannot overwrite a concurrent enqueue.
+ */
+async function sleepUntilNextChange(sql: TransactionSql, id: string) {
+  await sql`INSERT INTO challenge_lifecycle_queue (challenge_id,next_attempt_at)
+    SELECT id, CASE WHEN now() < s THEN s WHEN now() < e THEN e
+                    WHEN now() < e + g THEN e + g ELSE now() + interval '5 minutes' END
+    FROM (SELECT id, start_date AT TIME ZONE 'UTC' AS s, end_date AT TIME ZONE 'UTC' AS e,
+            coalesce((lifecycle_policy->>'graceSeconds')::int, 0) * interval '1 second' AS g
+          FROM challenges WHERE id = ${id} AND status IN ('pending','active','ended')) t
+    ON CONFLICT (challenge_id) DO UPDATE SET next_attempt_at = excluded.next_attempt_at, last_error = NULL`;
 }
 export async function lockedChallenge(sql: TransactionSql, id: string) {
   const rows = await sql`SELECT * FROM challenges WHERE id = ${id} FOR UPDATE`;
@@ -344,7 +363,10 @@ export async function processChallenge(
         {},
       );
     const outcome = await evaluateLocked(sql, c, actor);
-    if (!outcome.ready) return { ...outcome, settled: false };
+    if (!outcome.ready) {
+      await sleepUntilNextChange(sql, id);
+      return { ...outcome, settled: false };
+    }
     return {
       status: "rewards_distributed",
       settled: true,
@@ -494,9 +516,6 @@ export async function runLifecycleBatch() {
     if (Date.now() >= deadline) break;
     try {
       const result = await processChallenge(row.id);
-      if (!result.settled)
-        await sql`INSERT INTO challenge_lifecycle_queue (challenge_id,next_attempt_at) VALUES (${row.id},now()+interval '5 minutes')
-        ON CONFLICT (challenge_id) DO UPDATE SET next_attempt_at=now()+interval '5 minutes', last_error=NULL`;
       results.push({ id: row.id, status: result.status });
     } catch {
       await sql`INSERT INTO challenge_lifecycle_queue (challenge_id,next_attempt_at,attempts,last_error)

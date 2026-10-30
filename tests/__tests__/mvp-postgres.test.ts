@@ -4,7 +4,11 @@ import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { createChallenge } from "@/lib/challenge-create";
 import { joinChallenge } from "@/lib/challenge-join";
-import { processChallenge, administerChallenge } from "@/lib/challenge-engine";
+import {
+  processChallenge,
+  administerChallenge,
+  runLifecycleBatch,
+} from "@/lib/challenge-engine";
 import { submitProof, reviewProof } from "@/lib/challenge-proofs";
 import { GET as reviewQueue } from "@/app/api/admin/verifications/route";
 jest.mock("@neondatabase/serverless", () => ({
@@ -176,6 +180,93 @@ describeDatabase("MVP PostgreSQL concurrency", () => {
     ).toBe("pending_review");
     const { proofs } = await (await reviewQueue()).json();
     expect(proofs.map((p: { id: string }) => p.id)).toEqual([live.proofId]);
+  });
+  // Regression (Codex security review, PR #11): every new challenge was due
+  // immediately and, when not ready, rescheduled five minutes out, but the batch
+  // takes only 3 per cron run. So each unstarted or still-running challenge held
+  // a slot every five minutes and the backlog grew with challenges created, not
+  // with work to do, delaying settlements (credits stay locked until then).
+  describe("lifecycle queue scheduling", () => {
+    // Is the queue row due within a second of the given challenge column?
+    const dueAt = async (id: string, column: string, plusSeconds = 0) =>
+      (
+        await db.query(
+          `SELECT abs(extract(epoch FROM q.next_attempt_at - (c.${column} AT TIME ZONE 'UTC')) - $2) < 1 AS ok
+           FROM challenge_lifecycle_queue q JOIN challenges c ON c.id=q.challenge_id WHERE c.id=$1`,
+          [id, plusSeconds],
+        )
+      ).rows[0].ok as boolean;
+    const markDue = (id: string) =>
+      db.query(
+        "UPDATE challenge_lifecycle_queue SET next_attempt_at=now() WHERE challenge_id=$1",
+        [id],
+      );
+
+    it("a challenge that has not started is not due until its start", async () => {
+      const c = await createChallenge(host, terms());
+      expect(await dueAt(c.id, "start_date")).toBe(true);
+      expect(await runLifecycleBatch()).toEqual([]);
+    });
+
+    it("unstarted challenges cannot crowd a settlement out of the batch", async () => {
+      for (let i = 0; i < 5; i++) await createChallenge(host, terms());
+      const id = await ready();
+      await markDue(id); // time has passed for this one
+      await runLifecycleBatch();
+      expect(
+        (
+          await db.query(
+            "SELECT 1 FROM challenge_settlement_records WHERE challenge_id=$1",
+            [id],
+          )
+        ).rows,
+      ).toHaveLength(1);
+    });
+
+    it("a running challenge sleeps until its end", async () => {
+      const { challengeId } = await pendingProof();
+      await db.query(
+        `UPDATE challenges SET start_date=(now() AT TIME ZONE 'UTC')-interval '1 day',
+           end_date=(now() AT TIME ZONE 'UTC')+interval '1 day' WHERE id=$1`,
+        [challengeId],
+      );
+      await markDue(challengeId);
+      await runLifecycleBatch();
+      expect(await dueAt(challengeId, "end_date")).toBe(true);
+    });
+
+    it("an ended challenge sleeps until its grace period is over", async () => {
+      const { challengeId } = await pendingProof(); // ended, 24h grace still running
+      await markDue(challengeId);
+      await runLifecycleBatch();
+      expect(
+        (
+          await db.query("SELECT status FROM challenges WHERE id=$1", [
+            challengeId,
+          ])
+        ).rows[0].status,
+      ).toBe("ended");
+      expect(await dueAt(challengeId, "end_date", 86400)).toBe(true);
+    });
+
+    it("keeps polling every five minutes while evidence is still being reviewed", async () => {
+      const { challengeId } = await pendingProof();
+      await db.query(
+        "UPDATE challenges SET lifecycle_policy=jsonb_set(lifecycle_policy,'{graceSeconds}','0') WHERE id=$1",
+        [challengeId],
+      );
+      await markDue(challengeId);
+      await runLifecycleBatch();
+      expect(
+        (
+          await db.query(
+            `SELECT next_attempt_at BETWEEN now()+interval '4 minutes' AND now()+interval '6 minutes' AS ok
+             FROM challenge_lifecycle_queue WHERE challenge_id=$1`,
+            [challengeId],
+          )
+        ).rows[0].ok,
+      ).toBe(true);
+    });
   });
   it("competing workers settle one pool once", async () => {
     const id = await ready();

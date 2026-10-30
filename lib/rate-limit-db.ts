@@ -35,6 +35,11 @@ export const LIMITS = {
   tokenPerIp: { name: "token-ip", max: 20, windowSeconds: 900 },
   presignPerUser: { name: "presign-user", max: 30, windowSeconds: 60 },
   confirmPerUser: { name: "confirm-user", max: 30, windowSeconds: 60 },
+  createChallengePerUser: {
+    name: "challenge-create-user",
+    max: 10,
+    windowSeconds: 3600,
+  },
 } satisfies Record<string, Limit>;
 
 let lastFallbackLog = 0;

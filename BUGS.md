@@ -336,6 +336,30 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
   `tests/__tests__/upload-confirm-route.test.ts`). The S3 client is mocked; a real bucket has still
   not been exercised (O-1).
 
+## B-025 — The lifecycle worker spent its batch on challenges with nothing to do — FIXED
+
+- **Date:** 30/10/2026 · **Severity:** Medium (settlements, and so locked credits, slow down as challenges are created)
+- **Found by:** Codex security review of PR #11 (P2).
+- **Symptom:** Every new challenge was due immediately, and whenever it was not ready the worker
+  rescheduled it five minutes out. The cron batch takes only 3 challenges per 5-minute run, so each
+  unstarted or still-running challenge used a slot every five minutes and the backlog grew with the
+  number of challenges created, not with work to do. With no cap on creation one verified account
+  could starve other people's settlements.
+- **Fix:** (1) a queue row now sleeps until something can change: the scheduled start, then the
+  end, then the end of the grace period, then every 5 minutes while evidence review and appeal
+  windows run out (`sleepUntilNextChange` in `lib/challenge-engine.ts`); a new challenge is
+  enqueued for its start, not for now; submissions and reviews still wake it immediately. The
+  rescheduling runs inside the challenge's own transaction, so it cannot overwrite a concurrent
+  wake-up. (2) Publishing is limited to 10 challenges per user per hour
+  (`LIMITS.createChallengePerUser`, `app/api/challenges/route.ts`).
+- **Proof:** real-Postgres tests failed first: a not-yet-started challenge was due immediately, and
+  with 5 unstarted challenges ahead of it a settlement-ready challenge was never settled (0
+  records); the running and ended challenges polled instead of sleeping. A control (still polls
+  every 5 minutes while evidence is under review) passed before and after. The existing
+  settle-once and cancel-versus-settle race tests still pass
+  (`tests/__tests__/mvp-postgres.test.ts`, `tests/__tests__/challenges-create-route.test.ts`).
+- **Residual (O-14):** the batch is still 3 challenges per run.
+
 ---
 
 ## Open items and accepted risks
@@ -354,7 +378,13 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
 | O-10 | 29 quarantined legacy unit tests                                                                            | ACCEPTED: pre-existing                         |
 | O-11 | `postcss` advisory bundled inside Next 15 (build-time only); fix is Next 16                                 | ACCEPTED: upgrade after launch                 |
 | O-12 | Welcome grant is per inbox, so many distinct real or disposable mailboxes still get one grant each (B-019)  | ACCEPTED: owner may tighten (see below)        |
+| O-13 | Sign-in budgets can be used to lock someone out of new sign-ins in 15-minute stretches (Codex, PR #11)      | ACCEPTED: trade-off, owner may change          |
+| O-14 | Lifecycle batch is 3 challenges per 5-minute run; challenges ending the same UTC midnight settle in waves   | ACCEPTED: fine at launch scale; raise later    |
 
 **O-12 options if abuse is ever seen** (none needed for launch; credits cannot be cashed out): a per-IP daily cap on claims (costs legitimate users on shared networks), a disposable-email domain blocklist, phone verification, or a dedicated `welcome_grants(mailbox PRIMARY KEY)` table. The table is the cleanest (enforced by the database, no scan per claim) but needs a production migration, so it was not done unasked. The current check scans `users` once per claim, which is fine at launch scale.
+
+**O-13 detail.** Sign-in is limited to 8 attempts per email per 15 minutes and 20 per IP per 5 minutes, charged before the password is checked, so anyone who knows an email can block new sign-ins to that account for 15 minutes at a time. Signed-in sessions (30 days) are unaffected; the person just waits out the window. It was left alone on purpose: the per-email limit is what stops password guessing spread across many IPs, and every cheap alternative trades that away. Counting only wrong passwords does not stop an attacker using up the failures, and letting the right password through once the budget is spent turns the limit into an unlimited guessing oracle. Real fixes are a bot challenge (for example Cloudflare Turnstile) after a few failures, an emailed unlock link, or two-factor, each a product and vendor decision. Recommendation: keep the current limit for launch, watch for `error=rate_limited` in the logs, and add a bot challenge if lockouts show up.
+
+**O-14 detail.** `runLifecycleBatch` handles up to 3 challenges per cron run (with a 40-second guard). Challenges are scheduled on UTC midnights, so many can share an end time; they then flip to ended and settle in waves of 3 per 5 minutes. That is fine for launch scale. Before it matters, raise the batch size (the guard already bounds a run) and check the function's maximum duration.
 
 **O-12 also covers delete-and-re-register** (found by Codex, PR #11). Account deletion anonymises the email (`deleted-…@deleted.invalid`), so the old account no longer links to the inbox and registering again with the same email can claim another grant. Closing it means keeping a pseudonymous fingerprint of the inbox (for example a keyed hash) after deletion, which sits against the Privacy Policy's deletion promise, so it needs an owner decision plus a policy line (ideally together with the `welcome_grants` table above). It was left alone because the gain is small: deleting is refused while the person is in an unsettled challenge, remaining credits are forfeited on deletion, and credits have no cash value, so the most a cycle yields is one welcome grant, and passing it to another account means staking it in a challenge that settles, which costs entry fees and the platform cut.
