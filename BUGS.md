@@ -318,6 +318,24 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
   (reported `true`, expected `false`), with controls for suspended admins, ordinary users and
   "two good admins" (`tests/__tests__/health-postgres.test.ts`).
 
+## B-024 — Evidence confirmation could be replayed to create unlimited orphaned S3 copies — FIXED
+
+- **Date:** 30/10/2026 · **Severity:** Medium (needs a signed-in challenge participant; cost/abuse, not data exposure)
+- **Found by:** Codex security review of PR #11 (P2).
+- **Symptom:** `POST /api/upload/confirm` checked "already confirmed", then copied the uploaded
+  object to a fresh random key, then inserted the row (`ON CONFLICT DO NOTHING`). Concurrent
+  requests with the same `fileKey` all passed the check, each wrote its own copy, and only one row
+  survived: the rest were unreferenced objects with no cleanup path. The endpoint also had no rate
+  limit (the presign step did). One 10 MB upload could be amplified into arbitrary storage/copy cost.
+- **Fix:** (1) the confirmed object's key is now derived from the upload (`sha256` of the source
+  key), so concurrent replays overwrite one object instead of creating many; (2) the endpoint is
+  limited to 30 per user per minute through the shared limiter (`LIMITS.confirmPerUser`).
+  `lib/storage.ts`, `app/api/upload/confirm/route.ts`, `lib/rate-limit-db.ts`.
+- **Proof:** tests failed first: 8 concurrent replays made 8 copies (expected 1) and the route
+  returned 200 with no limiter. They pass now (`tests/__tests__/storage-confirm.test.ts`,
+  `tests/__tests__/upload-confirm-route.test.ts`). The S3 client is mocked; a real bucket has still
+  not been exercised (O-1).
+
 ---
 
 ## Open items and accepted risks

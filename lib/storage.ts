@@ -5,7 +5,7 @@ import {
   HeadObjectCommand,
   CopyObjectCommand,
 } from "@aws-sdk/client-s3";
-import { randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Client } from "@aws-sdk/client-s3";
 
@@ -220,7 +220,10 @@ export async function confirmEvidenceObject(
     object.Metadata?.["challenge-id"] !== challenge
   )
     throw new Error("Evidence metadata does not match this submission");
-  const storageKey = `confirmed-evidence/${challenge}/${user}/${randomUUID()}.${getFileExtension(type)}`;
+  // Derived from the upload, not random: concurrent replays of one fileKey then
+  // overwrite the same object instead of leaving unreferenced copies behind.
+  const id = createHash("sha256").update(key).digest("hex").slice(0, 32);
+  const storageKey = `confirmed-evidence/${challenge}/${user}/${id}.${getFileExtension(type)}`;
   await client.send(
     new CopyObjectCommand({
       Bucket: STORAGE_CONFIG.AWS_BUCKET_NAME,

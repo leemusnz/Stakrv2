@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { createDbConnection } from "@/lib/db";
 import { confirmEvidenceObject } from "@/lib/storage";
 import { challengeErrorResponse } from "@/lib/challenge-http";
+import { enforce, LIMITS, tooManyRequests } from "@/lib/rate-limit-db";
 import { z } from "zod";
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +14,9 @@ export async function POST(request: NextRequest) {
         { error: "Authentication required" },
         { status: 401 },
       );
+    // Each call can copy a stored object: cap it per user, like the presign step.
+    const limited = await enforce([[LIMITS.confirmPerUser, session.user.id]]);
+    if (!limited.allowed) return tooManyRequests(limited.retryAfterSeconds);
     const data = z
       .object({ fileKey: z.string().max(1000), challengeId: z.string().uuid() })
       .parse(await request.json());
