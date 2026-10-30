@@ -21,6 +21,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/discover"
+                  prefetch={false}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Discover Challenges
@@ -29,6 +30,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/create-challenge"
+                  prefetch={false}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Create Challenge
@@ -40,14 +42,6 @@ export function Footer() {
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Pricing
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/settings?tab=integrations"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Integrations
                 </Link>
               </li>
             </ul>
@@ -76,6 +70,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/settings"
+                  prefetch={false}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Account Settings
