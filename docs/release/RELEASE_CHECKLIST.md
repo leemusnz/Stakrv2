@@ -6,8 +6,9 @@ Neon project: `Stakr` (`cold-lab-24148964`), production branch `br-rough-snowfla
 **Read this first.** The code on this branch is verified as far as it can be
 without your production secrets (section 1). A handful of things can only be done
 by you, because they need your accounts, secrets or legal sign-off (section 2).
-Do section 2 in order, then run section 3. Nothing here has been deployed, merged
-or migrated in production.
+Do section 2 in order, then run section 3. Nothing here has been deployed or
+merged. The one new database migration (2.2) **has been applied to production**
+(30/10/2026).
 
 What ships: a **credits-only** accountability app. Credits have no cash value and
 cannot be bought or withdrawn. Cash, Stripe, insurance, teams, brands/creators,
@@ -45,14 +46,19 @@ off server-side (they return 404 in production).
 - [ ] **Invite mode**: set `ALPHA_ACCESS_PASSWORD` (the alpha gate stays on), or
 - [ ] **Public mode**: set `STAKR_ALPHA_GATE_DISABLED=true`.
 
-### 2.2 Apply the one new migration (additive, rehearse first)
+### 2.2 The one new migration: DONE (30/10/2026)
 
 `migrations/2026-10-30_rate-limit-hits.sql` adds one table, `rate_limit_hits`. It is
-idempotent and touches nothing existing. Until it is applied the app still works but
-rate limits are per-server-instance only and `/api/health` reports `degraded`.
+idempotent and touches nothing existing. Until the code that uses it is deployed the
+table simply sits empty; once deployed, rate limits are shared across instances and
+`/api/health` reports `rateLimit: "database"`.
 
-- [ ] In the Neon console create a branch of `main`, run the file there, confirm it works, delete the branch.
-- [ ] Run it on the production branch (Neon SQL editor, or `psql "$DATABASE_URL" -f migrations/2026-10-30_rate-limit-hits.sql`).
+- [x] Rehearsed on a temporary copy of production: table count 65 to 66 (exactly one more), correct columns and both indexes, the limiter's upsert works, a re-run is a no-op.
+- [x] Applied to the production branch (`main`, `br-rough-snowflake-a4ardvlz`, database `neondb`) and re-checked there: table and both indexes exist, 0 rows, users and the lifecycle queue untouched, no overdue jobs. The temporary branch was deleted.
+
+The migration is additive, so rolling back the _code_ needs no database change (the
+table is just ignored). To undo the migration itself: `DROP TABLE rate_limit_hits;`
+(it holds only throwaway counters).
 
 Nothing else in this release changes the production schema. (The 27/09/2026
 migrations from PR #10 are already applied.)
