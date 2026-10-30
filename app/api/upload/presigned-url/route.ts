@@ -4,6 +4,12 @@ import { authOptions } from "@/lib/auth";
 import { getPresignedUploadUrl, STORAGE_CONFIG } from "@/lib/storage";
 import { createDbConnection } from "@/lib/db";
 import { validateFile } from "@/lib/storage";
+import {
+  enforce,
+  LIMITS,
+  tooManyRequests,
+  getClientIp,
+} from "@/lib/rate-limit-db";
 import { uploadPresignedUrlSchema } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
@@ -13,6 +19,10 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Each call mints a write URL to private storage: cap it per user.
+    const limited = await enforce([[LIMITS.presignPerUser, session.user.id]]);
+    if (!limited.allowed) return tooManyRequests(limited.retryAfterSeconds);
 
     const body = await request.json();
 

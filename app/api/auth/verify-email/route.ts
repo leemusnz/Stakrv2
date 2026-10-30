@@ -1,21 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createDbConnection } from '@/lib/db'
-import { systemLogger } from '@/lib/system-logger'
+import { NextRequest, NextResponse } from "next/server";
+import {
+  enforce,
+  LIMITS,
+  tooManyRequests,
+  getClientIp,
+} from "@/lib/rate-limit-db";
+import { createDbConnection } from "@/lib/db";
+import { systemLogger } from "@/lib/system-logger";
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const token = searchParams.get('token')
+    const { searchParams } = new URL(request.url);
+    const token = searchParams.get("token");
 
     if (!token) {
-      return NextResponse.json({
-        success: false,
-        error: 'Missing verification token',
-        message: 'No verification token provided'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing verification token",
+          message: "No verification token provided",
+        },
+        { status: 400 },
+      );
     }
 
-    const sql = createDbConnection()
+    const sql = createDbConnection();
 
     // Verify the token directly with database operations
     // First, check if the token exists and is valid
@@ -25,36 +34,42 @@ export async function GET(request: NextRequest) {
       WHERE token = ${token} 
         AND type = 'email_verification' 
         AND expires_at > NOW()
-    `
+    `;
 
     if (tokenResult.length === 0) {
-      systemLogger.warning(`Email verification failed: Invalid or expired token`, 'auth')
-      
-      return NextResponse.json({
-        success: false,
-        error: 'Verification failed',
-        message: 'Invalid or expired verification token'
-      }, { status: 400 })
+      systemLogger.warning(
+        `Email verification failed: Invalid or expired token`,
+        "auth",
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Verification failed",
+          message: "Invalid or expired verification token",
+        },
+        { status: 400 },
+      );
     }
 
-    const tokenData = tokenResult[0]
-    const userId = tokenData.user_id
-    const email = tokenData.email
+    const tokenData = tokenResult[0];
+    const userId = tokenData.user_id;
+    const email = tokenData.email;
 
     // Update user's email verification status
     await sql`
       UPDATE users 
       SET email_verified = true, email_verified_at = NOW()
       WHERE id = ${userId}
-    `
+    `;
 
     // Delete the used token
     await sql`
       DELETE FROM verification_tokens 
       WHERE token = ${token}
-    `
+    `;
 
-    systemLogger.info(`Email verified successfully for user: ${email}`, 'auth')
+    systemLogger.info(`Email verified successfully for user: ${email}`, "auth");
 
     // Award XP for email verification completion
     try {
@@ -66,54 +81,78 @@ export async function GET(request: NextRequest) {
           NULL,
           'Email verification completed - Welcome to Stakr!'
         )
-      `
-      
+      `;
+
       if (xpAwardResult[0]?.award_xp) {
-        systemLogger.info(`Awarded 50 XP for email verification to user: ${email}`, 'xp')
+        systemLogger.info(
+          `Awarded 50 XP for email verification to user: ${email}`,
+          "xp",
+        );
       } else {
       }
     } catch (xpError) {
-      console.error('❌ Failed to award XP for email verification:', xpError)
+      console.error("❌ Failed to award XP for email verification:", xpError);
       // Don't fail email verification if XP award fails
     }
 
     // Return success response with user ID for automatic sign-in
-    return NextResponse.json({
-      success: true,
-      message: 'Email verified successfully! You are now signed in. +50 XP earned!',
-      email: email,
-      userId: userId,
-      xpAwarded: 50
-    }, { status: 200 })
-
+    return NextResponse.json(
+      {
+        success: true,
+        message:
+          "Email verified successfully! You are now signed in. +50 XP earned!",
+        email: email,
+        userId: userId,
+        xpAwarded: 50,
+      },
+      { status: 200 },
+    );
   } catch (error) {
-    console.error('❌ Email verification error:', error)
-    systemLogger.error('Email verification error', 'auth', { error: error instanceof Error ? error.message : 'Unknown error' })
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Verification failed',
-      message: 'An error occurred during email verification. Please try again.',
-      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
-    }, { status: 500 })
+    console.error("❌ Email verification error:", error);
+    systemLogger.error("Email verification error", "auth", {
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Verification failed",
+        message:
+          "An error occurred during email verification. Please try again.",
+        details:
+          process.env.NODE_ENV === "development"
+            ? error instanceof Error
+              ? error.message
+              : "Unknown error"
+            : undefined,
+      },
+      { status: 500 },
+    );
   }
 }
 
 // Also support POST for form submissions
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { token } = body
+    const body = await request.json();
+    const { token } = body;
+
+    // Cap token guessing per IP. Tokens are 256-bit so this is defence in depth.
+    const limited = await enforce([[LIMITS.tokenPerIp, getClientIp(request)]]);
+    if (!limited.allowed) return tooManyRequests(limited.retryAfterSeconds);
 
     if (!token) {
-      return NextResponse.json({
-        success: false,
-        error: 'Missing verification token',
-        message: 'No verification token provided'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing verification token",
+          message: "No verification token provided",
+        },
+        { status: 400 },
+      );
     }
 
-    const sql = createDbConnection()
+    const sql = createDbConnection();
 
     // Verify the token directly with database operations
     // First, check if the token exists and is valid
@@ -123,36 +162,42 @@ export async function POST(request: NextRequest) {
       WHERE token = ${token} 
         AND type = 'email_verification' 
         AND expires_at > NOW()
-    `
+    `;
 
     if (tokenResult.length === 0) {
-      systemLogger.warning(`Email verification failed: Invalid or expired token`, 'auth')
-      
-      return NextResponse.json({
-        success: false,
-        error: 'Verification failed',
-        message: 'Invalid or expired verification token'
-      }, { status: 400 })
+      systemLogger.warning(
+        `Email verification failed: Invalid or expired token`,
+        "auth",
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Verification failed",
+          message: "Invalid or expired verification token",
+        },
+        { status: 400 },
+      );
     }
 
-    const tokenData = tokenResult[0]
-    const userId = tokenData.user_id
-    const email = tokenData.email
+    const tokenData = tokenResult[0];
+    const userId = tokenData.user_id;
+    const email = tokenData.email;
 
     // Update user's email verification status
     await sql`
       UPDATE users 
       SET email_verified = true, email_verified_at = NOW()
       WHERE id = ${userId}
-    `
+    `;
 
     // Delete the used token
     await sql`
       DELETE FROM verification_tokens 
       WHERE token = ${token}
-    `
+    `;
 
-    systemLogger.info(`Email verified successfully for user: ${email}`, 'auth')
+    systemLogger.info(`Email verified successfully for user: ${email}`, "auth");
 
     // Award XP for email verification completion
     try {
@@ -164,35 +209,52 @@ export async function POST(request: NextRequest) {
           NULL,
           'Email verification completed - Welcome to Stakr!'
         )
-      `
-      
+      `;
+
       if (xpAwardResult[0]?.award_xp) {
-        systemLogger.info(`Awarded 50 XP for email verification to user: ${email}`, 'xp')
+        systemLogger.info(
+          `Awarded 50 XP for email verification to user: ${email}`,
+          "xp",
+        );
       } else {
       }
     } catch (xpError) {
-      console.error('❌ Failed to award XP for email verification:', xpError)
+      console.error("❌ Failed to award XP for email verification:", xpError);
       // Don't fail email verification if XP award fails
     }
 
     // Return success response with user ID for automatic sign-in
-    return NextResponse.json({
-      success: true,
-      message: 'Email verified successfully! You are now signed in. +50 XP earned!',
-      email: email,
-      userId: userId,
-      xpAwarded: 50
-    }, { status: 200 })
-
+    return NextResponse.json(
+      {
+        success: true,
+        message:
+          "Email verified successfully! You are now signed in. +50 XP earned!",
+        email: email,
+        userId: userId,
+        xpAwarded: 50,
+      },
+      { status: 200 },
+    );
   } catch (error) {
-    console.error('❌ Email verification error:', error)
-    systemLogger.error('Email verification error', 'auth', { error: error instanceof Error ? error.message : 'Unknown error' })
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Verification failed',
-      message: 'An error occurred during email verification. Please try again.',
-      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
-    }, { status: 500 })
+    console.error("❌ Email verification error:", error);
+    systemLogger.error("Email verification error", "auth", {
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Verification failed",
+        message:
+          "An error occurred during email verification. Please try again.",
+        details:
+          process.env.NODE_ENV === "development"
+            ? error instanceof Error
+              ? error.message
+              : "Unknown error"
+            : undefined,
+      },
+      { status: 500 },
+    );
   }
 }

@@ -40,7 +40,10 @@
     "release:smoke": "node scripts/release-smoke-check.js",
     "prepare": "husky",
     "test:ci": "npm test -- --ci",
-    "test:db": "npm test -- --ci --runInBand --runTestsByPath tests/__tests__/challenge-join-postgres.test.ts tests/__tests__/mvp-postgres.test.ts tests/__tests__/welcome-credits-postgres.test.ts tests/__tests__/account-lifecycle-postgres.test.ts"
+    "test:db": "npm test -- --ci --runInBand --runTestsByPath tests/__tests__/challenge-join-postgres.test.ts tests/__tests__/mvp-postgres.test.ts tests/__tests__/welcome-credits-postgres.test.ts tests/__tests__/account-lifecycle-postgres.test.ts tests/__tests__/rate-limit-postgres.test.ts",
+    "test:journey": "node scripts/release-journey.js",
+    "db:rebuild": "bash scripts/db-rebuild-from-baseline.sh",
+    "db:proxy": "node scripts/local-neon-proxy.mjs"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

@@ -150,10 +150,27 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         try {
           if (!credentials?.email || !credentials?.password) {
             return null;
+          }
+
+          // Cap password guessing and credential stuffing per source IP and per target account.
+          const forwarded = req?.headers?.["x-forwarded-for"];
+          const ip = String(
+            Array.isArray(forwarded) ? forwarded[0] : (forwarded ?? "unknown"),
+          )
+            .split(",")[0]
+            .trim();
+          // Loaded lazily, like the database in this file, so importing auth never loads the limiter.
+          const { enforce, LIMITS } = await import("@/lib/rate-limit-db");
+          const gate = await enforce([
+            [LIMITS.signInPerIp, ip],
+            [LIMITS.signInPerEmail, credentials.email],
+          ]);
+          if (!gate.allowed) {
+            throw new Error("error=rate_limited");
           }
 
           // In development, allow known demo credentials to sign in reliably
@@ -275,7 +292,8 @@ export const authOptions: NextAuthOptions = {
           if (
             error instanceof Error &&
             (error.message === "OAUTH_ACCOUNT_EXISTS" ||
-              error.message === "error=suspended")
+              error.message === "error=suspended" ||
+              error.message === "error=rate_limited")
           ) {
             throw error; // Re-throw to be caught by NextAuth
           }

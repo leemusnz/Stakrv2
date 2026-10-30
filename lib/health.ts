@@ -11,6 +11,10 @@ export interface HealthReport {
     storage: boolean;
     auth: boolean;
     cronSecret: boolean;
+    /** "database" once migrations/2026-10-30_rate-limit-hits.sql is applied; otherwise limits are per instance. */
+    rateLimit: "database" | "per-instance";
+    /** Appeals need a different reviewer from the one who rejected, so two admin accounts are required. */
+    reviewers: boolean;
     cash: "disabled" | "ENABLED";
   };
   lifecycle: {
@@ -36,6 +40,8 @@ export async function healthReport(
   let database = false;
   let overdueJobs: number | null = null;
   let oldestOverdueMinutes: number | null = null;
+  let sharedLimiter = false;
+  let reviewerCount = 0;
   try {
     await sql`SELECT 1`;
     database = true;
@@ -44,6 +50,12 @@ export async function healthReport(
       FROM challenge_lifecycle_queue WHERE next_attempt_at < now() - interval '15 minutes'`;
     overdueJobs = row.overdue;
     oldestOverdueMinutes = row.oldest;
+    const [table] =
+      await sql`SELECT to_regclass('rate_limit_hits') IS NOT NULL AS present`;
+    sharedLimiter = Boolean(table?.present);
+    const [staff] = await sql`SELECT count(*)::int AS admins FROM users
+      WHERE (is_dev OR has_dev_access) AND coalesce(moderation_status,'approved') NOT IN ('suspended','rejected')`;
+    reviewerCount = Number(staff?.admins ?? 0);
   } catch {
     // Reported through the flags below; never throw from a health check.
   }
@@ -59,7 +71,13 @@ export async function healthReport(
     set("NEXTAUTH_URL", env);
   const cronSecret = set("CRON_SECRET", env);
   const impaired =
-    !email || !storage || !cronSecret || !auth || Boolean(overdueJobs);
+    !email ||
+    !storage ||
+    !cronSecret ||
+    !auth ||
+    !sharedLimiter ||
+    reviewerCount < 2 ||
+    Boolean(overdueJobs);
   return {
     status: !database ? "down" : impaired ? "degraded" : "ok",
     checks: {
@@ -68,6 +86,8 @@ export async function healthReport(
       storage,
       auth,
       cronSecret,
+      rateLimit: sharedLimiter ? "database" : "per-instance",
+      reviewers: reviewerCount >= 2,
       cash: env.ENABLE_CASH_PAYMENTS === "true" ? "ENABLED" : "disabled",
     },
     lifecycle: { overdueJobs, oldestOverdueMinutes },

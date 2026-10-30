@@ -13,7 +13,9 @@ const full = {
   CRON_SECRET: "c",
 } as unknown as NodeJS.ProcessEnv;
 const now = new Date("2026-10-30T00:00:00Z");
-const healthy = async () => [{ overdue: 0, oldest: 0 }];
+const healthy = async () => [
+  { overdue: 0, oldest: 0, present: true, admins: 2 },
+];
 const sqlReturning = (rows: () => Promise<any[]>) => async () => rows();
 
 describe("healthReport", () => {
@@ -85,5 +87,44 @@ describe("healthReport", () => {
       expect(json).not.toContain(`"${secret}"`);
     expect(json).not.toContain("Stakr <");
     expect(json).not.toContain("https://");
+  });
+});
+
+describe("healthReport rate limiter mode", () => {
+  it("reports the shared database limiter once the table exists", async () => {
+    const r = await healthReport(sqlReturning(healthy), full, now);
+    expect(r.checks.rateLimit).toBe("database");
+    expect(r.status).toBe("ok");
+  });
+
+  it("is degraded, and says why, until the rate-limit table is migrated", async () => {
+    const r = await healthReport(
+      sqlReturning(async () => [
+        { overdue: 0, oldest: 0, present: false, admins: 2 },
+      ]),
+      full,
+      now,
+    );
+    expect(r.status).toBe("degraded");
+    expect(r.checks.rateLimit).toBe("per-instance");
+  });
+});
+
+describe("healthReport reviewers", () => {
+  it("is degraded with a single admin, because an appeal needs a different reviewer", async () => {
+    const r = await healthReport(
+      sqlReturning(async () => [
+        { overdue: 0, oldest: 0, present: true, admins: 1 },
+      ]),
+      full,
+      now,
+    );
+    expect(r.status).toBe("degraded");
+    expect(r.checks.reviewers).toBe(false);
+  });
+
+  it("is ok with two admins", async () => {
+    const r = await healthReport(sqlReturning(healthy), full, now);
+    expect(r.checks.reviewers).toBe(true);
   });
 });

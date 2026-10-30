@@ -15,6 +15,18 @@ jest.mock("@/lib/db", () => ({
   createDbConnection: jest.fn(() => mockSql),
 }));
 
+// The rate limiter has its own tests (rate-limit-postgres.test.ts). Here it is controlled
+// explicitly so its queries cannot consume the mock database responses below.
+let rateLimitAllowed = true;
+jest.mock("@/lib/rate-limit-db", () => ({
+  LIMITS: { signInPerIp: {}, signInPerEmail: {} },
+  enforce: async () => ({
+    allowed: rateLimitAllowed,
+    retryAfterSeconds: 60,
+    mode: "database",
+  }),
+}));
+
 // Mock bcryptjs
 jest.mock("bcryptjs", () => ({
   compare: jest.fn(),
@@ -27,6 +39,7 @@ describe("Authentication System", () => {
     jest.clearAllMocks();
     mockSql.mockReset();
     clearAccountStatusCache();
+    rateLimitAllowed = true;
     // jest.config sets resetMocks: true, which strips factory implementations
     (createDbConnection as jest.Mock).mockImplementation(() => mockSql);
   });
@@ -63,6 +76,25 @@ describe("Authentication System", () => {
   });
 
   describe("Credentials Authentication", () => {
+    // Regression: credentials sign-in had no rate limit at all (password guessing,
+    // credential stuffing). Blocked attempts must stop before any database lookup
+    // or password comparison.
+    it("refuses a sign-in attempt that is over the rate limit, before touching the database", async () => {
+      rateLimitAllowed = false;
+      const credentialsProvider = authOptions.providers.find(
+        (p: any) => p.name === "Credentials",
+      ) as any;
+      await expect(
+        credentialsProvider.options.authorize(
+          { email: "victim@example.com", password: "guess-1234" },
+          { headers: { "x-forwarded-for": "203.0.113.9, 10.0.0.1" } } as any,
+        ),
+      ).rejects.toThrow("error=rate_limited");
+      expect(mockSql).not.toHaveBeenCalled();
+      const bcrypt = await import("bcryptjs");
+      expect(bcrypt.compare).not.toHaveBeenCalled();
+    });
+
     it("should authenticate with valid database user", async () => {
       const mockUser = {
         id: "user-123",

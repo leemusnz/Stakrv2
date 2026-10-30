@@ -1,141 +1,162 @@
-"use client"
+"use client";
 
-import { useState, useEffect, Suspense } from "react"
-import { BackgroundImage } from '@/components/ui/background-image'
-import { signIn, getSession } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react"
-import Link from "next/link"
+import { useState, useEffect, Suspense } from "react";
+import { BackgroundImage } from "@/components/ui/background-image";
+import { signIn, getSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import Link from "next/link";
 
 function SignInContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [message, setMessage] = useState("")
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
-  const errorParam = searchParams.get('error')
-  const messageParam = searchParams.get('message')
-  const emailParam = searchParams.get('email')
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const errorParam = searchParams.get("error");
+  const messageParam = searchParams.get("message");
+  const emailParam = searchParams.get("email");
 
   useEffect(() => {
     // Handle URL parameters
     if (errorParam) {
       switch (errorParam) {
-        case 'CredentialsSignin':
-          setError('Invalid email or password')
-          break
-        case 'email_not_verified':
-          setError('Please verify your email address before signing in')
-          break
-        case 'suspended':
-          setError('Your account has been suspended')
-          break
-        case 'oauth_account_exists':
-          setError('This account was created with Google. Please sign in with Google instead.')
-          break
+        case "CredentialsSignin":
+          setError("Invalid email or password");
+          break;
+        case "email_not_verified":
+          setError("Please verify your email address before signing in");
+          break;
+        case "suspended":
+          setError("Your account has been suspended");
+          break;
+        case "oauth_account_exists":
+          setError(
+            "This account was created with Google. Please sign in with Google instead.",
+          );
+          break;
         default:
-          setError('Sign in failed. Please try again.')
+          setError("Sign in failed. Please try again.");
       }
     }
 
     if (messageParam) {
-      setMessage(messageParam)
+      setMessage(messageParam);
     }
 
     // Pre-fill email if provided in URL
     if (emailParam && !email) {
-      setEmail(emailParam)
+      setEmail(emailParam);
     }
 
     // Check if user is already signed in
     getSession().then((session) => {
       if (session) {
-        router.push(callbackUrl)
+        router.push(callbackUrl);
       }
-    })
-  }, [errorParam, messageParam, emailParam, callbackUrl, router, email])
+    });
+  }, [errorParam, messageParam, emailParam, callbackUrl, router, email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-    console.log('🔐 Attempting sign in with:', { email, hasPassword: !!password })
+    console.log("🔐 Attempting sign in with:", {
+      email,
+      hasPassword: !!password,
+    });
 
     try {
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
-      })
+      });
 
-      console.log('🔐 Sign in result:', result)
+      console.log("🔐 Sign in result:", result);
 
       if (result?.ok) {
         // Credentials POST already set session cookies. Do not poll getSession() here:
         // the PWA service worker used to cache-first GET /api/auth/session, which could
         // serve a stale unauthenticated body and make polling fail with a false error.
-        console.log('✅ Sign in successful, redirecting to:', callbackUrl)
-        window.location.href = callbackUrl
-        return
+        console.log("✅ Sign in successful, redirecting to:", callbackUrl);
+        window.location.href = callbackUrl;
+        return;
       } else {
         // Handle specific error types
-        const errorCode = result?.error
-        console.log('❌ Sign in failed with error:', errorCode)
-        
+        const errorCode = result?.error;
+        console.log("❌ Sign in failed with error:", errorCode);
+
         switch (errorCode) {
-          case 'error=email_not_verified':
-            setError('Please verify your email address before signing in')
-            console.log('📧 Redirecting to verification page')
+          case "error=email_not_verified":
+            setError("Please verify your email address before signing in");
+            console.log("📧 Redirecting to verification page");
             // Redirect to verification page
-            router.push(`/auth/verify-email?email=${encodeURIComponent(email)}&from=signin`)
-            break
-          case 'error=suspended':
-            setError('Your account has been suspended')
-            router.push('/auth/suspended')
-            break
-          case 'CredentialsSignin':
+            router.push(
+              `/auth/verify-email?email=${encodeURIComponent(email)}&from=signin`,
+            );
+            break;
+          case "error=rate_limited":
+            setError(
+              "Too many sign-in attempts. Please wait a few minutes and try again.",
+            );
+            break;
+          case "error=suspended":
+            setError("Your account has been suspended");
+            router.push("/auth/suspended");
+            break;
+          case "CredentialsSignin":
             // Check if this might be an OAuth-only account
             // NextAuth doesn't pass custom error codes, so we show a helpful message
-            setError('Invalid email or password. If you signed up with Google, please use "Continue with Google" instead.')
-            break
+            setError(
+              'Invalid email or password. If you signed up with Google, please use "Continue with Google" instead.',
+            );
+            break;
           default:
-            setError('Invalid email or password')
+            setError("Invalid email or password");
         }
       }
     } catch (error) {
-      console.error("🚨 Sign in exception:", error)
-      setError("Connection error. Please try again.")
+      console.error("🚨 Sign in exception:", error);
+      setError("Connection error. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSocialSignIn = async (provider: string) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await signIn(provider, { callbackUrl })
+      await signIn(provider, { callbackUrl });
     } catch (error) {
-      console.error("Social sign in error:", error)
-      setError("Social sign in failed. Please try again.")
-      setIsLoading(false)
+      console.error("Social sign in error:", error);
+      setError("Social sign in failed. Please try again.");
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] relative overflow-hidden flex items-center justify-center p-4">
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
-        <BackgroundImage 
+        <BackgroundImage
           src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1920&q=80"
           alt="Sign in background"
           className="w-full h-full object-cover grayscale-[30%] dark:grayscale-[50%]"
@@ -147,11 +168,14 @@ function SignInContent() {
       {/* Ambient Glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#F46036] rounded-full mix-blend-screen filter blur-[120px] opacity-10 dark:opacity-20 animate-pulse"></div>
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#D74E25] rounded-full mix-blend-screen filter blur-[100px] opacity-[0.07] dark:opacity-15 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div
+          className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#D74E25] rounded-full mix-blend-screen filter blur-[100px] opacity-[0.07] dark:opacity-15 animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
       </div>
 
       {/* Noise Texture */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015] pointer-events-none"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
@@ -162,7 +186,10 @@ function SignInContent() {
         {/* Logo */}
         <div className="text-center mb-10">
           <h1 className="text-5xl font-heading font-bold text-slate-900 dark:text-white mb-3 tracking-tight">
-            Welcome Back to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F46036] to-[#D74E25]">Stakr</span>
+            Welcome Back to{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F46036] to-[#D74E25]">
+              Stakr
+            </span>
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-lg font-body">
             Sign in to continue your challenge journey
@@ -172,17 +199,19 @@ function SignInContent() {
         {/* Main Card - Themed Glass HUD */}
         <div className="relative group">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F46036] to-[#D74E25] rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500"></div>
-          
+
           <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl dark:shadow-2xl overflow-hidden">
             {/* Shimmer effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 dark:via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            
+
             <div className="relative p-8 space-y-6">
               {/* Success Message */}
               {message && (
                 <div className="bg-green-500/10 border border-green-500/20 backdrop-blur-sm rounded-xl p-4 flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-green-700 dark:text-green-300 text-sm font-medium">{message}</p>
+                  <p className="text-green-700 dark:text-green-300 text-sm font-medium">
+                    {message}
+                  </p>
                 </div>
               )}
 
@@ -190,7 +219,9 @@ function SignInContent() {
               {error && (
                 <div className="bg-red-500/10 border border-red-500/20 backdrop-blur-sm rounded-xl p-4 flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-red-700 dark:text-red-300 text-sm font-medium">{error}</p>
+                  <p className="text-red-700 dark:text-red-300 text-sm font-medium">
+                    {error}
+                  </p>
                 </div>
               )}
 
@@ -229,7 +260,9 @@ function SignInContent() {
                     <div className="w-full border-t border-slate-300 dark:border-white/10" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white/80 dark:bg-black/40 px-3 text-slate-600 dark:text-slate-400 font-medium">Or</span>
+                    <span className="bg-white/80 dark:bg-black/40 px-3 text-slate-600 dark:text-slate-400 font-medium">
+                      Or
+                    </span>
                   </div>
                 </div>
               </div>
@@ -237,7 +270,9 @@ function SignInContent() {
               {/* Email Form */}
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-3">
-                  <label className="text-sm font-heading font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider">Email</label>
+                  <label className="text-sm font-heading font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider">
+                    Email
+                  </label>
                   <div className="relative group/input">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-slate-400" />
                     <Input
@@ -253,7 +288,9 @@ function SignInContent() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-sm font-heading font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider">Password</label>
+                  <label className="text-sm font-heading font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider">
+                    Password
+                  </label>
                   <div className="relative group/input">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-slate-400" />
                     <Input
@@ -269,16 +306,20 @@ function SignInContent() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
                     </button>
                     <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#F46036]/10 to-[#D74E25]/10 opacity-0 group-hover/input:opacity-100 transition-opacity pointer-events-none"></div>
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  disabled={isLoading} 
-                  size="lg" 
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  size="lg"
                   className="w-full h-14 bg-gradient-to-r from-[#F46036] to-[#D74E25] hover:from-[#ff724c] hover:to-[#e85a30] text-white font-heading font-bold text-lg shadow-xl shadow-orange-500/20 hover:shadow-orange-500/40 transition-all duration-300 transform hover:scale-[1.02] rounded-xl"
                 >
                   {isLoading ? (
@@ -295,10 +336,16 @@ function SignInContent() {
               {/* Footer Links */}
               <div className="pt-4 border-t border-slate-200 dark:border-white/10">
                 <div className="flex items-center justify-between text-sm">
-                  <Link href="/onboarding" className="text-[#F46036] hover:text-[#ff724c] font-medium transition-colors">
+                  <Link
+                    href="/onboarding"
+                    className="text-[#F46036] hover:text-[#ff724c] font-medium transition-colors"
+                  >
                     Create an account
                   </Link>
-                  <Link href="/auth/forgot-password" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition-colors">
+                  <Link
+                    href="/auth/forgot-password"
+                    className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition-colors"
+                  >
                     Forgot password?
                   </Link>
                 </div>
@@ -326,7 +373,7 @@ function SignInContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function LoadingFallback() {
@@ -342,7 +389,7 @@ function LoadingFallback() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export default function SignInPage() {
@@ -350,5 +397,5 @@ export default function SignInPage() {
     <Suspense fallback={<LoadingFallback />}>
       <SignInContent />
     </Suspense>
-  )
+  );
 }
