@@ -1,23 +1,30 @@
-import { Resend } from 'resend'
+import { randomBytes } from "crypto";
+import { Resend } from "resend";
 
 // Initialize Resend with API key or fallback for development
-const resend = new Resend(process.env.RESEND_API_KEY || 'dummy-key-for-development')
+const resend = new Resend(
+  process.env.RESEND_API_KEY || "dummy-key-for-development",
+);
 
 interface EmailTemplate {
-  to: string
-  subject: string
-  html: string
+  to: string;
+  subject: string;
+  html: string;
   /** Plain-text alternative body */
-  text?: string
+  text?: string;
 }
 
 // Email verification template
-export function createVerificationEmail(to: string, verificationToken: string, name: string): EmailTemplate {
-  const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`
-  
+export function createVerificationEmail(
+  to: string,
+  verificationToken: string,
+  name: string,
+): EmailTemplate {
+  const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;
+
   return {
     to,
-    subject: '🎯 Welcome to Stakr - Verify your account',
+    subject: "🎯 Welcome to Stakr - Verify your account",
     html: `
       <!DOCTYPE html>
       <html>
@@ -304,17 +311,21 @@ export function createVerificationEmail(to: string, verificationToken: string, n
           </div>
         </body>
       </html>
-    `
-  }
+    `,
+  };
 }
 
 // Password reset template
-export function createPasswordResetEmail(to: string, resetToken: string, name: string): EmailTemplate {
-  const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`
-  
+export function createPasswordResetEmail(
+  to: string,
+  resetToken: string,
+  name: string,
+): EmailTemplate {
+  const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`;
+
   return {
     to,
-    subject: 'Reset your Stakr password',
+    subject: "Reset your Stakr password",
     html: `
       <!DOCTYPE html>
       <html>
@@ -367,65 +378,87 @@ export function createPasswordResetEmail(to: string, resetToken: string, name: s
           </div>
         </body>
       </html>
-    `
-  }
+    `,
+  };
 }
 
 // Send email function
-export async function sendEmail(template: EmailTemplate): Promise<{ success: boolean; error?: string }> {
+export async function sendEmail(
+  template: EmailTemplate,
+): Promise<{ success: boolean; error?: string }> {
   try {
     // Check if we have a valid API key
-    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'dummy-key-for-development') {
-      return { success: true } // Return success in development to not break auth flow
+    if (
+      !process.env.RESEND_API_KEY ||
+      process.env.RESEND_API_KEY === "dummy-key-for-development"
+    ) {
+      // Sign-in requires a verified email, so in production an unconfigured mailer
+      // must fail loudly. Reporting success here would strand every new user.
+      if (process.env.NODE_ENV === "production") {
+        console.error(
+          "❌ RESEND_API_KEY is not configured: email was NOT sent",
+        );
+        return { success: false, error: "Email service is not configured" };
+      }
+      return { success: true }; // Development only: don't block the auth flow locally
     }
 
     // Use environment variable for from address or fallback to Resend's default
-    const fromAddress = process.env.RESEND_FROM_EMAIL || 'Stakr <onboarding@resend.dev>'
-    
+    const fromAddress =
+      process.env.RESEND_FROM_EMAIL || "Stakr <onboarding@resend.dev>";
+
     const { data, error } = await resend.emails.send({
       from: fromAddress,
       to: template.to,
       subject: template.subject,
       html: template.html,
       ...(template.text ? { text: template.text } : {}),
-    })
-    
+    });
 
     if (error) {
-      console.error('❌ Email sending failed:', error)
-      console.error('❌ Error details:', {
+      console.error("❌ Email sending failed:", error);
+      console.error("❌ Error details:", {
         message: error.message,
         name: error.name,
         fromAddress,
-        to: template.to
-      })
-      
+        to: template.to,
+      });
+
       // Provide helpful error messages for common issues
-      let helpfulMessage = error.message
-      if (error.message?.includes('domain')) {
-        helpfulMessage = 'Domain not verified in Resend. Use onboarding@resend.dev or verify your domain.'
-      } else if (error.message?.includes('api_key')) {
-        helpfulMessage = 'Invalid Resend API key. Check your RESEND_API_KEY environment variable.'
+      let helpfulMessage = error.message;
+      if (error.message?.includes("domain")) {
+        helpfulMessage =
+          "Domain not verified in Resend. Use onboarding@resend.dev or verify your domain.";
+      } else if (error.message?.includes("api_key")) {
+        helpfulMessage =
+          "Invalid Resend API key. Check your RESEND_API_KEY environment variable.";
       }
-      
-      return { success: false, error: helpfulMessage }
+
+      return { success: false, error: helpfulMessage };
     }
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error('❌ Email service error:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown email error' 
-    }
+    console.error("❌ Email service error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown email error",
+    };
   }
 }
 
 // Utility functions for token generation
+// 256 bits from the OS CSPRNG. These tokens grant account access (email
+// verification, password reset), so they must not be derived from Math.random
+// or the clock: both are predictable.
+function secureToken(): string {
+  return randomBytes(32).toString("base64url");
+}
+
 export function generateVerificationToken(): string {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36)
+  return secureToken();
 }
 
 export function generateResetToken(): string {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36)
+  return secureToken();
 }

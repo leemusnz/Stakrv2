@@ -1,166 +1,189 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { getToken } from 'next-auth/jwt'
-import { nextAuthSecret } from '@/lib/nextauth-secret'
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
+import { nextAuthSecret } from "@/lib/nextauth-secret";
+import { isAllowedApiPath, isNotInReleasePage } from "@/lib/v1-surface";
 
 // Routes that require authentication
 const protectedRoutes = [
-  '/dashboard',
-  '/my-challenges',
-  '/my-active', 
-  '/create-challenge',
-  '/profile',
-  '/settings',
-  '/wallet',
-  '/notifications',
-  '/social',
-  '/discover',
-  '/challenge',
-  '/creator',
-  '/brand'
-]
+  "/dashboard",
+  "/my-challenges",
+  "/my-active",
+  "/create-challenge",
+  "/profile",
+  "/settings",
+  "/wallet",
+  "/notifications",
+  "/social",
+  "/discover",
+  "/challenge",
+  "/creator",
+  "/brand",
+];
 
 // Routes that don't require email verification (even when authenticated)
 const verificationExemptRoutes = [
-  '/auth/verify-email',
-  '/auth/signin',
-  '/auth/suspended',
-  '/api/auth',
-  '/onboarding'
-]
+  "/auth/verify-email",
+  "/auth/signin",
+  "/auth/suspended",
+  "/api/auth",
+  "/onboarding",
+];
 
 // Routes that bypass the alpha gate (public marketing / legal without invite cookie)
 const alphaGateExemptRoutes = [
-  '/alpha-gate',
-  '/api/alpha-access',
-  '/api/auth',
-  '/_next',
-  '/favicon',
-  '/privacy',
-  '/terms',
-  '/pricing',
-]
+  "/alpha-gate",
+  "/api/alpha-access",
+  "/api/auth",
+  "/_next",
+  "/favicon",
+  "/privacy",
+  "/terms",
+  "/pricing",
+];
 
 // Demo/test/dev scaffolding pages — never served in production builds.
 // Full deletion is scheduled for Phase 1 (board condition 5: deletion manifest);
 // until then they are hard-gated server-side here, not by client-side checks.
 const devOnlyRoutes = [
-  '/demo',
-  '/mobile-demo',
-  '/proof-demo',
-  '/verification-demo',
-  '/test-avatar',
-  '/test-dashboard',
-  '/test-verification-system',
-  '/theme-preview',
-  '/design-preview',
-  '/dev-tools',
-]
+  "/demo",
+  "/mobile-demo",
+  "/proof-demo",
+  "/verification-demo",
+  "/test-avatar",
+  "/test-dashboard",
+  "/test-verification-system",
+  "/theme-preview",
+  "/design-preview",
+  "/dev-tools",
+];
 
 function isAlphaGateDisabled(): boolean {
-  return process.env.STAKR_ALPHA_GATE_DISABLED === 'true'
+  return process.env.STAKR_ALPHA_GATE_DISABLED === "true";
 }
 
 export async function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname
-  
+  const pathname = request.nextUrl.pathname;
+
   // Debug logging for development
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
   }
-  
+
+  // Credits release: only the allowlisted API routes exist in production (default deny).
+  // Dormant legacy routes write to tables production lacks, serve mock data or move money.
+  if (
+    process.env.NODE_ENV === "production" &&
+    pathname.startsWith("/api/") &&
+    !isAllowedApiPath(pathname)
+  ) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   // Skip middleware for API routes, static files, and auth routes
   if (
-    pathname.startsWith('/api/') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon') ||
-    pathname.includes('.')
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname.includes(".")
   ) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
     }
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   // Hard 404 for demo/test scaffolding in production
   if (
-    process.env.NODE_ENV === 'production' &&
-    devOnlyRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'))
+    process.env.NODE_ENV === "production" &&
+    devOnlyRoutes.some(
+      (route) => pathname === route || pathname.startsWith(route + "/"),
+    )
   ) {
-    return new NextResponse(null, { status: 404 })
+    return new NextResponse(null, { status: 404 });
+  }
+
+  // Legacy pages outside the credits release (mock data / unsupported features).
+  if (process.env.NODE_ENV === "production" && isNotInReleasePage(pathname)) {
+    return new NextResponse(null, { status: 404 });
   }
 
   // 🔒 ALPHA GATE — set STAKR_ALPHA_GATE_DISABLED=true on Vercel (Production) to open the app publicly.
   if (!isAlphaGateDisabled()) {
-    const alphaAccess = request.cookies.get('alpha_access')
-    const hasAlphaAccess = alphaAccess?.value === 'true'
+    const alphaAccess = request.cookies.get("alpha_access");
+    const hasAlphaAccess = alphaAccess?.value === "true";
 
     // Cookie is httpOnly, so the gate page can't see it — bounce already-admitted
     // visitors here instead.
-    if (pathname.startsWith('/alpha-gate') && hasAlphaAccess) {
-      return NextResponse.redirect(new URL('/', request.url))
+    if (pathname.startsWith("/alpha-gate") && hasAlphaAccess) {
+      return NextResponse.redirect(new URL("/", request.url));
     }
 
     const isAlphaGateExempt = alphaGateExemptRoutes.some((route) =>
       pathname.startsWith(route),
-    )
+    );
 
     if (!isAlphaGateExempt && !hasAlphaAccess) {
-      const alphaGateUrl = new URL('/alpha-gate', request.url)
-      return NextResponse.redirect(alphaGateUrl)
+      const alphaGateUrl = new URL("/alpha-gate", request.url);
+      return NextResponse.redirect(alphaGateUrl);
     }
   }
 
   // Check if this is a protected route
-  const isProtectedRoute = protectedRoutes.some(route => 
-    pathname.startsWith(route)
-  )
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
 
   // Get the user's session token for all routes (needed for onboarding redirect)
   const token = await getToken({
     req: request,
     secret: nextAuthSecret(),
-  })
+  });
 
   // Redirect authenticated users who have completed onboarding away from onboarding to dashboard
-  if (pathname.startsWith('/onboarding') && token && token.onboardingCompleted) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  if (
+    pathname.startsWith("/onboarding") &&
+    token &&
+    token.onboardingCompleted
+  ) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   if (!isProtectedRoute) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   // If no token, redirect to sign in
   if (!token) {
-    const signInUrl = new URL('/auth/signin', request.url)
-    signInUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(signInUrl)
+    const signInUrl = new URL("/auth/signin", request.url);
+    signInUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(signInUrl);
   }
 
   // Check if email verification is required and user is not verified
-  const isVerificationExempt = verificationExemptRoutes.some(route =>
-    pathname.startsWith(route)
-  )
+  const isVerificationExempt = verificationExemptRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
 
   // If user is not email verified and not on exempt route, redirect to verification
   if (!isVerificationExempt && !token.emailVerified) {
-    const verifyUrl = new URL('/auth/verify-email', request.url)
-    verifyUrl.searchParams.set('email', token.email as string)
-    verifyUrl.searchParams.set('from', 'access-blocked')
-    return NextResponse.redirect(verifyUrl)
+    const verifyUrl = new URL("/auth/verify-email", request.url);
+    verifyUrl.searchParams.set("email", token.email as string);
+    verifyUrl.searchParams.set("from", "access-blocked");
+    return NextResponse.redirect(verifyUrl);
   }
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (All API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * API routes ARE matched so the production release-surface gate (lib/v1-surface.ts)
+     * can 404 dormant endpoints; the handler returns early for allowed API paths.
      */
-    '/((?!api/|_next/static|_next/image|favicon.ico).*)',
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
-}
+};
