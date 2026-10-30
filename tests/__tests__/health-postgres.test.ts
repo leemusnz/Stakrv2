@@ -77,4 +77,47 @@ describeDatabase("health watchdog on the production schema", () => {
     expect(report.lifecycle.overdueJobs).toBe(2);
     expect(report.lifecycle.oldestOverdueMinutes).toBeGreaterThanOrEqual(119);
   });
+
+  // Regression (Codex review, PR #11): the reviewer count ignored email
+  // verification, but the session check treats an unverified admin as signed
+  // out, so health said "two reviewers" while only one could actually act.
+  describe("reviewers", () => {
+    async function admin(
+      email: string,
+      opts: { verified?: boolean; status?: string; isAdmin?: boolean } = {},
+    ) {
+      await baseline.db.query(
+        `INSERT INTO users (email,name,username,is_dev,has_dev_access,email_verified,moderation_status)
+         VALUES ($1,'t',$1,$2,$2,$3,$4)`,
+        [
+          email,
+          opts.isAdmin ?? true,
+          opts.verified ?? true,
+          opts.status ?? "approved",
+        ],
+      );
+    }
+    const reviewers = async () =>
+      (await healthReport(sql, env)).checks.reviewers;
+    beforeEach(() => baseline.db.query("TRUNCATE users CASCADE"));
+
+    it("does not count an admin who has not verified their email", async () => {
+      await admin("a@example.test");
+      await admin("b@example.test", { verified: false });
+      expect(await reviewers()).toBe(false);
+    });
+
+    it("does not count suspended admins or ordinary users", async () => {
+      await admin("a@example.test");
+      await admin("b@example.test", { status: "suspended" });
+      await admin("c@example.test", { isAdmin: false });
+      expect(await reviewers()).toBe(false);
+    });
+
+    it("needs two admins who can actually sign in", async () => {
+      await admin("a@example.test");
+      await admin("b@example.test");
+      expect(await reviewers()).toBe(true);
+    });
+  });
 });

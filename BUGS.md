@@ -304,6 +304,20 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
   challenge's evidence alongside the live one); it passes now and also asserts the premise that
   cancelling leaves evidence unresolved (`tests/__tests__/mvp-postgres.test.ts`).
 
+## B-023 — Health counted admins who could not actually sign in — FIXED
+
+- **Date:** 30/10/2026 · **Severity:** Low-Medium (a false "all clear" on the two-reviewer check)
+- **Found by:** Codex code review of PR #11 (P2).
+- **Symptom:** The "two admins" check ignored email verification, but the session check
+  (`isAccountActive`) treats an unverified account as signed out, so `requireAdmin` refuses it.
+  With one verified and one unverified admin `/api/health` reported `reviewers: true` while appeals
+  (which need a different reviewer from the one who rejected) could not be decided.
+- **Fix:** `lib/health.ts` counts only admins with a verified email who are not suspended or
+  rejected, the same conditions the session check uses.
+- **Proof:** new tests on the real production schema; the unverified-admin test failed first
+  (reported `true`, expected `false`), with controls for suspended admins, ordinary users and
+  "two good admins" (`tests/__tests__/health-postgres.test.ts`).
+
 ---
 
 ## Open items and accepted risks

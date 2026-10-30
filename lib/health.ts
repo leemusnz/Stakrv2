@@ -57,8 +57,10 @@ export async function healthReport(
     const [table] =
       await sql`SELECT to_regclass('rate_limit_hits') IS NOT NULL AS present`;
     sharedLimiter = Boolean(table?.present);
+    // Same conditions as isAccountActive: an unverified admin is signed out, so cannot review.
     const [staff] = await sql`SELECT count(*)::int AS admins FROM users
-      WHERE (is_dev OR has_dev_access) AND coalesce(moderation_status,'approved') NOT IN ('suspended','rejected')`;
+      WHERE (is_dev OR has_dev_access) AND email_verified
+        AND coalesce(moderation_status,'approved') NOT IN ('suspended','rejected')`;
     reviewerCount = Number(staff?.admins ?? 0);
   } catch {
     // Reported through the flags below; never throw from a health check.
