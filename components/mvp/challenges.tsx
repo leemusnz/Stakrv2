@@ -12,6 +12,7 @@ import {
   useResource,
   utc,
 } from "./shell";
+import { WelcomeCredits } from "./welcome";
 
 export function ChallengeList({ mine = false }: { mine?: boolean }) {
   const [filters, setFilters] = useState({
@@ -202,11 +203,21 @@ export function ChallengeList({ mine = false }: { mine?: boolean }) {
 export function Dashboard() {
   const wallet = useResource("/api/user/credits");
   const mine = useResource("/api/user/challenges");
+  const welcome = useResource("/api/user/welcome-credits");
   return (
     <Shell
       title="Make your commitment count"
       intro="Pick a challenge, back it with credits and show your progress. Your published rules determine the outcome."
     >
+      {welcome.data?.eligible && (
+        <WelcomeCredits
+          amount={welcome.data.amount}
+          onClaimed={() => {
+            welcome.refresh();
+            wallet.refresh();
+          }}
+        />
+      )}
       <div className="grid gap-5 sm:grid-cols-2">
         <section className={panel}>
           <h2 className="text-lg font-semibold">Available credits</h2>

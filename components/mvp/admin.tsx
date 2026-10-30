@@ -14,6 +14,7 @@ import {
   utc,
 } from "./shell";
 import { EvidenceLink } from "./detail";
+import { UserStatusForm } from "./admin-users";
 
 export function AdminChallenges() {
   const grantKey = useRef<{ signature: string; key: string } | null>(null);
@@ -258,6 +259,7 @@ export function AdminChallenges() {
           </button>
         </form>
       </section>
+      <UserStatusForm />
       {r.data && (
         <section className={panel + " space-y-3"}>
           <h2 className="text-2xl font-bold">Ledger reconciliation</h2>
