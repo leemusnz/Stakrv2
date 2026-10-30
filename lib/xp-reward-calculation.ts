@@ -1,37 +1,40 @@
-import { createDbConnection } from '@/lib/db'
+import { createDbConnection } from "@/lib/db";
 
-type SqlTag = (strings: TemplateStringsArray, ...values: any[]) => Promise<any[]>
+type SqlTag = (
+  strings: TemplateStringsArray,
+  ...values: any[]
+) => Promise<any[]>;
 
 export interface XPChallengeStats {
-  id: string
-  title: string
-  difficulty: string
-  duration: string
-  total_participants: number
-  completed_count: number
-  failed_count: number
-  completion_rate: number
+  id: string;
+  title: string;
+  difficulty: string;
+  duration: string;
+  total_participants: number;
+  completed_count: number;
+  failed_count: number;
+  completion_rate: number;
 }
 
 export interface XPParticipantReward {
-  participant_id: string
-  user_id: string
-  xp_earned: number
-  completion_bonus: number
-  difficulty_bonus: number
-  streak_bonus: number
-  total_xp: number
-  new_level: number
+  participant_id: string;
+  user_id: string;
+  xp_earned: number;
+  completion_bonus: number;
+  difficulty_bonus: number;
+  streak_bonus: number;
+  total_xp: number;
+  new_level: number;
 }
 
 export interface XPRewardDistributionResult {
-  challenge_stats: XPChallengeStats
-  participant_rewards: XPParticipantReward[]
+  challenge_stats: XPChallengeStats;
+  participant_rewards: XPParticipantReward[];
   summary: {
-    total_xp_awarded: number
-    average_xp_per_participant: number
-    completion_rate: number
-  }
+    total_xp_awarded: number;
+    average_xp_per_participant: number;
+    completion_rate: number;
+  };
 }
 
 /**
@@ -39,10 +42,9 @@ export interface XPRewardDistributionResult {
  */
 export async function calculateXPChallengeRewards(
   challengeId: string,
-  sqlOverride?: SqlTag
+  sqlOverride?: SqlTag,
 ): Promise<XPRewardDistributionResult> {
-  const sql = sqlOverride || (await createDbConnection())
-  
+  const sql = sqlOverride || (await createDbConnection());
 
   // Get challenge stats
   const challengeStats = await sql`
@@ -55,16 +57,18 @@ export async function calculateXPChallengeRewards(
     LEFT JOIN challenge_participants cp ON c.id = cp.challenge_id
     WHERE c.id = ${challengeId}
     GROUP BY c.id, c.title, c.difficulty, c.duration
-  `
+  `;
 
   if (challengeStats.length === 0) {
-    throw new Error(`Challenge ${challengeId} not found`)
+    throw new Error(`Challenge ${challengeId} not found`);
   }
 
-  const stats = challengeStats[0]
-  const completionRate = stats.total_participants > 0 
-    ? (parseInt(stats.completed_count) / parseInt(stats.total_participants)) * 100 
-    : 0
+  const stats = challengeStats[0];
+  const completionRate =
+    stats.total_participants > 0
+      ? (parseInt(stats.completed_count) / parseInt(stats.total_participants)) *
+        100
+      : 0;
 
   const challengeStatsFormatted: XPChallengeStats = {
     id: stats.id,
@@ -74,8 +78,8 @@ export async function calculateXPChallengeRewards(
     total_participants: parseInt(stats.total_participants),
     completed_count: parseInt(stats.completed_count),
     failed_count: parseInt(stats.failed_count),
-    completion_rate: completionRate
-  }
+    completion_rate: completionRate,
+  };
 
   // Get completed participants
   const completedParticipants = await sql`
@@ -90,34 +94,40 @@ export async function calculateXPChallengeRewards(
     JOIN users u ON cp.user_id = u.id
     WHERE cp.challenge_id = ${challengeId}
       AND cp.completion_status = 'completed'
-  `
+  `;
 
   // Calculate XP rewards for each participant
-  const participantRewards: XPParticipantReward[] = completedParticipants.map((participant: any) => {
-    const baseXP = calculateBaseXP(stats.difficulty, stats.duration)
-    const completionBonus = calculateCompletionBonus(completionRate)
-    const difficultyBonus = calculateDifficultyBonus(stats.difficulty)
-    const streakBonus = 0 // TODO: Implement streak calculation
-    
-    const totalXP = baseXP + completionBonus + difficultyBonus + streakBonus
-    const newLevel = Math.floor((participant.current_xp + totalXP) / 200) + 1
+  const participantRewards: XPParticipantReward[] = completedParticipants.map(
+    (participant: any) => {
+      const baseXP = calculateBaseXP(stats.difficulty, stats.duration);
+      const completionBonus = calculateCompletionBonus(completionRate);
+      const difficultyBonus = calculateDifficultyBonus(stats.difficulty);
+      const streakBonus = 0; // TODO: Implement streak calculation
 
-    return {
-      participant_id: participant.participant_id,
-      user_id: participant.user_id,
-      xp_earned: baseXP,
-      completion_bonus: completionBonus,
-      difficulty_bonus: difficultyBonus,
-      streak_bonus: streakBonus,
-      total_xp: totalXP,
-      new_level: newLevel
-    }
-  })
+      const totalXP = baseXP + completionBonus + difficultyBonus + streakBonus;
+      const newLevel = Math.floor((participant.current_xp + totalXP) / 200) + 1;
 
-  const totalXPAwarded = participantRewards.reduce((sum, reward) => sum + reward.total_xp, 0)
-  const averageXPPerParticipant = participantRewards.length > 0 
-    ? totalXPAwarded / participantRewards.length 
-    : 0
+      return {
+        participant_id: participant.participant_id,
+        user_id: participant.user_id,
+        xp_earned: baseXP,
+        completion_bonus: completionBonus,
+        difficulty_bonus: difficultyBonus,
+        streak_bonus: streakBonus,
+        total_xp: totalXP,
+        new_level: newLevel,
+      };
+    },
+  );
+
+  const totalXPAwarded = participantRewards.reduce(
+    (sum, reward) => sum + reward.total_xp,
+    0,
+  );
+  const averageXPPerParticipant =
+    participantRewards.length > 0
+      ? totalXPAwarded / participantRewards.length
+      : 0;
 
   return {
     challenge_stats: challengeStatsFormatted,
@@ -125,9 +135,9 @@ export async function calculateXPChallengeRewards(
     summary: {
       total_xp_awarded: totalXPAwarded,
       average_xp_per_participant: averageXPPerParticipant,
-      completion_rate: completionRate
-    }
-  }
+      completion_rate: completionRate,
+    },
+  };
 }
 
 /**
@@ -135,26 +145,29 @@ export async function calculateXPChallengeRewards(
  */
 function calculateBaseXP(difficulty: string, duration: string): number {
   const difficultyMultipliers = {
-    'easy': 1.0,
-    'medium': 1.5,
-    'hard': 2.0,
-    'expert': 2.5
-  }
+    easy: 1.0,
+    medium: 1.5,
+    hard: 2.0,
+    expert: 2.5,
+  };
 
   const durationMultipliers = {
-    '1': 0.5,
-    '3': 0.8,
-    '7': 1.0,
-    '14': 1.3,
-    '21': 1.6,
-    '30': 2.0
-  }
+    "1": 0.5,
+    "3": 0.8,
+    "7": 1.0,
+    "14": 1.3,
+    "21": 1.6,
+    "30": 2.0,
+  };
 
-  const baseXP = 100 // Base XP for completing any challenge
-  const difficultyMultiplier = difficultyMultipliers[difficulty as keyof typeof difficultyMultipliers] || 1.0
-  const durationMultiplier = durationMultipliers[duration as keyof typeof durationMultipliers] || 1.0
+  const baseXP = 100; // Base XP for completing any challenge
+  const difficultyMultiplier =
+    difficultyMultipliers[difficulty as keyof typeof difficultyMultipliers] ||
+    1.0;
+  const durationMultiplier =
+    durationMultipliers[duration as keyof typeof durationMultipliers] || 1.0;
 
-  return Math.round(baseXP * difficultyMultiplier * durationMultiplier)
+  return Math.round(baseXP * difficultyMultiplier * durationMultiplier);
 }
 
 /**
@@ -163,12 +176,12 @@ function calculateBaseXP(difficulty: string, duration: string): number {
 function calculateCompletionBonus(completionRate: number): number {
   // Higher completion rate = lower bonus (challenge was easier)
   // Lower completion rate = higher bonus (challenge was harder)
-  if (completionRate >= 90) return 0
-  if (completionRate >= 80) return 10
-  if (completionRate >= 70) return 25
-  if (completionRate >= 60) return 50
-  if (completionRate >= 50) return 75
-  return 100 // Very difficult challenge
+  if (completionRate >= 90) return 0;
+  if (completionRate >= 80) return 10;
+  if (completionRate >= 70) return 25;
+  if (completionRate >= 60) return 50;
+  if (completionRate >= 50) return 75;
+  return 100; // Very difficult challenge
 }
 
 /**
@@ -176,94 +189,24 @@ function calculateCompletionBonus(completionRate: number): number {
  */
 function calculateDifficultyBonus(difficulty: string): number {
   const difficultyBonuses = {
-    'easy': 0,
-    'medium': 25,
-    'hard': 50,
-    'expert': 100
-  }
+    easy: 0,
+    medium: 25,
+    hard: 50,
+    expert: 100,
+  };
 
-  return difficultyBonuses[difficulty as keyof typeof difficultyBonuses] || 0
+  return difficultyBonuses[difficulty as keyof typeof difficultyBonuses] || 0;
 }
 
 /**
  * Distribute XP rewards to participants
  */
+/** @deprecated XP-only challenges are outside the credits MVP. */
 export async function distributeXPRewards(
-  challengeId: string,
-  sqlOverride?: SqlTag
+  _challengeId: string,
+  _sqlOverride?: any,
 ): Promise<XPRewardDistributionResult> {
-  
-  const sql = sqlOverride || (await createDbConnection())
-  const rewardResult = await calculateXPChallengeRewards(challengeId, sql)
-
-  try {
-    // Check if rewards already distributed
-    const statusRows = await sql`
-      SELECT status FROM challenges WHERE id = ${challengeId}
-    `
-    if (statusRows.length > 0 && statusRows[0].status === 'rewards_distributed') {
-      return rewardResult
-    }
-
-    // Begin transaction for atomic XP distribution
-    await sql`BEGIN`
-
-    // Award XP to each participant
-    for (const reward of rewardResult.participant_rewards) {
-      // Use the safe XP awarding function
-      const xpAwardResult = await sql`
-        SELECT award_xp(
-          ${reward.user_id}::UUID,
-          ${reward.total_xp}::INTEGER,
-          'challenge_completion'::VARCHAR(50),
-          ${challengeId}::UUID,
-          'Challenge completion reward: ${rewardResult.challenge_stats.title}'::TEXT
-        ) as success
-      `
-      
-      const xpAwarded = xpAwardResult[0]?.success
-      
-      if (xpAwarded) {
-        
-        // Update participant record with XP earned
-        await sql`
-          UPDATE challenge_participants 
-          SET 
-            xp_earned = ${reward.total_xp},
-            updated_at = NOW()
-          WHERE id = ${reward.participant_id}
-        `
-      } else {
-      }
-    }
-
-    // Update challenge status
-    await sql`
-      UPDATE challenges 
-      SET 
-        status = 'rewards_distributed',
-        updated_at = NOW()
-      WHERE id = ${challengeId}
-    `
-
-    // Commit transaction
-    await sql`COMMIT`
-
-
-    return rewardResult
-
-  } catch (error) {
-    console.error('❌ Error distributing XP rewards:', error)
-    
-    // Rollback transaction to prevent partial updates
-    try {
-      await sql`ROLLBACK`
-    } catch (rollbackError) {
-      console.error('❌ Rollback failed:', rollbackError)
-    }
-    
-    throw error
-  }
+  throw new Error("XP-only settlement is not available in the credits MVP");
 }
 
 /**
@@ -271,9 +214,9 @@ export async function distributeXPRewards(
  */
 export async function calculatePotentialXPReward(
   challengeId: string,
-  userId: string
+  userId: string,
 ): Promise<number> {
-  const sql = await createDbConnection()
+  const sql = await createDbConnection();
 
   // Get challenge details
   const challengeData = await sql`
@@ -285,18 +228,18 @@ export async function calculatePotentialXPReward(
     LEFT JOIN challenge_participants cp ON c.id = cp.challenge_id
     WHERE c.id = ${challengeId}
     GROUP BY c.id, c.difficulty, c.duration
-  `
+  `;
 
   if (challengeData.length === 0) {
-    throw new Error(`Challenge ${challengeId} not found`)
+    throw new Error(`Challenge ${challengeId} not found`);
   }
 
-  const challenge = challengeData[0]
-  const estimatedCompletionRate = 70 // Assume 70% completion rate
-  
-  const baseXP = calculateBaseXP(challenge.difficulty, challenge.duration)
-  const completionBonus = calculateCompletionBonus(estimatedCompletionRate)
-  const difficultyBonus = calculateDifficultyBonus(challenge.difficulty)
-  
-  return baseXP + completionBonus + difficultyBonus
+  const challenge = challengeData[0];
+  const estimatedCompletionRate = 70; // Assume 70% completion rate
+
+  const baseXP = calculateBaseXP(challenge.difficulty, challenge.duration);
+  const completionBonus = calculateCompletionBonus(estimatedCompletionRate);
+  const difficultyBonus = calculateDifficultyBonus(challenge.difficulty);
+
+  return baseXP + completionBonus + difficultyBonus;
 }
