@@ -193,7 +193,7 @@ export function Shell({
       <main id="main" className="mx-auto max-w-6xl space-y-6 px-5 py-10">
         <div>
           <p className="mb-2 text-xs font-bold uppercase tracking-widest text-orange-700">
-            Credits MVP
+            Credit challenges
           </p>
           <h1 className="text-4xl font-bold tracking-tight">{title}</h1>
           {intro && (

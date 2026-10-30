@@ -11,7 +11,7 @@ import { checkRateLimit, createRateLimitResponse } from "@/lib/rate-limit";
 export async function POST(request: NextRequest) {
   if (process.env.ENABLE_CASH_PAYMENTS !== "true")
     return NextResponse.json(
-      { error: "Cash payments are not available in the credits MVP" },
+      { error: "Cash payments are not available yet" },
       { status: 403 },
     );
   try {

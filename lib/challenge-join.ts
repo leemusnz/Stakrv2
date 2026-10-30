@@ -64,10 +64,7 @@ export async function joinChallenge(
 
     // The reward path is selected per challenge, so a client cannot choose its own mode.
     if (challenge.allow_points_only)
-      throw new JoinError(
-        "XP-only challenges are not available in the credits MVP",
-        409,
-      );
+      throw new JoinError("XP-only challenges are not available yet", 409);
     const pointsOnly = false;
     if (input.pointsOnly !== pointsOnly) {
       throw new JoinError(
@@ -96,10 +93,7 @@ export async function joinChallenge(
     }
     const currency = proofRequirements.currency ?? "CREDITS";
     if (!pointsOnly && currency !== "CREDITS") {
-      throw new JoinError(
-        "Cash challenge entry is not available in the credits MVP",
-        403,
-      );
+      throw new JoinError("Cash challenge entry is not available yet", 403);
     }
     // These modes lack the policy/settlement needed for a fair MVP. Do not sell them.
     if (input.insurancePurchased)

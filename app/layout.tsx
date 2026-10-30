@@ -37,7 +37,7 @@ const teko = Teko({
 export const metadata: Metadata = {
   title: "Stakr - Challenge-Based Self-Improvement",
   description:
-    "Build better habits through accountable challenges with real stakes",
+    "Build better habits through accountable challenges backed by credits",
   // PWA and mobile app metadata
   manifest: "/manifest.json",
   appleWebApp: {

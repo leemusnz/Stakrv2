@@ -1,36 +1,38 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Zap, Trophy, Brain, Users, Sparkles } from "lucide-react"
-import type { OnboardingData } from "@/app/onboarding/page"
-import { ChallengeCard } from "@/components/challenge-card"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Zap, Trophy, Brain, ShieldCheck, Sparkles } from "lucide-react";
+import type { OnboardingData } from "@/app/onboarding/page";
 
 interface GamefiedWelcomeStepProps {
-  data: OnboardingData
-  onNext: (data?: Partial<OnboardingData>) => void
-  onBack: () => void
-  onSkip: () => void
+  data: OnboardingData;
+  onNext: (data?: Partial<OnboardingData>) => void;
+  onBack: () => void;
+  onSkip: () => void;
 }
 
-export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) {
-  const [showXPAnimation, setShowXPAnimation] = useState(false)
+export function GamefiedWelcomeStep({
+  data,
+  onNext,
+}: GamefiedWelcomeStepProps) {
+  const [showXPAnimation, setShowXPAnimation] = useState(false);
 
   const handleContinue = () => {
-    setShowXPAnimation(true)
+    setShowXPAnimation(true);
     setTimeout(() => {
-      onNext()
-    }, 1500)
-  }
+      onNext();
+    }, 1500);
+  };
 
   return (
     <div className="text-center space-y-8 max-w-6xl mx-auto relative px-4">
       {/* XP Animation */}
       {showXPAnimation && (
         <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
-          <motion.div 
+          <motion.div
             initial={{ scale: 0, rotate: -10 }}
             animate={{ scale: 1, rotate: 0 }}
             className="bg-gradient-to-r from-[#F46036] to-[#D74E25] text-white px-8 py-4 rounded-2xl text-2xl font-heading font-bold shadow-2xl shadow-orange-500/50 flex items-center gap-3"
@@ -41,12 +43,11 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
         </div>
       )}
 
-      {/* Hero Section with Floating Cards */}
+      {/* Hero Section */}
       <div className="grid lg:grid-cols-2 gap-12 items-center pt-8 pb-16 lg:pb-32">
-        
         {/* Left: Copy */}
         <div className="text-left space-y-6 relative z-10">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -59,15 +60,20 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
               🧠 The Accountability Platform
             </Badge>
             <h1 className="text-4xl md:text-6xl font-heading font-bold text-foreground leading-tight tracking-tight">
-              Put Your Money <br/>
-              Where Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F46036] to-[#D74E25]">Mouth Is.</span>
+              Put Your Credits <br />
+              Where Your{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F46036] to-[#D74E25]">
+                Mouth Is.
+              </span>
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed font-medium max-w-xl">
-              Stakr is the gamified platform where you stake on your goals. Prove your progress, build streaks, and win the pot.
+              Stakr is where you back your goals with credits. Prove your
+              progress, build streaks, and share the pot with everyone who
+              finishes.
             </p>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -84,7 +90,7 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
             </Button>
 
             <Button
-              onClick={() => window.location.href = '/auth/signin'}
+              onClick={() => (window.location.href = "/auth/signin")}
               variant="outline"
               size="lg"
               className="text-base font-medium px-8 py-6 w-full sm:w-auto border-white/10 hover:bg-white/5"
@@ -92,176 +98,84 @@ export function GamefiedWelcomeStep({ data, onNext }: GamefiedWelcomeStepProps) 
               Login
             </Button>
           </motion.div>
-
-          <div className="pt-8 grid grid-cols-3 gap-4 border-t border-white/10">
-            <div>
-              <h4 className="font-heading font-bold text-2xl">12k+</h4>
-              <p className="text-xs text-muted-foreground">Active Users</p>
-            </div>
-            <div>
-              <h4 className="font-heading font-bold text-2xl">$1.2M</h4>
-              <p className="text-xs text-muted-foreground">Staked</p>
-            </div>
-            <div>
-              <h4 className="font-heading font-bold text-2xl">94%</h4>
-              <p className="text-xs text-muted-foreground">Success Rate</p>
-            </div>
-          </div>
         </div>
 
-        {/* Right: Floating Cards Visual */}
-        <div className="relative h-[600px] w-full hidden lg:block">
-          {/* Background Blob */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-br from-orange-500/20 to-blue-600/20 rounded-full blur-[100px] animate-pulse-slow pointer-events-none" />
-
-          {/* Floating Card 1 (Back) */}
-          <motion.div 
-            className="absolute top-0 right-10 z-0 scale-90 opacity-60 blur-[1px]"
-            animate={{ 
-              y: [0, -20, 0],
-              rotate: [5, 7, 5]
-            }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <ChallengeCard
-              id="demo-1"
-              title="Early Riser Club"
-              description="Wake up early and start your day right"
-              category="Productivity"
-              participants={842}
-              minStake={25}
-              maxStake={100}
-              duration="14 Days"
-              difficulty="Medium"
-              progress={0}
-            />
-          </motion.div>
-
-          {/* Floating Card 2 (Back Left) */}
-          <motion.div 
-            className="absolute bottom-32 left-0 z-0 scale-90 opacity-60 blur-[1px]"
-            animate={{ 
-              y: [0, 25, 0],
-              rotate: [-5, -8, -5]
-            }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          >
-            <ChallengeCard
-              id="demo-2"
-              title="Digital Detox"
-              description="Reduce screen time and reconnect with yourself"
-              category="Mindfulness"
-              participants={320}
-              minStake={100}
-              maxStake={200}
-              duration="7 Days"
-              difficulty="Hard"
-              progress={0}
-            />
-          </motion.div>
-
-          {/* Hero Card (Front) */}
-          <motion.div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] z-10 shadow-2xl shadow-black/50"
-            animate={{ 
-              y: [0, -15, 0],
-            }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <ChallengeCard
-              id="demo-3"
-              title="30-Day Fitness Streak"
-              description="Build a consistent fitness habit"
-              category="Fitness"
-              participants={1234}
-              minStake={50}
-              maxStake={150}
-              duration="30 Days"
-              difficulty="Medium"
-              progress={0}
-            />
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Mobile Card Preview (Only visible on small screens) */}
-      <div className="lg:hidden pb-8">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-blue-600/20 blur-3xl" />
-          <ChallengeCard
-            id="demo-4"
-            title="30-Day Fitness Streak"
-            description="Build a consistent fitness habit"
-            category="Fitness"
-            participants={1234}
-            minStake={50}
-            maxStake={150}
-            duration="30 Days"
-            difficulty="Medium"
-            progress={0}
-          />
-        </div>
-      </div>
-
-      {/* Live Activity Ticker */}
-      <div className="w-full overflow-hidden bg-white/5 border-y border-white/5 py-3 mb-8 backdrop-blur-sm">
-        <motion.div 
-          className="flex gap-8 items-center whitespace-nowrap"
-          animate={{ x: [0, -1000] }}
-          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+        {/* Right: how it works. Replaces invented example challenges, made-up participant counts and a
+            fake "live activity" ticker, none of which reflected real activity. */}
+        <ol
+          className="relative z-10 space-y-4 text-left"
+          aria-label="How Stakr works"
         >
           {[
-            "🔥 Sarah just won $120 in Fitness Challenge",
-            "🚀 Mike started a 30-day streak",
-            "💪 Alex joined the 5AM Club",
-            "💰 Jessica staked $50 on Learning Spanish",
-            "🏆 David completed 'No Sugar' Challenge",
-            "🔥 Sarah just won $120 in Fitness Challenge",
-            "🚀 Mike started a 30-day streak",
-            "💪 Alex joined the 5AM Club",
-            "💰 Jessica staked $50 on Learning Spanish",
-            "🏆 David completed 'No Sugar' Challenge",
-          ].map((text, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              <span className="w-2 h-2 rounded-full bg-[#F46036] animate-pulse" />
-              {text}
-            </div>
+            [
+              "1",
+              "Pick a challenge",
+              "Read the published rules, then back your commitment with credits. The exact fee is shown before you join.",
+            ],
+            [
+              "2",
+              "Show your progress",
+              "Submit evidence for each required day. A neutral reviewer checks it against the rules.",
+            ],
+            [
+              "3",
+              "Finish and share the pot",
+              "Complete the required days to get your stake back, plus a share of the credits others forfeit.",
+            ],
+          ].map(([n, title, body]) => (
+            <li
+              key={n}
+              className="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#F46036] to-[#D74E25] font-heading text-lg font-bold text-white">
+                {n}
+              </span>
+              <div>
+                <h3 className="font-heading text-lg font-bold">{title}</h3>
+                <p className="text-sm text-muted-foreground">{body}</p>
+              </div>
+            </li>
           ))}
-        </motion.div>
+        </ol>
       </div>
 
       {/* Value Props */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto pb-8">
-        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors text-left">
+        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-left">
           <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4">
             <Trophy className="w-6 h-6 text-[#F46036]" />
           </div>
-          <h3 className="font-heading font-bold text-lg mb-2">Win The Pot</h3>
+          <h3 className="font-heading font-bold text-lg mb-2">Share the pot</h3>
           <p className="text-sm text-muted-foreground">
-            Everyone who completes the challenge splits the pot. Make money by betting on yourself.
+            Everyone who completes a challenge gets their own stake back and
+            splits what others forfeit. Credits have no cash value.
           </p>
         </div>
-        
-        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors text-left">
+
+        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-left">
           <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
             <Brain className="w-6 h-6 text-blue-500" />
           </div>
-          <h3 className="font-heading font-bold text-lg mb-2">Prove It</h3>
+          <h3 className="font-heading font-bold text-lg mb-2">Prove it</h3>
           <p className="text-sm text-muted-foreground">
-            Our verification system ensures fair play. Upload photos, GPS data, or fitness stats.
+            Submit text, photo or video evidence. A neutral reviewer checks it
+            against the published rules, and you can appeal a rejection.
           </p>
         </div>
-        
-        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors text-left">
+
+        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-left">
           <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-4">
-            <Users className="w-6 h-6 text-emerald-500" />
+            <ShieldCheck className="w-6 h-6 text-emerald-500" />
           </div>
-          <h3 className="font-heading font-bold text-lg mb-2">Squad Up</h3>
+          <h3 className="font-heading font-bold text-lg mb-2">
+            Fair by design
+          </h3>
           <p className="text-sm text-muted-foreground">
-            Join thousands of others. Accountability is easier when you&apos;re not alone.
+            Fees and payout rules are shown before you join and cannot change
+            afterwards.
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }

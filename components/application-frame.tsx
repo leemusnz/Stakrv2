@@ -13,6 +13,9 @@ export function ApplicationFrame({ children }: { children: React.ReactNode }) {
       "/my-challenges",
       "/my-active",
       "/wallet",
+      "/profile",
+      "/settings",
+      "/notifications",
       "/create-challenge",
       "/admin/challenges",
     ].includes(path) ||

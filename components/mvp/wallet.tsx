@@ -18,7 +18,7 @@ export function Wallet() {
   return (
     <Shell
       title="Your credits"
-      intro="Every stake, fee, return and refund is recorded here. Credits are for challenges; cash deposits and withdrawals are unavailable in this MVP."
+      intro="Every stake, fee, return and refund is recorded here. Credits are for challenges; credits have no cash value, and cash deposits and withdrawals are not available."
     >
       <LoadState {...r} retry={r.refresh} />
       {r.data && (
@@ -46,7 +46,7 @@ export function Wallet() {
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="p-3">Date (UTC)</th>
+                      <th className="hidden p-3 sm:table-cell">Date (UTC)</th>
                       <th className="p-3">Description</th>
                       <th className="p-3 text-right">Credits</th>
                     </tr>
@@ -54,7 +54,9 @@ export function Wallet() {
                   <tbody>
                     {r.data.wallet.transactions.map((t: any) => (
                       <tr key={t.id} className="border-b">
-                        <td className="whitespace-nowrap p-3">{utc(t.date)}</td>
+                        <td className="hidden whitespace-nowrap p-3 sm:table-cell">
+                          {utc(t.date)}
+                        </td>
                         <td className="p-3">
                           {t.challengeId ? (
                             <Link
@@ -66,8 +68,11 @@ export function Wallet() {
                           ) : (
                             t.description
                           )}
+                          <span className="block text-xs text-slate-500 sm:hidden">
+                            {utc(t.date)}
+                          </span>
                         </td>
-                        <td className="p-3 text-right font-semibold">
+                        <td className="whitespace-nowrap p-3 text-right font-semibold">
                           {Number(t.amount) > 0 ? "+" : ""}
                           {money(t.amount)}
                         </td>
