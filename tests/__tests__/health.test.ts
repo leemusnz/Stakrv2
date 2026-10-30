@@ -128,3 +128,45 @@ describe("healthReport reviewers", () => {
     expect(r.checks.reviewers).toBe(true);
   });
 });
+
+// The owner may choose to launch with one reviewer. Appeals against that
+// reviewer's own rejections then wait until a second exists, so this is an
+// explicit opt-in (STAKR_MIN_REVIEWERS) and the strict rule stays the default.
+describe("healthReport reviewer minimum (STAKR_MIN_REVIEWERS)", () => {
+  const admins = (n: number) =>
+    sqlReturning(async () => [
+      { overdue: 0, oldest: 0, present: true, admins: n },
+    ]);
+  const withMin = (value: string) =>
+    ({ ...full, STAKR_MIN_REVIEWERS: value }) as unknown as NodeJS.ProcessEnv;
+
+  it("accepts a single reviewer when the owner has chosen to launch with one", async () => {
+    const r = await healthReport(admins(1), withMin("1"), now);
+    expect(r.checks.reviewers).toBe(true);
+    expect(r.status).toBe("ok");
+  });
+
+  it("never accepts zero reviewers, even when one is allowed", async () => {
+    const r = await healthReport(admins(0), withMin("1"), now);
+    expect(r.checks.reviewers).toBe(false);
+    expect(r.status).toBe("degraded");
+  });
+
+  it("can ask for more than two", async () => {
+    expect(
+      (await healthReport(admins(2), withMin("3"), now)).checks.reviewers,
+    ).toBe(false);
+    expect(
+      (await healthReport(admins(3), withMin("3"), now)).checks.reviewers,
+    ).toBe(true);
+  });
+
+  it.each(["0", "-1", "abc", "", " ", "1.5", "NaN", "11"])(
+    "falls back to the strict default of two for the unusable value %j",
+    async (value) => {
+      const r = await healthReport(admins(1), withMin(value), now);
+      expect(r.checks.reviewers).toBe(false);
+      expect(r.status).toBe("degraded");
+    },
+  );
+});

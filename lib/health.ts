@@ -13,7 +13,7 @@ export interface HealthReport {
     cronSecret: boolean;
     /** "database" once migrations/2026-10-30_rate-limit-hits.sql is applied; otherwise limits are per instance. */
     rateLimit: "database" | "per-instance";
-    /** Appeals need a different reviewer from the one who rejected, so two admin accounts are required. */
+    /** Enough admin reviewers (two by default; see STAKR_MIN_REVIEWERS). An appeal needs a different reviewer from the one who rejected. */
     reviewers: boolean;
     cash: "disabled" | "ENABLED";
   };
@@ -26,6 +26,17 @@ export interface HealthReport {
 
 const set = (name: string, env: NodeJS.ProcessEnv) =>
   Boolean(env[name]?.trim());
+
+/**
+ * Reviewers needed before health calls the setup complete. Two by default,
+ * because an appeal must go to a different reviewer from the one who rejected.
+ * The owner can launch with one by setting STAKR_MIN_REVIEWERS=1, accepting that
+ * such appeals wait for a second reviewer. Anything unusable falls back to two.
+ */
+function minReviewers(env: NodeJS.ProcessEnv): number {
+  const value = Number(env.STAKR_MIN_REVIEWERS?.trim());
+  return Number.isInteger(value) && value >= 1 && value <= 10 ? value : 2;
+}
 
 /**
  * Booleans and counts only, never values, so it is safe to expose publicly.
@@ -76,13 +87,14 @@ export async function healthReport(
     (set("NEXTAUTH_SECRET", env) || set("AUTH_SECRET", env)) &&
     set("NEXTAUTH_URL", env);
   const cronSecret = set("CRON_SECRET", env);
+  const reviewers = reviewerCount >= minReviewers(env);
   const impaired =
     !email ||
     !storage ||
     !cronSecret ||
     !auth ||
     !sharedLimiter ||
-    reviewerCount < 2 ||
+    !reviewers ||
     Boolean(overdueJobs);
   return {
     status: !database ? "down" : impaired ? "degraded" : "ok",
@@ -93,7 +105,7 @@ export async function healthReport(
       auth,
       cronSecret,
       rateLimit: sharedLimiter ? "database" : "per-instance",
-      reviewers: reviewerCount >= 2,
+      reviewers,
       cash: env.ENABLE_CASH_PAYMENTS === "true" ? "ENABLED" : "disabled",
     },
     lifecycle: { overdueJobs, oldestOverdueMinutes },

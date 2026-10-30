@@ -3,12 +3,11 @@
 Last updated: 30/10/2026 · Production: https://stakr.app · Vercel project: `v0-stakr-v2`
 Neon project: `Stakr` (`cold-lab-24148964`), production branch `br-rough-snowflake-a4ardvlz`
 
-**Read this first.** The code on this branch is verified as far as it can be
-without your production secrets (section 1). A handful of things can only be done
-by you, because they need your accounts, secrets or legal sign-off (section 2).
-Do section 2 in order, then run section 3. Nothing here has been deployed or
-merged. The one new database migration (2.2) **has been applied to production**
-(30/10/2026).
+**Read this first.** The code is verified as far as it can be without your
+production secrets (section 1). A handful of things can only be done by you,
+because they need your accounts, secrets or legal sign-off (section 2). PR #11 was
+merged and deployed on 30/10/2026 and the one new database migration (2.2) is
+applied; "Production status" below says what is confirmed live and what is open.
 
 What ships: a **credits-only** accountability app. Credits have no cash value and
 cannot be bought or withdrawn. Cash, Stripe, insurance, teams, brands/creators,
@@ -33,9 +32,22 @@ off server-side (they return 404 in production).
 
 - **Photo/video evidence upload** to your real S3 bucket: needs your AWS credentials. Text evidence is verified. (See 2.6.)
 - **Sending real email**: needs your Resend key. The code path fails loudly if it is missing. (See 2.4.)
-- **The scheduled cron firing on Vercel**: only the endpoint is verified. (See 3.)
+- **The scheduled cron settling a challenge on Vercel**: Vercel is confirmed calling the endpoint (runtime logs, 30/10/2026) and the endpoint refuses a missing or wrong secret, but no real settlement through the scheduler has been seen yet. (See 3.)
 - **GitHub Actions**: CI has not run since the account was billing-locked (PR #10). (See 2.8.)
 - **Neon's pooled production endpoint**: the real Neon driver was exercised against local Postgres through a protocol shim, not against your live Neon. Rehearse once on a Neon branch. (See 2.2.)
+
+### Production status (30/10/2026, after the merge)
+
+Confirmed live on https://stakr.app:
+
+- `/api/auth/session`, `/api/auth/providers` and `/api/auth/csrf` return 200; `/api/challenges` returns 401 when logged out.
+- `/api/health` returns 200 with `database`, `email`, `storage`, `auth` and `cronSecret` all `true`, and `rateLimit: "database"` (the migration is working).
+- The scheduler endpoint refuses a missing or wrong secret with 401, and Vercel is calling it.
+- Security headers (CSP, HSTS, frame, nosniff, referrer) are on every page, and there have been no runtime errors since the last redeploy.
+
+Still open: the reviewer setting (`reviewers: false` until `STAKR_MIN_REVIEWERS=1` is set or a second admin exists, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); GitHub Actions billing (2.8); and the welcome-grant and sign-in-lockout decisions (BUGS.md O-12, O-13).
+
+**Incident, same day.** Straight after the merge every sign-in and API route returned HTTP 500, because `ENCRYPTION_KEY` was not set in Vercel Production. The previous deployment had the same failure, so sign-in had been down since June. Fixed by adding the variable and redeploying; see BUGS.md B-026.
 
 ---
 
@@ -77,30 +89,34 @@ Required:
 | `NEXTAUTH_URL`                                                                | `https://stakr.app` exactly                                                                                                                                  |
 | `NEXT_PUBLIC_BASE_URL`                                                        | `https://stakr.app`                                                                                                                                          |
 | `NEXTAUTH_SECRET`                                                             | long random string (`openssl rand -hex 32`)                                                                                                                  |
-| `ENCRYPTION_KEY`                                                              | 32+ random characters                                                                                                                                        |
-| `CRON_SECRET`                                                                 | long random string; Vercel sends it to the cron as `Authorization: Bearer`                                                                                   |
+| `ENCRYPTION_KEY`                                                              | 32+ random characters. **Checked at start-up:** if it is missing, every sign-in and API route returns HTTP 500 (BUGS.md B-026)                               |
+| `CRON_SECRET`                                                                 | a different long random string; Vercel sends it to the cron as `Authorization: Bearer`. Without it the scheduler answers 503 and nothing settles             |
 | `RESEND_API_KEY`                                                              | from Resend                                                                                                                                                  |
 | `RESEND_FROM_EMAIL`                                                           | an address on the **verified** sending domain, e.g. `Stakr <noreply@support.stakr.app>`. The verified Resend domain is `support.stakr.app` (not `stakr.app`) |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_BUCKET_NAME` | private evidence bucket                                                                                                                                      |
 | `ALPHA_ACCESS_PASSWORD` **or** `STAKR_ALPHA_GATE_DISABLED=true`               | see 2.1                                                                                                                                                      |
 
-Optional: `STAKR_WELCOME_CREDITS` (default `50`, `0` disables), `STAKR_ENTRY_FEE_BPS` (default `500` = 5%), `STAKR_PLATFORM_CUT_BPS` (default `2000` = 20%), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`.
+Optional: `STAKR_MIN_REVIEWERS` (default `2`; `1` lets health pass with a single admin, see 2.5), `STAKR_WELCOME_CREDITS` (default `50`, `0` disables), `STAKR_ENTRY_FEE_BPS` (default `500` = 5%), `STAKR_PLATFORM_CUT_BPS` (default `2000` = 20%), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`.
 
-**Must NOT be set in production:** `ALLOW_DEV_AUTH`, `STAKR_LOCAL_NEON_PROXY`, `ENABLE_CASH_PAYMENTS=true`.
+**Must NOT be set in production:** `ALLOW_DEV_AUTH`, `STAKR_LOCAL_NEON_PROXY`, `ENABLE_CASH_PAYMENTS=true`, and `NODE_ENV` (Vercel and Next.js set it themselves; a stray `NODE_ENV=development` makes every log line warn that it is being overridden, BUGS.md O-15).
 
 I could not read your Vercel environment (the API token lacks permission), so I
 cannot tell which of these are already set. `/api/health` (section 3) tells you.
 
-### 2.5 Make two admins
+### 2.5 Reviewers (the admin accounts)
 
-Appeals must be decided by a _different_ reviewer, so **one admin is not enough**.
-After you have signed up your own accounts:
+Appeals must be decided by a _different_ reviewer from the one who rejected, so two admins is the safe setup, and what `/api/health` expects by default.
+
+**Decision, 30/10/2026: launch with one admin.** The owner's account is already an admin (email verified). To make `/api/health` report `ok` with one reviewer, set `STAKR_MIN_REVIEWERS=1` in Vercel Production and redeploy. What that accepts:
+
+- An appeal against that admin's own rejection cannot be decided ("An appeal needs a different neutral reviewer"), so that challenge stays unsettled, and its credits locked, until a second reviewer exists.
+- The admin cannot review a challenge they host or take part in.
+
+Add a second reviewer before it matters, or the first time an appeal is filed. The account must already exist and have a verified email:
 
 ```sql
-update users set is_dev = true, has_dev_access = true where email in ('you@…', 'second-reviewer@…');
+update users set is_dev = true, has_dev_access = true where email = 'second-reviewer@…';
 ```
-
-`/api/health` reports `reviewers: false` until there are two.
 
 ### 2.6 Evidence storage (S3)
 
@@ -136,16 +152,17 @@ convert legacy challenges to v1 by hand.
 
 ### 2.10 Deploy
 
-- [ ] Merge the PR. Vercel deploys `main`.
-- [ ] Rollback if needed: Vercel → Deployments → promote `dpl_1mBbJt1X3jMNoW2DQxh7LXDxRGJz` (current production, commit `86a71c1`). The new database table is additive, so rollback is safe.
+- [x] Merged (PR #11) and deployed by Vercel on 30/10/2026.
+- [ ] Rollback if needed: Vercel → Deployments → promote the previous deployment (`dpl_1mBbJt1X3jMNoW2DQxh7LXDxRGJz`, commit `86a71c1`). The new database table is additive, so rollback is safe. Rollback undoes a bad code change; it does **not** fix a missing environment variable (that deployment had the same start-up failure).
+- [ ] After adding or changing a variable, **Redeploy** from the Deployments tab: a new variable only reaches new deployments.
 
 ---
 
 ## 3. After deploying: five-minute smoke test
 
-1. **`GET https://stakr.app/api/health`** must return `"status": "ok"`. If it says `degraded`, every `false` under `checks` names what is missing (email, storage, auth, cronSecret, rateLimit, reviewers). `down` means the database is unreachable.
+1. **`GET https://stakr.app/api/health`** must return `"status": "ok"`. If it says `degraded`, every `false` under `checks` names what is missing (email, storage, auth, cronSecret, rateLimit, reviewers). `down` means the database is unreachable. HTTP 500 instead of JSON means the server refused to start: the Vercel runtime errors name the missing required variable.
 2. Sign up with a real inbox: the verification email arrives from your sending domain, the link verifies (no "failed" screen), you can sign in and claim the welcome credits.
-3. As that user create a small challenge; as a second account join it; submit text evidence; as an admin approve it.
+3. As that user create a small challenge; as a second account join it; submit text evidence; as an admin approve it. (The admin cannot review a challenge they host or join, so the host and the participant must both be ordinary accounts.)
 4. Wait for the cron (up to 5 minutes after the end date + grace), or run it by hand:
    `curl -H "Authorization: Bearer $CRON_SECRET" https://stakr.app/api/cron/lifecycle` → `{"success":true,…}`. Confirm the challenge reached `rewards_distributed` and balances changed.
 5. Open `/social`, `/api/brands`, `/api/payments/withdraw`: all must 404.
