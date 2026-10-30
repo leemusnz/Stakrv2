@@ -331,6 +331,10 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
   key), so concurrent replays overwrite one object instead of creating many; (2) the endpoint is
   limited to 30 per user per minute through the shared limiter (`LIMITS.confirmPerUser`).
   `lib/storage.ts`, `app/api/upload/confirm/route.ts`, `lib/rate-limit-db.ts`.
+  **Follow-up from the re-review:** (1) alone did not stop concurrent confirmations racing, only
+  made them target the same object, so a later copy of a swapped source file could overwrite the
+  evidence already recorded. (3) The check, copy and insert now run in one transaction under a
+  per-upload advisory lock, so a replay waits, finds the row and copies nothing.
 - **Proof:** tests failed first: 8 concurrent replays made 8 copies (expected 1) and the route
   returned 200 with no limiter. They pass now (`tests/__tests__/storage-confirm.test.ts`,
   `tests/__tests__/upload-confirm-route.test.ts`). The S3 client is mocked; a real bucket has still

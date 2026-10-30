@@ -19,6 +19,10 @@ jest.mock("@/lib/db", () => ({
       ? [{ id: 1 }]
       : [],
 }));
+jest.mock("@/lib/db/transaction", () => ({
+  withTransaction: async (work: (sql: () => Promise<never[]>) => unknown) =>
+    work(async () => []),
+}));
 jest.mock("@/lib/storage", () => ({
   confirmEvidenceObject: async () => {
     mockCopies++;
