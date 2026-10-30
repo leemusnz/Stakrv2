@@ -222,6 +222,23 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
   shared rate limiter, two-admin reviewer check, overdue lifecycle jobs (a dead-cron
   watchdog), cash switch. `npm run test:journey` is the repeatable release test.
 
+## B-018 — Vulnerable dependencies (4 critical, 10 high) — FIXED except one accepted
+
+- **Date:** 30/10/2026 · **Severity:** Critical
+- **Symptom:** `npm audit --omit=dev` reported 33 advisories: 4 critical (`next`,
+  `next-auth`/`@auth/core`, `@sentry/nextjs`), 10 high (`zod` memory exhaustion,
+  `drizzle-orm` SQL-identifier injection, `nodemailer` SMTP injection, `postcss`, `sharp`,
+  `js-yaml`, `nanoid`, ...).
+- **Fix:** Removed three unused packages (`@auth/core`, `nodemailer`, `@react-email/render`);
+  patched `next` 15.5.12 → 15.5.28 (+ `eslint-config-next`), `next-auth` → 4.24.15,
+  `zod` → 4.6.7, `drizzle-orm` → 0.45.4, `resend` → 6.35.0; ran non-breaking `npm audit fix`
+  for the rest. **Result: 0 critical, 33 → 2 advisories.**
+- **Accepted:** the remaining 2 are the `postcss` copy bundled inside Next 15, which only
+  processes this repo's own CSS at build time (no attacker-controlled CSS at runtime). Its
+  fix is Next 16, a major upgrade that should be done deliberately after launch.
+- **Verified after upgrading:** unit tests, Postgres acceptance tests, production build and
+  the full 78-check browser journey all re-run on the upgraded tree.
+
 ---
 
 ## Open items and accepted risks
@@ -238,3 +255,4 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
 | O-8  | CSP allows inline scripts (no per-request nonce)                                                            | ACCEPTED: still blocks foreign origins/framing |
 | O-9  | `SELECT c.*` in `/api/user/challenges` returns every challenge column (including host `create_request_key`) | ACCEPTED: low sensitivity; narrow later        |
 | O-10 | 29 quarantined legacy unit tests                                                                            | ACCEPTED: pre-existing                         |
+| O-11 | `postcss` advisory bundled inside Next 15 (build-time only); fix is Next 16                                 | ACCEPTED: upgrade after launch                 |

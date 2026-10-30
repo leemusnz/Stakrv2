@@ -25,6 +25,7 @@ off server-side (they return 404 in production).
 | Concurrency                                                             | Real Postgres: duplicate joins, last-place race, double settlement vs cancellation, 8 simultaneous welcome claims, 40 simultaneous rate-limit hits: all exactly-once                                                        |
 | Unit and DB tests                                                       | 325+ unit tests, 50+ Postgres acceptance tests (built on the real production schema)                                                                                                                                        |
 | Types, lint, build                                                      | `tsc` 0 errors, ESLint 0 errors, `next build` succeeds                                                                                                                                                                      |
+| Dependencies                                                            | `npm audit --omit=dev`: 33 advisories (4 critical, 10 high) reduced to 2 (the `postcss` bundled in Next 15, build-time only; the fix needs Next 16)                                                                         |
 | Database reproducibility                                                | `migrations/baseline/` rebuilds an empty DB identical to production (63 tables, 229 constraints, 241 indexes, checked by per-table column fingerprint)                                                                      |
 
 **Not verified, and why**
