@@ -274,6 +274,21 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
 - **Proof:** the regression test failed first, storing `10-31T13:00`/`10-31T12:00` instead of
   `10-31T00:00`/`11-01T00:00`; it passes now (`tests/__tests__/mvp-postgres.test.ts`).
 
+## B-021 — Suspending a challenge made the dead-cron watchdog cry wolf — FIXED
+
+- **Date:** 30/10/2026 · **Severity:** Low-Medium (false alarm that trains people to ignore the alert)
+- **Found by:** Codex code review of PR #11 (P2).
+- **Symptom:** Suspending a challenge leaves its row in `challenge_lifecycle_queue`, and the cron
+  deliberately skips suspended challenges. After 15 minutes that row counted as "overdue", so
+  `/api/health` reported `degraded` for the entire suspension even though the scheduler was
+  fine, and no cron run could ever clear it.
+- **Fix:** `lib/health.ts` counts only queue rows for challenges `runLifecycleBatch` actually
+  processes (`lifecycle_version = 1` and status `pending`, `active` or `ended`). A genuinely
+  stalled cron is still caught.
+- **Proof:** new `tests/__tests__/health-postgres.test.ts` on the real production schema; the
+  suspended/cancelled/settled test failed first (counted 3, expected 0) and the mixed
+  "real stall beside a suspended one" test failed first (counted 3, expected 2). Added to `test:db`.
+
 ---
 
 ## Open items and accepted risks

@@ -45,9 +45,13 @@ export async function healthReport(
   try {
     await sql`SELECT 1`;
     database = true;
+    // Only challenges runLifecycleBatch processes: it skips suspended ones, whose
+    // queue rows would otherwise age forever and falsely report a dead cron.
     const [row] = await sql`SELECT count(*)::int AS overdue,
-        coalesce(floor(extract(epoch FROM (now() - min(next_attempt_at))) / 60), 0)::int AS oldest
-      FROM challenge_lifecycle_queue WHERE next_attempt_at < now() - interval '15 minutes'`;
+        coalesce(floor(extract(epoch FROM (now() - min(q.next_attempt_at))) / 60), 0)::int AS oldest
+      FROM challenge_lifecycle_queue q JOIN challenges c ON c.id = q.challenge_id
+      WHERE c.lifecycle_version = 1 AND c.status IN ('pending','active','ended')
+        AND q.next_attempt_at < now() - interval '15 minutes'`;
     overdueJobs = row.overdue;
     oldestOverdueMinutes = row.oldest;
     const [table] =
