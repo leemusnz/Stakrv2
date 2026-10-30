@@ -259,6 +259,21 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
   tests, `tsc` and lint clean.
 - **Residual risk (O-12):** this limits one inbox, not one person.
 
+## B-020 — Challenge schedules with a timezone offset were stored shifted — FIXED
+
+- **Date:** 30/10/2026 · **Severity:** Medium (API/agent clients only; the web form always sends `Z`)
+- **Found by:** Codex code review of PR #11 (P2).
+- **Symptom:** The create API accepts offsets (`+13:00`). Validation judged the true UTC
+  instants, but the raw strings were inserted into `timestamp without time zone` columns, which
+  silently drop the offset. A `+13:00` start and `-12:00` end that are consecutive UTC midnights
+  were stored as `13:00` and `12:00` on the same day: the end landed before the start, joining was
+  refused, lifecycle processing rejected the schedule, and the host contribution had already
+  been taken.
+- **Fix:** `lib/challenge-create.ts` now inserts the validated instants as UTC ISO strings
+  (`new Date(ms).toISOString()`), so what is stored is what was checked.
+- **Proof:** the regression test failed first, storing `10-31T13:00`/`10-31T12:00` instead of
+  `10-31T00:00`/`11-01T00:00`; it passes now (`tests/__tests__/mvp-postgres.test.ts`).
+
 ---
 
 ## Open items and accepted risks

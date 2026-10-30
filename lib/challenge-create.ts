@@ -98,7 +98,7 @@ export async function createChallenge(
       (create_request_key,create_request_terms,title,description,category,duration,difficulty,min_stake,max_stake,host_id,host_contribution,entry_fee_percentage,failed_stake_cut,start_date,end_date,status,
        verification_type,proof_requirements,rules,allow_points_only,enable_team_mode,max_participants,privacy_type,lifecycle_version,lifecycle_policy)
       VALUES (${data.requestId},${JSON.stringify(data)}::jsonb,${data.title},${data.description},${data.category},${String((end - start) / 86400000) + " days"},${data.difficulty},${creditDecimal(min)},${creditDecimal(max)},${user},${creditDecimal(host)},
-        ${creditDecimal(feeBps)},${creditDecimal(cutBps)},${data.startDate},${data.endDate},'pending','manual',
+        ${creditDecimal(feeBps)},${creditDecimal(cutBps)},${new Date(start).toISOString()},${new Date(end).toISOString()},'pending','manual',
         ${JSON.stringify({ currency: "CREDITS", description: data.proofInstructions })}::jsonb,${data.rules},false,false,${data.maxParticipants},'public',1,${JSON.stringify(policy)}::jsonb) RETURNING *`
     )[0];
     if (host > 0) {

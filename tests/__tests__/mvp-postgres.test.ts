@@ -169,6 +169,34 @@ describeDatabase("MVP PostgreSQL concurrency", () => {
     ).rows[0].conserved;
     expect(Number(total)).toBe(200000);
   });
+  // Regression (Codex review, PR #11): validation judged the true UTC instants,
+  // but the raw strings went into timestamp-without-time-zone columns, which
+  // silently drop the offset. +13:00 and -12:00 midnights were stored as 13:00
+  // and 12:00, so the end landed before the start after the host was charged.
+  it("stores offset-bearing schedule inputs as the validated UTC instants", async () => {
+    const startUtc = midnight() + day,
+      endUtc = midnight() + 2 * day;
+    const withOffset = (ms: number, hours: number) =>
+      new Date(ms + hours * 3600000).toISOString().slice(0, 19) +
+      (hours < 0 ? "-" : "+") +
+      String(Math.abs(hours)).padStart(2, "0") +
+      ":00";
+    const c = await createChallenge(host, {
+      ...terms(),
+      startDate: withOffset(startUtc, 13),
+      endDate: withOffset(endUtc, -12),
+    });
+    const stored = (
+      await db.query(
+        `SELECT to_char(start_date,'YYYY-MM-DD"T"HH24:MI:SS') AS s, to_char(end_date,'YYYY-MM-DD"T"HH24:MI:SS') AS e FROM challenges WHERE id=$1`,
+        [c.id],
+      )
+    ).rows[0];
+    expect(stored).toEqual({
+      s: new Date(startUtc).toISOString().slice(0, 19),
+      e: new Date(endUtc).toISOString().slice(0, 19),
+    });
+  });
   it("concurrent publication retries debit host funding once", async () => {
     const data = { ...terms(), hostContribution: 10 };
     const [a, b] = await Promise.all([
