@@ -45,7 +45,7 @@ Confirmed live on https://stakr.app:
 - The scheduler endpoint refuses a missing or wrong secret with 401, and Vercel is calling it.
 - Security headers (CSP, HSTS, frame, nosniff, referrer) are on every page, and there have been no runtime errors since the last redeploy.
 
-Still open: a second admin (`reviewers: false`, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); GitHub Actions billing (2.8); and the welcome-grant and sign-in-lockout decisions (BUGS.md O-12, O-13).
+Still open: the reviewer setting (`reviewers: false` until `STAKR_MIN_REVIEWERS=1` is set or a second admin exists, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); GitHub Actions billing (2.8); and the welcome-grant and sign-in-lockout decisions (BUGS.md O-12, O-13).
 
 **Incident, same day.** Straight after the merge every sign-in and API route returned HTTP 500, because `ENCRYPTION_KEY` was not set in Vercel Production. The previous deployment had the same failure, so sign-in had been down since June. Fixed by adding the variable and redeploying; see BUGS.md B-026.
 
@@ -96,23 +96,27 @@ Required:
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_BUCKET_NAME` | private evidence bucket                                                                                                                                      |
 | `ALPHA_ACCESS_PASSWORD` **or** `STAKR_ALPHA_GATE_DISABLED=true`               | see 2.1                                                                                                                                                      |
 
-Optional: `STAKR_WELCOME_CREDITS` (default `50`, `0` disables), `STAKR_ENTRY_FEE_BPS` (default `500` = 5%), `STAKR_PLATFORM_CUT_BPS` (default `2000` = 20%), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`.
+Optional: `STAKR_MIN_REVIEWERS` (default `2`; `1` lets health pass with a single admin, see 2.5), `STAKR_WELCOME_CREDITS` (default `50`, `0` disables), `STAKR_ENTRY_FEE_BPS` (default `500` = 5%), `STAKR_PLATFORM_CUT_BPS` (default `2000` = 20%), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`.
 
 **Must NOT be set in production:** `ALLOW_DEV_AUTH`, `STAKR_LOCAL_NEON_PROXY`, `ENABLE_CASH_PAYMENTS=true`, and `NODE_ENV` (Vercel and Next.js set it themselves; a stray `NODE_ENV=development` makes every log line warn that it is being overridden, BUGS.md O-15).
 
 I could not read your Vercel environment (the API token lacks permission), so I
 cannot tell which of these are already set. `/api/health` (section 3) tells you.
 
-### 2.5 Make two admins
+### 2.5 Reviewers (the admin accounts)
 
-Appeals must be decided by a _different_ reviewer, so **one admin is not enough**.
-After you have signed up your own accounts:
+Appeals must be decided by a _different_ reviewer from the one who rejected, so two admins is the safe setup, and what `/api/health` expects by default.
+
+**Decision, 30/10/2026: launch with one admin.** The owner's account is already an admin (email verified). To make `/api/health` report `ok` with one reviewer, set `STAKR_MIN_REVIEWERS=1` in Vercel Production and redeploy. What that accepts:
+
+- An appeal against that admin's own rejection cannot be decided ("An appeal needs a different neutral reviewer"), so that challenge stays unsettled, and its credits locked, until a second reviewer exists.
+- The admin cannot review a challenge they host or take part in.
+
+Add a second reviewer before it matters, or the first time an appeal is filed. The account must already exist and have a verified email:
 
 ```sql
-update users set is_dev = true, has_dev_access = true where email in ('you@…', 'second-reviewer@…');
+update users set is_dev = true, has_dev_access = true where email = 'second-reviewer@…';
 ```
-
-`/api/health` reports `reviewers: false` until there are two.
 
 ### 2.6 Evidence storage (S3)
 
@@ -158,7 +162,7 @@ convert legacy challenges to v1 by hand.
 
 1. **`GET https://stakr.app/api/health`** must return `"status": "ok"`. If it says `degraded`, every `false` under `checks` names what is missing (email, storage, auth, cronSecret, rateLimit, reviewers). `down` means the database is unreachable. HTTP 500 instead of JSON means the server refused to start: the Vercel runtime errors name the missing required variable.
 2. Sign up with a real inbox: the verification email arrives from your sending domain, the link verifies (no "failed" screen), you can sign in and claim the welcome credits.
-3. As that user create a small challenge; as a second account join it; submit text evidence; as an admin approve it.
+3. As that user create a small challenge; as a second account join it; submit text evidence; as an admin approve it. (The admin cannot review a challenge they host or join, so the host and the participant must both be ordinary accounts.)
 4. Wait for the cron (up to 5 minutes after the end date + grace), or run it by hand:
    `curl -H "Authorization: Bearer $CRON_SECRET" https://stakr.app/api/cron/lifecycle` → `{"success":true,…}`. Confirm the challenge reached `rewards_distributed` and balances changed.
 5. Open `/social`, `/api/brands`, `/api/payments/withdraw`: all must 404.
