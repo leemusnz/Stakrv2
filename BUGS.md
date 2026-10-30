@@ -239,6 +239,26 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
 - **Verified after upgrading:** unit tests, Postgres acceptance tests, production build and
   the full 78-check browser journey all re-run on the upgraded tree.
 
+## B-019 — One inbox could collect the welcome grant unlimited times — FIXED (residual risk accepted)
+
+- **Date:** 30/10/2026 · **Severity:** Medium (credit-economy integrity; credits have no cash value)
+- **Found by:** Codex security review of PR #11 (P2).
+- **Symptom:** The grant was keyed on the user id only. One Gmail inbox could register
+  `me+1@gmail.com`, `me+2@gmail.com`, `m.e@gmail.com` ... each is a separate, verifiable
+  account and each received 50 credits. The per-IP registration limit only slows this.
+- **Fix:** One grant per **inbox**. Addresses are reduced to a mailbox key (lower-cased,
+  `+tag` removed, and for Gmail dots and `googlemail.com` ignored). A second account on a
+  claimed inbox is refused with a clear 409 message and the dashboard no longer offers the
+  claim. A Postgres advisory lock per inbox, held for the transaction, stops two aliases
+  claiming at the same moment from both passing the check. `lib/welcome-credits.ts` only;
+  **no production schema change.**
+- **Proof:** the regression tests were written first and failed on the old code (8
+  failures). With the lock deliberately disabled the race test failed 3 runs out of 3 (up to
+  5 of 6 aliases paid), so the lock is load-bearing. After the fix: 23/23 in
+  `tests/__tests__/welcome-credits-postgres.test.ts`, all 56 Postgres tests, all 330 unit
+  tests, `tsc` and lint clean.
+- **Residual risk (O-12):** this limits one inbox, not one person.
+
 ---
 
 ## Open items and accepted risks
@@ -256,3 +276,6 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
 | O-9  | `SELECT c.*` in `/api/user/challenges` returns every challenge column (including host `create_request_key`) | ACCEPTED: low sensitivity; narrow later        |
 | O-10 | 29 quarantined legacy unit tests                                                                            | ACCEPTED: pre-existing                         |
 | O-11 | `postcss` advisory bundled inside Next 15 (build-time only); fix is Next 16                                 | ACCEPTED: upgrade after launch                 |
+| O-12 | Welcome grant is per inbox, so many distinct real or disposable mailboxes still get one grant each (B-019)  | ACCEPTED: owner may tighten (see below)        |
+
+**O-12 options if abuse is ever seen** (none needed for launch; credits cannot be cashed out): a per-IP daily cap on claims (costs legitimate users on shared networks), a disposable-email domain blocklist, phone verification, or a dedicated `welcome_grants(mailbox PRIMARY KEY)` table. The table is the cleanest (enforced by the database, no scan per claim) but needs a production migration, so it was not done unasked. The current check scans `users` once per claim, which is fine at launch scale.

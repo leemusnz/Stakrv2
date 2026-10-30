@@ -56,7 +56,7 @@ describeDatabase("welcome credits PostgreSQL acceptance", () => {
     process.env.DATABASE_URL = url.toString();
     db = new Pool({ connectionString: url.toString() });
     await db.query(`
-      CREATE TABLE users (id uuid PRIMARY KEY, credits numeric(18,2) NOT NULL DEFAULT 0,
+      CREATE TABLE users (id uuid PRIMARY KEY, email text, credits numeric(18,2) NOT NULL DEFAULT 0,
         email_verified boolean DEFAULT false, updated_at timestamp DEFAULT now());
       CREATE TABLE credit_transactions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id uuid REFERENCES users(id), amount numeric(18,2) NOT NULL,
@@ -67,10 +67,18 @@ describeDatabase("welcome credits PostgreSQL acceptance", () => {
     delete process.env.STAKR_WELCOME_CREDITS;
     await db.query("TRUNCATE users CASCADE");
     await db.query(
-      "INSERT INTO users(id,email_verified) VALUES ($1,true),($2,false)",
+      "INSERT INTO users(id,email,email_verified) VALUES ($1,'ana@example.test',true),($2,'ben@example.test',false)",
       [ana, ben],
     );
   });
+
+  const uid = (n: number) =>
+    `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+  const addUser = (id: string, email: string) =>
+    db.query("INSERT INTO users(id,email,email_verified) VALUES ($1,$2,true)", [
+      id,
+      email,
+    ]);
 
   afterAll(async () => {
     process.env.DATABASE_URL = originalUrl;
@@ -159,6 +167,91 @@ describeDatabase("welcome credits PostgreSQL acceptance", () => {
     expect(await welcomeCreditsOffer(sql, ana)).toEqual({
       eligible: false,
       amount: 0,
+    });
+  });
+
+  // Regression (Codex security review, PR #11): the grant was keyed on user id
+  // only, so one inbox could mint unlimited accounts (me+1@, me+2@, m.e@ ...)
+  // and a welcome grant for each.
+  describe("one grant per mailbox, not per account", () => {
+    const grantRows = async () =>
+      (
+        await db.query(
+          "SELECT count(*)::int n FROM credit_transactions WHERE transaction_type='welcome_grant'",
+        )
+      ).rows[0].n;
+
+    it.each([
+      ["a plus-tag alias", "ana+promo@example.test"],
+      ["a different letter case", "ANA@Example.TEST"],
+      ["a plus-tag alias in mixed case", "Ana+2@EXAMPLE.test"],
+    ])("refuses %s of a mailbox that already claimed", async (_name, alias) => {
+      await claimWelcomeCredits(ana);
+      await addUser(uid(1), alias);
+      await expect(claimWelcomeCredits(uid(1))).rejects.toMatchObject({
+        status: 409,
+      });
+      expect(await ledger(uid(1))).toEqual({ n: 0, total: "0" });
+      expect(await grantRows()).toBe(1);
+    });
+
+    it.each([
+      ["first.last@gmail.com", "firstlast@gmail.com"],
+      ["some.one+x@gmail.com", "SomeOne@googlemail.com"],
+    ])("treats %s and %s as one Gmail mailbox", async (first, second) => {
+      await addUser(uid(2), first);
+      await addUser(uid(3), second);
+      await claimWelcomeCredits(uid(2));
+      await expect(claimWelcomeCredits(uid(3))).rejects.toMatchObject({
+        status: 409,
+      });
+      expect(await grantRows()).toBe(1);
+    });
+
+    it("keeps genuinely different mailboxes separate (dots only mean nothing at Gmail)", async () => {
+      await addUser(uid(4), "a.b@example.test");
+      await addUser(uid(5), "ab@example.test");
+      await addUser(uid(6), "ana@example.org");
+      for (const id of [ana, uid(4), uid(5), uid(6)])
+        expect((await claimWelcomeCredits(id)).granted).toBe(true);
+      expect(await grantRows()).toBe(4);
+    });
+
+    it("concurrent claims from several aliases of one mailbox credit exactly once", async () => {
+      const ids = [1, 2, 3, 4, 5, 6].map(uid);
+      for (const [i, id] of ids.entries())
+        await addUser(id, `farm+${i}@example.test`);
+      const results = await Promise.allSettled(
+        ids.map((id) => claimWelcomeCredits(id)),
+      );
+      expect(
+        results.filter(
+          (r) => r.status === "fulfilled" && r.value.granted === true,
+        ),
+      ).toHaveLength(1);
+      expect(
+        results.filter(
+          (r) =>
+            r.status === "rejected" &&
+            (r.reason as { status?: number }).status === 409,
+        ),
+      ).toHaveLength(5);
+      expect(await grantRows()).toBe(1);
+    });
+
+    it("offer: an alias of a claimed mailbox is not shown a claim button", async () => {
+      await claimWelcomeCredits(ana);
+      await addUser(uid(7), "ana+again@example.test");
+      expect(await welcomeCreditsOffer(sql, uid(7))).toMatchObject({
+        eligible: false,
+      });
+    });
+
+    it("the original account is unaffected: its repeat claim still just grants nothing", async () => {
+      await claimWelcomeCredits(ana);
+      await addUser(uid(8), "ana+x@example.test");
+      await expect(claimWelcomeCredits(uid(8))).rejects.toBeDefined();
+      expect((await claimWelcomeCredits(ana)).granted).toBe(false);
     });
   });
 });
