@@ -12,7 +12,8 @@ export async function GET() {
     const proofs =
       await sql`SELECT ps.*,c.title AS challenge_title,c.lifecycle_policy,u.name AS user_name
       FROM proof_submissions ps JOIN challenges c ON c.id=ps.challenge_id JOIN users u ON u.id=ps.user_id
-      WHERE c.lifecycle_version=1 AND ps.superseded_at IS NULL AND (ps.status IN ('pending','pending_review') OR ps.appeal_status='pending')
+      WHERE c.lifecycle_version=1 AND c.status NOT IN ('suspended','cancelled','rewards_distributed')
+        AND ps.superseded_at IS NULL AND (ps.status IN ('pending','pending_review') OR ps.appeal_status='pending')
       ORDER BY ps.submitted_at LIMIT 200`;
     return NextResponse.json({ success: true, proofs });
   } catch (error) {

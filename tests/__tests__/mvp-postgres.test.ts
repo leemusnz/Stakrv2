@@ -6,8 +6,15 @@ import { createChallenge } from "@/lib/challenge-create";
 import { joinChallenge } from "@/lib/challenge-join";
 import { processChallenge, administerChallenge } from "@/lib/challenge-engine";
 import { submitProof, reviewProof } from "@/lib/challenge-proofs";
+import { GET as reviewQueue } from "@/app/api/admin/verifications/route";
 jest.mock("@neondatabase/serverless", () => ({
   Pool: jest.requireActual("pg").Pool,
+}));
+jest.mock("@/lib/require-admin", () => ({
+  requireAdmin: async () => ({
+    ok: true,
+    userId: "00000000-0000-4000-8000-000000000004",
+  }),
 }));
 jest.mock("@/lib/db", () => ({
   createDbConnection:
@@ -118,6 +125,58 @@ describeDatabase("MVP PostgreSQL concurrency", () => {
     );
     return c.id;
   }
+  // An active challenge with one participant's evidence still awaiting review.
+  async function pendingProof() {
+    const c = await createChallenge(host, terms());
+    await joinChallenge(c.id, winner, {
+      stakeAmount: 50,
+      pointsOnly: false,
+      insurancePurchased: false,
+    });
+    await db.query(
+      "UPDATE challenges SET start_date=$1,end_date=$2,status='active' WHERE id=$3",
+      [new Date(midnight() - day), new Date(midnight()), c.id],
+    );
+    const proof = await submitProof(c.id, winner, {
+      submission_type: "manual",
+      submission_key: randomUUID(),
+      proof_day: new Date(midnight() - day).toISOString().slice(0, 10),
+      proof_type: "text",
+      proof_data: { text: "I walked for thirty minutes by the river." },
+      notes: "",
+    });
+    return { challengeId: c.id as string, proofId: proof.id as string };
+  }
+  // Regression (Codex review, PR #11): cancelling leaves evidence "pending" and
+  // reviewProof refuses it, but the queue (oldest first, capped at 200) kept
+  // listing it, so enough cancelled challenges would bury all live evidence.
+  it("review queue lists only evidence an admin can still act on", async () => {
+    const live = await pendingProof();
+    const cancelled = await pendingProof();
+    const suspended = await pendingProof();
+    await administerChallenge(
+      cancelled.challengeId,
+      reviewer,
+      "cancel",
+      "Cancelled for the test",
+      "refund_all",
+    );
+    await administerChallenge(
+      suspended.challengeId,
+      reviewer,
+      "suspend",
+      "Suspended for the test",
+    );
+    expect(
+      (
+        await db.query("SELECT status FROM proof_submissions WHERE id=$1", [
+          cancelled.proofId,
+        ])
+      ).rows[0].status,
+    ).toBe("pending_review");
+    const { proofs } = await (await reviewQueue()).json();
+    expect(proofs.map((p: { id: string }) => p.id)).toEqual([live.proofId]);
+  });
   it("competing workers settle one pool once", async () => {
     const id = await ready();
     const results = await Promise.all([

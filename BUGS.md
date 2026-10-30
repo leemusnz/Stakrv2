@@ -289,6 +289,21 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
   suspended/cancelled/settled test failed first (counted 3, expected 0) and the mixed
   "real stall beside a suspended one" test failed first (counted 3, expected 2). Added to `test:db`.
 
+## B-022 — Cancelled or suspended challenges could bury live evidence in the admin review queue — FIXED
+
+- **Date:** 30/10/2026 · **Severity:** Medium (admin could not see new evidence once enough dead items accumulated)
+- **Found by:** Codex code review of PR #11 (P2).
+- **Symptom:** Cancelling a challenge leaves its evidence unresolved (`pending_review`), and
+  `reviewProof` correctly refuses to review it. The admin queue still listed it, oldest first,
+  capped at 200. Enough cancelled challenges would fill the screen with items nobody can act on and
+  hide newer evidence, and those newer challenges cannot settle until it is reviewed.
+- **Fix:** `app/api/admin/verifications/route.ts` now excludes challenges in the statuses
+  `reviewProof` refuses (`suspended`, `cancelled`, `rewards_distributed`). Evidence in a suspended
+  challenge reappears when it is resumed.
+- **Proof:** the regression test failed first (queue returned the cancelled and the suspended
+  challenge's evidence alongside the live one); it passes now and also asserts the premise that
+  cancelling leaves evidence unresolved (`tests/__tests__/mvp-postgres.test.ts`).
+
 ---
 
 ## Open items and accepted risks
