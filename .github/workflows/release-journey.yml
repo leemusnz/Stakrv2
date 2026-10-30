@@ -1,0 +1,61 @@
+name: Release journey
+
+# Manual only (Actions tab -> Release journey -> Run workflow). Builds the production app,
+# runs it against a throwaway Postgres built from migrations/baseline, and drives the full
+# user journey in a real browser. All secrets below are throwaway values that only exist in
+# this job; nothing here can touch production.
+on:
+  workflow_dispatch:
+
+jobs:
+  journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: stakr_dev
+          POSTGRES_USER: stakr
+          POSTGRES_PASSWORD: stakr
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U stakr -d stakr_dev"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://stakr:stakr@localhost:5432/stakr_dev?sslmode=disable
+      LOCAL_PG_URL: postgresql://stakr:stakr@localhost:5432/stakr_dev?sslmode=disable
+      STAKR_LOCAL_NEON_PROXY: localhost:4444
+      NEXTAUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-only-nextauth-secret-0123456789abcdef0123456789abcdef
+      ENCRYPTION_KEY: ci-only-encryption-key-0123456789abcdef0123456789abcdef
+      CRON_SECRET: ci-only-cron-secret-0123456789abcdef
+      STAKR_ALPHA_GATE_DISABLED: 'true'
+      ENABLE_CASH_PAYMENTS: 'false'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Build the production schema into the throwaway database
+        run: |
+          bash scripts/db-rebuild-from-baseline.sh "$DATABASE_URL"
+          psql "$DATABASE_URL" -f migrations/2026-10-30_rate-limit-hits.sql
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start the Neon protocol proxy and the app
+        run: |
+          node scripts/local-neon-proxy.mjs > proxy.log 2>&1 &
+          npm start > app.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:3000/api/health >/dev/null && exit 0; sleep 2; done
+          echo "app did not start"; cat app.log proxy.log; exit 1
+      - run: npm run test:journey
+      - name: Server log on failure
+        if: failure()
+        run: tail -n 100 app.log proxy.log

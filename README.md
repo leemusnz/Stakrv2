@@ -1,30 +1,36 @@
-# Stakr V2
+# Stakr
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+Stakr is an accountability app. You back a commitment with **credits**, show your
+progress with evidence that a neutral reviewer checks, and if you finish you get your
+stake back plus a share of the credits others forfeit. Credits have no cash value and
+cannot be bought or withdrawn.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/leejmckenzie-gmailcoms-projects/v0-stakr-v2)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/pOuu2FkFkw8)
+Next.js 15 (App Router) · TypeScript · Neon Postgres · NextAuth · S3 for evidence ·
+Resend for email · deployed on Vercel.
 
-## Overview
+## Start here
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+| I want to…                                 | Read                                                                                 |
+| ------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Run it on my computer                      | [`docs/RUNNING_LOCALLY.md`](docs/RUNNING_LOCALLY.md)                                 |
+| Launch it                                  | [`docs/release/RELEASE_CHECKLIST.md`](docs/release/RELEASE_CHECKLIST.md)             |
+| Know what was fixed and what is still open | [`BUGS.md`](BUGS.md)                                                                 |
+| Understand how challenges settle           | [`docs/audits/2026-09-16-mvp-lifecycle.md`](docs/audits/2026-09-16-mvp-lifecycle.md) |
+| Rebuild the database                       | `npm run db:rebuild` (see `migrations/baseline/`)                                    |
 
-## Deployment
+## Commands
 
-Your project is live at:
+```bash
+npm run dev            # local development
+npm run build && npm start
+npm run test:ci        # unit tests
+npm run test:db        # Postgres acceptance tests (needs STAKR_TEST_DATABASE_URL)
+npm run test:journey   # full browser release test (needs a local DB, see docs)
+npm run type-check && npm run lint
+```
 
-**[https://vercel.com/leejmckenzie-gmailcoms-projects/v0-stakr-v2](https://vercel.com/leejmckenzie-gmailcoms-projects/v0-stakr-v2)**
+## Health
 
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.dev/chat/projects/pOuu2FkFkw8](https://v0.dev/chat/projects/pOuu2FkFkw8)**
-
-## How It Works
-
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+`GET /api/health` reports whether the database, email, storage, cron secret, shared rate
+limiter and reviewer accounts are configured, and whether the settlement cron is keeping
+up. Point an uptime monitor at it.
