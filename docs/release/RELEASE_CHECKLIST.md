@@ -75,6 +75,13 @@ table is just ignored). To undo the migration itself: `DROP TABLE rate_limit_hit
 Nothing else in this release changes the production schema. (The 27/09/2026
 migrations from PR #10 are already applied.)
 
+### 2.2b Welcome-grant fingerprints: one more additive migration (TO APPLY)
+
+`migrations/2026-11-02_welcome-grants.sql` adds one table, `welcome_grants`, so the one-time welcome credits cannot be claimed again by deleting an account and registering the same email (BUGS.md B-027). It stores a keyed one-way hash, never the address. It is idempotent and touches nothing existing. Until it is applied the app works but keeps the older, weaker check.
+
+- [ ] Rehearse on a temporary Neon branch of `main`, then apply to the production branch (same method as 2.2), then re-check that the table exists.
+- [ ] Have the Privacy Policy line about the fingerprint (section 7) included in the legal review (2.7).
+
 ### 2.3 Vercel plan
 
 - [ ] The cron in `vercel.json` runs **every 5 minutes**. Vercel's **Hobby plan only allows daily crons and will reject the deployment**. Use Pro, or accept daily settlement by changing the schedule to `0 3 * * *`.

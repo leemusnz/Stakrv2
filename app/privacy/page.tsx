@@ -218,6 +218,14 @@ export default function PrivacyPolicyPage() {
               people&apos;s results and our financial audit trail depend on it.
             </li>
             <li>
+              <strong>Welcome-credit fingerprint:</strong> if you received the
+              one-time welcome credits, deleting your account keeps a one-way
+              fingerprint of your email address (a keyed hash, not the address
+              itself). It exists only so the same address cannot claim the
+              welcome credits again. It cannot be turned back into your email,
+              and it is not used for anything else.
+            </li>
+            <li>
               <strong>Evidence:</strong> kept with the challenge record so a
               result can be reviewed or disputed. You can ask us to delete or
               anonymise your evidence once the challenge has settled; write to
