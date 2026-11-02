@@ -79,7 +79,8 @@ migrations from PR #10 are already applied.)
 
 `migrations/2026-11-02_welcome-grants.sql` adds one table, `welcome_grants`, so the one-time welcome credits cannot be claimed again by deleting an account and registering the same email (BUGS.md B-027). It stores a keyed one-way hash, never the address. It is idempotent and touches nothing existing. Until it is applied the app works but keeps the older, weaker check.
 
-- [ ] Rehearse on a temporary Neon branch of `main`, then apply to the production branch (same method as 2.2), then re-check that the table exists.
+- [x] Rehearsed on 02/11/2026 on a temporary Neon branch of `main` (`br-rough-snowflake-a4ardvlz`): table count 64 to 65 (exactly one more), columns and primary key correct, the foreign key matches `users.id` (both `uuid`), a re-run is a no-op, and the code's own upsert behaved: the holder claims and can repeat, a different account on the same inbox is refused. The temporary branch (`rehearsal-welcome-grants-02-11-2026`) is disposable and can be deleted.
+- [ ] **Apply to the production branch** (same method as 2.2; needs your go-ahead), then re-check that the table exists and `/api/health` is still `ok`.
 - [ ] Have the Privacy Policy line about the fingerprint (section 7) included in the legal review (2.7).
 
 ### 2.3 Vercel plan
