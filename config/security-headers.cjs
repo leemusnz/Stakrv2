@@ -9,14 +9,22 @@
 
 const isDev = process.env.NODE_ENV !== "production";
 
+// Cloudflare Turnstile (the sign-in "prove you're human" check) needs its script, its iframe and its
+// callbacks. Trusted only when the owner has set the site key, so by default no foreign origin is.
+const turnstile = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()
+  ? " https://challenges.cloudflare.com"
+  : "";
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${turnstile}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
   "connect-src 'self' https://*.amazonaws.com https://*.ingest.sentry.io https://*.sentry.io" +
+    turnstile +
     (isDev ? " ws: wss:" : ""),
+  ...(turnstile ? [`frame-src 'self'${turnstile}`] : []),
   "media-src 'self' blob: https://*.amazonaws.com",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
@@ -29,11 +37,17 @@ const contentSecurityPolicy = [
 
 const securityHeaders = [
   { key: "Content-Security-Policy", value: contentSecurityPolicy },
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), payment=()" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(self), microphone=(), geolocation=(), payment=()",
+  },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ];
 

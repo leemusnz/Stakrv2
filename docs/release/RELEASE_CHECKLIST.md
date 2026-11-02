@@ -45,7 +45,7 @@ Confirmed live on https://stakr.app:
 - The scheduler endpoint refuses a missing or wrong secret with 401, and Vercel is calling it.
 - Security headers (CSP, HSTS, frame, nosniff, referrer) are on every page, and there have been no runtime errors since the last redeploy.
 
-Still open: the reviewer setting (`reviewers: false` until `STAKR_MIN_REVIEWERS=1` is set or a second admin exists, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); GitHub Actions billing (2.8); and the welcome-grant and sign-in-lockout decisions (BUGS.md O-12, O-13).
+Still open: the reviewer setting (`reviewers: false` until `STAKR_MIN_REVIEWERS=1` is set or a second admin exists, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); GitHub Actions billing (2.8); the welcome-grant migration (2.2b), and switching on the sign-in lockout protection (2.8b; BUGS.md O-12, O-13).
 
 **Incident, same day.** Straight after the merge every sign-in and API route returned HTTP 500, because `ENCRYPTION_KEY` was not set in Vercel Production. The previous deployment had the same failure, so sign-in had been down since June. Fixed by adding the variable and redeploying; see BUGS.md B-026.
 
@@ -103,7 +103,7 @@ Required:
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_BUCKET_NAME` | private evidence bucket                                                                                                                                      |
 | `ALPHA_ACCESS_PASSWORD` **or** `STAKR_ALPHA_GATE_DISABLED=true`               | see 2.1                                                                                                                                                      |
 
-Optional: `STAKR_MIN_REVIEWERS` (default `2`; `1` lets health pass with a single admin, see 2.5), `STAKR_WELCOME_CREDITS` (default `50`, `0` disables), `STAKR_ENTRY_FEE_BPS` (default `500` = 5%), `STAKR_PLATFORM_CUT_BPS` (default `2000` = 20%), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`.
+Optional: `STAKR_MIN_REVIEWERS` (default `2`; `1` lets health pass with a single admin, see 2.5), `STAKR_WELCOME_CREDITS` (default `50`, `0` disables), `STAKR_ENTRY_FEE_BPS` (default `500` = 5%), `STAKR_PLATFORM_CUT_BPS` (default `2000` = 20%), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, and the pair `TURNSTILE_SECRET_KEY` + `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (sign-in lockout protection, off unless **both** are set, see 2.8b).
 
 **Must NOT be set in production:** `ALLOW_DEV_AUTH`, `STAKR_LOCAL_NEON_PROXY`, `ENABLE_CASH_PAYMENTS=true`, and `NODE_ENV` (Vercel and Next.js set it themselves; a stray `NODE_ENV=development` makes every log line warn that it is being overridden, BUGS.md O-15).
 
@@ -149,6 +149,23 @@ Please have them checked, and ask specifically about:
 
 - [ ] Fix the GitHub billing lock so Actions run (`.github/workflows/tests.yml` has the database job).
 - [ ] Let CI go green on this PR before merging.
+
+### 2.8b Sign-in lockout protection (optional, recommended before a public launch)
+
+Without this, anyone who knows an email address can keep that person out of password sign-in for 15 minutes at a time (BUGS.md B-028 / O-13). It adds Cloudflare Turnstile, a free "prove you're human" box on the sign-in form. It is **off** until you set both variables below, so skipping it changes nothing.
+
+1. Cloudflare dashboard → **Turnstile** → **Add widget**. Name it `Stakr sign-in`, add the hostname `stakr.app`, widget mode **Managed**. (A free Cloudflare account is enough; you do not need to move your DNS.)
+2. Copy the two keys it gives you. The **site key** is public. The **secret key** is private: do not paste it into chat, a commit or a screenshot.
+3. Vercel → Settings → Environment Variables → **Production**: add `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (the site key) and `TURNSTILE_SECRET_KEY` (the secret key).
+4. **Redeploy** (Deployments → ⋯ → Redeploy). This one matters twice over: the site key is baked into the page at build time, and the security policy header that lets Cloudflare's box load is built from it. Setting the variable without redeploying does nothing.
+5. Check: open https://stakr.app/auth/signin in a normal window, see the box appear, tick it, and confirm Sign In works. Then try a private window with a content blocker on: you should see "The security check could not load" rather than a dead button.
+
+What to expect and what it does not do:
+
+- Both keys must be set; one alone is ignored on purpose, so a half-finished setup cannot lock everyone out.
+- If Cloudflare is down or a key is wrong, sign-in carries on exactly as before (the per-email limit still protects against password guessing).
+- Google sign-in is unaffected. People who block Cloudflare's script cannot use a password to sign in while this is on.
+- To switch it off again: delete both variables and redeploy.
 
 ### 2.9 Existing production data
 
