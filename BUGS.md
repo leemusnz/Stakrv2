@@ -405,7 +405,7 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
 | ID   | Item                                                                                                        | Status                                         |
 | ---- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
 | O-1  | Photo/video evidence upload not exercised against a real S3 bucket (no AWS access)                          | OPEN: owner, checklist 2.6                     |
-| O-2  | GitHub Actions has not run since the billing lock; CI unproven                                              | OPEN: owner, checklist 2.8                     |
+| O-2  | GitHub Actions had not run since the billing lock; CI unproven (green on PR #13, 04/11/2026)                | RESOLVED: CI runs again, checklist 2.8         |
 | O-3  | Real Neon pooled endpoint not exercised (driver verified against local Postgres via protocol shim)          | OPEN: rehearse on a Neon branch                |
 | O-4  | Legal review of Terms/Privacy; Gambling Act 2003 confirmation                                               | OPEN: owner, checklist 2.7                     |
 | O-5  | Neon history retention is 24 h                                                                              | OPEN: raise before launch                      |

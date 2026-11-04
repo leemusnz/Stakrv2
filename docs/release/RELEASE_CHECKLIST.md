@@ -33,7 +33,7 @@ off server-side (they return 404 in production).
 - **Photo/video evidence upload** to your real S3 bucket: needs your AWS credentials. Text evidence is verified. (See 2.6.)
 - **Sending real email**: needs your Resend key. The code path fails loudly if it is missing. (See 2.4.)
 - **The scheduled cron settling a challenge on Vercel**: Vercel is confirmed calling the endpoint (runtime logs, 30/10/2026) and the endpoint refuses a missing or wrong secret, but no real settlement through the scheduler has been seen yet. (See 3.)
-- **GitHub Actions**: CI has not run since the account was billing-locked (PR #10). (See 2.8.)
+- **GitHub Actions**: CI had not run since the account was billing-locked (PR #10); it runs again. On 04/11/2026 both jobs (`verify`: typecheck, lint, unit tests, production build; `join-database`: the real-Postgres suites) passed from a clean install on PR #13. (See 2.8.)
 - **Neon's pooled production endpoint**: the real Neon driver was exercised against local Postgres through a protocol shim, not against your live Neon. Rehearse once on a Neon branch. (See 2.2.)
 
 ### Production status (30/10/2026, after the merge)
@@ -45,7 +45,7 @@ Confirmed live on https://stakr.app:
 - The scheduler endpoint refuses a missing or wrong secret with 401, and Vercel is calling it.
 - Security headers (CSP, HSTS, frame, nosniff, referrer) are on every page, and there have been no runtime errors since the last redeploy.
 
-Still open: the reviewer setting (`reviewers: false` until `STAKR_MIN_REVIEWERS=1` is set or a second admin exists, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); GitHub Actions billing (2.8); the welcome-grant migration (2.2b), and switching on the sign-in lockout protection (2.8b; BUGS.md O-12, O-13).
+Still open: the reviewer setting (`reviewers: false` until `STAKR_MIN_REVIEWERS=1` is set or a second admin exists, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); the welcome-grant migration (2.2b), and switching on the sign-in lockout protection (2.8b; BUGS.md O-12, O-13).
 
 **Incident, same day.** Straight after the merge every sign-in and API route returned HTTP 500, because `ENCRYPTION_KEY` was not set in Vercel Production. The previous deployment had the same failure, so sign-in had been down since June. Fixed by adding the variable and redeploying; see BUGS.md B-026.
 
@@ -148,8 +148,8 @@ Please have them checked, and ask specifically about:
 
 ### 2.8 GitHub
 
-- [ ] Fix the GitHub billing lock so Actions run (`.github/workflows/tests.yml` has the database job).
-- [ ] Let CI go green on this PR before merging.
+- [x] Actions run again (`.github/workflows/tests.yml` has the database job). Confirmed 04/11/2026: `verify` and `join-database` both passed on PR #13 at `0f3f1fb`, after the same two jobs had died in about 2 seconds with no runner on 02/11/2026 (and on `main` before that).
+- [ ] Let CI go green on any further commit to a PR before merging it.
 
 ### 2.8b Sign-in lockout protection (optional, recommended before a public launch)
 
