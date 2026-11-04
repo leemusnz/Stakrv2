@@ -1,11 +1,16 @@
 import { withSentryConfig } from "@sentry/nextjs"
 import securityConfig from "./config/security-headers.cjs"
+import turnstileConfig from "./config/turnstile.cjs"
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Do not advertise the framework.
   poweredByHeader: false,
   headers: securityConfig.headers,
+
+  // Tells the sign-in form whether the human check is on (both keys set), decided once at build
+  // time from the same rule the server uses. A yes or no only; no key is exposed.
+  env: turnstileConfig.turnstileClientEnv(),
 
   images: {
     remotePatterns: [

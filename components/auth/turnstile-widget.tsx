@@ -4,9 +4,14 @@ import { useEffect, useRef, useState } from "react";
 
 /**
  * Cloudflare Turnstile ("prove you're human") for the sign-in form. Renders
- * nothing unless NEXT_PUBLIC_TURNSTILE_SITE_KEY is set. A token works once, so
+ * nothing unless the human check is fully switched on. A token works once, so
  * the form remounts this (new `key`) after every attempt to get a fresh one.
  * The server decides what to do with the token (lib/turnstile.ts).
+ *
+ * If the box cannot run at all (Cloudflare down, a content blocker), this says so
+ * through `onUnavailable` and the form lets the person try anyway: the server asks
+ * Cloudflare itself, so an outage does not stop password sign-in, and a visitor
+ * cannot fake one.
  */
 const SCRIPT_SRC =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
@@ -23,9 +28,17 @@ declare global {
   }
 }
 
-/** Read at call time (not module load) so it follows the build-time value. */
+/**
+ * Is the check switched on? The build sets NEXT_PUBLIC_TURNSTILE_ENABLED only when BOTH
+ * keys exist (config/turnstile.cjs), the same rule the server uses. The public site key
+ * alone is not enough: the server ignores a lone key, so a form that demanded a token
+ * would block password sign-in for everybody. Read at call time, not module load.
+ */
 export function turnstileConfigured(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
+  return (
+    process.env.NEXT_PUBLIC_TURNSTILE_ENABLED === "1" &&
+    Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim())
+  );
 }
 
 function loadTurnstile(): Promise<void> {
@@ -57,17 +70,24 @@ function loadTurnstile(): Promise<void> {
 
 export function TurnstileWidget({
   onToken,
+  onUnavailable,
 }: {
   onToken: (token: string | null) => void;
+  onUnavailable: () => void;
 }) {
   const box = useRef<HTMLDivElement>(null);
-  const [scriptFailed, setScriptFailed] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
     if (!siteKey) return;
     let widgetId: string | undefined;
     let cancelled = false;
+    const giveUp = () => {
+      if (cancelled) return;
+      setFailed(true);
+      onUnavailable();
+    };
     loadTurnstile()
       .then(() => {
         if (cancelled || !box.current || !window.turnstile) return;
@@ -75,28 +95,25 @@ export function TurnstileWidget({
           sitekey: siteKey,
           callback: (token: string) => onToken(token),
           "expired-callback": () => onToken(null),
-          "error-callback": () => onToken(null),
+          "error-callback": giveUp,
         });
       })
-      .catch(() => {
-        if (cancelled) return;
-        setScriptFailed(true);
-        onToken(null);
-      });
+      .catch(giveUp);
     return () => {
       cancelled = true;
       if (widgetId) window.turnstile?.remove(widgetId);
     };
-  }, [onToken]);
+  }, [onToken, onUnavailable]);
 
   if (!turnstileConfigured()) return null;
   return (
     <div className="space-y-2">
       <div ref={box} data-testid="turnstile" />
-      {scriptFailed && (
+      {failed && (
         <p role="alert" className="text-sm text-red-600">
-          The security check could not load. Turn off any content blocker for
-          this site, check your connection, then reload the page.
+          The security check did not load properly. You can still try to sign
+          in. If it is refused, turn off any content blocker for this site and
+          reload the page.
         </p>
       )}
     </div>

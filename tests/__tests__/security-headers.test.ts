@@ -46,11 +46,16 @@ describe("security headers", () => {
   // iframe and its callbacks. Those origins are trusted only when it is switched on.
   describe("Cloudflare Turnstile", () => {
     const CLOUDFLARE = "https://challenges.cloudflare.com";
-    const policyWith = (siteKey?: string) => {
-      const saved = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-      if (siteKey === undefined)
-        delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-      else process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = siteKey;
+    const SITE = "NEXT_PUBLIC_TURNSTILE_SITE_KEY";
+    const SECRET = "TURNSTILE_SECRET_KEY";
+    const policyWith = (site?: string, secret?: string) => {
+      const saved = { site: process.env[SITE], secret: process.env[SECRET] };
+      const set = (name: string, value: string | undefined) => {
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      };
+      set(SITE, site);
+      set(SECRET, secret);
       try {
         let policy = "";
         jest.isolateModules(() => {
@@ -59,21 +64,26 @@ describe("security headers", () => {
         });
         return policy;
       } finally {
-        if (saved === undefined)
-          delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-        else process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = saved;
+        set(SITE, saved.site);
+        set(SECRET, saved.secret);
       }
     };
     const directive = (policy: string, name: string) =>
       policy.split("; ").find((d) => d.startsWith(name)) ?? "";
 
     it("trusts nothing from Cloudflare when it is off", () => {
-      expect(policyWith(undefined)).not.toContain(CLOUDFLARE);
-      expect(policyWith("   ")).not.toContain(CLOUDFLARE);
+      expect(policyWith(undefined, undefined)).not.toContain(CLOUDFLARE);
+      expect(policyWith("   ", "   ")).not.toContain(CLOUDFLARE);
+    });
+
+    // One key alone leaves the whole check off, so Cloudflare is not trusted either.
+    it("trusts nothing from Cloudflare with only one of the two keys", () => {
+      expect(policyWith("0x4AAAAAAA", undefined)).not.toContain(CLOUDFLARE);
+      expect(policyWith(undefined, "0x4secret")).not.toContain(CLOUDFLARE);
     });
 
     it("allows Cloudflare's script, frame and callbacks when it is on, and no wildcard", () => {
-      const policy = policyWith("0x4AAAAAAA");
+      const policy = policyWith("0x4AAAAAAA", "0x4secret");
       for (const name of ["script-src", "frame-src", "connect-src"])
         expect(directive(policy, name)).toContain(CLOUDFLARE);
       expect(directive(policy, "frame-src")).toContain("'self'");

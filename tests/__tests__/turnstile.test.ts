@@ -79,8 +79,8 @@ describe("verifyTurnstile", () => {
     );
   });
 
-  it.each([undefined, null, "", 42, {}, "x".repeat(2049)])(
-    "rejects a missing or absurd token (%p) without calling Cloudflare",
+  it.each([42, {}, "x".repeat(2049)])(
+    "rejects an absurd token (%p) without calling Cloudflare",
     async (token) => {
       const { fetchImpl, calls } = reply({ success: true });
       await expect(verifyTurnstile(token, "ip", keys, fetchImpl)).resolves.toBe(
@@ -89,6 +89,120 @@ describe("verifyTurnstile", () => {
       expect(calls).toHaveLength(0);
     },
   );
+
+  it("checks a real token with Cloudflare every time, never from memory", async () => {
+    const { fetchImpl, calls } = reply({ success: true });
+    await verifyTurnstile("same-token", "ip", keys, fetchImpl);
+    await verifyTurnstile("same-token", "ip", keys, fetchImpl);
+    expect(calls).toHaveLength(2);
+  });
+
+  // A visitor whose browser could not run the widget (Cloudflare down, a content blocker)
+  // sends no token. Turning them away must depend on whether Cloudflare is reachable, which
+  // only Cloudflare's own state can change, never on anything the visitor claims
+  // (Codex review on PR #13, P1).
+  describe("when no token arrives", () => {
+    let now = 0;
+    const clock = () => now;
+    // Each test starts after the previous test's remembered answer has expired.
+    beforeEach(() => {
+      now += 10 * 60_000;
+    });
+    const down = (calls: { n: number }) =>
+      (async () => {
+        calls.n++;
+        throw new Error("ECONNRESET");
+      }) as unknown as typeof fetch;
+
+    it.each([undefined, null, ""])(
+      "turns the visitor away (%p) while Cloudflare is answering",
+      async (token) => {
+        const { fetchImpl, calls } = reply({
+          success: false,
+          "error-codes": ["missing-input-response"],
+        });
+        await expect(
+          verifyTurnstile(token, "ip", keys, fetchImpl, clock),
+        ).resolves.toBe("invalid");
+        expect(calls).toHaveLength(1);
+        expect(
+          new URLSearchParams(String(calls[0].init.body)).get("response"),
+        ).toBe("");
+      },
+    );
+
+    it("lets the visitor carry on ('unavailable') when Cloudflare cannot be reached", async () => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+      const calls = { n: 0 };
+      await expect(
+        verifyTurnstile(undefined, "ip", keys, down(calls), clock),
+      ).resolves.toBe("unavailable");
+      warn.mockRestore();
+    });
+
+    it("remembers that Cloudflare is answering for 30 seconds, then asks again", async () => {
+      const { fetchImpl, calls } = reply({
+        success: false,
+        "error-codes": ["missing-input-response"],
+      });
+      await verifyTurnstile("", "ip", keys, fetchImpl, clock);
+      now += 29_000;
+      await verifyTurnstile("", "ip", keys, fetchImpl, clock);
+      expect(calls).toHaveLength(1);
+      now += 2_000;
+      await verifyTurnstile("", "ip", keys, fetchImpl, clock);
+      expect(calls).toHaveLength(2);
+    });
+
+    it("remembers an outage for 30 seconds too, so visitors cannot make us hammer Cloudflare", async () => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+      const calls = { n: 0 };
+      await verifyTurnstile("", "ip", keys, down(calls), clock);
+      now += 10_000;
+      await expect(
+        verifyTurnstile("", "ip", keys, down(calls), clock),
+      ).resolves.toBe("unavailable");
+      expect(calls.n).toBe(1);
+      warn.mockRestore();
+    });
+
+    // The 30-second memory is only about whether Cloudflare is up. It must never decide a real
+    // token, or one visitor's outage (or refusal) would be replayed onto the next visitor.
+    it("still checks a real token with Cloudflare right after a token-less visit, whatever was remembered", async () => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+      // Remembered: "Cloudflare is answering".
+      await verifyTurnstile(
+        "",
+        "ip",
+        keys,
+        reply({ success: false, "error-codes": ["missing-input-response"] })
+          .fetchImpl,
+        clock,
+      );
+      const first = reply({ success: true });
+      await expect(
+        verifyTurnstile("tok-1", "ip", keys, first.fetchImpl, clock),
+      ).resolves.toBe("valid");
+      expect(first.calls).toHaveLength(1);
+
+      // Remembered: "Cloudflare is not answering".
+      now += 31_000;
+      await verifyTurnstile("", "ip", keys, down({ n: 0 }), clock);
+      const second = reply({ success: true });
+      await expect(
+        verifyTurnstile("tok-2", "ip", keys, second.fetchImpl, clock),
+      ).resolves.toBe("valid");
+      expect(second.calls).toHaveLength(1);
+      warn.mockRestore();
+    });
+
+    it("never lets a visitor in without a token, even if Cloudflare says an empty answer is fine", async () => {
+      const { fetchImpl } = reply({ success: true });
+      await expect(
+        verifyTurnstile("", "ip", keys, fetchImpl, clock),
+      ).resolves.toBe("invalid");
+    });
+  });
 
   // These must not turn into "everyone is locked out of password sign-in".
   it.each([

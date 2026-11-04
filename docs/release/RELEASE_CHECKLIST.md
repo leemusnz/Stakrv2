@@ -159,13 +159,14 @@ Without this, anyone who knows an email address can keep that person out of pass
 2. Copy the two keys it gives you. The **site key** is public. The **secret key** is private: do not paste it into chat, a commit or a screenshot.
 3. Vercel → Settings → Environment Variables → **Production**: add `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (the site key) and `TURNSTILE_SECRET_KEY` (the secret key).
 4. **Redeploy** (Deployments → ⋯ → Redeploy). This one matters twice over: the site key is baked into the page at build time, and the security policy header that lets Cloudflare's box load is built from it. Setting the variable without redeploying does nothing.
-5. Check: open https://stakr.app/auth/signin in a normal window, see the box appear, tick it, and confirm Sign In works. Then try a private window with a content blocker on: you should see "The security check could not load" rather than a dead button.
+5. Check: open https://stakr.app/auth/signin in a normal window, see the box appear, tick it, and confirm Sign In works. If instead the box shows an error, the **site key is wrong**: fix it, or delete both variables and redeploy (see below). Then try a private window with a content blocker on: you should see "The security check did not load properly" and a Sign In button that still works, which is refused with a "complete the security check" message while Cloudflare is up.
 
 What to expect and what it does not do:
 
-- Both keys must be set; one alone is ignored on purpose, so a half-finished setup cannot lock everyone out.
-- If Cloudflare is down or a key is wrong, sign-in carries on exactly as before (the per-email limit still protects against password guessing).
-- Google sign-in is unaffected. People who block Cloudflare's script cannot use a password to sign in while this is on.
+- Both keys must be set; one alone is ignored on purpose (by the form, the server and the security header alike), so a half-finished setup changes nothing.
+- If Cloudflare itself is down or unreachable, or the **secret** key is wrong, sign-in carries on exactly as before (the per-email limit still protects against password guessing). When the box cannot load, the form says so and still lets the person try; the server checks with Cloudflare itself.
+- **A wrong site key is the one setup mistake that blocks password sign-in:** the box shows an error and attempts are refused while Cloudflare is up. That is what step 5 above catches within seconds. If it happens, delete both variables and redeploy.
+- Google sign-in is unaffected. Someone who blocks Cloudflare's script is refused, with an explanation, while Cloudflare is up.
 - To switch it off again: delete both variables and redeploy.
 
 ### 2.9 Existing production data

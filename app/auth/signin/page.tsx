@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { BackgroundImage } from "@/components/ui/background-image";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -35,7 +35,11 @@ function SignInContent() {
   // so the widget is remounted (new key) after every attempt to get a fresh one.
   const challengeOn = turnstileConfigured();
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  // The box could not run (Cloudflare down, a content blocker). We then let the person try
+  // anyway; the server asks Cloudflare itself, so an outage does not stop password sign-in.
+  const [turnstileFailed, setTurnstileFailed] = useState(false);
   const [widgetKey, setWidgetKey] = useState(0);
+  const markTurnstileFailed = useCallback(() => setTurnstileFailed(true), []);
 
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const errorParam = searchParams.get("error");
@@ -153,6 +157,7 @@ function SignInContent() {
       setIsLoading(false);
       if (challengeOn) {
         setTurnstileToken(null);
+        setTurnstileFailed(false);
         setWidgetKey((key) => key + 1);
       }
     }
@@ -338,13 +343,17 @@ function SignInContent() {
                     <TurnstileWidget
                       key={widgetKey}
                       onToken={setTurnstileToken}
+                      onUnavailable={markTurnstileFailed}
                     />
                   </div>
                 )}
 
                 <Button
                   type="submit"
-                  disabled={isLoading || (challengeOn && !turnstileToken)}
+                  disabled={
+                    isLoading ||
+                    (challengeOn && !turnstileToken && !turnstileFailed)
+                  }
                   size="lg"
                   className="w-full h-14 bg-gradient-to-r from-[#F46036] to-[#D74E25] hover:from-[#ff724c] hover:to-[#e85a30] text-white font-heading font-bold text-lg shadow-xl shadow-orange-500/20 hover:shadow-orange-500/40 transition-all duration-300 transform hover:scale-[1.02] rounded-xl"
                 >

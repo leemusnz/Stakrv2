@@ -10,10 +10,10 @@
 const isDev = process.env.NODE_ENV !== "production";
 
 // Cloudflare Turnstile (the sign-in "prove you're human" check) needs its script, its iframe and its
-// callbacks. Trusted only when the owner has set the site key, so by default no foreign origin is.
-const turnstile = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()
-  ? " https://challenges.cloudflare.com"
-  : "";
+// callbacks. Trusted only when the check is fully switched on (both keys, config/turnstile.cjs), so by
+// default, and with a half-finished setup, no foreign origin is.
+const { turnstileOn } = require("./turnstile.cjs");
+const turnstile = turnstileOn() ? " https://challenges.cloudflare.com" : "";
 
 const contentSecurityPolicy = [
   "default-src 'self'",

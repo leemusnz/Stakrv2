@@ -81,9 +81,12 @@ describe("sign-in form with the human check", () => {
     document.head.innerHTML = "";
     delete (window as any).turnstile;
     process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAA";
+    // The build sets this only when BOTH keys exist (config/turnstile.cjs).
+    process.env.NEXT_PUBLIC_TURNSTILE_ENABLED = "1";
   });
   afterAll(() => {
     delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    delete process.env.NEXT_PUBLIC_TURNSTILE_ENABLED;
   });
 
   it("keeps Sign In disabled until the check has been passed", async () => {
@@ -165,36 +168,93 @@ describe("sign-in form with the human check", () => {
     await waitFor(() => expect(rendered).toHaveLength(1));
   });
 
-  // An ad-blocker or a firewall can stop Cloudflare's script loading. Without a word of
-  // explanation the person would face a blank gap and a greyed-out button.
-  it("explains what to do when Cloudflare's script cannot be loaded", async () => {
-    render(<SignInPage />);
+  // When Cloudflare is down, or an ad-blocker or firewall stops its script loading, the
+  // widget can never produce a token. The form must not be the thing that turns that into
+  // "nobody can sign in with a password": it lets the person try, and the SERVER decides
+  // (it asks Cloudflare itself, so a visitor cannot fake an outage). Codex review, PR #13, P1.
+  describe("when the check cannot run", () => {
     const script = () =>
       document.head.querySelector(
         'script[src^="https://challenges.cloudflare.com/turnstile/v0/api.js"]',
       ) as HTMLScriptElement;
-    await waitFor(() => expect(script()).not.toBeNull());
-    expect(screen.queryByRole("alert")).toBeNull();
-    const failed = script();
-    act(() => {
-      failed.dispatchEvent(new Event("error"));
+
+    it("explains it, and still lets the person try when Cloudflare's script cannot be loaded", async () => {
+      render(<SignInPage />);
+      await waitFor(() => expect(script()).not.toBeNull());
+      expect(screen.queryByRole("alert")).toBeNull();
+      fillForm();
+      // While the widget is still loading, Sign In waits (the normal case).
+      expect(signInButton()).toBeDisabled();
+      const failed = script();
+      act(() => {
+        failed.dispatchEvent(new Event("error"));
+      });
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        /security check did not load properly/i,
+      );
+      expect(signInButton()).toBeEnabled();
+      // The dead script tag is removed, so a later mount can try again.
+      expect(document.head.contains(failed)).toBe(false);
+
+      fireEvent.click(signInButton());
+      await waitFor(() => expect(mockSignInCalls).toHaveLength(1));
+      expect(mockSignInCalls[0][1]).toMatchObject({
+        email: "victim@example.com",
+        turnstileToken: "",
+      });
     });
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      /security check could not load/i,
-    );
-    expect(signInButton()).toBeDisabled();
-    // The dead script tag is removed, so a later mount can try again.
-    expect(document.head.contains(failed)).toBe(false);
+
+    it("lets the person try when the widget itself reports an error", async () => {
+      installTurnstile();
+      render(<SignInPage />);
+      await waitFor(() => expect(rendered).toHaveLength(1));
+      fillForm();
+      expect(signInButton()).toBeDisabled();
+      act(() => rendered[0].options["error-callback"]());
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        /security check did not load properly/i,
+      );
+      expect(signInButton()).toBeEnabled();
+      fireEvent.click(signInButton());
+      await waitFor(() => expect(mockSignInCalls).toHaveLength(1));
+      expect(mockSignInCalls[0][1]).toMatchObject({ turnstileToken: "" });
+    });
+
+    it("sends the real token if the widget fails after it already produced one", async () => {
+      installTurnstile();
+      render(<SignInPage />);
+      await waitFor(() => expect(rendered).toHaveLength(1));
+      fillForm();
+      pass("tok-1");
+      act(() => rendered[0].options["error-callback"]());
+      fireEvent.click(signInButton());
+      await waitFor(() => expect(mockSignInCalls).toHaveLength(1));
+      expect(mockSignInCalls[0][1]).toMatchObject({ turnstileToken: "tok-1" });
+    });
   });
 });
 
-describe("sign-in form without a site key", () => {
+// Off means off: with neither key, and with only the public site key (a half-finished
+// setup), the form must behave exactly as before. The server ignores a lone key, so a form
+// that demanded a token would block password sign-in for everyone. Codex review, PR #13, P2.
+describe.each([
+  ["no keys are set", {}],
+  [
+    "only the public site key is set",
+    { NEXT_PUBLIC_TURNSTILE_SITE_KEY: "0x4AAAAAAA" },
+  ],
+])("sign-in form when %s", (_name, env) => {
   beforeEach(() => {
     mockSignInCalls = [];
     mockSignInResult = { ok: false, error: "CredentialsSignin" };
     rendered = [];
     document.head.innerHTML = "";
     delete (window as any).turnstile;
+    delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    delete process.env.NEXT_PUBLIC_TURNSTILE_ENABLED;
+    Object.assign(process.env, env);
+  });
+  afterEach(() => {
     delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   });
 
@@ -205,6 +265,7 @@ describe("sign-in form without a site key", () => {
     expect(signInButton()).toBeEnabled();
     fireEvent.click(signInButton());
     await waitFor(() => expect(mockSignInCalls).toHaveLength(1));
+    expect(mockSignInCalls[0][1]).not.toHaveProperty("turnstileToken");
     expect(rendered).toHaveLength(0);
     expect(document.head.querySelectorAll("script")).toHaveLength(0);
   });
