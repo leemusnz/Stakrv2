@@ -45,7 +45,7 @@ Confirmed live on https://stakr.app:
 - The scheduler endpoint refuses a missing or wrong secret with 401, and Vercel is calling it.
 - Security headers (CSP, HSTS, frame, nosniff, referrer) are on every page, and there have been no runtime errors since the last redeploy.
 
-Still open: the reviewer setting (`reviewers: false` until `STAKR_MIN_REVIEWERS=1` is set or a second admin exists, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); the welcome-grant migration (2.2b), and switching on the sign-in lockout protection (2.8b; BUGS.md O-12, O-13).
+Still open: the reviewer setting (`reviewers: false` until `STAKR_MIN_REVIEWERS=1` is set or a second admin exists, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); and switching on the sign-in lockout protection (2.8b; BUGS.md O-12, O-13).
 
 **Incident, same day.** Straight after the merge every sign-in and API route returned HTTP 500, because `ENCRYPTION_KEY` was not set in Vercel Production. The previous deployment had the same failure, so sign-in had been down since June. Fixed by adding the variable and redeploying; see BUGS.md B-026.
 
@@ -75,12 +75,12 @@ table is just ignored). To undo the migration itself: `DROP TABLE rate_limit_hit
 Nothing else in this release changes the production schema. (The 27/09/2026
 migrations from PR #10 are already applied.)
 
-### 2.2b Welcome-grant fingerprints: one more additive migration (TO APPLY)
+### 2.2b Welcome-grant fingerprints: one more additive migration (DONE 04/11/2026)
 
-`migrations/2026-11-02_welcome-grants.sql` adds one table, `welcome_grants`, so the one-time welcome credits cannot be claimed again by deleting an account and registering the same email (BUGS.md B-027). It stores a keyed one-way hash, never the address. It is idempotent and touches nothing existing. Until it is applied the app works but keeps the older, weaker check.
+`migrations/2026-11-02_welcome-grants.sql` adds one table, `welcome_grants`, so the one-time welcome credits cannot be claimed again by deleting an account and registering the same email (BUGS.md B-027). It stores a keyed one-way hash, never the address. It is idempotent and touches nothing existing. Until the code that uses it is deployed the table simply sits empty; before it existed the app kept the older, weaker check.
 
 - [x] Rehearsed on 02/11/2026 on a temporary Neon branch of `main` (`br-rough-snowflake-a4ardvlz`): table count 64 to 65 (exactly one more), columns and primary key correct, the foreign key matches `users.id` (both `uuid`), a re-run is a no-op, and the code's own upsert behaved: the holder claims and can repeat, a different account on the same inbox is refused. The temporary branch (`rehearsal-welcome-grants-02-11-2026`) is disposable and can be deleted.
-- [ ] **Apply to the production branch** (same method as 2.2; needs your go-ahead), then re-check that the table exists and `/api/health` is still `ok`.
+- [x] **Applied to the production branch** (`main`, `br-rough-snowflake-a4ardvlz`, database `neondb`) on 04/11/2026 with your go-ahead, in one transaction with a 5-second lock timeout. Before: 64 tables, no `welcome_grants`, 8 users. After: 65 tables, the table with the three columns, its primary key and the foreign key to `users(id)`, 0 rows, the 8 users untouched, and `/api/health` still `ok` (`database`, `rateLimit: "database"`, `lifecycle.overdueJobs: 0`). Rollback if ever needed: `DROP TABLE welcome_grants;` (it holds only fingerprints, and the code falls back to the older check when the table is missing).
 - [ ] Have the Privacy Policy line about the fingerprint (section 7) included in the legal review (2.7).
 
 ### 2.3 Vercel plan

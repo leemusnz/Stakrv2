@@ -374,7 +374,7 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
 - **Not verified:** a real settlement through Vercel's scheduler (no challenge has ended yet), and a real sign-up with email delivery and a photo upload on production.
 - **Lesson:** a missing required variable only shows up after deploy. The checklist now says so, and says what a 500 from `/api/health` means.
 
-## B-027 — Welcome credits could be claimed again after deleting the account — FIXED (needs one migration)
+## B-027 — Welcome credits could be claimed again after deleting the account — FIXED (migration applied 04/11/2026)
 
 - **Date:** 02/11/2026 · **Severity:** Low-Medium (credit-economy integrity; credits have no cash value)
 - **Found by:** Codex code review of PR #11 (P2), tracked until now under O-12.
@@ -433,4 +433,4 @@ Status key: **FIXED** (verified by a run), **OPEN** (known, not yet fixed),
 
 **O-16 detail.** The owner chose to launch with one admin reviewer (30/10/2026). `reviewProof` will not let the reviewer who rejected a submission also decide its appeal ("An appeal needs a different neutral reviewer"), and refuses any reviewer who hosts or takes part in the challenge. With one admin that means two things. If a participant appeals that admin's rejection, the challenge cannot settle (a pending appeal holds the pool, so credits stay locked) until a second admin exists. And challenges the admin hosts or joins have no possible reviewer. Health only treats one reviewer as fine when `STAKR_MIN_REVIEWERS=1` is set; the default is 2, an unusable value falls back to 2, and zero reviewers is never fine. Mitigation: promote a second account (it needs a verified email) before it matters, or the first time an appeal is filed.
 
-**Delete-and-re-register: fixed (B-027).** Codex found that deleting an account let the same address claim the welcome credits again. The fix keeps only a keyed one-way fingerprint of the inbox after deletion (stated in the Privacy Policy, section 7), needs the `2026-11-02_welcome-grants.sql` migration on production (checklist 2.2b), and falls back to the older check until that is applied.
+**Delete-and-re-register: fixed (B-027).** Codex found that deleting an account let the same address claim the welcome credits again. The fix keeps only a keyed one-way fingerprint of the inbox after deletion (stated in the Privacy Policy, section 7), needs the `2026-11-02_welcome-grants.sql` migration, which was applied to production on 04/11/2026 (checklist 2.2b). The fix is live once this PR is deployed; before the table existed, and wherever it is missing, the code falls back to the older check.
