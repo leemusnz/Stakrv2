@@ -1,8 +1,13 @@
 /** @jest-environment node */
 // Runs against the REAL production schema (migrations/baseline), not a mock.
+import { readFileSync } from "node:fs";
 import type { Pool } from "pg";
 import { createBaselineSchema } from "../helpers/baseline-db";
 import { deleteAccount, exportAccountData } from "@/lib/account-data";
+import {
+  claimWelcomeCredits,
+  welcomeCreditsOffer,
+} from "@/lib/welcome-credits";
 import { setUserStatus } from "@/lib/user-moderation";
 import { clearAccountStatusCache, isAccountActive } from "@/lib/account-status";
 
@@ -31,6 +36,7 @@ const root = "00000000-0000-4000-8000-0000000000c3";
 describeDatabase("account lifecycle on the production schema", () => {
   let baseline: Awaited<ReturnType<typeof createBaselineSchema>>;
   const original = process.env.DATABASE_URL;
+  const originalKey = process.env.ENCRYPTION_KEY;
 
   beforeAll(async () => {
     baseline = await createBaselineSchema(
@@ -39,10 +45,16 @@ describeDatabase("account lifecycle on the production schema", () => {
     );
     db = baseline.db;
     process.env.DATABASE_URL = baseline.scopedUrl;
+    process.env.ENCRYPTION_KEY = "test-encryption-key-0123456789abcdef";
+    await db.query(
+      readFileSync("migrations/2026-11-02_welcome-grants.sql", "utf8"),
+    );
   });
   afterAll(async () => {
     if (original === undefined) delete process.env.DATABASE_URL;
     else process.env.DATABASE_URL = original;
+    if (originalKey === undefined) delete process.env.ENCRYPTION_KEY;
+    else process.env.ENCRYPTION_KEY = originalKey;
     await baseline?.drop();
   });
 
@@ -159,6 +171,118 @@ describeDatabase("account lifecycle on the production schema", () => {
           )
         ).rows[0].n,
       ).toBe(1);
+    });
+  });
+
+  // Regression (Codex review, PR #11, O-12): deletion rewrites the email, so the
+  // old per-account check forgot the inbox and the same address could register
+  // again and claim another welcome grant.
+  describe("welcome credits after account deletion", () => {
+    const reborn = "00000000-0000-4000-8000-0000000000d4";
+    const register = (id: string, email: string) =>
+      db.query(
+        `INSERT INTO users (id,email,name,username,email_verified)
+         VALUES ($1,$2,'New',$3,true)`,
+        [id, email, "u" + id.slice(-6)],
+      );
+    const ledger = async (id: string) =>
+      (
+        await db.query(
+          "SELECT count(*)::int n FROM credit_transactions WHERE user_id=$1 AND transaction_type='welcome_grant'",
+          [id],
+        )
+      ).rows[0].n;
+
+    it("blocks a claim made through the new path, after that account is deleted", async () => {
+      await db.query("UPDATE users SET email='cat@example.test' WHERE id=$1", [
+        ben,
+      ]);
+      await expect(claimWelcomeCredits(ben)).resolves.toMatchObject({
+        granted: true,
+      });
+      await deleteAccount(ben);
+      await register(reborn, "cat@example.test");
+      await expect(claimWelcomeCredits(reborn)).rejects.toMatchObject({
+        status: 409,
+      });
+      expect(await ledger(reborn)).toBe(0);
+    });
+
+    it("blocks the inbox of an account that was granted before the table existed", async () => {
+      // ana has the grant in the ledger but no fingerprint row (a legacy grant).
+      expect(
+        (await db.query("SELECT count(*)::int n FROM welcome_grants")).rows[0]
+          .n,
+      ).toBe(0);
+      await deleteAccount(ana);
+      await register(reborn, "ana@example.test");
+      await expect(claimWelcomeCredits(reborn)).rejects.toMatchObject({
+        status: 409,
+      });
+      expect(await ledger(reborn)).toBe(0);
+    });
+
+    it("also stops the dashboard offering it to the re-registered inbox", async () => {
+      await deleteAccount(ana);
+      await register(reborn, "Ana+again@Example.test");
+      const offer = await welcomeCreditsOffer(
+        async (s: TemplateStringsArray, ...v: unknown[]) =>
+          (
+            await db.query(
+              s.reduce((q, p, i) => q + (i ? "$" + i : "") + p, ""),
+              v,
+            )
+          ).rows,
+        reborn,
+      );
+      expect(offer.eligible).toBe(false);
+    });
+
+    it("keeps no readable email: the stored value is a keyed hash", async () => {
+      await deleteAccount(ana);
+      const rows = (await db.query("SELECT fingerprint FROM welcome_grants"))
+        .rows;
+      expect(rows).toHaveLength(1);
+      expect(rows[0].fingerprint).toMatch(/^[0-9a-f]{64}$/);
+      expect(JSON.stringify(rows)).not.toMatch(/ana|example/);
+    });
+
+    it("a second deletion does not add another fingerprint", async () => {
+      await deleteAccount(ana);
+      await deleteAccount(ana);
+      expect(
+        (await db.query("SELECT count(*)::int n FROM welcome_grants")).rows[0]
+          .n,
+      ).toBe(1);
+    });
+
+    it("lets an unrelated inbox claim as normal", async () => {
+      await deleteAccount(ana);
+      await register(reborn, "someone.else@example.test");
+      await expect(claimWelcomeCredits(reborn)).resolves.toMatchObject({
+        granted: true,
+      });
+    });
+
+    it("still works, and still blocks aliases, if the table has not been created yet", async () => {
+      await db.query("ALTER TABLE welcome_grants RENAME TO welcome_grants_off");
+      try {
+        await register(reborn, "ana+x@example.test");
+        await expect(claimWelcomeCredits(reborn)).rejects.toMatchObject({
+          status: 409,
+        });
+        await register(
+          "00000000-0000-4000-8000-0000000000e5",
+          "fresh@example.test",
+        );
+        await expect(
+          claimWelcomeCredits("00000000-0000-4000-8000-0000000000e5"),
+        ).resolves.toMatchObject({ granted: true });
+      } finally {
+        await db.query(
+          "ALTER TABLE welcome_grants_off RENAME TO welcome_grants",
+        );
+      }
     });
   });
 

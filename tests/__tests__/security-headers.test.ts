@@ -42,6 +42,56 @@ describe("security headers", () => {
     expect(connect).toContain("https://*.sentry.io");
   });
 
+  // The sign-in "prove you're human" widget (Cloudflare Turnstile) needs its script, its
+  // iframe and its callbacks. Those origins are trusted only when it is switched on.
+  describe("Cloudflare Turnstile", () => {
+    const CLOUDFLARE = "https://challenges.cloudflare.com";
+    const SITE = "NEXT_PUBLIC_TURNSTILE_SITE_KEY";
+    const SECRET = "TURNSTILE_SECRET_KEY";
+    const policyWith = (site?: string, secret?: string) => {
+      const saved = { site: process.env[SITE], secret: process.env[SECRET] };
+      const set = (name: string, value: string | undefined) => {
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      };
+      set(SITE, site);
+      set(SECRET, secret);
+      try {
+        let policy = "";
+        jest.isolateModules(() => {
+          policy =
+            require("@/config/security-headers.cjs").contentSecurityPolicy;
+        });
+        return policy;
+      } finally {
+        set(SITE, saved.site);
+        set(SECRET, saved.secret);
+      }
+    };
+    const directive = (policy: string, name: string) =>
+      policy.split("; ").find((d) => d.startsWith(name)) ?? "";
+
+    it("trusts nothing from Cloudflare when it is off", () => {
+      expect(policyWith(undefined, undefined)).not.toContain(CLOUDFLARE);
+      expect(policyWith("   ", "   ")).not.toContain(CLOUDFLARE);
+    });
+
+    // One key alone leaves the whole check off, so Cloudflare is not trusted either.
+    it("trusts nothing from Cloudflare with only one of the two keys", () => {
+      expect(policyWith("0x4AAAAAAA", undefined)).not.toContain(CLOUDFLARE);
+      expect(policyWith(undefined, "0x4secret")).not.toContain(CLOUDFLARE);
+    });
+
+    it("allows Cloudflare's script, frame and callbacks when it is on, and no wildcard", () => {
+      const policy = policyWith("0x4AAAAAAA", "0x4secret");
+      for (const name of ["script-src", "frame-src", "connect-src"])
+        expect(directive(policy, name)).toContain(CLOUDFLARE);
+      expect(directive(policy, "frame-src")).toContain("'self'");
+      expect(directive(policy, "script-src")).not.toMatch(/\*/);
+      expect(policy).toContain("frame-ancestors 'none'");
+    });
+  });
+
   it("sets the standard hardening headers", () => {
     expect(byKey("Strict-Transport-Security")).toContain("max-age=63072000");
     expect(byKey("X-Content-Type-Options")).toBe("nosniff");

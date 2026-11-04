@@ -2,6 +2,7 @@ import { createDbConnection } from "@/lib/db";
 import { withTransaction } from "@/lib/db/transaction";
 import { ChallengeError } from "@/lib/challenge-engine";
 import { creditDecimal, toCreditCents } from "@/lib/credit-amounts";
+import { keepWelcomeFingerprint } from "@/lib/welcome-credits";
 
 /**
  * Everything Stakr holds about one person, as JSON they can download
@@ -78,6 +79,8 @@ export async function deleteAccount(userId: string) {
     if (forfeitCents > 0)
       await sql`INSERT INTO credit_transactions (user_id,amount,transaction_type,description,created_at)
         VALUES (${userId},${creditDecimal(-forfeitCents)},'account_closed','Remaining credits forfeited on account deletion',now())`;
+    // Before the email is anonymised: remember (as a one-way hash) that this inbox had its welcome credits.
+    await keepWelcomeFingerprint(sql, userId);
     const tag = String(userId).replace(/-/g, "").slice(0, 12);
     await sql`UPDATE users SET email=${"deleted-" + tag + "@deleted.invalid"},name='Deleted user',
       username=${"deleted_" + tag},avatar_url=NULL,password_hash=NULL,credits=0,email_verified=false,

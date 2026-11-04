@@ -18,13 +18,29 @@ jest.mock("@/lib/db", () => ({
 // The rate limiter has its own tests (rate-limit-postgres.test.ts). Here it is controlled
 // explicitly so its queries cannot consume the mock database responses below.
 let rateLimitAllowed = true;
+// Which budgets each attempt was charged to, so tests can see who pays for it.
+let chargedLimits: string[] = [];
 jest.mock("@/lib/rate-limit-db", () => ({
-  LIMITS: { signInPerIp: {}, signInPerEmail: {} },
-  enforce: async () => ({
-    allowed: rateLimitAllowed,
-    retryAfterSeconds: 60,
-    mode: "database",
-  }),
+  LIMITS: { signInPerIp: { name: "ip" }, signInPerEmail: { name: "email" } },
+  enforce: async (checks: [{ name: string }, string][]) => {
+    chargedLimits.push(...checks.map(([limit]) => limit.name));
+    return {
+      allowed: rateLimitAllowed,
+      retryAfterSeconds: 60,
+      mode: "database",
+    };
+  },
+}));
+
+// Cloudflare Turnstile has its own tests (turnstile.test.ts). Here its answer is controlled.
+let turnstileMode: "off" | "valid" | "invalid" | "unavailable" = "off";
+let turnstileCalls = 0;
+jest.mock("@/lib/turnstile", () => ({
+  turnstileEnabled: () => turnstileMode !== "off",
+  verifyTurnstile: async () => {
+    turnstileCalls++;
+    return turnstileMode === "off" ? "valid" : turnstileMode;
+  },
 }));
 
 // Mock bcryptjs
@@ -40,6 +56,9 @@ describe("Authentication System", () => {
     mockSql.mockReset();
     clearAccountStatusCache();
     rateLimitAllowed = true;
+    chargedLimits = [];
+    turnstileMode = "off";
+    turnstileCalls = 0;
     // jest.config sets resetMocks: true, which strips factory implementations
     (createDbConnection as jest.Mock).mockImplementation(() => mockSql);
   });
@@ -93,6 +112,73 @@ describe("Authentication System", () => {
       expect(mockSql).not.toHaveBeenCalled();
       const bcrypt = await import("bcryptjs");
       expect(bcrypt.compare).not.toHaveBeenCalled();
+    });
+
+    // Regression (Codex security review, PR #11, O-13): every attempt was charged to the
+    // account's own 15-minute budget before the password was even checked, so anyone who
+    // knew an email could use it up and lock the owner out. With the human check on, an
+    // attempt that has not passed it must not touch that budget.
+    describe("with the human check switched on", () => {
+      const attempt = () =>
+        (
+          authOptions.providers.find(
+            (p: any) => p.name === "Credentials",
+          ) as any
+        ).options.authorize(
+          {
+            email: "victim@example.com",
+            password: "guess-1234",
+            turnstileToken: "token",
+          },
+          { headers: { "x-forwarded-for": "203.0.113.9" } } as any,
+        );
+
+      it("turns away an attempt that failed the check without charging the account's budget", async () => {
+        turnstileMode = "invalid";
+        await expect(attempt()).rejects.toThrow("error=challenge_required");
+        expect(chargedLimits).toContain("ip");
+        expect(chargedLimits).not.toContain("email");
+        expect(mockSql).not.toHaveBeenCalled();
+        const bcrypt = await import("bcryptjs");
+        expect(bcrypt.compare).not.toHaveBeenCalled();
+      });
+
+      it("lets an attempt that passed the check carry on, charged to both budgets", async () => {
+        turnstileMode = "valid";
+        mockSql.mockResolvedValue([] as never);
+        await expect(attempt()).resolves.toBeNull();
+        expect(chargedLimits).toEqual(["ip", "email"]);
+        expect(mockSql).toHaveBeenCalled();
+      });
+
+      it("falls back to the old behaviour when Cloudflare cannot be reached", async () => {
+        turnstileMode = "unavailable";
+        mockSql.mockResolvedValue([] as never);
+        await expect(attempt()).resolves.toBeNull();
+        expect(chargedLimits).toEqual(["ip", "email"]);
+      });
+
+      it("does not even ask Cloudflare once the address is over its limit", async () => {
+        turnstileMode = "valid";
+        rateLimitAllowed = false;
+        await expect(attempt()).rejects.toThrow("error=rate_limited");
+        expect(turnstileCalls).toBe(0);
+        expect(chargedLimits).not.toContain("email");
+      });
+    });
+
+    it("does not charge the account's budget for an attempt from an address already over its limit", async () => {
+      rateLimitAllowed = false;
+      const provider = authOptions.providers.find(
+        (p: any) => p.name === "Credentials",
+      ) as any;
+      await expect(
+        provider.options.authorize(
+          { email: "victim@example.com", password: "guess-1234" },
+          { headers: { "x-forwarded-for": "203.0.113.9" } } as any,
+        ),
+      ).rejects.toThrow("error=rate_limited");
+      expect(chargedLimits).toEqual(["ip"]);
     });
 
     it("should authenticate with valid database user", async () => {

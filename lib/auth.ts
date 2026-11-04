@@ -149,6 +149,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        turnstileToken: { label: "Security check", type: "text" },
       },
       async authorize(credentials, req) {
         try {
@@ -165,11 +166,26 @@ export const authOptions: NextAuthOptions = {
             .trim();
           // Loaded lazily, like the database in this file, so importing auth never loads the limiter.
           const { enforce, LIMITS } = await import("@/lib/rate-limit-db");
-          const gate = await enforce([
-            [LIMITS.signInPerIp, ip],
-            [LIMITS.signInPerEmail, credentials.email],
-          ]);
-          if (!gate.allowed) {
+          // The address first: a blocked address never costs a Cloudflare call or anyone's account budget.
+          if (!(await enforce([[LIMITS.signInPerIp, ip]])).allowed) {
+            throw new Error("error=rate_limited");
+          }
+          // Human check, when switched on. An attempt that has not passed it never touches the
+          // account's own budget, so bots cannot use that up to lock the owner out (BUGS.md O-13).
+          // If Cloudflare is unreachable the result is "unavailable" and sign-in carries on as before.
+          const { turnstileEnabled, verifyTurnstile } =
+            await import("@/lib/turnstile");
+          if (
+            turnstileEnabled() &&
+            (await verifyTurnstile(credentials.turnstileToken, ip)) ===
+              "invalid"
+          ) {
+            throw new Error("error=challenge_required");
+          }
+          if (
+            !(await enforce([[LIMITS.signInPerEmail, credentials.email]]))
+              .allowed
+          ) {
             throw new Error("error=rate_limited");
           }
 
@@ -293,6 +309,7 @@ export const authOptions: NextAuthOptions = {
             error instanceof Error &&
             (error.message === "OAUTH_ACCOUNT_EXISTS" ||
               error.message === "error=suspended" ||
+              error.message === "error=challenge_required" ||
               error.message === "error=rate_limited")
           ) {
             throw error; // Re-throw to be caught by NextAuth

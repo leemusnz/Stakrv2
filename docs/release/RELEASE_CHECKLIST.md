@@ -33,7 +33,7 @@ off server-side (they return 404 in production).
 - **Photo/video evidence upload** to your real S3 bucket: needs your AWS credentials. Text evidence is verified. (See 2.6.)
 - **Sending real email**: needs your Resend key. The code path fails loudly if it is missing. (See 2.4.)
 - **The scheduled cron settling a challenge on Vercel**: Vercel is confirmed calling the endpoint (runtime logs, 30/10/2026) and the endpoint refuses a missing or wrong secret, but no real settlement through the scheduler has been seen yet. (See 3.)
-- **GitHub Actions**: CI has not run since the account was billing-locked (PR #10). (See 2.8.)
+- **GitHub Actions**: CI had not run since the account was billing-locked (PR #10); it runs again. On 04/11/2026 both jobs (`verify`: typecheck, lint, unit tests, production build; `join-database`: the real-Postgres suites) passed from a clean install on PR #13. (See 2.8.)
 - **Neon's pooled production endpoint**: the real Neon driver was exercised against local Postgres through a protocol shim, not against your live Neon. Rehearse once on a Neon branch. (See 2.2.)
 
 ### Production status (30/10/2026, after the merge)
@@ -45,7 +45,7 @@ Confirmed live on https://stakr.app:
 - The scheduler endpoint refuses a missing or wrong secret with 401, and Vercel is calling it.
 - Security headers (CSP, HSTS, frame, nosniff, referrer) are on every page, and there have been no runtime errors since the last redeploy.
 
-Still open: the reviewer setting (`reviewers: false` until `STAKR_MIN_REVIEWERS=1` is set or a second admin exists, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); GitHub Actions billing (2.8); and the welcome-grant and sign-in-lockout decisions (BUGS.md O-12, O-13).
+Still open: the reviewer setting (`reviewers: false` until `STAKR_MIN_REVIEWERS=1` is set or a second admin exists, see 2.5); a first real sign-up with email delivery, a photo upload and a settled challenge (section 3); deleting the stray `NODE_ENV` variable in Vercel (see 2.4); legal review (2.7); and switching on the sign-in lockout protection (2.8b; BUGS.md O-12, O-13).
 
 **Incident, same day.** Straight after the merge every sign-in and API route returned HTTP 500, because `ENCRYPTION_KEY` was not set in Vercel Production. The previous deployment had the same failure, so sign-in had been down since June. Fixed by adding the variable and redeploying; see BUGS.md B-026.
 
@@ -75,6 +75,14 @@ table is just ignored). To undo the migration itself: `DROP TABLE rate_limit_hit
 Nothing else in this release changes the production schema. (The 27/09/2026
 migrations from PR #10 are already applied.)
 
+### 2.2b Welcome-grant fingerprints: one more additive migration (DONE 04/11/2026)
+
+`migrations/2026-11-02_welcome-grants.sql` adds one table, `welcome_grants`, so the one-time welcome credits cannot be claimed again by deleting an account and registering the same email (BUGS.md B-027). It stores a keyed one-way hash, never the address. It is idempotent and touches nothing existing. Until the code that uses it is deployed the table simply sits empty; before it existed the app kept the older, weaker check.
+
+- [x] Rehearsed on 02/11/2026 on a temporary Neon branch of `main` (`br-rough-snowflake-a4ardvlz`): table count 64 to 65 (exactly one more), columns and primary key correct, the foreign key matches `users.id` (both `uuid`), a re-run is a no-op, and the code's own upsert behaved: the holder claims and can repeat, a different account on the same inbox is refused. The temporary branch (`rehearsal-welcome-grants-02-11-2026`) is disposable and can be deleted.
+- [x] **Applied to the production branch** (`main`, `br-rough-snowflake-a4ardvlz`, database `neondb`) on 04/11/2026 with your go-ahead, in one transaction with a 5-second lock timeout. Before: 64 tables, no `welcome_grants`, 8 users. After: 65 tables, the table with the three columns, its primary key and the foreign key to `users(id)`, 0 rows, the 8 users untouched, and `/api/health` still `ok` (`database`, `rateLimit: "database"`, `lifecycle.overdueJobs: 0`). Rollback if ever needed: `DROP TABLE welcome_grants;` (it holds only fingerprints, and the code falls back to the older check when the table is missing).
+- [ ] Have the Privacy Policy line about the fingerprint (section 7) included in the legal review (2.7).
+
 ### 2.3 Vercel plan
 
 - [ ] The cron in `vercel.json` runs **every 5 minutes**. Vercel's **Hobby plan only allows daily crons and will reject the deployment**. Use Pro, or accept daily settlement by changing the schedule to `0 3 * * *`.
@@ -96,7 +104,7 @@ Required:
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_BUCKET_NAME` | private evidence bucket                                                                                                                                      |
 | `ALPHA_ACCESS_PASSWORD` **or** `STAKR_ALPHA_GATE_DISABLED=true`               | see 2.1                                                                                                                                                      |
 
-Optional: `STAKR_MIN_REVIEWERS` (default `2`; `1` lets health pass with a single admin, see 2.5), `STAKR_WELCOME_CREDITS` (default `50`, `0` disables), `STAKR_ENTRY_FEE_BPS` (default `500` = 5%), `STAKR_PLATFORM_CUT_BPS` (default `2000` = 20%), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`.
+Optional: `STAKR_MIN_REVIEWERS` (default `2`; `1` lets health pass with a single admin, see 2.5), `STAKR_WELCOME_CREDITS` (default `50`, `0` disables), `STAKR_ENTRY_FEE_BPS` (default `500` = 5%), `STAKR_PLATFORM_CUT_BPS` (default `2000` = 20%), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, and the pair `TURNSTILE_SECRET_KEY` + `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (sign-in lockout protection, off unless **both** are set, see 2.8b).
 
 **Must NOT be set in production:** `ALLOW_DEV_AUTH`, `STAKR_LOCAL_NEON_PROXY`, `ENABLE_CASH_PAYMENTS=true`, and `NODE_ENV` (Vercel and Next.js set it themselves; a stray `NODE_ENV=development` makes every log line warn that it is being overridden, BUGS.md O-15).
 
@@ -140,8 +148,26 @@ Please have them checked, and ask specifically about:
 
 ### 2.8 GitHub
 
-- [ ] Fix the GitHub billing lock so Actions run (`.github/workflows/tests.yml` has the database job).
-- [ ] Let CI go green on this PR before merging.
+- [x] Actions run again (`.github/workflows/tests.yml` has the database job). Confirmed 04/11/2026: `verify` and `join-database` both passed on PR #13 at `0f3f1fb`, after the same two jobs had died in about 2 seconds with no runner on 02/11/2026 (and on `main` before that).
+- [ ] Let CI go green on any further commit to a PR before merging it.
+
+### 2.8b Sign-in lockout protection (optional, recommended before a public launch)
+
+Without this, anyone who knows an email address can keep that person out of password sign-in for 15 minutes at a time (BUGS.md B-028 / O-13). It adds Cloudflare Turnstile, a free "prove you're human" box on the sign-in form. It is **off** until you set both variables below, so skipping it changes nothing.
+
+1. Cloudflare dashboard → **Turnstile** → **Add widget**. Name it `Stakr sign-in`, add the hostname `stakr.app`, widget mode **Managed**. (A free Cloudflare account is enough; you do not need to move your DNS.)
+2. Copy the two keys it gives you. The **site key** is public. The **secret key** is private: do not paste it into chat, a commit or a screenshot.
+3. Vercel → Settings → Environment Variables → **Production**: add `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (the site key) and `TURNSTILE_SECRET_KEY` (the secret key).
+4. **Redeploy** (Deployments → ⋯ → Redeploy). This one matters twice over: the site key is baked into the page at build time, and the security policy header that lets Cloudflare's box load is built from it. Setting the variable without redeploying does nothing.
+5. Check: open https://stakr.app/auth/signin in a normal window, see the box appear, tick it, and confirm Sign In works. If instead the box shows an error, the **site key is wrong**: fix it, or delete both variables and redeploy (see below). Then try a private window with a content blocker on: you should see "The security check did not load properly" and a Sign In button that still works, which is refused with a "complete the security check" message while Cloudflare is up.
+
+What to expect and what it does not do:
+
+- Both keys must be set; one alone is ignored on purpose (by the form, the server and the security header alike), so a half-finished setup changes nothing.
+- If Cloudflare itself is down or unreachable, or the **secret** key is wrong, sign-in carries on exactly as before (the per-email limit still protects against password guessing). When the box cannot load, the form says so and still lets the person try; the server checks with Cloudflare itself.
+- **A wrong site key is the one setup mistake that blocks password sign-in:** the box shows an error and attempts are refused while Cloudflare is up. That is what step 5 above catches within seconds. If it happens, delete both variables and redeploy.
+- Google sign-in is unaffected. Someone who blocks Cloudflare's script is refused, with an explanation, while Cloudflare is up.
+- To switch it off again: delete both variables and redeploy.
 
 ### 2.9 Existing production data
 

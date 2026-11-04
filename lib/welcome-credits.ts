@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { withTransaction, type TransactionSql } from "@/lib/db/transaction";
 import { ChallengeError } from "@/lib/challenge-engine";
 import { creditDecimal } from "@/lib/credit-amounts";
@@ -62,6 +63,73 @@ async function lockMailbox(sql: TransactionSql, userId: string) {
 }
 
 /**
+ * One-way, keyed fingerprint of an inbox. It is kept after the account is
+ * deleted so the one-time grant cannot be claimed again by registering the same
+ * address, without keeping the address itself (it cannot be turned back into an
+ * email, and without the key it cannot even be checked against a guess).
+ * Rotating ENCRYPTION_KEY changes every fingerprint, which only re-opens the grant.
+ */
+function fingerprintOf(mailbox: string): string {
+  const key = process.env.ENCRYPTION_KEY?.trim();
+  if (!key && process.env.NODE_ENV === "production")
+    throw new Error("ENCRYPTION_KEY is required to fingerprint welcome grants");
+  return createHmac("sha256", key || "development-only-welcome-key")
+    .update("welcome-grant:v1:" + mailbox)
+    .digest("hex");
+}
+
+/** The welcome_grants table arrives with a migration; until then the per-account check above still applies. */
+async function hasGrantTable(sql: TransactionSql) {
+  const rows =
+    await sql`SELECT to_regclass('welcome_grants') IS NOT NULL AS ok`;
+  return Boolean(rows[0]?.ok);
+}
+
+/** An account whose email was already anonymised on deletion has no inbox left to remember. */
+const ANONYMISED = /@deleted\.invalid$/;
+
+/**
+ * Records this account's inbox fingerprint, or reports that another account
+ * already holds it. Idempotent for the holder. A no-op (true) before the
+ * migration and for an account with no usable email.
+ */
+async function holdFingerprint(sql: TransactionSql, userId: string) {
+  if (!(await hasGrantTable(sql))) return true;
+  const { mailbox } = await mailboxState(sql, userId);
+  if (!mailbox || ANONYMISED.test(mailbox)) return true;
+  const rows = await sql`INSERT INTO welcome_grants (fingerprint,user_id)
+    VALUES (${fingerprintOf(mailbox)},${userId})
+    ON CONFLICT (fingerprint) DO UPDATE SET user_id=welcome_grants.user_id
+      WHERE welcome_grants.user_id=${userId}
+    RETURNING user_id`;
+  return rows.length > 0;
+}
+
+/** True when a different account's fingerprint already covers this inbox. */
+async function fingerprintTaken(sql: TransactionSql, userId: string) {
+  if (!(await hasGrantTable(sql))) return false;
+  const { mailbox } = await mailboxState(sql, userId);
+  if (!mailbox || ANONYMISED.test(mailbox)) return false;
+  const rows = await sql`SELECT 1 FROM welcome_grants
+    WHERE fingerprint=${fingerprintOf(mailbox)} AND user_id<>${userId} LIMIT 1`;
+  return rows.length > 0;
+}
+
+/**
+ * Called as an account is deleted, before its email is anonymised: if it ever
+ * received the welcome credits, keep the inbox fingerprint so the address cannot
+ * claim them again. Covers grants made before the welcome_grants table existed.
+ */
+export async function keepWelcomeFingerprint(
+  sql: TransactionSql,
+  userId: string,
+) {
+  const granted = await sql`SELECT 1 FROM credit_transactions
+    WHERE user_id=${userId} AND transaction_type=${WELCOME_GRANT_TYPE} LIMIT 1`;
+  if (granted.length) await holdFingerprint(sql, userId);
+}
+
+/**
  * Grants the welcome credits at most once per verified user, and once per inbox.
  * The users-row lock serialises concurrent claims by one account, the mailbox
  * lock those by aliases of one inbox, and the grant is written to the same ledger
@@ -85,7 +153,10 @@ export async function claimWelcomeCredits(userId: string) {
     if (claimed.length)
       return { granted: false, amountCents: cents, balance: users[0].credits };
     await lockMailbox(sql, userId);
-    if ((await mailboxState(sql, userId)).taken)
+    if (
+      (await mailboxState(sql, userId)).taken ||
+      !(await holdFingerprint(sql, userId))
+    )
       throw new ChallengeError(
         "Welcome credits have already been claimed with this email address",
         409,
@@ -110,6 +181,7 @@ export async function welcomeCreditsOffer(sql: TransactionSql, userId: string) {
   const eligible =
     Boolean(rows[0]?.email_verified) &&
     !rows[0]?.claimed &&
-    !(await mailboxState(sql, userId)).taken;
+    !(await mailboxState(sql, userId)).taken &&
+    !(await fingerprintTaken(sql, userId));
   return { eligible, amount: cents / 100 };
 }

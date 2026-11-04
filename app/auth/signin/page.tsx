@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { BackgroundImage } from "@/components/ui/background-image";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,6 +17,10 @@ import {
   CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
+import {
+  TurnstileWidget,
+  turnstileConfigured,
+} from "@/components/auth/turnstile-widget";
 
 function SignInContent() {
   const router = useRouter();
@@ -27,6 +31,15 @@ function SignInContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  // The "prove you're human" check, when the owner has switched it on. A token works once,
+  // so the widget is remounted (new key) after every attempt to get a fresh one.
+  const challengeOn = turnstileConfigured();
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  // The box could not run (Cloudflare down, a content blocker). We then let the person try
+  // anyway; the server asks Cloudflare itself, so an outage does not stop password sign-in.
+  const [turnstileFailed, setTurnstileFailed] = useState(false);
+  const [widgetKey, setWidgetKey] = useState(0);
+  const markTurnstileFailed = useCallback(() => setTurnstileFailed(true), []);
 
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const errorParam = searchParams.get("error");
@@ -87,6 +100,7 @@ function SignInContent() {
       const result = await signIn("credentials", {
         email,
         password,
+        ...(challengeOn ? { turnstileToken: turnstileToken ?? "" } : {}),
         redirect: false,
       });
 
@@ -118,6 +132,9 @@ function SignInContent() {
               "Too many sign-in attempts. Please wait a few minutes and try again.",
             );
             break;
+          case "error=challenge_required":
+            setError("Please complete the security check, then try again.");
+            break;
           case "error=suspended":
             setError("Your account has been suspended");
             router.push("/auth/suspended");
@@ -138,6 +155,11 @@ function SignInContent() {
       setError("Connection error. Please try again.");
     } finally {
       setIsLoading(false);
+      if (challengeOn) {
+        setTurnstileToken(null);
+        setTurnstileFailed(false);
+        setWidgetKey((key) => key + 1);
+      }
     }
   };
 
@@ -316,9 +338,22 @@ function SignInContent() {
                   </div>
                 </div>
 
+                {challengeOn && (
+                  <div className="flex justify-center">
+                    <TurnstileWidget
+                      key={widgetKey}
+                      onToken={setTurnstileToken}
+                      onUnavailable={markTurnstileFailed}
+                    />
+                  </div>
+                )}
+
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={
+                    isLoading ||
+                    (challengeOn && !turnstileToken && !turnstileFailed)
+                  }
                   size="lg"
                   className="w-full h-14 bg-gradient-to-r from-[#F46036] to-[#D74E25] hover:from-[#ff724c] hover:to-[#e85a30] text-white font-heading font-bold text-lg shadow-xl shadow-orange-500/20 hover:shadow-orange-500/40 transition-all duration-300 transform hover:scale-[1.02] rounded-xl"
                 >
