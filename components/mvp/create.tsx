@@ -97,7 +97,7 @@ export function CreateChallenge() {
         </div>
         <fieldset className="space-y-3">
           <legend className="text-xl font-bold">UTC schedule</legend>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Both dates begin at 00:00 UTC. The end date is exclusive: a 1–8
             October challenge has seven proof days, 1–7 October.
           </p>
@@ -178,7 +178,7 @@ export function CreateChallenge() {
               </label>
             ))}
           </div>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Your contribution is deducted when you publish. Entry fee and
             platform cut are fixed at publication and displayed on the challenge
             before anyone joins.
@@ -222,7 +222,7 @@ export function CreateChallenge() {
               rows={4}
             />
           </label>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             A neutral admin reviews each submission. Rejected evidence has a
             24-hour appeal window. The host and participants cannot review their
             challenge.

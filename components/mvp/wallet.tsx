@@ -38,7 +38,9 @@ export function Wallet() {
             </section>
           </div>
           <section className={panel}>
-            <h2 className="mb-4 text-2xl font-bold">Credit history</h2>
+            <h2 className="mb-4 text-2xl font-heading font-bold tracking-tight">
+              Credit history
+            </h2>
             {!r.data.wallet.transactions.length ? (
               <p>No credit transactions yet.</p>
             ) : (
@@ -61,14 +63,14 @@ export function Wallet() {
                           {t.challengeId ? (
                             <Link
                               href={"/challenge/" + t.challengeId}
-                              className="text-orange-700 underline"
+                              className="text-orange-700 dark:text-[#F46036] underline"
                             >
                               {t.description}
                             </Link>
                           ) : (
                             t.description
                           )}
-                          <span className="block text-xs text-slate-500 sm:hidden">
+                          <span className="block text-xs text-slate-500 dark:text-slate-400 sm:hidden">
                             {utc(t.date)}
                           </span>
                         </td>

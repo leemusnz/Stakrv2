@@ -5,12 +5,14 @@ import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 
+// Visual language matches the alpha gate (app/alpha-gate/page.tsx): glass cards, the
+// #F46036 → #D74E25 brand gradient, light and dark variants (dark is the default theme).
 export const field =
-  "w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-950 focus:outline-none focus:ring-2 focus:ring-orange-500";
+  "w-full rounded-xl border border-slate-300 bg-white/70 p-3 text-slate-950 placeholder:text-slate-400 backdrop-blur-sm transition-colors focus:border-[#F46036] focus:outline-none focus:ring-2 focus:ring-[#F46036]/30 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:[color-scheme:dark]";
 export const button =
-  "inline-flex items-center justify-center rounded-xl bg-orange-700 px-5 py-3 font-semibold text-white hover:bg-orange-800 disabled:opacity-50 disabled:cursor-wait";
+  "inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#F46036] to-[#D74E25] px-5 py-3 font-heading font-bold text-white shadow-lg shadow-orange-500/20 transition-all duration-300 hover:from-[#ff724c] hover:to-[#e85a30] hover:shadow-orange-500/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F46036] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black disabled:cursor-wait disabled:opacity-50 aria-[pressed=false]:bg-none aria-[pressed=false]:border aria-[pressed=false]:border-slate-300 aria-[pressed=false]:bg-white/70 aria-[pressed=false]:text-slate-700 aria-[pressed=false]:shadow-none dark:aria-[pressed=false]:border-white/10 dark:aria-[pressed=false]:bg-white/5 dark:aria-[pressed=false]:text-slate-300";
 export const panel =
-  "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7";
+  "rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-xl backdrop-blur-2xl sm:p-7 dark:border-white/10 dark:bg-black/40 dark:shadow-2xl";
 export const money = (value: string | number) =>
   Number(value).toLocaleString("en", {
     minimumFractionDigits: 2,
@@ -93,12 +95,15 @@ export function Message({
   return error ? (
     <p
       role="alert"
-      className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800"
+      className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-800 backdrop-blur-sm dark:text-red-300"
     >
       {error}
     </p>
   ) : message ? (
-    <p role="status" className="rounded-xl bg-emerald-50 p-4 text-emerald-900">
+    <p
+      role="status"
+      className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-900 backdrop-blur-sm dark:text-emerald-300"
+    >
       {message}
     </p>
   ) : null;
@@ -113,7 +118,7 @@ export function LoadState({
   retry: () => void;
 }) {
   return loading ? (
-    <p role="status" className="py-6">
+    <p role="status" className="py-6 text-slate-600 dark:text-slate-400">
       Loading…
     </p>
   ) : error ? (
@@ -147,17 +152,34 @@ export function Shell({
   ];
   if (session?.user?.isAdmin) links.push(["/admin/challenges", "Admin"]);
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
-      <a href="#main" className="sr-only focus:not-sr-only">
+    <div className="relative min-h-screen overflow-x-clip bg-gradient-to-br from-slate-50 via-white to-slate-100 font-body text-slate-950 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] dark:text-white">
+      {/* Ambient glows and noise, as on the alpha gate. Fixed so they stay put while scrolling. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 overflow-hidden"
+      >
+        <div className="absolute -top-40 left-1/4 h-[600px] w-[600px] rounded-full bg-[#F46036] opacity-10 mix-blend-screen blur-[120px] filter dark:opacity-20" />
+        <div className="absolute -bottom-40 right-1/4 h-[500px] w-[500px] rounded-full bg-[#D74E25] opacity-[0.07] mix-blend-screen blur-[100px] filter dark:opacity-15" />
+        <div
+          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.015]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[#F46036] focus:px-4 focus:py-2 focus:text-white"
+      >
         Skip to content
       </a>
-      <header className="border-b border-slate-200 bg-white">
+      <header className="relative z-20 border-b border-slate-200 bg-white/70 backdrop-blur-2xl dark:border-white/10 dark:bg-black/40">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-5 px-5 py-5">
           <Link
             href="/dashboard"
-            className="text-3xl font-black tracking-tight text-orange-700"
+            className="font-heading text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
           >
-            stakr<span className="text-emerald-500">.</span>
+            stakr<span className="text-[#F46036]">.</span>
           </Link>
           <nav
             aria-label="Main navigation"
@@ -170,8 +192,8 @@ export function Shell({
                 aria-current={pathname === href ? "page" : undefined}
                 className={
                   pathname === href
-                    ? "text-orange-700 underline underline-offset-8"
-                    : "text-slate-600 hover:text-orange-700"
+                    ? "text-orange-700 underline decoration-2 underline-offset-8 dark:text-[#F46036]"
+                    : "text-slate-600 transition-colors hover:text-orange-700 dark:text-slate-400 dark:hover:text-[#F46036]"
                 }
               >
                 {label}
@@ -181,30 +203,44 @@ export function Shell({
           {session ? (
             <button
               onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-              className="text-sm text-slate-600"
+              className="text-sm text-slate-600 transition-colors hover:text-orange-700 dark:text-slate-400 dark:hover:text-[#F46036]"
             >
               Sign out
             </button>
           ) : (
-            <Link href="/auth/signin">Sign in</Link>
+            <Link
+              href="/auth/signin"
+              className="text-sm font-semibold text-orange-700 dark:text-[#F46036]"
+            >
+              Sign in
+            </Link>
           )}
         </div>
       </header>
-      <main id="main" className="mx-auto max-w-6xl space-y-6 px-5 py-10">
+      <main
+        id="main"
+        className="relative z-10 mx-auto max-w-6xl space-y-6 px-5 py-10"
+      >
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-orange-700">
+          <p className="mb-2 flex items-center gap-2 font-heading text-xs font-bold uppercase tracking-widest text-orange-700 dark:text-[#F46036]">
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 rounded-full bg-[#F46036]"
+            />
             Credit challenges
           </p>
-          <h1 className="text-4xl font-bold tracking-tight">{title}</h1>
+          <h1 className="font-heading text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+            {title}
+          </h1>
           {intro && (
-            <p className="mt-3 max-w-3xl leading-relaxed text-slate-600">
+            <p className="mt-3 max-w-3xl leading-relaxed text-slate-600 dark:text-slate-400">
               {intro}
             </p>
           )}
         </div>
         {children}
       </main>
-      <footer className="mx-auto flex max-w-6xl flex-wrap gap-5 px-5 py-8 text-sm text-slate-500">
+      <footer className="relative z-10 mx-auto flex max-w-6xl flex-wrap gap-5 border-t border-slate-200 px-5 py-8 text-sm text-slate-500 dark:border-white/10 dark:text-slate-400 [&_a:hover]:text-orange-700 dark:[&_a:hover]:text-[#F46036]">
         <span>
           All challenge times use UTC. Credits have no cash withdrawal value.
         </span>
