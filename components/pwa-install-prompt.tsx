@@ -1,143 +1,184 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Button } from './ui/button'
-import { X, Download, Smartphone } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useState, useEffect } from "react";
+import { Button } from "./ui/button";
+import { X, Download, Smartphone } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[]
+  readonly platforms: string[];
   readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed'
-    platform: string
-  }>
-  prompt(): Promise<void>
+    outcome: "accepted" | "dismissed";
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
+const DISMISS_KEY = "stakr-install-prompt-dismissed-at";
+const DISMISS_DAYS = 30;
+
+function wasRecentlyDismissed(): boolean {
+  try {
+    const at = Number(localStorage.getItem(DISMISS_KEY));
+    return (
+      Number.isFinite(at) &&
+      at > 0 &&
+      Date.now() - at < DISMISS_DAYS * 86_400_000
+    );
+  } catch {
+    return false; // storage blocked (private mode): fall back to showing it
+  }
+}
+
+function rememberDismissal() {
+  try {
+    localStorage.setItem(DISMISS_KEY, String(Date.now()));
+  } catch {
+    // storage blocked: it will simply be offered again next visit
+  }
 }
 
 export function PWAInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-  const [showPrompt, setShowPrompt] = useState(false)
-  const [isInstalled, setIsInstalled] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
+    // Respect a recent "Got it" / close (B-030): it used to come back 3 seconds later.
+    if (wasRecentlyDismissed()) return;
+
     // Check if already installed
     const checkIfInstalled = () => {
-      if (window.matchMedia('(display-mode: standalone)').matches) {
-        setIsInstalled(true)
-        return true
+      if (window.matchMedia("(display-mode: standalone)").matches) {
+        setIsInstalled(true);
+        return true;
       }
-      
+
       // Check for iOS Safari
       if ((window.navigator as any).standalone === true) {
-        setIsInstalled(true)
-        return true
+        setIsInstalled(true);
+        return true;
       }
-      
-      return false
-    }
+
+      return false;
+    };
 
     // Check if already installed
     if (checkIfInstalled()) {
-      return
+      return;
     }
 
     // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('📱 PWA install prompt received')
-      e.preventDefault()
-      setDeferredPrompt(e as BeforeInstallPromptEvent)
-      setShowPrompt(true)
-    }
+      console.log("📱 PWA install prompt received");
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setShowPrompt(true);
+    };
 
     // Listen for the appinstalled event
     const handleAppInstalled = () => {
-      console.log('🎉 PWA installed!')
-      setIsInstalled(true)
-      setShowPrompt(false)
-      setDeferredPrompt(null)
-    }
+      console.log("🎉 PWA installed!");
+      setIsInstalled(true);
+      setShowPrompt(false);
+      setDeferredPrompt(null);
+    };
 
     // Listen for service worker messages
     const handleServiceWorkerMessage = (event: MessageEvent) => {
-      if (event.data.type === 'PWA_INSTALL_PROMPT') {
-        setShowPrompt(true)
-      } else if (event.data.type === 'PWA_INSTALLED') {
-        setIsInstalled(true)
-        setShowPrompt(false)
+      if (event.data.type === "PWA_INSTALL_PROMPT") {
+        setShowPrompt(true);
+      } else if (event.data.type === "PWA_INSTALLED") {
+        setIsInstalled(true);
+        setShowPrompt(false);
       }
-    }
+    };
 
     // Add event listeners
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    window.addEventListener('appinstalled', handleAppInstalled)
-    
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
     // Listen for service worker messages
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage)
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener(
+        "message",
+        handleServiceWorkerMessage,
+      );
     }
 
     // Show prompt after a delay if not already installed
     const timer = setTimeout(() => {
-      if (!checkIfInstalled() && !showPrompt) {
+      if (!checkIfInstalled()) {
         // For iOS Safari, show custom install instructions
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
-        
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isSafari =
+          /Safari/.test(navigator.userAgent) &&
+          !/Chrome/.test(navigator.userAgent);
+
         if (isIOS && isSafari) {
-          setShowPrompt(true)
+          setShowPrompt(true);
         }
       }
-    }, 3000)
+    }, 3000);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage)
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.removeEventListener(
+          "message",
+          handleServiceWorkerMessage,
+        );
       }
-      clearTimeout(timer)
-    }
-  }, [showPrompt])
+      clearTimeout(timer);
+    };
+  }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return
+    if (!deferredPrompt) return;
 
     try {
       // Show the install prompt
-      await deferredPrompt.prompt()
-      
+      await deferredPrompt.prompt();
+
       // Wait for the user to respond
-      const { outcome } = await deferredPrompt.userChoice
-      
-      console.log(`📱 User ${outcome} the install prompt`)
-      
+      const { outcome } = await deferredPrompt.userChoice;
+
+      console.log(`📱 User ${outcome} the install prompt`);
+
       // Clear the deferred prompt
-      setDeferredPrompt(null)
-      setShowPrompt(false)
+      setDeferredPrompt(null);
+      setShowPrompt(false);
     } catch (error) {
-      console.error('❌ Error showing install prompt:', error)
+      console.error("❌ Error showing install prompt:", error);
     }
-  }
+  };
 
   const handleDismiss = () => {
-    setShowPrompt(false)
-    setDeferredPrompt(null)
-  }
+    rememberDismissal();
+    setShowPrompt(false);
+    setDeferredPrompt(null);
+  };
 
   // Don't show if already installed
   if (isInstalled) {
-    return null
+    return null;
   }
 
   // Don't show if prompt is dismissed
   if (!showPrompt) {
-    return null
+    return null;
   }
 
   // Check if it's iOS Safari (show custom instructions)
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-  const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
-  const isIOSSafari = isIOS && isSafari
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isSafari =
+    /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+  const isIOSSafari = isIOS && isSafari;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
@@ -163,18 +204,22 @@ export function PWAInstallPrompt() {
           <p className="text-sm text-muted-foreground">
             {isIOSSafari ? (
               <>
-                Add Stakr to your home screen for quick access and a better experience.
+                Add Stakr to your home screen for quick access and a better
+                experience.
               </>
             ) : (
               <>
-                Install Stakr as an app for quick access and offline functionality.
+                Install Stakr as an app for quick access and offline
+                functionality.
               </>
             )}
           </p>
 
           {isIOSSafari ? (
             <div className="text-xs text-muted-foreground space-y-1">
-              <p>1. Tap the share button <span className="inline-block">📤</span></p>
+              <p>
+                1. Tap the share button <span className="inline-block">📤</span>
+              </p>
               <p>2. Scroll down and tap &quot;Add to Home Screen&quot;</p>
               <p>3. Tap &quot;Add&quot; to install</p>
             </div>
@@ -188,11 +233,7 @@ export function PWAInstallPrompt() {
         {/* Actions */}
         <div className="flex gap-2">
           {!isIOSSafari && deferredPrompt && (
-            <Button
-              onClick={handleInstall}
-              size="sm"
-              className="flex-1"
-            >
+            <Button onClick={handleInstall} size="sm" className="flex-1">
               <Download className="w-4 h-4 mr-2" />
               Install
             </Button>
@@ -208,5 +249,5 @@ export function PWAInstallPrompt() {
         </div>
       </div>
     </div>
-  )
+  );
 }
