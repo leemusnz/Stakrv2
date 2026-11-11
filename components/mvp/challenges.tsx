@@ -3,8 +3,25 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
+  Brain,
+  CalendarDays,
+  Coins,
+  Dumbbell,
+  Leaf,
+  Plus,
+  Repeat,
+  Scale,
+  Search,
+  Target,
+  Trophy,
+  Users,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
+import {
   button,
   field,
+  IconTile,
   LoadState,
   money,
   panel,
@@ -13,6 +30,49 @@ import {
   utc,
 } from "./shell";
 import { WelcomeCredits } from "./welcome";
+
+const categoryIcons: Record<string, LucideIcon> = {
+  fitness: Dumbbell,
+  habit: Repeat,
+  skill: Brain,
+  wellness: Leaf,
+  productivity: Target,
+};
+
+/** Approved proof days against the days required, from real participation data. */
+export function ProofProgress({
+  approved,
+  required,
+}: {
+  approved: number;
+  required: number;
+}) {
+  const done = Math.max(0, Number(approved) || 0);
+  const pct = required > 0 ? Math.min(100, (done / required) * 100) : 0;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex justify-between text-sm">
+        <span>Proof days approved</span>
+        <span className="font-semibold">
+          {done}/{required}
+        </span>
+      </div>
+      <div
+        role="progressbar"
+        aria-label="Proof days approved"
+        aria-valuemin={0}
+        aria-valuemax={required}
+        aria-valuenow={done}
+        className="h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10"
+      >
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-[#F46036] to-[#D74E25] transition-all"
+          style={{ width: pct + "%" }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export function ChallengeList({ mine = false }: { mine?: boolean }) {
   const [filters, setFilters] = useState({
@@ -127,9 +187,15 @@ export function ChallengeList({ mine = false }: { mine?: boolean }) {
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {resource.data.challenges.map((c: any) => (
                 <article key={c.id} className={panel + " flex flex-col gap-3"}>
-                  <p className="text-xs font-bold uppercase tracking-wide text-orange-700 dark:text-[#F46036]">
-                    {c.category} · {c.status.replaceAll("_", " ")}
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <IconTile
+                      icon={categoryIcons[c.category] ?? Trophy}
+                      muted
+                    />
+                    <p className="text-xs font-bold uppercase tracking-wide text-orange-700 dark:text-[#F46036]">
+                      {c.category} · {c.status.replaceAll("_", " ")}
+                    </p>
+                  </div>
                   <h2 className="text-2xl font-heading font-bold tracking-tight">
                     <Link
                       href={"/challenge/" + c.id}
@@ -141,26 +207,45 @@ export function ChallengeList({ mine = false }: { mine?: boolean }) {
                   <p className="line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                     {c.description}
                   </p>
-                  <p className="text-sm">
-                    Starts {utc(c.start_date)}
-                    <br />
-                    Ends {utc(c.end_date)}
+                  <p className="flex gap-2 text-sm">
+                    <CalendarDays
+                      aria-hidden="true"
+                      className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400"
+                    />
+                    <span>
+                      Starts {utc(c.start_date)}
+                      <br />
+                      Ends {utc(c.end_date)}
+                    </span>
                   </p>
                   {c.lifecycle_version === 1 ? (
-                    <p className="text-sm">
-                      {c.lifecycle_policy.requiredDays} approved proof days
-                      required
-                      {mine
-                        ? ` · ${c.approved_days} approved`
-                        : ` · ${c.participants_count}/${c.max_participants} joined`}
-                    </p>
+                    mine && c.approved_days != null ? (
+                      <ProofProgress
+                        approved={c.approved_days}
+                        required={c.lifecycle_policy.requiredDays}
+                      />
+                    ) : (
+                      <p className="flex items-center gap-2 text-sm">
+                        <Users
+                          aria-hidden="true"
+                          className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400"
+                        />
+                        {c.lifecycle_policy.requiredDays} approved proof days
+                        required · {c.participants_count}/{c.max_participants}{" "}
+                        joined
+                      </p>
+                    )
                   ) : (
                     <p className="text-sm text-amber-800 dark:text-amber-300">
                       Legacy challenge awaiting an admin rules and credit
                       review.
                     </p>
                   )}
-                  <p className="font-semibold">
+                  <p className="flex items-center gap-2 font-semibold">
+                    <Coins
+                      aria-hidden="true"
+                      className="h-4 w-4 shrink-0 text-[#D74E25] dark:text-[#F46036]"
+                    />
                     {mine && c.stake_amount != null
                       ? `${money(c.stake_amount)} credits staked · ${c.completion_status.replaceAll("_", " ")}`
                       : `${money(c.min_stake)}–${money(c.max_stake)} credit stake`}
@@ -220,9 +305,12 @@ export function Dashboard() {
       )}
       <div className="grid gap-5 sm:grid-cols-2">
         <section className={panel}>
-          <h2 className="text-lg font-heading font-semibold tracking-tight">
-            Available credits
-          </h2>
+          <div className="flex items-center gap-3">
+            <IconTile icon={Wallet} />
+            <h2 className="text-lg font-heading font-semibold tracking-tight">
+              Available credits
+            </h2>
+          </div>
           <LoadState {...wallet} retry={wallet.refresh} />
           {wallet.data && (
             <>
@@ -239,9 +327,12 @@ export function Dashboard() {
           )}
         </section>
         <section className={panel}>
-          <h2 className="text-lg font-heading font-semibold tracking-tight">
-            Your commitments
-          </h2>
+          <div className="flex items-center gap-3">
+            <IconTile icon={Trophy} />
+            <h2 className="text-lg font-heading font-semibold tracking-tight">
+              Your commitments
+            </h2>
+          </div>
           <LoadState {...mine} retry={mine.refresh} />
           {mine.data && (
             <>
@@ -253,6 +344,32 @@ export function Dashboard() {
                   ).length
                 }
               </p>
+              <ul className="mb-4 space-y-3">
+                {mine.data.challenges
+                  .filter(
+                    (c: any) =>
+                      !["cancelled", "rewards_distributed"].includes(
+                        c.status,
+                      ) &&
+                      c.lifecycle_version === 1 &&
+                      c.approved_days != null,
+                  )
+                  .slice(0, 3)
+                  .map((c: any) => (
+                    <li key={c.id} className="space-y-1">
+                      <Link
+                        href={"/challenge/" + c.id}
+                        className="font-semibold hover:underline"
+                      >
+                        {c.title}
+                      </Link>
+                      <ProofProgress
+                        approved={c.approved_days}
+                        required={c.lifecycle_policy.requiredDays}
+                      />
+                    </li>
+                  ))}
+              </ul>
               <Link
                 href="/my-challenges"
                 className="text-orange-700 dark:text-[#F46036] underline"
@@ -264,9 +381,12 @@ export function Dashboard() {
         </section>
       </div>
       <section className={panel + " space-y-4"}>
-        <h2 className="text-2xl font-heading font-bold tracking-tight">
-          A fair finish starts with clear rules
-        </h2>
+        <div className="flex items-center gap-3">
+          <IconTile icon={Scale} muted />
+          <h2 className="text-2xl font-heading font-bold tracking-tight">
+            A fair finish starts with clear rules
+          </h2>
+        </div>
         <p className="max-w-3xl text-slate-600 dark:text-slate-400">
           Complete the required proof days to recover your stake and share the
           failed stakes and host contribution after the published platform cut.
@@ -274,10 +394,12 @@ export function Dashboard() {
           resolves them.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link href="/discover" className={button}>
+          <Link href="/discover" className={button + " gap-2"}>
+            <Search aria-hidden="true" className="h-4 w-4" />
             Find a challenge
           </Link>
-          <Link href="/create-challenge" className={button}>
+          <Link href="/create-challenge" className={button + " gap-2"}>
+            <Plus aria-hidden="true" className="h-4 w-4" />
             Host a challenge
           </Link>
         </div>

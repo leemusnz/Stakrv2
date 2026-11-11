@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Lock, Wallet as WalletIcon } from "lucide-react";
 import {
   button,
+  IconTile,
   LoadState,
   money,
   panel,
@@ -25,13 +27,19 @@ export function Wallet() {
         <>
           <div className="grid gap-5 sm:grid-cols-2">
             <section className={panel}>
-              <h2>Available balance</h2>
+              <div className="flex items-center gap-3">
+                <IconTile icon={WalletIcon} />
+                <h2>Available balance</h2>
+              </div>
               <p className="mt-3 text-4xl font-bold">
                 {money(r.data.wallet.balance)}
               </p>
             </section>
             <section className={panel}>
-              <h2>Stakes awaiting settlement</h2>
+              <div className="flex items-center gap-3">
+                <IconTile icon={Lock} muted />
+                <h2>Stakes awaiting settlement</h2>
+              </div>
               <p className="mt-3 text-4xl font-bold">
                 {money(r.data.wallet.totalStaked)}
               </p>

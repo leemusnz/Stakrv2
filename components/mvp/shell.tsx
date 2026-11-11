@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import type { LucideIcon } from "lucide-react";
+import { BackgroundImage } from "@/components/ui/background-image";
 
 // Visual language matches the alpha gate (app/alpha-gate/page.tsx): glass cards, the
 // #F46036 → #D74E25 brand gradient, light and dark variants (dark is the default theme).
@@ -18,7 +17,9 @@ export const money = (value: string | number) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-export function utc(value: string) {
+export function utc(value: string | null | undefined) {
+  // One missing date must not crash the whole page (B-030).
+  if (typeof value !== "string" || !value) return "Not scheduled";
   const date = new Date(
     /[zZ]|[+-]\d\d:?\d\d$/.test(value) ? value : value.replace(" ", "T") + "Z",
   );
@@ -130,6 +131,28 @@ export function LoadState({
     </div>
   ) : null;
 }
+/** Gradient icon tile, the same as on the alpha gate. */
+export function IconTile({
+  icon: Icon,
+  muted = false,
+}: {
+  icon: LucideIcon;
+  muted?: boolean;
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={
+        muted
+          ? "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#F46036]/20 bg-gradient-to-br from-[#F46036]/20 to-[#D74E25]/20 text-[#D74E25] backdrop-blur-sm dark:text-[#F46036]"
+          : "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#F46036] to-[#D74E25] text-white shadow-lg shadow-orange-500/20"
+      }
+    >
+      <Icon className="h-5 w-5" />
+    </span>
+  );
+}
+
 export function Shell({
   title,
   intro,
@@ -139,25 +162,24 @@ export function Shell({
   intro?: string;
   children: React.ReactNode;
 }) {
-  const pathname = usePathname(),
-    { data: session } = useSession();
-  const links = [
-    ["/dashboard", "Home"],
-    ["/discover", "Discover"],
-    ["/my-challenges", "My challenges"],
-    ["/create-challenge", "Create"],
-    ["/wallet", "Credits"],
-    ["/notifications", "Notifications"],
-    ["/profile", "Profile"],
-  ];
-  if (session?.user?.isAdmin) links.push(["/admin/challenges", "Admin"]);
+  // Navigation (top bar, phone bottom bar) and the site footer come from
+  // components/application-frame.tsx, the same as every other page (B-030).
   return (
-    <div className="relative min-h-screen overflow-x-clip bg-gradient-to-br from-slate-50 via-white to-slate-100 font-body text-slate-950 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] dark:text-white">
-      {/* Ambient glows and noise, as on the alpha gate. Fixed so they stay put while scrolling. */}
+    <div className="relative isolate min-h-screen overflow-x-clip bg-gradient-to-br from-slate-50 via-white to-slate-100 font-body text-slate-950 dark:from-[#0A0A0A] dark:via-[#1A1A1A] dark:to-[#0F0F0F] dark:text-white">
+      {/* Background photo, ambient glows and noise, as on the alpha gate. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 overflow-hidden"
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
       >
+        <div className="absolute inset-x-0 top-0 h-[75vh]">
+          <BackgroundImage
+            src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=75"
+            alt=""
+            className="h-full w-full object-cover grayscale-[30%] dark:grayscale-[50%]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/80 to-white/85 dark:from-black/80 dark:via-black/75 dark:to-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-50 dark:to-[#151515]" />
+        </div>
         <div className="absolute -top-40 left-1/4 h-[600px] w-[600px] rounded-full bg-[#F46036] opacity-10 mix-blend-screen blur-[120px] filter dark:opacity-20" />
         <div className="absolute -bottom-40 right-1/4 h-[500px] w-[500px] rounded-full bg-[#D74E25] opacity-[0.07] mix-blend-screen blur-[100px] filter dark:opacity-15" />
         <div
@@ -167,60 +189,7 @@ export function Shell({
           }}
         />
       </div>
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[#F46036] focus:px-4 focus:py-2 focus:text-white"
-      >
-        Skip to content
-      </a>
-      <header className="relative z-20 border-b border-slate-200 bg-white/70 backdrop-blur-2xl dark:border-white/10 dark:bg-black/40">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-5 px-5 py-5">
-          <Link
-            href="/dashboard"
-            className="font-heading text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
-          >
-            stakr<span className="text-[#F46036]">.</span>
-          </Link>
-          <nav
-            aria-label="Main navigation"
-            className="flex flex-1 flex-wrap gap-x-5 gap-y-3 text-sm font-semibold"
-          >
-            {links.map(([href, label]) => (
-              <Link
-                key={href}
-                href={href}
-                aria-current={pathname === href ? "page" : undefined}
-                className={
-                  pathname === href
-                    ? "text-orange-700 underline decoration-2 underline-offset-8 dark:text-[#F46036]"
-                    : "text-slate-600 transition-colors hover:text-orange-700 dark:text-slate-400 dark:hover:text-[#F46036]"
-                }
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-          {session ? (
-            <button
-              onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-              className="text-sm text-slate-600 transition-colors hover:text-orange-700 dark:text-slate-400 dark:hover:text-[#F46036]"
-            >
-              Sign out
-            </button>
-          ) : (
-            <Link
-              href="/auth/signin"
-              className="text-sm font-semibold text-orange-700 dark:text-[#F46036]"
-            >
-              Sign in
-            </Link>
-          )}
-        </div>
-      </header>
-      <main
-        id="main"
-        className="relative z-10 mx-auto max-w-6xl space-y-6 px-5 py-10"
-      >
+      <div className="mx-auto max-w-6xl space-y-6 px-5 py-10">
         <div>
           <p className="mb-2 flex items-center gap-2 font-heading text-xs font-bold uppercase tracking-widest text-orange-700 dark:text-[#F46036]">
             <span
@@ -239,14 +208,10 @@ export function Shell({
           )}
         </div>
         {children}
-      </main>
-      <footer className="relative z-10 mx-auto flex max-w-6xl flex-wrap gap-5 border-t border-slate-200 px-5 py-8 text-sm text-slate-500 dark:border-white/10 dark:text-slate-400 [&_a:hover]:text-orange-700 dark:[&_a:hover]:text-[#F46036]">
-        <span>
+        <p className="pt-4 text-sm text-slate-500 dark:text-slate-400">
           All challenge times use UTC. Credits have no cash withdrawal value.
-        </span>
-        <Link href="/terms">Terms</Link>
-        <Link href="/privacy">Privacy</Link>
-      </footer>
+        </p>
+      </div>
     </div>
   );
 }
