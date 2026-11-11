@@ -32,6 +32,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useEnhancedMobile } from "@/hooks/use-enhanced-mobile";
 import { useAvatar } from "@/hooks/use-avatar";
 import { cn } from "@/lib/utils";
+import { CREDITS_CHANGED } from "@/lib/credit-events";
 
 interface NavigationUser {
   name: string;
@@ -41,9 +42,16 @@ interface NavigationUser {
 }
 
 /** The signed-in user's real credit balance, refreshed on every page change. */
-function useCreditBalance() {
+export function useCreditBalance() {
   const pathname = usePathname();
   const [balance, setBalance] = useState<number | null>(null);
+  const [version, setVersion] = useState(0);
+  // Refetch after anything that may have moved credits, not only on page changes.
+  useEffect(() => {
+    const bump = () => setVersion((n) => n + 1);
+    window.addEventListener(CREDITS_CHANGED, bump);
+    return () => window.removeEventListener(CREDITS_CHANGED, bump);
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/user/credits", { cache: "no-store", signal: controller.signal })
@@ -54,7 +62,7 @@ function useCreditBalance() {
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [pathname]);
+  }, [pathname, version]);
   return balance;
 }
 

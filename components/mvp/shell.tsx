@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { BackgroundImage } from "@/components/ui/background-image";
+import { announceCreditsChanged } from "@/lib/credit-events";
 
 // Visual language matches the alpha gate (app/alpha-gate/page.tsx): glass cards, the
 // #F46036 → #D74E25 brand gradient, light and dark variants (dark is the default theme).
@@ -61,6 +62,8 @@ export async function api<T = any>(
           ? "Please sign in to continue."
           : "The request failed. Please retry."),
     );
+  // Every change (POST) may move credits; let the menu balance catch up.
+  if (body !== undefined) announceCreditsChanged();
   return data;
 }
 export function useResource<T = any>(url: string) {

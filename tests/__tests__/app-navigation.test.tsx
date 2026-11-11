@@ -17,6 +17,10 @@ import { utc } from "@/components/mvp/shell";
 const root = path.join(__dirname, "..", "..");
 const read = (file: string) => fs.readFileSync(path.join(root, file), "utf8");
 
+jest.mock("next/navigation", () => ({
+  usePathname: () => "/dashboard",
+  useRouter: () => ({ push: jest.fn() }),
+}));
 jest.mock("next-auth/react", () => ({
   useSession: () => ({
     data: { user: { email: "jane.doe@example.com" } },
@@ -35,7 +39,9 @@ describe("navigation (B-030)", () => {
 
   it("has no dead links, fake numbers or currency sign in the menu", () => {
     const nav = read("components/navigation.tsx");
-    expect(nav).not.toMatch(/href[:=]\s*"\/(social|my-active|admin)"|activeStakes/);
+    expect(nav).not.toMatch(
+      /href[:=]\s*"\/(social|my-active|admin)"|activeStakes/,
+    );
     // A "$" shown as text before a number (JSX text, not a JS template literal).
     expect(nav).not.toMatch(/(^|>)\s*\$\{/m);
     expect(nav).toContain('fetch("/api/user/credits"');
@@ -119,5 +125,34 @@ describe("install prompt (B-030)", () => {
     render(<PWAInstallPrompt />); // a fresh page load
     act(() => jest.advanceTimersByTime(10_000));
     expect(screen.queryByText("Install Stakr")).toBeNull();
+  });
+});
+
+describe("menu balance (B-030, Codex review of PR #15)", () => {
+  it("refreshes after a successful change, without a page change", async () => {
+    let balance = 0;
+    global.fetch = jest.fn(async (url: string, init?: RequestInit) => {
+      if (url === "/api/user/welcome-credits" && init?.method === "POST") {
+        balance = 50;
+        return { ok: true, json: async () => ({ success: true }) };
+      }
+      return { ok: true, json: async () => ({ wallet: { balance } }) };
+    }) as any;
+    const { useCreditBalance } = await import("@/components/navigation");
+    const { api } = await import("@/components/mvp/shell");
+    function Probe() {
+      const value = useCreditBalance();
+      return <span data-testid="balance">{String(value)}</span>;
+    }
+    render(<Probe />);
+    await waitFor(() =>
+      expect(screen.getByTestId("balance").textContent).toBe("0"),
+    );
+    await act(async () => {
+      await api("/api/user/welcome-credits", {});
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId("balance").textContent).toBe("50"),
+    );
   });
 });
