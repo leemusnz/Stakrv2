@@ -51,7 +51,9 @@ export function AdminChallenges() {
     >
       <Message error={error} message={message} />
       <section className={panel + " space-y-5"}>
-        <h2 className="text-2xl font-bold">Review queue</h2>
+        <h2 className="text-2xl font-heading font-bold tracking-tight">
+          Review queue
+        </h2>
         <LoadState {...proofs} retry={proofs.refresh} />
         {proofs.data?.proofs.length === 0 && (
           <p>No evidence or appeals awaiting review.</p>
@@ -59,9 +61,9 @@ export function AdminChallenges() {
         {proofs.data?.proofs.map((p: any) => (
           <article
             key={p.id}
-            className="space-y-3 rounded-xl border border-slate-200 p-4"
+            className="space-y-3 rounded-xl border border-slate-200 dark:border-white/10 p-4"
           >
-            <h3 className="text-xl font-bold">
+            <h3 className="text-xl font-heading font-bold tracking-tight">
               {p.challenge_title} ·{" "}
               {p.appeal_status === "pending" ? "Appeal" : "Proof review"}
             </h3>
@@ -70,13 +72,13 @@ export function AdminChallenges() {
               {utc(p.submitted_at)}
             </p>
             <Link
-              className="text-orange-700 underline"
+              className="text-orange-700 dark:text-[#F46036] underline"
               href={"/challenge/" + p.challenge_id}
             >
               Read published challenge rules
             </Link>
             {p.text_content && (
-              <p className="whitespace-pre-wrap break-words rounded-xl bg-slate-50 p-4">
+              <p className="whitespace-pre-wrap break-words rounded-xl bg-slate-50 dark:bg-white/5 p-4">
                 {p.text_content}
               </p>
             )}
@@ -120,14 +122,16 @@ export function AdminChallenges() {
         ))}
       </section>
       <section className={panel + " space-y-5"}>
-        <h2 className="text-2xl font-bold">Challenges</h2>
+        <h2 className="text-2xl font-heading font-bold tracking-tight">
+          Challenges
+        </h2>
         <LoadState {...r} retry={r.refresh} />
         {r.data?.challenges.map((c: any) => (
           <article
             key={c.id}
-            className="space-y-3 rounded-xl border border-slate-200 p-4"
+            className="space-y-3 rounded-xl border border-slate-200 dark:border-white/10 p-4"
           >
-            <h3 className="text-xl font-semibold">
+            <h3 className="text-xl font-heading font-semibold tracking-tight">
               <Link href={"/challenge/" + c.id} className="hover:underline">
                 {c.title}
               </Link>
@@ -137,7 +141,7 @@ export function AdminChallenges() {
               {c.last_error ? " · Processing needs review" : ""}
             </p>
             {c.lifecycle_version !== 1 ? (
-              <p className="text-amber-800">
+              <p className="text-amber-800 dark:text-amber-300">
                 Legacy rules or credits require reconciliation before lifecycle
                 processing can be enabled.
               </p>
@@ -210,7 +214,9 @@ export function AdminChallenges() {
         ))}
       </section>
       <section className={panel + " space-y-4"}>
-        <h2 className="text-2xl font-bold">Issue MVP credits</h2>
+        <h2 className="text-2xl font-heading font-bold tracking-tight">
+          Issue MVP credits
+        </h2>
         <p>
           Fund a test participant without cash payments. Grants record your
           identity, a reason and a matching credit ledger entry.
@@ -262,7 +268,9 @@ export function AdminChallenges() {
       <UserStatusForm />
       {r.data && (
         <section className={panel + " space-y-3"}>
-          <h2 className="text-2xl font-bold">Ledger reconciliation</h2>
+          <h2 className="text-2xl font-heading font-bold tracking-tight">
+            Ledger reconciliation
+          </h2>
           <p>
             {r.data.ledgerDrift.length
               ? "These balances differ from their credit ledger. Investigate opening balances and legacy writes before release."

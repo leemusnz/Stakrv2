@@ -32,7 +32,9 @@ export function UserStatusForm() {
   }
   return (
     <section className={panel + " space-y-4"}>
-      <h2 className="text-2xl font-bold">Account status</h2>
+      <h2 className="text-2xl font-heading font-bold tracking-tight">
+        Account status
+      </h2>
       <p>
         Suspend a user who breaks the rules, or restore one. A suspended user is
         signed out on their next request and cannot sign in. Staked credits stay

@@ -26,17 +26,22 @@ export function WelcomeCredits({
     }
   }
   return (
-    <section className={panel + " space-y-3 border-orange-300 bg-orange-50"}>
-      <h2 className="text-xl font-bold">
+    <section
+      className={
+        panel +
+        " space-y-3 !border-orange-300 !bg-orange-50/90 dark:!border-[#F46036]/30 dark:!bg-[#F46036]/10"
+      }
+    >
+      <h2 className="text-xl font-heading font-bold tracking-tight">
         Start with {money(amount)} free credits
       </h2>
-      <p className="text-slate-700">
+      <p className="text-slate-700 dark:text-slate-300">
         Challenges are joined with credits. Claim your one-time welcome credits
         to back your first challenge. Credits have no cash value and cannot be
         withdrawn.
       </p>
       {error && (
-        <p role="alert" className="text-red-700">
+        <p role="alert" className="text-red-700 dark:text-red-300">
           {error}
         </p>
       )}

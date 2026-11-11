@@ -26,7 +26,7 @@ export function EvidenceLink({ id }: { id: string }) {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-orange-700 underline"
+          className="text-orange-700 dark:text-[#F46036] underline"
         >
           Open private evidence (link expires in five minutes)
         </a>
@@ -34,7 +34,7 @@ export function EvidenceLink({ id }: { id: string }) {
         <button
           type="button"
           disabled={busy}
-          className="text-orange-700 underline"
+          className="text-orange-700 dark:text-[#F46036] underline"
           onClick={async () => {
             setBusy(true);
             setError("");
@@ -62,16 +62,18 @@ function ProofHistory({ id, paused }: { id: string; paused: boolean }) {
     [message, setMessage] = useState("");
   return (
     <section className={panel + " space-y-4"}>
-      <h2 className="text-2xl font-bold">Your evidence & appeals</h2>
+      <h2 className="text-2xl font-heading font-bold tracking-tight">
+        Your evidence & appeals
+      </h2>
       <LoadState {...r} retry={r.refresh} />
       <Message error={error} message={message} />
       {r.data?.checkins.length === 0 && <p>No proof submitted yet.</p>}
       {r.data?.checkins.map((p: any) => (
         <article
           key={p.id}
-          className="space-y-3 rounded-xl border border-slate-200 p-4"
+          className="space-y-3 rounded-xl border border-slate-200 dark:border-white/10 p-4"
         >
-          <h3 className="font-bold">
+          <h3 className="font-heading font-bold tracking-tight">
             {String(p.proof_day).slice(0, 10)} · {p.status.replaceAll("_", " ")}
           </h3>
           {p.text_content && (
@@ -153,7 +155,9 @@ function ProofForm({ c, onSaved }: { c: any; onSaved: () => void }) {
   const today = new Date().toISOString().slice(0, 10);
   return (
     <section className={panel}>
-      <h2 className="mb-4 text-2xl font-bold">Submit your daily proof</h2>
+      <h2 className="mb-4 text-2xl font-heading font-bold tracking-tight">
+        Submit your daily proof
+      </h2>
       <form
         className="space-y-4"
         onSubmit={async (e) => {
@@ -207,7 +211,9 @@ function ProofForm({ c, onSaved }: { c: any; onSaved: () => void }) {
           }
         }}
       >
-        <p className="text-slate-600">{c.proof_requirements?.description}</p>
+        <p className="text-slate-600 dark:text-slate-400">
+          {c.proof_requirements?.description}
+        </p>
         <label className="block">
           Proof day (UTC)
           <input
@@ -285,7 +291,9 @@ function JoinForm({ c, onJoined }: { c: any; onJoined: () => void }) {
   }
   return (
     <section className={panel + " space-y-4"}>
-      <h2 className="text-2xl font-bold">Back your commitment</h2>
+      <h2 className="text-2xl font-heading font-bold tracking-tight">
+        Back your commitment
+      </h2>
       <form
         className="space-y-4"
         onSubmit={async (e) => {
@@ -324,7 +332,7 @@ function JoinForm({ c, onJoined }: { c: any; onJoined: () => void }) {
           {c.entry_fee_percentage}%). Total deducted:{" "}
           <strong>{creditDecimal(total)}</strong> credits.
         </p>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           The entry fee is not part of the prize pool. Successful participants
           recover their own stake and receive an equal share of failed stakes
           plus the host contribution after the {c.failed_stake_cut}% platform
@@ -363,10 +371,12 @@ export function ChallengeDetail({ id }: { id: string }) {
         <>
           <div className="grid gap-5 md:grid-cols-3">
             <section className={panel + " space-y-3 md:col-span-2"}>
-              <p className="font-semibold text-orange-700">
+              <p className="font-semibold text-orange-700 dark:text-[#F46036]">
                 {c.category} · {c.status.replaceAll("_", " ")}
               </p>
-              <h2 className="text-2xl font-bold">Published rules</h2>
+              <h2 className="text-2xl font-heading font-bold tracking-tight">
+                Published rules
+              </h2>
               <p>Hosted by {c.host_name || "a Stakr member"}</p>
               <ul className="list-disc space-y-2 pl-5">
                 {(c.rules || []).map((rule: string, i: number) => (
@@ -386,7 +396,7 @@ export function ChallengeDetail({ id }: { id: string }) {
                   <p className="whitespace-pre-wrap">
                     {c.proof_requirements?.description}
                   </p>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
                     One current proof per UTC day. Admins who host or
                     participate cannot review this challenge. You have{" "}
                     {c.lifecycle_policy.appealSeconds / 3600} hours after
@@ -397,7 +407,9 @@ export function ChallengeDetail({ id }: { id: string }) {
               )}
             </section>
             <section className={panel + " space-y-3"}>
-              <h2 className="text-xl font-bold">Dates & pool</h2>
+              <h2 className="text-xl font-heading font-bold tracking-tight">
+                Dates & pool
+              </h2>
               <p>Start: {utc(c.start_date)}</p>
               <p>End: {utc(c.end_date)}</p>
               {canonical && (
@@ -417,7 +429,7 @@ export function ChallengeDetail({ id }: { id: string }) {
               <p>{money(c.total_stake_pool)} credits staked</p>
               <p>{money(c.host_contribution)} funded by host</p>
               {p && (
-                <p className="rounded-xl bg-orange-50 p-3 font-semibold">
+                <p className="rounded-xl bg-orange-50 dark:bg-[#F46036]/10 p-3 font-semibold">
                   Your stake: {money(p.stake_amount)}
                   <br />
                   Your outcome: {p.completion_status.replaceAll("_", " ")}
@@ -456,7 +468,7 @@ export function ChallengeDetail({ id }: { id: string }) {
           )}
           {r.data.settlement && (
             <section className={panel + " space-y-3"}>
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-2xl font-heading font-bold tracking-tight">
                 {r.data.settlement.kind === "settlement"
                   ? "Settlement complete"
                   : "Cancellation complete"}

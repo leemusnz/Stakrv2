@@ -106,12 +106,12 @@ export function ChallengeList({ mine = false }: { mine?: boolean }) {
         <>
           {resource.data.challenges.length === 0 ? (
             <div className={panel}>
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-xl font-heading font-semibold tracking-tight">
                 {mine
                   ? "No challenges joined yet"
                   : "No challenges match these filters"}
               </h2>
-              <p className="my-3 text-slate-600">
+              <p className="my-3 text-slate-600 dark:text-slate-400">
                 {mine
                   ? "Browse upcoming challenges and choose a commitment that fits."
                   : "Try another filter or create a challenge with clear proof rules."}
@@ -127,10 +127,10 @@ export function ChallengeList({ mine = false }: { mine?: boolean }) {
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {resource.data.challenges.map((c: any) => (
                 <article key={c.id} className={panel + " flex flex-col gap-3"}>
-                  <p className="text-xs font-bold uppercase tracking-wide text-orange-700">
+                  <p className="text-xs font-bold uppercase tracking-wide text-orange-700 dark:text-[#F46036]">
                     {c.category} · {c.status.replaceAll("_", " ")}
                   </p>
-                  <h2 className="text-2xl font-bold">
+                  <h2 className="text-2xl font-heading font-bold tracking-tight">
                     <Link
                       href={"/challenge/" + c.id}
                       className="hover:underline"
@@ -138,7 +138,7 @@ export function ChallengeList({ mine = false }: { mine?: boolean }) {
                       {c.title}
                     </Link>
                   </h2>
-                  <p className="line-clamp-3 text-sm leading-relaxed text-slate-600">
+                  <p className="line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                     {c.description}
                   </p>
                   <p className="text-sm">
@@ -155,7 +155,7 @@ export function ChallengeList({ mine = false }: { mine?: boolean }) {
                         : ` · ${c.participants_count}/${c.max_participants} joined`}
                     </p>
                   ) : (
-                    <p className="text-sm text-amber-800">
+                    <p className="text-sm text-amber-800 dark:text-amber-300">
                       Legacy challenge awaiting an admin rules and credit
                       review.
                     </p>
@@ -220,21 +220,28 @@ export function Dashboard() {
       )}
       <div className="grid gap-5 sm:grid-cols-2">
         <section className={panel}>
-          <h2 className="text-lg font-semibold">Available credits</h2>
+          <h2 className="text-lg font-heading font-semibold tracking-tight">
+            Available credits
+          </h2>
           <LoadState {...wallet} retry={wallet.refresh} />
           {wallet.data && (
             <>
               <p className="my-4 text-4xl font-bold">
                 {money(wallet.data.wallet.balance)}
               </p>
-              <Link href="/wallet" className="text-orange-700 underline">
+              <Link
+                href="/wallet"
+                className="text-orange-700 dark:text-[#F46036] underline"
+              >
                 View credit history
               </Link>
             </>
           )}
         </section>
         <section className={panel}>
-          <h2 className="text-lg font-semibold">Your commitments</h2>
+          <h2 className="text-lg font-heading font-semibold tracking-tight">
+            Your commitments
+          </h2>
           <LoadState {...mine} retry={mine.refresh} />
           {mine.data && (
             <>
@@ -246,7 +253,10 @@ export function Dashboard() {
                   ).length
                 }
               </p>
-              <Link href="/my-challenges" className="text-orange-700 underline">
+              <Link
+                href="/my-challenges"
+                className="text-orange-700 dark:text-[#F46036] underline"
+              >
                 Review deadlines and submit proof
               </Link>
             </>
@@ -254,10 +264,10 @@ export function Dashboard() {
         </section>
       </div>
       <section className={panel + " space-y-4"}>
-        <h2 className="text-2xl font-bold">
+        <h2 className="text-2xl font-heading font-bold tracking-tight">
           A fair finish starts with clear rules
         </h2>
-        <p className="max-w-3xl text-slate-600">
+        <p className="max-w-3xl text-slate-600 dark:text-slate-400">
           Complete the required proof days to recover your stake and share the
           failed stakes and host contribution after the published platform cut.
           Pending evidence and appeals hold settlement until a neutral reviewer

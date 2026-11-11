@@ -14,7 +14,10 @@ export default async function Page({
           can cancel with an explicit refund policy before a corrected challenge
           is created.
         </p>
-        <Link href={"/challenge/" + id} className="text-violet-700 underline">
+        <Link
+          href={"/challenge/" + id}
+          className="text-orange-700 dark:text-[#F46036] underline"
+        >
           Return to challenge
         </Link>
       </div>

@@ -18,7 +18,7 @@ import {
 
 const stat = (label: string, value: string | number) => (
   <div>
-    <dt className="text-sm text-slate-600">{label}</dt>
+    <dt className="text-sm text-slate-600 dark:text-slate-400">{label}</dt>
     <dd className="text-3xl font-bold">{value}</dd>
   </div>
 );
@@ -37,8 +37,10 @@ export function ProfilePage() {
       {profile && (
         <section className={panel + " space-y-5"}>
           <div>
-            <h2 className="text-2xl font-bold">{profile.name}</h2>
-            <p className="text-slate-600">
+            <h2 className="text-2xl font-heading font-bold tracking-tight">
+              {profile.name}
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400">
               @{profile.username} · Member since{" "}
               {utc(profile.createdAt).replace(/, .*$/, "")}
             </p>
@@ -139,7 +141,9 @@ export function SettingsPage() {
       {profile && (
         <>
           <section className={panel + " space-y-4"}>
-            <h2 className="text-2xl font-bold">Your details</h2>
+            <h2 className="text-2xl font-heading font-bold tracking-tight">
+              Your details
+            </h2>
             <Message error={error} message={message} />
             <form className="space-y-3" onSubmit={save}>
               <label className="block">
@@ -162,7 +166,7 @@ export function SettingsPage() {
                   aria-readonly
                 />
               </label>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 {profile.emailVerified
                   ? "Email verified."
                   : "Email not verified."}{" "}
@@ -178,8 +182,10 @@ export function SettingsPage() {
           </section>
 
           <section className={panel + " space-y-4"}>
-            <h2 className="text-2xl font-bold">Your data</h2>
-            <p className="text-slate-700">
+            <h2 className="text-2xl font-heading font-bold tracking-tight">
+              Your data
+            </h2>
+            <p className="text-slate-700 dark:text-slate-300">
               Download a copy of the personal information Stakr holds about you:
               profile, credit history, challenges, evidence you submitted and
               notifications. Passwords are never included.
@@ -190,8 +196,10 @@ export function SettingsPage() {
           </section>
 
           <section className={panel + " space-y-4"}>
-            <h2 className="text-2xl font-bold">Delete my account</h2>
-            <p className="text-slate-700">
+            <h2 className="text-2xl font-heading font-bold tracking-tight">
+              Delete my account
+            </h2>
+            <p className="text-slate-700 dark:text-slate-300">
               This removes your name, email and login permanently. Any credits
               you have left are forfeited. You cannot delete your account while
               you host or take part in a challenge that has not finished,
@@ -269,26 +277,28 @@ export function NotificationsPage() {
             </button>
           </div>
           {items.length === 0 ? (
-            <p className="py-6 text-slate-600">
+            <p className="py-6 text-slate-600 dark:text-slate-400">
               No notifications yet. Decisions on your evidence will appear here.
             </p>
           ) : (
-            <ul className="divide-y divide-slate-200">
+            <ul className="divide-y divide-slate-200 dark:divide-white/10">
               {items.map((n) => (
                 <li key={n.id} className="py-4">
                   <p className={n.read ? "font-medium" : "font-bold"}>
                     {!n.read && <span className="sr-only">Unread: </span>}
                     {n.title}
                   </p>
-                  <p className="text-slate-700">{n.message}</p>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {n.message}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     {utc(n.timestamp)}
                     {n.actionUrl && (
                       <>
                         {" · "}
                         <Link
                           href={n.actionUrl}
-                          className="text-orange-700 underline"
+                          className="text-orange-700 dark:text-[#F46036] underline"
                         >
                           View
                         </Link>

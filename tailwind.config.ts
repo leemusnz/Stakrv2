@@ -21,9 +21,9 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        sans: ["var(--font-manrope)", "system-ui", "sans-serif"],
         heading: ["var(--font-bricolage)", "sans-serif"],
-        body: ["var(--font-inter)", "sans-serif"],
+        body: ["var(--font-manrope)", "sans-serif"],
         mono: ["var(--font-teko)", "monospace"],
       },
       colors: {
