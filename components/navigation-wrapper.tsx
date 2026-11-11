@@ -1,33 +1,33 @@
-'use client'
+"use client";
 
-import { useSession, signOut } from 'next-auth/react'
-import { useRouter, usePathname } from 'next/navigation'
-import { Navigation } from './navigation'
-import { MobileBottomNavigation } from './mobile-bottom-navigation'
-import { Button } from './ui/button'
-import Link from 'next/link'
-import { Logo } from './logo'
-import { useUserAvatar } from '@/hooks/use-user-avatar'
-import { ThemeToggle } from './theme-toggle'
+import { useSession, signOut } from "next-auth/react";
+import { useRouter, usePathname } from "next/navigation";
+import { Navigation } from "./navigation";
+import { MobileBottomNavigation } from "./mobile-bottom-navigation";
+import { Button } from "./ui/button";
+import Link from "next/link";
+import { Logo } from "./logo";
+import { useUserAvatar } from "@/hooks/use-user-avatar";
+import { ThemeToggle } from "./theme-toggle";
 
 export function NavigationWrapper() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const pathname = usePathname()
-  const { avatarUrl } = useUserAvatar()
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { avatarUrl } = useUserAvatar();
 
   // Check if we're on onboarding, auth, or alpha gate pages
-  const isOnOnboarding = pathname?.startsWith('/onboarding')
-  const isOnAuthPage = pathname?.startsWith('/auth/') || pathname === '/auth'
-  const isOnAlphaGate = pathname === '/alpha-gate'
+  const isOnOnboarding = pathname?.startsWith("/onboarding");
+  const isOnAuthPage = pathname?.startsWith("/auth/") || pathname === "/auth";
+  const isOnAlphaGate = pathname === "/alpha-gate";
 
   // Hide navigation completely on alpha gate page
   if (isOnAlphaGate) {
-    return null
+    return null;
   }
 
   // Show loading state
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -37,7 +37,7 @@ export function NavigationWrapper() {
           <div className="h-8 w-20 bg-muted animate-pulse rounded" />
         </div>
       </nav>
-    )
+    );
   }
 
   // Show contextual nav if not authenticated
@@ -48,7 +48,7 @@ export function NavigationWrapper() {
           <Link href="/" className="flex items-center">
             <Logo variant="full" className="h-8" />
           </Link>
-          
+
           <div className="flex items-center gap-4">
             <ThemeToggle />
             {/* Show different navigation based on context */}
@@ -85,38 +85,33 @@ export function NavigationWrapper() {
           </div>
         </div>
       </nav>
-    )
+    );
   }
 
   // Create user object from session with consistent avatar handling
   const navigationUser = {
-    name: session.user?.name || 'User',
-    avatar: avatarUrl || '/placeholder.svg', // Use unified avatar from hook
-    credits: session.user?.credits || 0,
-    activeStakes: 2, // This would come from API call in real app
+    name: session.user?.name || "User",
+    avatar: avatarUrl || "/placeholder.svg", // Use unified avatar from hook
     isAdmin: session.user?.isAdmin || false,
-    isDev: session.user?.isDev || false // Added isDev for dev tools link
-  }
+    isDev: session.user?.isDev || false, // Added isDev for dev tools link
+  };
 
   // Enhanced logout handler
   const handleLogout = async () => {
-    await signOut({ 
-      callbackUrl: '/alpha-gate',
-      redirect: true 
-    })
-  }
+    await signOut({
+      callbackUrl: "/alpha-gate",
+      redirect: true,
+    });
+  };
 
   // Return your existing Navigation with real user data and logout
   return (
     <>
-      <Navigation 
-        user={navigationUser}
-        onLogout={handleLogout}
-      />
-      <MobileBottomNavigation 
+      <Navigation user={navigationUser} onLogout={handleLogout} />
+      <MobileBottomNavigation
         notificationCount={0} // This would come from API call in real app
-        onCreateChallenge={() => router.push('/create-challenge')}
+        onCreateChallenge={() => router.push("/create-challenge")}
       />
     </>
-  )
+  );
 }

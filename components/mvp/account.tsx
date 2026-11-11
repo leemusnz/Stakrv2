@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { signOut } from "next-auth/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUserAvatar } from "@/hooks/use-user-avatar";
 import {
   api,
   button,
@@ -28,6 +30,7 @@ export function ProfilePage() {
   const joined = useResource("/api/user/challenges");
   const hosted = useResource("/api/user/challenges?scope=hosted");
   const profile = me.data?.profile;
+  const { avatarUrl } = useUserAvatar();
   const completed = (joined.data?.challenges ?? []).filter(
     (c: any) => c.completion_status === "completed",
   ).length;
@@ -36,16 +39,26 @@ export function ProfilePage() {
       <LoadState {...me} retry={me.refresh} />
       {profile && (
         <section className={panel + " space-y-5"}>
-          <div>
-            <h2 className="text-2xl font-heading font-bold tracking-tight">
-              {profile.name}
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400">
-              @{profile.username} · Member since{" "}
-              {utc(profile.createdAt).replace(/, .*$/, "")}
-            </p>
+          <div className="flex items-center gap-4">
+            <Avatar className="h-20 w-20 ring-2 ring-[#F46036]/40 ring-offset-2 ring-offset-white dark:ring-offset-black">
+              {avatarUrl && <AvatarImage src={avatarUrl} alt="" />}
+              <AvatarFallback className="bg-gradient-to-br from-[#F46036] to-[#D74E25] font-heading text-2xl font-bold text-white">
+                {String(profile.name || "?")
+                  .charAt(0)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h2 className="text-2xl font-heading font-bold tracking-tight">
+                {profile.name}
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400">
+                @{profile.username} · Member since{" "}
+                {utc(profile.createdAt).replace(/, .*$/, "")}
+              </p>
+            </div>
           </div>
-          <dl className="grid gap-5 sm:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-5 sm:grid-cols-4">
             {stat("Credits", money(profile.credits))}
             {stat("Level", profile.level)}
             {stat(
@@ -54,7 +67,7 @@ export function ProfilePage() {
             )}
             {stat("Completed", joined.data ? completed : "…")}
           </dl>
-          <dl className="grid gap-5 sm:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-5 sm:grid-cols-4">
             {stat(
               "Challenges hosted",
               hosted.data ? hosted.data.challenges.length : "…",
